@@ -1,7 +1,7 @@
 {
-  "versionCode": 19,
-  "versionName": "0.19",
+  "versionCode": 20,
+  "versionName": "0.20",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "48b113bed4a0dfec03c7c36706d7c332af6ec70d17838b44e47a8e6e495b1286",
-  "releaseNotes": "Lange Übersichten sind jetzt vollständig scrollbar, auch auf Geräten mit Edge-to-Edge-Layout."
+  "sha256": "df25347051b2391203878579edba0ea257d56e99bb4c0c3b54f86d2548c6146b",
+  "releaseNotes": "Der Lade-Tab zeigt jetzt die Kapazitätsschätzung; die Monitor-Benachrichtigung enthält ausführlichere lokale Messwerte."
 }
