@@ -1,7 +1,7 @@
 {
-  "versionCode": 8,
-  "versionName": "0.8",
+  "versionCode": 10,
+  "versionName": "0.10",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "fbd01698cb484037bd85d6974c2e8bb3736def53d4a97e434107a55fbacd07d1",
-  "releaseNotes": "Lokale Daten können jetzt vollständig gelöscht werden; Restore ersetzt alte Restdaten."
+  "sha256": "41f41d974f9955e82bd12a25d48ce38aa3bbead4804cb43d21fa5771c04323f8",
+  "releaseNotes": "Optionale lokale Vordergrund-App-Zuordnung verbessert die Entladungsanalyse; Updatepfad auf älteren Android-Versionen ist robuster."
 }
