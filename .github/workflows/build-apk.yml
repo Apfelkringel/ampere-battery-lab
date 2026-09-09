@@ -52,7 +52,7 @@ jobs:
       - name: Verify release signing identity
         run: |
           expected="eabc1c630a28daf5fff5f67c70d4382d16784da89019321bb107da41abb60eba"
-          actual=$("$ANDROID_HOME/build-tools/37.0.0/apksigner" verify --print-certs android/app/build/outputs/apk/release/app-release.apk | awk -F': ' '/SHA-256 digest/ { print $2; exit }')
+          actual=$("$ANDROID_HOME/build-tools/37.0.0/apksigner" verify --print-certs android/app/build/outputs/apk/release/app-release.apk | awk -F': ' '/SHA-256 digest/ { print $NF; exit }')
           test "$actual" = "$expected"
 
       - name: Upload APK artifact
