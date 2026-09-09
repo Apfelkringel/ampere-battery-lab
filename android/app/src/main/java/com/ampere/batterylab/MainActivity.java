@@ -1496,7 +1496,6 @@ class BatteryDashboard extends View {
         text(c, "Source: " + chargerTypeDisplay(), 36, y + 169, 9, faint, false);
         rounded(c, 36, y + 205, w - 36, y + 209, 3, border);
         rounded(c, 36, y + 205, 36 + (w - 72) * chargeLimit / 100f, y + 209, 3, lime);
-        text(c, "Charge speed on / off: " + chargeSpeed(true) + " / " + chargeSpeed(false), 36, y + 238, 9, faint, false);
         text(c, "Wear impact to target", 36, y + 258, 9, muted, false);
         text(c, wearImpactToTarget(), w - 126, y + 258, 9, amber, true);
         rounded(c, 36, y + 287, w - 36, y + 317, 7, raised);
