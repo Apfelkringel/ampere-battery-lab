@@ -1,7 +1,7 @@
 {
-  "versionCode": 14,
-  "versionName": "0.14",
+  "versionCode": 15,
+  "versionName": "0.15",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "d1db1186fbfe31326b28022e16c0b834e23af0e31e3e9f0baa336dac6d21da54",
-  "releaseNotes": "Sitzungsdetails und CSV-Export zeigen jetzt den Beitrag zu vollständigen Akkuzyklen."
+  "sha256": "1639be25567c1d6679f1f318a2f9a97bf1f71a9a04dad2791c7071e12ec81304",
+  "releaseNotes": "Verlaufskarten zeigen jetzt Durchschnitt sowie Minimum/Maximum der lokalen Messreihe."
 }
