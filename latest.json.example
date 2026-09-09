@@ -1,7 +1,7 @@
 {
-  "versionCode": 43,
-  "versionName": "0.43",
+  "versionCode": 44,
+  "versionName": "0.44",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "2e39cb1f1c73c99b8fc8f4491ba38c4030c21dcb2f1bb316b2ccf90e169d22c3",
-  "releaseNotes": "Update-Downloads werden nach einem App-Prozess-Neustart weiter verarbeitet und vor der Installation erneut geprüft."
+  "sha256": "0d5d28bfb5179dbca548d40ffb6ba34550cd156596aa29012223682fb045372a",
+  "releaseNotes": "Das Live-Overlay zeigt neben CPU-Kernen und Top-App jetzt best-effort auch die Prozessauslastung der Top-App."
 }
