@@ -49,6 +49,12 @@ jobs:
           AMPERE_KEY_PASSWORD: android
         run: gradle -p android :app:assembleRelease -x lintVitalAnalyzeRelease
 
+      - name: Verify release signing identity
+        run: |
+          expected="eabc1c630a28daf5fff5f67c70d4382d16784da89019321bb107da41abb60eba"
+          actual=$("$ANDROID_HOME/build-tools/37.0.0/apksigner" verify --print-certs android/app/build/outputs/apk/release/app-release.apk | awk -F': ' '/SHA-256 digest/ { print $2; exit }')
+          test "$actual" = "$expected"
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
