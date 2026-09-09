@@ -2,6 +2,7 @@ node_modules/
 dist/
 .DS_Store
 tooling/android-avd/
+tooling/android-sdk/
 prototypes/web/node_modules/
 prototypes/web/dist/
 android/.gradle/

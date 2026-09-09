@@ -9,6 +9,7 @@ artifacts/                  Locally delivered debug/release APK copies
 docs/                       Project notes and structure documentation
 prototypes/web/             Optional Vite/React visual prototype
 tooling/android-avd/        Local emulator images and state (not source data)
+tooling/android-sdk/        External-SSD Android SDK/system images (not source data)
 .github/workflows/          CI release build and signing checks
 latest.json.example         Example for the public update manifest
 README.md                   User/install/development documentation
@@ -20,8 +21,9 @@ contains only the signed APK, its hash manifest and release documentation.
 
 Generated directories (`android/build`, `android/app/build`, `android/.gradle`,
 `prototypes/web/node_modules`, `prototypes/web/dist` and the local AVD state)
-are ignored by Git. They are retained on the external SSD only when the local
-workspace needs them for reproducible testing.
+are ignored by Git. The API-37 SDK/system image is also kept under
+`tooling/android-sdk` on the external SSD and is ignored by Git. These generated
+assets are retained only when local reproducible testing needs them.
 
 The canonical workspace location is:
 
