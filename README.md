@@ -34,6 +34,7 @@ Kostenlose, lokal arbeitende Android-Batterieanalyse als eigenständige Implemen
 - App-Verbrauchsschätzung berücksichtigt die tatsächlichen Zeitabstände der lokalen Messpunkte
 - strombasierte mAh-Fallbacks berücksichtigen auch gewählte 60-Minuten-Messintervalle
 - 30-Tage-History passt die gespeicherte Punktzahl automatisch an das gewählte Messintervall an
+- lokale Telemetrie behält ebenfalls ungefähr 30 Tage bei jeder Messfrequenz (5/15/30/60 Minuten)
 - Ladezeit-Prognosen nutzen lokale 7-Tage-Laderaten, wenn Android keinen Systemwert liefert
 - Health-Baseline kann nach einem Akkutausch zurückgesetzt werden, ohne History oder Telemetrie zu löschen
 - adaptive Darstellung ohne erzwungenes Hochformat für aktuelle Android-16/17-Geräte

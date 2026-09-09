@@ -31,7 +31,6 @@ import java.util.Locale;
 public class BatteryMonitorService extends Service {
     private static final String CHANNEL_ID = "ampere-monitor";
     private static final String ALARM_CHANNEL_ID = "ampere-charge-alarm";
-    private static final int MAX_TELEMETRY_SAMPLES = 2880;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final BroadcastReceiver batteryReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
@@ -195,7 +194,7 @@ public class BatteryMonitorService extends Service {
                 .append(systemCycleCount).append(',')
                 .append(plugged);
         String[] rows = all.toString().split("\\n");
-        int first = Math.max(0, rows.length - MAX_TELEMETRY_SAMPLES);
+        int first = Math.max(0, rows.length - telemetryRetentionSamples());
         StringBuilder trimmed = new StringBuilder();
         for (int i = first; i < rows.length; i++) {
             if (trimmed.length() > 0) trimmed.append('\n');
@@ -210,6 +209,12 @@ public class BatteryMonitorService extends Service {
         int minutes = prefs.getInt("samplingIntervalMin", 15);
         if (minutes != 5 && minutes != 15 && minutes != 30 && minutes != 60) minutes = 15;
         return minutes * 60L * 1000L;
+    }
+
+    /** Keeps approximately thirty days of telemetry at every supported rate. */
+    private int telemetryRetentionSamples() {
+        long thirtyDaysMs = 30L * 24L * 60L * 60L * 1000L;
+        return Math.max(1, (int) Math.ceil(thirtyDaysMs / (double) sampleInterval()));
     }
 
     private int longHistoryRetentionSamples() {
