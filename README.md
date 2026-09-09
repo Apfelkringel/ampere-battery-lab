@@ -28,6 +28,7 @@ Kostenlose, lokal arbeitende Android-Batterieanalyse als eigenständige Implemen
 - optionale lokale Zuordnung der Vordergrund-App zu Telemetriepunkten und geschätztem App-Verbrauch
 - Live-Overlay mit Akkustrom, CPU-Auslastung und Top-App
 - kein Konto und kein automatischer Upload von Messdaten; Netzwerk wird nur für den optionalen Update-Check verwendet
+- Downloads werden auch nach einem App-Prozess-Neustart per Android-DownloadManager fortgesetzt, vor der Installation gehasht und von Android bestätigt
 
 ## Entwicklung
 

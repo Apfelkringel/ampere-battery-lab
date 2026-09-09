@@ -1,13 +1,10 @@
 package com.ampere.batterylab;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
@@ -36,7 +33,6 @@ final class UpdateChecker {
     private static final String DOWNLOAD_SHA256 = "downloadSha256";
     private static final long CHECK_INTERVAL_MS = 12L * 60L * 60L * 1000L;
     private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor();
-    private static BroadcastReceiver downloadReceiver;
 
     private UpdateChecker() { }
 
@@ -138,7 +134,6 @@ final class UpdateChecker {
             request.setAllowedOverRoaming(false);
             request.setDestinationInExternalFilesDir(activity, Environment.DIRECTORY_DOWNLOADS, "ampere-update-" + update.versionCode + ".apk");
 
-            registerDownloadReceiver(activity, manager);
             long id = manager.enqueue(request);
             activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
                     .putLong(DOWNLOAD_ID, id)
@@ -150,60 +145,61 @@ final class UpdateChecker {
         }
     }
 
-    @SuppressLint("UnspecifiedRegisterReceiverFlag")
-    private static void registerDownloadReceiver(Activity activity, DownloadManager manager) {
-        if (downloadReceiver != null) return;
-        downloadReceiver = new BroadcastReceiver() {
-            @Override public void onReceive(Context context, Intent intent) {
-                if (!DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(intent.getAction())) return;
-                long expected = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getLong(DOWNLOAD_ID, -1L);
-                long received = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L);
-                if (expected != received) return;
+    /**
+     * Handles DownloadManager completion from a manifest receiver. This keeps
+     * the update flow alive when Android has reclaimed the app process.
+     */
+    static void handleDownloadCompleted(Context receiverContext, Intent intent) {
+        if (!DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(intent.getAction())) return;
+        Context context = receiverContext.getApplicationContext();
+        SharedPreferences prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        long expected = prefs.getLong(DOWNLOAD_ID, -1L);
+        long received = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L);
+        if (expected < 0L || expected != received) return;
 
-                DownloadManager.Query query = new DownloadManager.Query().setFilterById(received);
-                android.database.Cursor cursor = manager.query(query);
-                boolean successful = false;
-                if (cursor != null) {
-                    try {
-                        successful = cursor.moveToFirst() && cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS)) == DownloadManager.STATUS_SUCCESSFUL;
-                    } finally {
-                        cursor.close();
-                    }
-                }
-                if (!successful) {
-                    Toast.makeText(context, "Update-Download fehlgeschlagen.", Toast.LENGTH_LONG).show();
-                    return;
-                }
-                Uri apkUri = manager.getUriForDownloadedFile(received);
-                if (apkUri == null) {
-                    Toast.makeText(context, "Update-Datei konnte nicht geöffnet werden.", Toast.LENGTH_LONG).show();
-                    return;
-                }
-                String expectedSha256 = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(DOWNLOAD_SHA256, "");
-                EXECUTOR.execute(() -> {
-                    boolean verified = verifySha256(context, apkUri, expectedSha256);
-                    new Handler(Looper.getMainLooper()).post(() -> {
-                        if (!verified) {
-                            manager.remove(received);
-                            Toast.makeText(context, "Update verworfen: Integritätsprüfung fehlgeschlagen.", Toast.LENGTH_LONG).show();
-                            return;
-                        }
-                        Intent install = new Intent(Intent.ACTION_VIEW).setDataAndType(apkUri, "application/vnd.android.package-archive");
-                        install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                        install.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        try {
-                            context.startActivity(install);
-                        } catch (Exception ignored) {
-                            Toast.makeText(context, "Bitte die heruntergeladene APK aus den Dateien öffnen.", Toast.LENGTH_LONG).show();
-                        }
-                    });
-                });
+        DownloadManager manager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
+        if (manager == null) return;
+        DownloadManager.Query query = new DownloadManager.Query().setFilterById(received);
+        android.database.Cursor cursor = manager.query(query);
+        boolean successful = false;
+        if (cursor != null) {
+            try {
+                successful = cursor.moveToFirst() && cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS)) == DownloadManager.STATUS_SUCCESSFUL;
+            } finally {
+                cursor.close();
             }
-        };
-        IntentFilter filter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
-        // DownloadManager sends this system broadcast from a separate UID.
-        if (Build.VERSION.SDK_INT >= 33) activity.getApplicationContext().registerReceiver(downloadReceiver, filter, Context.RECEIVER_EXPORTED);
-        else activity.getApplicationContext().registerReceiver(downloadReceiver, filter);
+        }
+        if (!successful) {
+            prefs.edit().remove(DOWNLOAD_ID).remove(DOWNLOAD_SHA256).apply();
+            Toast.makeText(context, "Update-Download fehlgeschlagen.", Toast.LENGTH_LONG).show();
+            return;
+        }
+        Uri apkUri = manager.getUriForDownloadedFile(received);
+        if (apkUri == null) {
+            Toast.makeText(context, "Update-Datei konnte nicht geöffnet werden.", Toast.LENGTH_LONG).show();
+            return;
+        }
+        String expectedSha256 = prefs.getString(DOWNLOAD_SHA256, "");
+        EXECUTOR.execute(() -> {
+            boolean verified = verifySha256(context, apkUri, expectedSha256);
+            new Handler(Looper.getMainLooper()).post(() -> {
+                if (!verified) {
+                    manager.remove(received);
+                    prefs.edit().remove(DOWNLOAD_ID).remove(DOWNLOAD_SHA256).apply();
+                    Toast.makeText(context, "Update verworfen: Integritätsprüfung fehlgeschlagen.", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                prefs.edit().remove(DOWNLOAD_ID).remove(DOWNLOAD_SHA256).apply();
+                Intent install = new Intent(Intent.ACTION_VIEW).setDataAndType(apkUri, "application/vnd.android.package-archive");
+                install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                install.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                try {
+                    context.startActivity(install);
+                } catch (Exception ignored) {
+                    Toast.makeText(context, "Bitte die heruntergeladene APK aus den Dateien öffnen.", Toast.LENGTH_LONG).show();
+                }
+            });
+        });
     }
 
     private static boolean verifySha256(Context context, Uri uri, String expected) {
