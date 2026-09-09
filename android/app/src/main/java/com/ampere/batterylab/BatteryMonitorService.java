@@ -407,9 +407,10 @@ public class BatteryMonitorService extends Service {
             String date = new SimpleDateFormat("MMM d HH:mm", Locale.US).format(new Date(now));
             int designCapacity = BatteryCapacity.designCapacityMah(this);
             float cycleEquivalent = energy > 0 && designCapacity > 0 ? energy / (float) designCapacity : Math.abs(change) / 100f;
+            int screenWakeups = previousCharging ? 0 : prefs.getInt("lastDischargeWakeups", prefs.getInt("dischargeWakeups", 0));
             String entry = type + "," + (change > 0 ? "+" : "") + change + "%," + duration(minutes) + "," + date + "," + startLevel + "," + level + "," + energy + "," + String.format(Locale.US, "%.2f", cycleEquivalent)
                     + "," + screenOnValue + "," + screenOffValue + "," + (screenOnMs / 60000L) + "," + (screenOffMs / 60000L)
-                    + "," + (deepSleepMs / 60000L) + "," + chargerSource + "," + startedAt + "," + now;
+                    + "," + (deepSleepMs / 60000L) + "," + chargerSource + "," + startedAt + "," + now + "," + screenWakeups;
             String saved = prefs.getString("sessions", "");
             ArrayList<String> sessions = new ArrayList<>();
             if (!saved.isEmpty()) for (String session : saved.split("\\|")) if (!session.isEmpty()) sessions.add(session);

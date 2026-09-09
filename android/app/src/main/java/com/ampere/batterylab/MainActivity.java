@@ -346,6 +346,7 @@ public class MainActivity extends Activity {
                 if (parts.length > 13) row.put("chargerSource", parts[13]);
                 if (parts.length > 14) row.put("startTimestampMs", parts[14]);
                 if (parts.length > 15) row.put("endTimestampMs", parts[15]);
+                if (parts.length > 16) row.put("screenWakeups", Integer.parseInt(parts[16]));
                 if (parts.length > 8) row.put("screenValueUnit", "Charge".equals(parts[0]) ? "mAh" : "percent");
                 sessionRows.put(row);
             }
@@ -1723,7 +1724,7 @@ class BatteryDashboard extends View {
     }
 
     String historyCsv() {
-        StringBuilder csv = new StringBuilder("type,change,duration,date,start_level,end_level,energy_mah,equivalent_full_cycles,screen_on_value,screen_off_value,screen_on_duration_min,screen_off_duration_min,deep_sleep_min,charger_source,start_timestamp_ms,end_timestamp_ms\n");
+        StringBuilder csv = new StringBuilder("type,change,duration,date,start_level,end_level,energy_mah,equivalent_full_cycles,screen_on_value,screen_off_value,screen_on_duration_min,screen_off_duration_min,deep_sleep_min,charger_source,start_timestamp_ms,end_timestamp_ms,screen_wakeups\n");
         for (String session : sessions) appendCsvRow(csv, session.split(",", -1));
         csv.append("\nlevel_percent\n");
         for (Integer point : longHistory) appendCsvRow(csv, new String[]{String.valueOf(point)});
@@ -1784,6 +1785,7 @@ class BatteryDashboard extends View {
                 details.append("\nStarted: ").append(formatTimestamp(parts[14]));
                 details.append("\nEnded: ").append(formatTimestamp(parts[15]));
             }
+            if (parts.length >= 17) details.append("\nScreen wakeups: ").append(parts[16]);
         }
         new AlertDialog.Builder(getContext())
                 .setTitle("Session details")
