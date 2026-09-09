@@ -4,6 +4,7 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.backup.BackupManager;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -117,6 +118,7 @@ public class BatteryMonitorService extends Service {
         updateChargeStats(prefs, isCharging, chargeCounterMah, now, interactive);
         recordSession(prefs, value, isCharging, chargeCounterMah, now);
         recordTelemetrySample(prefs, now, value, isCharging, currentMa, temperature, battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0), chargeCounterMah, interactive);
+        requestAutomaticBackup(prefs, now);
         int benchmarkCapacity = updateBenchmark(prefs, value, isCharging, chargeCounterMah);
         if (benchmarkCapacity > 0) recordHealthSample(prefs, benchmarkCapacity);
         int limit = prefs.getInt("chargeLimit", 80);
@@ -175,6 +177,17 @@ public class BatteryMonitorService extends Service {
         }
         prefs.edit().putString("telemetrySamples", trimmed.toString())
                 .putLong("telemetryLastSampleAt", now).apply();
+    }
+
+    /** Ask Android's configured backup provider to schedule a background backup.
+     *  Android still applies its own throttling and encryption/device settings. */
+    private void requestAutomaticBackup(android.content.SharedPreferences prefs, long now) {
+        long lastRequest = prefs.getLong("lastBackupRequestAt", 0L);
+        if (now - lastRequest < 6L * 60L * 60L * 1000L) return;
+        try {
+            BackupManager.dataChanged(getPackageName());
+            prefs.edit().putLong("lastBackupRequestAt", now).apply();
+        } catch (Exception ignored) { }
     }
 
     private void updateUsageCounters(android.content.SharedPreferences prefs, int level, long now) {

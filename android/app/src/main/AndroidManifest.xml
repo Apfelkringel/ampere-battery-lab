@@ -12,6 +12,10 @@
         android:label="Ampere"
         android:icon="@drawable/ic_launcher"
         android:allowBackup="true"
+        android:restoreAnyVersion="true"
+        android:fullBackupContent="@xml/backup_rules"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:enableOnBackInvokedCallback="true"
         android:supportsRtl="true">
         <activity android:name=".MainActivity" android:label="Ampere" android:screenOrientation="portrait" android:exported="true">
             <intent-filter>

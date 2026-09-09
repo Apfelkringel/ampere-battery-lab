@@ -29,6 +29,11 @@ import android.provider.Settings;
 import android.net.Uri;
 import android.view.Window;
 import android.view.WindowInsets;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
+import org.json.JSONObject;
 import java.util.Locale;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +41,8 @@ import java.util.Collections;
 import java.util.Comparator;
 
 public class MainActivity extends Activity {
+    private static final int CREATE_BACKUP_REQUEST = 1201;
+    private static final int RESTORE_BACKUP_REQUEST = 1202;
     private BatteryDashboard dashboard;
     private final BroadcastReceiver batteryReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
@@ -52,6 +59,14 @@ public class MainActivity extends Activity {
         dashboard = new BatteryDashboard(this);
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
+        if (Build.VERSION.SDK_INT >= 35) {
+            window.setDecorFitsSystemWindows(false);
+            scroll.setOnApplyWindowInsetsListener((view, insets) -> {
+                android.graphics.Insets bars = insets.getInsets(WindowInsets.Type.systemBars());
+                view.setPadding(view.getPaddingLeft(), bars.top, view.getPaddingRight(), bars.bottom);
+                return insets;
+            });
+        }
         int contentHeight = Math.round(1320 * getResources().getDisplayMetrics().density);
         scroll.addView(dashboard, new ScrollView.LayoutParams(-1, contentHeight));
         setContentView(scroll);
@@ -71,6 +86,89 @@ public class MainActivity extends Activity {
     @Override protected void onDestroy() {
         unregisterReceiver(batteryReceiver);
         super.onDestroy();
+    }
+
+    void createBackup() {
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT)
+                .addCategory(Intent.CATEGORY_OPENABLE)
+                .setType("application/json")
+                .putExtra(Intent.EXTRA_TITLE, "ampere-battery-backup.json");
+        startActivityForResult(intent, CREATE_BACKUP_REQUEST);
+    }
+
+    void restoreBackup() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT)
+                .addCategory(Intent.CATEGORY_OPENABLE)
+                .setType("application/json")
+                .putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false);
+        startActivityForResult(intent, RESTORE_BACKUP_REQUEST);
+    }
+
+    @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode != RESULT_OK || data == null || data.getData() == null) return;
+        Uri uri = data.getData();
+        if (requestCode == CREATE_BACKUP_REQUEST) writeBackup(uri);
+        else if (requestCode == RESTORE_BACKUP_REQUEST) readBackup(uri);
+    }
+
+    private void writeBackup(Uri uri) {
+        try (OutputStream stream = getContentResolver().openOutputStream(uri)) {
+            if (stream == null) throw new IllegalStateException("No output stream");
+            JSONObject root = new JSONObject();
+            root.put("schema", 1);
+            root.put("package", getPackageName());
+            root.put("createdAt", System.currentTimeMillis());
+            JSONObject values = new JSONObject();
+            for (java.util.Map.Entry<String, ?> entry : getSharedPreferences("ampere-data", MODE_PRIVATE).getAll().entrySet()) {
+                Object value = entry.getValue();
+                JSONObject encoded = new JSONObject();
+                if (value instanceof Boolean) { encoded.put("type", "boolean"); encoded.put("value", value); }
+                else if (value instanceof Integer) { encoded.put("type", "int"); encoded.put("value", value); }
+                else if (value instanceof Long) { encoded.put("type", "long"); encoded.put("value", value); }
+                else if (value instanceof Float) { encoded.put("type", "float"); encoded.put("value", value); }
+                else if (value instanceof String) { encoded.put("type", "string"); encoded.put("value", value); }
+                else continue;
+                values.put(entry.getKey(), encoded);
+            }
+            root.put("preferences", values);
+            stream.write(root.toString(2).getBytes(StandardCharsets.UTF_8));
+            Toast.makeText(this, "Backup gespeichert.", Toast.LENGTH_LONG).show();
+        } catch (Exception error) {
+            Toast.makeText(this, "Backup konnte nicht gespeichert werden.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void readBackup(Uri uri) {
+        try (InputStream stream = getContentResolver().openInputStream(uri)) {
+            if (stream == null) throw new IllegalStateException("No input stream");
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            byte[] buffer = new byte[8192];
+            int count;
+            while ((count = stream.read(buffer)) != -1) bytes.write(buffer, 0, count);
+            JSONObject root = new JSONObject(bytes.toString("UTF-8"));
+            if (!getPackageName().equals(root.optString("package")) || root.optInt("schema", 0) != 1) throw new IllegalArgumentException("Invalid backup");
+            JSONObject values = root.getJSONObject("preferences");
+            SharedPreferences.Editor editor = getSharedPreferences("ampere-data", MODE_PRIVATE).edit();
+            java.util.Iterator<String> keys = values.keys();
+            while (keys.hasNext()) {
+                String key = keys.next();
+                JSONObject encoded = values.getJSONObject(key);
+                String type = encoded.optString("type");
+                if ("boolean".equals(type)) editor.putBoolean(key, encoded.getBoolean("value"));
+                else if ("int".equals(type)) editor.putInt(key, encoded.getInt("value"));
+                else if ("long".equals(type)) editor.putLong(key, encoded.getLong("value"));
+                else if ("float".equals(type)) editor.putFloat(key, (float) encoded.getDouble("value"));
+                else if ("string".equals(type)) editor.putString(key, encoded.getString("value"));
+            }
+            editor.apply();
+            dashboard.reloadStoredData();
+            Intent battery = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+            if (battery != null) dashboard.readBattery(battery);
+            Toast.makeText(this, "Backup wiederhergestellt.", Toast.LENGTH_LONG).show();
+        } catch (Exception error) {
+            Toast.makeText(this, "Backup ist ungültig oder konnte nicht gelesen werden.", Toast.LENGTH_LONG).show();
+        }
     }
 }
 
@@ -113,6 +211,15 @@ class BatteryDashboard extends View {
         setFocusable(true);
         prefs = context.getSharedPreferences("ampere-data", Context.MODE_PRIVATE);
         loadStoredData();
+    }
+
+    void reloadStoredData() {
+        history.clear();
+        longHistory.clear();
+        healthSamples.clear();
+        sessions.clear();
+        loadStoredData();
+        invalidate();
     }
 
     void readBattery(Intent intent) {
@@ -370,7 +477,7 @@ class BatteryDashboard extends View {
     }
 
     private void showSettings() {
-        String[] options = {"Dark theme", "AMOLED black", "Light theme", "Notification settings", "Overlay permission", "Data & privacy", "Quick tutorial"};
+        String[] options = {"Dark theme", "AMOLED black", "Light theme", "Notification settings", "Overlay permission", "Data & privacy", "Backup & restore", "Quick tutorial"};
         new AlertDialog.Builder(getContext()).setTitle("Settings").setItems(options, (dialog, which) -> {
             if (which == 0) { light = false; amoled = false; }
             else if (which == 1) { light = false; amoled = true; }
@@ -384,6 +491,8 @@ class BatteryDashboard extends View {
                 try { getContext().startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getContext().getPackageName()))); } catch (Exception ignored) { }
             } else if (which == 5) {
                 showDataPrivacy();
+            } else if (which == 6) {
+                showBackupRestore();
             } else {
                 showTutorial(true);
             }
@@ -397,6 +506,16 @@ class BatteryDashboard extends View {
                 .setTitle("Data & privacy")
                 .setMessage("Ampere collects battery readings locally for your history and analysis: time, battery level, charging state, current, temperature, voltage and screen state.\n\nNo battery readings, account identifiers, location or installed-app lists are uploaded. The update checker only requests its configured version file.\n\nUse History → Export CSV whenever you want to analyze or share your data.")
                 .setPositiveButton("Export CSV", (dialog, which) -> exportHistory())
+                .setNegativeButton("Close", null)
+                .show();
+    }
+
+    private void showBackupRestore() {
+        new AlertDialog.Builder(getContext())
+                .setTitle("Backup & restore")
+                .setMessage("Updates keep your data automatically. Before uninstalling, create a backup and restore it after reinstalling. Android cloud/device backup may also restore these settings when enabled on your device.")
+                .setPositiveButton("Create backup", (dialog, which) -> ((MainActivity) getContext()).createBackup())
+                .setNeutralButton("Restore backup", (dialog, which) -> ((MainActivity) getContext()).restoreBackup())
                 .setNegativeButton("Close", null)
                 .show();
     }

@@ -4,15 +4,17 @@ plugins {
 
 android {
     namespace "com.ampere.batterylab"
-    compileSdk 34
+    compileSdk 37
     def ciKeystorePath = System.getenv("AMPERE_KEYSTORE_FILE")
 
     defaultConfig {
         applicationId "com.ampere.batterylab"
+        // Android 14+ is the supported device range; minSdk 23 keeps the
+        // APK installable on older Android versions as a bonus.
         minSdk 23
-        targetSdk 34
-        versionCode 3
-        versionName "0.3"
+        targetSdk 37
+        versionCode 4
+        versionName "0.4"
     }
 
     buildFeatures {
@@ -30,9 +32,9 @@ android {
         }
     }
 
-    // Set this to the public HTTPS URL of latest.json before publishing updates.
+    // Public distribution repository contains binaries only; source stays private.
     buildTypes.each { type ->
-        type.buildConfigField "String", "UPDATE_MANIFEST_URL", '""'
+        type.buildConfigField "String", "UPDATE_MANIFEST_URL", '"https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/latest.json"'
     }
 
     buildTypes {

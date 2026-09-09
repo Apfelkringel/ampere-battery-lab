@@ -25,6 +25,12 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      - name: Install Android 16/17 SDK platforms
+        run: |
+          yes | sdkmanager --licenses >/dev/null 2>&1 || true
+          sdkmanager "platforms;android-36" "platforms;android-37.0" "build-tools;37.0.0"
+          test -e "$ANDROID_HOME/platforms/android-37" || ln -s "$ANDROID_HOME/platforms/android-37.0" "$ANDROID_HOME/platforms/android-37"
+
       - name: Restore update-compatible signing key
         env:
           KEYSTORE_BASE64: ${{ secrets.AMPERE_KEYSTORE_BASE64 }}
