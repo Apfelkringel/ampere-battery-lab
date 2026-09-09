@@ -612,14 +612,84 @@ class BatteryDashboard extends View {
         return formatDuration(Math.max(1, Math.round(missingMah * 60f / currentMa)));
     }
 
+    /** Calculates a local 7-day discharge rate from consecutive telemetry points. */
+    private float averageDischargeRate(boolean screenOn) {
+        String saved = prefs.getString("telemetrySamples", "");
+        if (!saved.isEmpty()) {
+            long windowStart = System.currentTimeMillis() - 7L * 24L * 60L * 60L * 1000L;
+            long previousAt = -1L;
+            int previousLevel = -1;
+            boolean previousCharging = true;
+            boolean previousScreenOn = false;
+            float consumed = 0f;
+            long elapsedMs = 0L;
+            for (String row : saved.split("\\n")) {
+                String[] parts = row.split(",", 11);
+                if (parts.length < 8) continue;
+                try {
+                    long timestamp = Long.parseLong(parts[0]);
+                    if (timestamp < windowStart) continue;
+                    int sampleLevel = Integer.parseInt(parts[1]);
+                    boolean sampleCharging = "1".equals(parts[2]);
+                    boolean sampleScreenOn = "1".equals(parts[7]);
+                    if (previousAt > 0L && !sampleCharging && !previousCharging
+                            && sampleScreenOn == screenOn && previousScreenOn == screenOn
+                            && timestamp > previousAt && timestamp - previousAt <= 2L * 60L * 60L * 1000L) {
+                        int drop = previousLevel - sampleLevel;
+                        if (drop > 0 && drop <= 20) {
+                            consumed += drop;
+                            elapsedMs += timestamp - previousAt;
+                        }
+                    }
+                    previousAt = timestamp;
+                    previousLevel = sampleLevel;
+                    previousCharging = sampleCharging;
+                    previousScreenOn = sampleScreenOn;
+                } catch (NumberFormatException ignored) { }
+            }
+            if (consumed > 0f && elapsedMs >= 5L * 60L * 1000L) return consumed * 3600000f / elapsedMs;
+        }
+        String percentKey = screenOn ? "dischargeScreenOnPercent" : "dischargeScreenOffPercent";
+        String durationKey = screenOn ? "dischargeScreenOnMs" : "dischargeScreenOffMs";
+        if (charging) {
+            percentKey = "last" + Character.toUpperCase(percentKey.charAt(0)) + percentKey.substring(1);
+            durationKey = "last" + Character.toUpperCase(durationKey.charAt(0)) + durationKey.substring(1);
+        }
+        float consumed = prefs.getFloat(percentKey, 0f);
+        long duration = prefs.getLong(durationKey, 0L);
+        return consumed > 0f && duration >= 5L * 60L * 1000L ? consumed * 3600000f / duration : 0f;
+    }
+
+    private float mixedDischargeRate() {
+        float screenOnRate = averageDischargeRate(true);
+        float screenOffRate = averageDischargeRate(false);
+        if (screenOnRate <= 0f && screenOffRate <= 0f) return 0f;
+        if (screenOnRate <= 0f) return screenOffRate;
+        if (screenOffRate <= 0f) return screenOnRate;
+        long onMs = prefs.getLong(charging ? "lastDischargeScreenOnMs" : "dischargeScreenOnMs", 0L);
+        long offMs = prefs.getLong(charging ? "lastDischargeScreenOffMs" : "dischargeScreenOffMs", 0L);
+        float onRatio = onMs + offMs > 0L ? Math.max(.1f, Math.min(.9f, onMs / (float) (onMs + offMs))) : .5f;
+        return screenOnRate * onRatio + screenOffRate * (1f - onRatio);
+    }
+
+    private String averageDischargeRateDisplay() {
+        float rate = mixedDischargeRate();
+        return rate > 0f ? String.format(Locale.US, "%.1f%%/h", rate) : "—";
+    }
+
     private String runtimeEstimate() {
         if (charging) {
             float used = prefs.getFloat("lastDischargeScreenOnPercent", 0f) + prefs.getFloat("lastDischargeScreenOffPercent", 0f);
             long minutes = (prefs.getLong("lastDischargeScreenOnMs", 0L) + prefs.getLong("lastDischargeScreenOffMs", 0L)) / 60000L;
             int historicalLevel = prefs.getInt("lastDischargeEndLevel", level);
-            return used > 0f && minutes >= 5 ? formatDuration(Math.max(1, Math.round(historicalLevel * minutes / used))) : "—";
+            float rate = mixedDischargeRate();
+            return rate > 0f ? formatDuration(Math.max(1, Math.round(historicalLevel * 60f / rate)))
+                    : (used > 0f && minutes >= 5 ? formatDuration(Math.max(1, Math.round(historicalLevel * minutes / used))) : "—");
         }
-        if (currentMa < 50 || estimatedCapacityMah() <= 0) return "—";
+        if (estimatedCapacityMah() <= 0) return "—";
+        float rate = mixedDischargeRate();
+        if (rate > 0f) return formatDuration(Math.max(1, Math.round(level * 60f / rate)));
+        if (currentMa < 50) return "—";
         int availableMah = Math.round(estimatedCapacityMah() * level / 100f);
         return formatDuration(Math.max(1, Math.round(availableMah * 60f / currentMa)));
     }
@@ -784,7 +854,10 @@ class BatteryDashboard extends View {
         long minutes = prefs.getLong(durationKey, 0L) / 60000L;
         int referenceLevel = charging ? prefs.getInt("lastDischargeEndLevel", level) : level;
         if (percent > 0f && minutes >= 5) return formatDuration(Math.max(1, Math.round(referenceLevel * minutes / percent)));
-        if (charging || currentMa < 50) return "—";
+        if (charging) return "—";
+        float rate = averageDischargeRate(screenOn);
+        if (rate > 0f) return formatDuration(Math.max(1, Math.round(referenceLevel * 60f / rate)));
+        if (currentMa < 50) return "—";
         int modeCurrent = screenOn ? currentMa : Math.max(50, Math.round(currentMa * .35f));
         return formatDuration(Math.max(1, Math.round(estimatedCapacityMah() * referenceLevel / 100f * 60f / modeCurrent)));
     }
@@ -1155,6 +1228,8 @@ class BatteryDashboard extends View {
         text(c, "based on recent use", w * .6f, y + 157, 9, faint, false);
         text(c, "Screen on / off", w * .6f, y + 187, 10, muted, false);
         text(c, dischargeRuntime(true) + " / " + dischargeRuntime(false), w * .6f, y + 207, 11, blue, true);
+        text(c, "7-day average", 36, y + 225, 10, muted, false);
+        text(c, averageDischargeRateDisplay(), w - 92, y + 225, 10, blue, true);
         text(c, "Discharging speed", 36, y + 245, 10, muted, false);
         text(c, dischargeSpeed(true) + " · " + dischargeSpeed(false), w - 145, y + 245, 10, blue, true);
         text(c, "screen on / off", w - 112, y + 262, 8, faint, false);
