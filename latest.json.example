@@ -1,7 +1,7 @@
 {
-  "versionCode": 33,
-  "versionName": "0.33",
+  "versionCode": 34,
+  "versionName": "0.34",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "aeca5430dc0e7c6c94563f049b11b8d881fe316121cd4aa7e0dc65564c8d4361",
-  "releaseNotes": "Die Gesundheitsanalyse zeigt jetzt auch den letzten Ladeverschleiß und die gesamten äquivalenten Vollzyklen."
+  "sha256": "4b06af199afcfcd18baf13d04551ce69fe97b639765cafc9f94d91d2f870bcd6",
+  "releaseNotes": "Die Health-Seite zeigt jetzt den lokalen Verlauf des Ladeverschleißes je Sitzung als EFC-Balken mit Datum."
 }
