@@ -1,22 +1,22 @@
 # Verification record
 
-Last verified: 2026-09-09 (Europe/Berlin)
+Last verified: 2026-09-10 (Europe/Berlin)
 
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.80` (`versionCode 80`)
+- Version: `0.81` (`versionCode 81`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `7d9c869f227d387a1ceea2bdceb43bbeea14406786d9fc9bb464b91d40d8f729`
+- Release APK SHA-256: `aa11a3fb5a671182ffff822b572dbacabb8bb2b42cecbd62b01453aa79ca8442`
 - The same hash is published in the public update repository manifest.
 
 ## Runtime checks
 
 | Runtime | Result |
 | --- | --- |
-| Android 14 / API 34 | Fresh signed `0.80` install, app launch and foreground monitor passed; no fatal exception occurred. |
-| Android 16 / API 36 | Fresh signed `0.80` install, app launch and foreground monitor passed. The installed package reported `versionCode 80`, `targetSdk 37`, preserved `firstInstallTime` across replacement, and produced no fatal exception. |
-| Android 17 / API 37 | Fresh signed `0.80` install, app launch, foreground monitor and navigation through Overview, Charge, Drain, Health and History passed; no fatal exception occurred. |
+| Android 14 / API 34 | Fresh signed `0.81` install, app launch and foreground monitor passed; no fatal exception occurred. |
+| Android 16 / API 36 | Signed `0.80 -> 0.81` replacement, app launch and foreground monitor passed. The installed package reported `versionCode 81`, `targetSdk 37`, preserved `firstInstallTime`; simulated disconnect/connect changed the UI between `On battery` and `Charging detected`; no fatal exception occurred. |
+| Android 17 / API 37 | Fresh signed `0.81` install, app launch and foreground monitor passed; no fatal exception occurred. Earlier `0.80` navigation through Overview, Charge, Drain, Health and History also passed. |
 
 On API 37, an installed signed `0.79` instance fetched the public manifest,
 displayed the in-app `0.80` update dialog, downloaded the APK, reached Android's
@@ -24,8 +24,9 @@ package installer, and completed the update after the test emulator's unknown-
 sources permission was enabled. `firstInstallTime` remained unchanged and the
 monitor was restarted by `MY_PACKAGE_REPLACED` as a foreground service.
 
-Release `0.80` also compiles and passes lint locally after adding direct handling
-for Android power-connected and power-disconnected broadcasts.
+Release `0.81` also compiles and passes lint locally after adding direct handling
+for Android power-connected and power-disconnected broadcasts in both the monitor
+service and the visible activity.
 
 The API-37 system image and AVD are generated test assets stored under
 `tooling/` on the external SSD and are ignored by Git.
