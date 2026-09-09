@@ -1,7 +1,9 @@
 node_modules/
 dist/
 .DS_Store
-.android-avd/
+tooling/android-avd/
+prototypes/web/node_modules/
+prototypes/web/dist/
 android/.gradle/
 android/build/
 android/app/build/

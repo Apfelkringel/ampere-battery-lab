@@ -9,6 +9,12 @@ Kostenlose, lokal arbeitende Android-Batterieanalyse als eigenständige Implemen
 3. Beim ersten Start Benachrichtigungen erlauben, damit der lokale Hintergrundmonitor und der Ladealarm funktionieren.
 4. Für die App-Nutzungsanzeige im Tab „Drain“ den Android-Zugriff auf Nutzungsdaten freigeben.
 
+Die eigentliche Android-App liegt unter `android/`. Lokale APK-Kopien liegen unter
+`artifacts/`; der optionale Web-Prototyp liegt getrennt unter `prototypes/web/`.
+Die kanonische Projektablage befindet sich auf der externen SSD unter
+`/Volumes/MacSSD/02_PROJECTS/Active/AccuBattery`. Eine Übersicht gibt es in
+`docs/PROJECT-STRUCTURE.md`.
+
 ## Enthalten
 
 - Live-Ladezustand, Strom, Spannung und Temperatur
