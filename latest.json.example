@@ -1,7 +1,7 @@
 {
-  "versionCode": 66,
-  "versionName": "0.66",
+  "versionCode": 67,
+  "versionName": "0.67",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "4b5a7c78d87e2031e0732cd69583c8e727eefb91d06ccdd0243baf9da989fc86",
-  "releaseNotes": "Datenschutzhinweise an den verschlüsselten Android-Backup-Umfang angepasst."
+  "sha256": "95941c7856ef8cc12de5cd7f42e13fb0009f7b8ed95edd474787f3419ffa9d68",
+  "releaseNotes": "Die Ladeanzeige wird jetzt ausschließlich automatisch von Android erkannt."
 }
