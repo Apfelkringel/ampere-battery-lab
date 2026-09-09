@@ -1,7 +1,7 @@
 {
-  "versionCode": 17,
-  "versionName": "0.17",
+  "versionCode": 18,
+  "versionName": "0.18",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "65c822f40d71722d553a3b3c4cd4e9fbd16891aaf95f1aec121bcb2c278a1e61",
-  "releaseNotes": "Entladestatistik seit der letzten Volladung erfasst Prozentverlust, mAh, Bildschirmzeit und Deep Sleep."
+  "sha256": "be619261ffffad76b1b0947f632d9d17544edcda105dcbc1d1e5a016262a4faa",
+  "releaseNotes": "Die langen Übersichten lassen sich jetzt zuverlässig per Wischgeste scrollen."
 }
