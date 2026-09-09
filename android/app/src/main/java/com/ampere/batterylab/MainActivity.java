@@ -72,9 +72,7 @@ public class MainActivity extends Activity {
         int contentHeight = Math.round(1320 * getResources().getDisplayMetrics().density);
         scroll.addView(dashboard, new ScrollView.LayoutParams(-1, contentHeight));
         setContentView(scroll);
-        UpdateChecker.check(this);
-        Intent service = new Intent(this, BatteryMonitorService.class);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(service); else startService(service);
+        startMonitorService();
         if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission("android.permission.POST_NOTIFICATIONS") != getPackageManager().PERMISSION_GRANTED) {
             requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"}, 44);
         }
@@ -83,6 +81,25 @@ public class MainActivity extends Activity {
         IntentFilter batteryFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         Intent battery = Build.VERSION.SDK_INT >= 33 ? registerReceiver(batteryReceiver, batteryFilter, Context.RECEIVER_NOT_EXPORTED) : registerReceiver(batteryReceiver, batteryFilter);
         if (battery != null) dashboard.readBattery(battery);
+    }
+
+    @Override protected void onResume() {
+        super.onResume();
+        if (dashboard == null) return;
+        startMonitorService();
+        dashboard.startSavedOverlay();
+        UpdateChecker.check(this);
+        Intent battery = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        if (battery != null) dashboard.readBattery(battery);
+    }
+
+    private void startMonitorService() {
+        Intent service = new Intent(this, BatteryMonitorService.class);
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(service); else startService(service);
+        } catch (IllegalStateException ignored) {
+            // The next visible app resume will retry after Android allows it.
+        }
     }
 
     @Override protected void onDestroy() {
