@@ -326,7 +326,9 @@ public class BatteryMonitorService extends Service {
         if (previousCharging == charging) return;
         long minutes = Math.max(1L, (now - startedAt) / 60000L);
         int change = level - startLevel;
-        if (change != 0) {
+        if (change != 0 || (previousCharging && (counterMah > 0 && startCounter > 0
+                ? counterMah > startCounter
+                : prefs.getInt("lastChargeScreenOnMah", 0) + prefs.getInt("lastChargeScreenOffMah", 0) > 0))) {
             int energy = counterMah > 0 && startCounter > 0 ? (previousCharging ? Math.max(0, counterMah - startCounter) : Math.max(0, startCounter - counterMah)) : 0;
             // The state transition is authoritative: a charging interval is
             // still a charge session even when the percentage estimate moves
