@@ -93,7 +93,7 @@ final class UpdateChecker {
             if (target == null || target.isFinishing()) return;
             target.runOnUiThread(() -> {
                 if (update != null) showUpdateDialog(target, update);
-                else if (force) Toast.makeText(target, "No new update found (or the update server is unavailable).", Toast.LENGTH_LONG).show();
+                else if (force) Toast.makeText(target, "Keine neue Aktualisierung gefunden (oder der Update-Server ist nicht erreichbar).", Toast.LENGTH_LONG).show();
             });
         });
     }
@@ -165,7 +165,7 @@ final class UpdateChecker {
         NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if (manager == null) return;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            manager.createNotificationChannel(new NotificationChannel(UPDATE_CHANNEL_ID, "App updates", NotificationManager.IMPORTANCE_DEFAULT));
+                manager.createNotificationChannel(new NotificationChannel(UPDATE_CHANNEL_ID, "App-Aktualisierungen", NotificationManager.IMPORTANCE_DEFAULT));
         }
         Intent open = new Intent(context, MainActivity.class).setAction(ACTION_SHOW_UPDATE)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);

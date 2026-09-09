@@ -84,7 +84,7 @@ public class BatteryOverlayService extends Service {
     private void createChannel() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
         NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        if (manager != null) manager.createNotificationChannel(new NotificationChannel(CHANNEL_ID, "Live battery overlay", NotificationManager.IMPORTANCE_LOW));
+        if (manager != null) manager.createNotificationChannel(new NotificationChannel(CHANNEL_ID, "Live-Akkuanzeige", NotificationManager.IMPORTANCE_LOW));
     }
 
     private Notification notification() {
@@ -92,8 +92,8 @@ public class BatteryOverlayService extends Service {
         PendingIntent pending = PendingIntent.getActivity(this, 2, launch, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? new Notification.Builder(this, CHANNEL_ID) : new Notification.Builder(this);
         return builder.setSmallIcon(R.drawable.ic_launcher)
-                .setContentTitle("Ampere overlay active")
-                .setContentText("Live battery readings are visible on screen")
+                .setContentTitle("Ampere-Live-Anzeige aktiv")
+                .setContentText("Live-Akkumesswerte werden auf dem Bildschirm angezeigt")
                 .setContentIntent(pending)
                 .setOngoing(true)
                 .setShowWhen(false)
@@ -125,7 +125,7 @@ public class BatteryOverlayService extends Service {
         String topLabel = topAppLabel(topPackage);
         int processCpu = readProcessCpuPercent(topPackage);
         String processText = processCpu >= 0 ? processCpu + "%" : "—";
-        overlay.setText("⚡ " + level + "%   " + currentText + "\n" + (voltage / 1000f) + " V   " + (temperature / 10f) + "°C   CPU cores " + coreCpu + "%\nTop app: " + topLabel + " · process " + processText);
+        overlay.setText("⚡ " + level + "%   " + currentText + "\n" + (voltage / 1000f) + " V   " + (temperature / 10f) + "°C   CPU-Kerne " + coreCpu + "%\nTop-App: " + topLabel + " · Prozess " + processText);
     }
 
     private int readCpuPercent() {
@@ -171,7 +171,7 @@ public class BatteryOverlayService extends Service {
 
     private String topAppPackage() {
         AppOpsManager ops = (AppOpsManager) getSystemService(APP_OPS_SERVICE);
-        if (ops == null || ops.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), getPackageName()) != AppOpsManager.MODE_ALLOWED) return "usage access off";
+        if (ops == null || ops.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), getPackageName()) != AppOpsManager.MODE_ALLOWED) return "Nutzungszugriff aus";
         UsageStatsManager manager = (UsageStatsManager) getSystemService(USAGE_STATS_SERVICE);
         if (manager == null) return "—";
         long end = System.currentTimeMillis();
@@ -189,7 +189,7 @@ public class BatteryOverlayService extends Service {
 
     private String topAppLabel(String packageName) {
         if (packageName == null || packageName.isEmpty()) return "—";
-        if ("usage access off".equals(packageName)) return packageName;
+        if ("Nutzungszugriff aus".equals(packageName)) return packageName;
         if ("—".equals(packageName)) return packageName;
         try { return getPackageManager().getApplicationLabel(getPackageManager().getApplicationInfo(packageName, 0)).toString(); }
         catch (Exception ignored) { return packageName; }
@@ -197,7 +197,7 @@ public class BatteryOverlayService extends Service {
 
     /** Best-effort process CPU usage from local kernel counters; no process list is uploaded. */
     private int readProcessCpuPercent(String packageName) {
-        if (packageName == null || packageName.isEmpty() || "usage access off".equals(packageName) || "—".equals(packageName)) {
+        if (packageName == null || packageName.isEmpty() || "Nutzungszugriff aus".equals(packageName) || "—".equals(packageName)) {
             previousProcessPackage = "";
             previousProcessTicks = -1L;
             previousSystemTicks = -1L;

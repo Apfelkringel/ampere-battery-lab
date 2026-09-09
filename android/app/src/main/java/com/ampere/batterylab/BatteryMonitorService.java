@@ -91,8 +91,8 @@ public class BatteryMonitorService extends Service {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
         NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         if (manager != null) {
-            manager.createNotificationChannel(new NotificationChannel(CHANNEL_ID, "Battery monitoring", NotificationManager.IMPORTANCE_LOW));
-            NotificationChannel alarm = new NotificationChannel(ALARM_CHANNEL_ID, "Charge alarm", NotificationManager.IMPORTANCE_HIGH);
+            manager.createNotificationChannel(new NotificationChannel(CHANNEL_ID, "Akkuüberwachung", NotificationManager.IMPORTANCE_LOW));
+            NotificationChannel alarm = new NotificationChannel(ALARM_CHANNEL_ID, "Ladealarm", NotificationManager.IMPORTANCE_HIGH);
             alarm.enableVibration(true);
             manager.createNotificationChannel(alarm);
         }
@@ -106,22 +106,22 @@ public class BatteryMonitorService extends Service {
         Intent launch = new Intent(this, MainActivity.class);
         PendingIntent pending = PendingIntent.getActivity(this, 0, launch, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? new Notification.Builder(this, CHANNEL_ID) : new Notification.Builder(this);
-        String title = value >= 0 ? value + "% · " + (isCharging ? "charging" : "on battery") : "Ampere is monitoring";
-        String details = value >= 0 ? (currentMa > 0 ? currentMa + " mA" : "current unavailable") + " · " + (temperatureTenths / 10f) + "°C" + (voltageMv > 0 ? " · " + String.format(Locale.US, "%.2f V", voltageMv / 1000f) : "") : "Battery readings are stored on this device";
+        String title = value >= 0 ? value + "% · " + (isCharging ? "Laden" : "Akkubetrieb") : "Ampere überwacht den Akku";
+        String details = value >= 0 ? (currentMa > 0 ? currentMa + " mA" : "Strom nicht verfügbar") + " · " + (temperatureTenths / 10f) + "°C" + (voltageMv > 0 ? " · " + String.format(Locale.US, "%.2f V", voltageMv / 1000f) : "") : "Akkumesswerte werden auf diesem Gerät gespeichert";
         if (value >= 0) {
             android.content.SharedPreferences prefs = getSharedPreferences("ampere-data", MODE_PRIVATE);
             int capacity = prefs.getInt("benchmarkCapacityMah", 0);
             int design = BatteryCapacity.designCapacityMah(this);
             int health = capacity > 0 && design > 0 ? Math.round(capacity * 100f / design) : 0;
-            details += "\n" + (isCharging ? "Charging detected" : "Screen and background use tracked locally")
-                    + (health > 0 ? " · health " + health + "%" : "")
-                    + (capacity > 0 ? " · estimate " + capacity + " mAh" : "");
+            details += "\n" + (isCharging ? "Laden erkannt" : "Bildschirm- und Hintergrundverbrauch lokal erfasst")
+                    + (health > 0 ? " · Gesundheit " + health + "%" : "")
+                    + (capacity > 0 ? " · Schätzung " + capacity + " mAh" : "");
         }
         return builder.setSmallIcon(com.ampere.batterylab.R.drawable.ic_launcher)
                 .setContentTitle(title)
                 .setContentText(details)
                 .setStyle(new Notification.BigTextStyle().bigText(details))
-                .setSubText("Local battery monitor")
+                .setSubText("Lokale Akkuüberwachung")
                 .setContentIntent(pending)
                 .setOngoing(true)
                 .setShowWhen(false)
@@ -442,7 +442,7 @@ public class BatteryMonitorService extends Service {
                 chargerSource = "Battery";
                 if (energy <= 0) energy = prefs.getInt("lastDischargeMah", 0);
             }
-            String date = new SimpleDateFormat("MMM d HH:mm", Locale.US).format(new Date(now));
+            String date = new SimpleDateFormat("dd.MM. HH:mm", Locale.GERMANY).format(new Date(now));
             int designCapacity = BatteryCapacity.designCapacityMah(this);
             float cycleEquivalent = energy > 0 && designCapacity > 0 ? energy / (float) designCapacity : Math.abs(change) / 100f;
             int screenWakeups = previousCharging ? 0 : prefs.getInt("lastDischargeWakeups", prefs.getInt("dischargeWakeups", 0));
@@ -460,9 +460,9 @@ public class BatteryMonitorService extends Service {
             if (previousCharging && energy > 0) editor.putInt("totalChargedMah", prefs.getInt("totalChargedMah", 0) + energy);
             if (previousCharging) {
                 String healthReason;
-                if (change < 5) healthReason = "Not enough battery-level change (at least 5% is needed)";
-                else if (energy <= 0) healthReason = "Energy counter/current unavailable";
-                else healthReason = "Included in the next health average";
+                if (change < 5) healthReason = "Zu geringe Akkustandänderung (mindestens 5 % nötig)";
+                else if (energy <= 0) healthReason = "Energiezähler/Strom nicht verfügbar";
+                else healthReason = "Wird in den nächsten Gesundheitsdurchschnitt einbezogen";
                 editor.putInt("lastChargeStartLevel", startLevel)
                         .putInt("lastChargeEndLevel", level)
                         .putInt("lastChargeEnergyMah", energy)
@@ -669,14 +669,14 @@ public class BatteryMonitorService extends Service {
     }
 
     private String chargerLabel(int plugged) {
-        if (plugged == BatteryManager.BATTERY_PLUGGED_AC) return "AC charger";
+        if (plugged == BatteryManager.BATTERY_PLUGGED_AC) return "Netzteil";
         if (plugged == BatteryManager.BATTERY_PLUGGED_USB) return "USB";
-        if (plugged == BatteryManager.BATTERY_PLUGGED_WIRELESS) return "Wireless";
-        return plugged == 0 ? "External power" : "External power";
+        if (plugged == BatteryManager.BATTERY_PLUGGED_WIRELESS) return "Kabellos";
+        return "Externe Stromquelle";
     }
 
     private String duration(long minutes) {
-        return minutes >= 60 ? (minutes / 60) + "h " + (minutes % 60) + "m" : minutes + " min";
+        return minutes >= 60 ? (minutes / 60) + " Std. " + (minutes % 60) + " Min." : minutes + " Min.";
     }
 
     private Notification alarmNotification(int value, int limit) {
@@ -684,8 +684,8 @@ public class BatteryMonitorService extends Service {
         PendingIntent pending = PendingIntent.getActivity(this, 1, launch, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? new Notification.Builder(this, ALARM_CHANNEL_ID) : new Notification.Builder(this);
         return builder.setSmallIcon(com.ampere.batterylab.R.drawable.ic_launcher)
-                .setContentTitle("Charge limit reached")
-                .setContentText("Battery is at " + value + "% · configured limit " + limit + "%")
+                .setContentTitle("Ladeziel erreicht")
+                .setContentText("Akku bei " + value + "% · eingestelltes Ziel " + limit + "%")
                 .setContentIntent(pending)
                 .setAutoCancel(true)
                 .build();
