@@ -1,7 +1,7 @@
 {
-  "versionCode": 23,
-  "versionName": "0.23",
+  "versionCode": 24,
+  "versionName": "0.24",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "35f56efbf919ae7a6408e401f4ea5b3df3da5b2c6ef4ac5255842135b7485cce",
-  "releaseNotes": "Datenschutzdialog mit erreichbarem CSV- und Research-JSON-Export; Löschung bleibt als eigener Settings-Punkt verfügbar."
+  "sha256": "3b2e628a214bcf8fac50aa8de6d8a9333c189e549e9b21d8d712689eac7bc71d",
+  "releaseNotes": "Der History-Tab zeigt jetzt alle gespeicherten Sitzungen und bleibt vollständig scrollbar."
 }
