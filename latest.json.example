@@ -1,7 +1,7 @@
 {
-  "versionCode": 37,
-  "versionName": "0.37",
+  "versionCode": 38,
+  "versionName": "0.38",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "9b666d6abb93609aef32fe59cb0a9449a6daa10bd8b6ce84f432fcc9995cdaeb",
-  "releaseNotes": "Nicht verfügbare mAh-Messungen werden jetzt klar als unbekannt angezeigt und nicht als 0 mAh."
+  "sha256": "a8739e14d58d8a9bcbd94b57fbd0319b55575ac61f983bf1e825290f105d7140",
+  "releaseNotes": "Im Menü kann jetzt jederzeit manuell nach einem signierten kostenlosen Update gesucht werden."
 }
