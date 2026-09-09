@@ -14,10 +14,12 @@ Kostenlose, lokal arbeitende Android-Batterieanalyse als eigenständige Implemen
 - Live-Ladezustand, Strom, Spannung und Temperatur
 - Charging-, Discharging-, Health- und History-Ansichten
 - lokaler Ladealarm und einstellbares Ladeziel
+- vollständige Ladesitzungsdetails mit Prozentänderung, Startzeit, Dauer sowie Bildschirm-an/aus-Aufteilung
 - lokale 30-Tage-Verlaufspunkte und bis zu 150 Lade-/Entladesitzungen mit Details
 - analysefähiger lokaler CSV-Export mit Zeitreihe für Akkustand, Strom, Temperatur, Spannung, Ladequelle, Zykluszähler und Bildschirmstatus
 - strukturierter Research-Export als JSON mit Messreihen, Sitzungen und Geräte-/Android-Kontext nach ausdrücklicher Nutzeraktion
 - Kapazitätsschätzung und manueller Health-Benchmark
+- Health-Auswertung mit letztem Ladeverschleiß und äquivalenten Vollzyklen (EFC)
 - Bildschirmzeit, Deep Sleep, Ladezyklen und optionale Vordergrund-App-Nutzung
 - Entladestatistik seit der letzten erkannten Volladung
 - optionale lokale Zuordnung der Vordergrund-App zu Telemetriepunkten und geschätztem App-Verbrauch
