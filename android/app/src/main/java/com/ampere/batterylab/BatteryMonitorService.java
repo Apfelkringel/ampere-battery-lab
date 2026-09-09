@@ -132,9 +132,10 @@ public class BatteryMonitorService extends Service {
         if (notificationManager != null) notificationManager.notify(7, statusNotification(value, isCharging, currentMa, temperature, battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0)));
         updateSinceFullStats(prefs, value, isCharging, chargeCounterMah, currentMa, now, interactive);
         updateDischargeStats(prefs, value, isCharging, chargeCounterMah, currentMa, now, interactive);
-        updateChargeStats(prefs, isCharging, chargeCounterMah, currentMa, now, interactive);
+        int plugged = battery.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0);
+        updateChargeStats(prefs, isCharging, chargeCounterMah, currentMa, now, interactive, plugged);
         recordSession(prefs, value, isCharging, chargeCounterMah, now);
-        recordTelemetrySample(prefs, now, value, isCharging, currentMa, temperature, battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0), chargeCounterMah, interactive, foregroundPackage, systemCycleCount, battery.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0));
+        recordTelemetrySample(prefs, now, value, isCharging, currentMa, temperature, battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0), chargeCounterMah, interactive, foregroundPackage, systemCycleCount, plugged);
         requestAutomaticBackup(prefs, now);
         int benchmarkCapacity = updateBenchmark(prefs, value, isCharging, chargeCounterMah);
         if (benchmarkCapacity > 0) recordHealthSample(prefs, benchmarkCapacity);
@@ -320,11 +321,41 @@ public class BatteryMonitorService extends Service {
         int change = level - startLevel;
         if (change != 0) {
             int energy = counterMah > 0 && startCounter > 0 ? (previousCharging ? Math.max(0, counterMah - startCounter) : Math.max(0, startCounter - counterMah)) : 0;
-            String type = change > 0 ? "Charge" : "Discharge";
+            // The state transition is authoritative: a charging interval is
+            // still a charge session even when the percentage estimate moves
+            // by one point in the opposite direction.
+            String type = previousCharging ? "Charge" : "Discharge";
+            int screenOnValue;
+            int screenOffValue;
+            long screenOnMs;
+            long screenOffMs;
+            long deepSleepMs;
+            String chargerSource;
+            if (previousCharging) {
+                screenOnValue = prefs.getInt("lastChargeScreenOnMah", 0);
+                screenOffValue = prefs.getInt("lastChargeScreenOffMah", 0);
+                screenOnMs = prefs.getLong("lastChargeScreenOnMs", 0L);
+                screenOffMs = prefs.getLong("lastChargeScreenOffMs", 0L);
+                deepSleepMs = 0L;
+                chargerSource = chargerLabel(prefs.getInt("lastChargePlugged", prefs.getInt("chargePlugged", 0)));
+                if (energy <= 0) energy = screenOnValue + screenOffValue;
+            } else {
+                float onPercent = prefs.getFloat("lastDischargeScreenOnPercent", 0f);
+                float offPercent = prefs.getFloat("lastDischargeScreenOffPercent", 0f);
+                screenOnValue = Math.round(onPercent * 10f);
+                screenOffValue = Math.round(offPercent * 10f);
+                screenOnMs = prefs.getLong("lastDischargeScreenOnMs", 0L);
+                screenOffMs = prefs.getLong("lastDischargeScreenOffMs", 0L);
+                deepSleepMs = prefs.getLong("lastDischargeDeepSleepMs", 0L);
+                chargerSource = "Battery";
+                if (energy <= 0) energy = prefs.getInt("lastDischargeMah", 0);
+            }
             String date = new SimpleDateFormat("MMM d HH:mm", Locale.US).format(new Date(now));
             int designCapacity = prefs.getInt("designCapacityMah", 4500);
             float cycleEquivalent = energy > 0 && designCapacity > 0 ? energy / (float) designCapacity : Math.abs(change) / 100f;
-            String entry = type + "," + (change > 0 ? "+" : "") + change + "%," + duration(minutes) + "," + date + "," + startLevel + "," + level + "," + energy + "," + String.format(Locale.US, "%.2f", cycleEquivalent);
+            String entry = type + "," + (change > 0 ? "+" : "") + change + "%," + duration(minutes) + "," + date + "," + startLevel + "," + level + "," + energy + "," + String.format(Locale.US, "%.2f", cycleEquivalent)
+                    + "," + screenOnValue + "," + screenOffValue + "," + (screenOnMs / 60000L) + "," + (screenOffMs / 60000L)
+                    + "," + (deepSleepMs / 60000L) + "," + chargerSource + "," + startedAt + "," + now;
             String saved = prefs.getString("sessions", "");
             ArrayList<String> sessions = new ArrayList<>();
             if (!saved.isEmpty()) for (String session : saved.split("\\|")) if (!session.isEmpty()) sessions.add(session);
@@ -333,8 +364,8 @@ public class BatteryMonitorService extends Service {
             StringBuilder output = new StringBuilder();
             for (String session : sessions) { if (output.length() > 0) output.append('|'); output.append(session); }
             android.content.SharedPreferences.Editor editor = prefs.edit().putString("sessions", output.toString());
-            if (change > 0 && energy > 0) editor.putInt("totalChargedMah", prefs.getInt("totalChargedMah", 0) + energy);
-            if (change > 0) {
+            if (previousCharging && energy > 0) editor.putInt("totalChargedMah", prefs.getInt("totalChargedMah", 0) + energy);
+            if (previousCharging) {
                 editor.putInt("lastChargeStartLevel", startLevel)
                         .putInt("lastChargeEndLevel", level)
                         .putInt("lastChargeEnergyMah", energy)
@@ -343,7 +374,7 @@ public class BatteryMonitorService extends Service {
                         .putLong("lastChargeEndAt", now);
             }
             editor.apply();
-            if (change >= 5 && energy > 0) {
+            if (previousCharging && change >= 5 && energy > 0) {
                 int estimatedCapacity = Math.round(energy * 100f / change);
                 if (estimatedCapacity >= 500 && estimatedCapacity <= 20000) {
                     recordHealthSample(prefs, estimatedCapacity);
@@ -462,7 +493,7 @@ public class BatteryMonitorService extends Service {
     }
 
     private void updateChargeStats(android.content.SharedPreferences prefs, boolean charging, int counterMah,
-                                   int currentMa, long now, boolean interactive) {
+                                   int currentMa, long now, boolean interactive, int plugged) {
         boolean previousCharging = prefs.getBoolean("monitorLastCharging", charging);
         if (!charging && previousCharging) {
             // Preserve the completed session's screen-on/off breakdown before
@@ -472,11 +503,13 @@ public class BatteryMonitorService extends Service {
                     .putLong("lastChargeScreenOffMs", prefs.getLong("chargeScreenOffMs", 0L))
                     .putInt("lastChargeScreenOnMah", prefs.getInt("chargeScreenOnMah", 0))
                     .putInt("lastChargeScreenOffMah", prefs.getInt("chargeScreenOffMah", 0))
+                    .putInt("lastChargePlugged", prefs.getInt("chargePlugged", plugged))
                     .apply();
             return;
         }
         if (charging && !previousCharging) {
             prefs.edit().putInt("chargeLastCounterMah", counterMah).putLong("chargeLastAt", now)
+                    .putInt("chargePlugged", plugged)
                     .putLong("chargeScreenOnMs", 0L).putLong("chargeScreenOffMs", 0L)
                     .putInt("chargeScreenOnMah", 0).putInt("chargeScreenOffMah", 0)
                     .putBoolean("chargeAlarmSent", false).apply();
@@ -499,8 +532,16 @@ public class BatteryMonitorService extends Service {
         int onMah = prefs.getInt("chargeScreenOnMah", 0) + (interactive ? added : 0);
         int offMah = prefs.getInt("chargeScreenOffMah", 0) + (interactive ? 0 : added);
         prefs.edit().putInt("chargeLastCounterMah", counterMah).putLong("chargeLastAt", now)
+                .putInt("chargePlugged", prefs.getInt("chargePlugged", plugged))
                 .putLong("chargeScreenOnMs", onMs).putLong("chargeScreenOffMs", offMs)
                 .putInt("chargeScreenOnMah", onMah).putInt("chargeScreenOffMah", offMah).apply();
+    }
+
+    private String chargerLabel(int plugged) {
+        if (plugged == BatteryManager.BATTERY_PLUGGED_AC) return "AC charger";
+        if (plugged == BatteryManager.BATTERY_PLUGGED_USB) return "USB";
+        if (plugged == BatteryManager.BATTERY_PLUGGED_WIRELESS) return "Wireless";
+        return plugged == 0 ? "External power" : "External power";
     }
 
     private String duration(long minutes) {

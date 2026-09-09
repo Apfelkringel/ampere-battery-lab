@@ -226,7 +226,7 @@ public class MainActivity extends Activity {
 
             JSONArray sessionRows = new JSONArray();
             if (dashboard != null) for (String session : dashboard.sessionsForExport()) {
-                String[] parts = session.split(",", 8);
+                String[] parts = session.split(",", -1);
                 JSONObject row = new JSONObject();
                 if (parts.length > 0) row.put("type", parts[0]);
                 if (parts.length > 1) row.put("change", parts[1]);
@@ -236,6 +236,15 @@ public class MainActivity extends Activity {
                 if (parts.length > 5) row.put("endLevel", parts[5]);
                 if (parts.length > 6) row.put("energyMah", parts[6]);
                 if (parts.length > 7) row.put("equivalentFullCycles", parts[7]);
+                if (parts.length > 8) row.put("screenOnValue", parts[8]);
+                if (parts.length > 9) row.put("screenOffValue", parts[9]);
+                if (parts.length > 10) row.put("screenOnDurationMin", parts[10]);
+                if (parts.length > 11) row.put("screenOffDurationMin", parts[11]);
+                if (parts.length > 12) row.put("deepSleepMin", parts[12]);
+                if (parts.length > 13) row.put("chargerSource", parts[13]);
+                if (parts.length > 14) row.put("startTimestampMs", parts[14]);
+                if (parts.length > 15) row.put("endTimestampMs", parts[15]);
+                if (parts.length > 8) row.put("screenValueUnit", "Charge".equals(parts[0]) ? "mAh" : "percent");
                 sessionRows.put(row);
             }
             root.put("sessions", sessionRows);
@@ -357,7 +366,7 @@ class BatteryDashboard extends View {
     private int sessionEnergyTotal(String type) {
         int total = 0;
         for (String session : sessions) {
-            String[] parts = session.split(",", 8);
+            String[] parts = session.split(",", -1);
             if (parts.length < 7 || !type.equals(parts[0])) continue;
             try { total += Math.max(0, Integer.parseInt(parts[6])); } catch (NumberFormatException ignored) { }
         }
@@ -407,8 +416,27 @@ class BatteryDashboard extends View {
         }
         benchmarkActive = prefs.getBoolean("benchmarkActive", benchmarkActive);
         saveSample();
-        reloadHealthSamples();
+        reloadLiveCollections();
         invalidate();
+    }
+
+    private void reloadLiveCollections() {
+        healthSamples.clear();
+        String savedHealth = prefs.getString("healthSamples", "");
+        if (!savedHealth.isEmpty()) {
+            for (String value : savedHealth.split(",")) {
+                try { healthSamples.add(Integer.parseInt(value)); } catch (NumberFormatException ignored) { }
+            }
+        }
+        sessions.clear();
+        String savedSessions = prefs.getString("sessions", "");
+        if (!savedSessions.isEmpty()) {
+            for (String value : savedSessions.split("\\|")) if (!value.isEmpty()) sessions.add(value);
+        }
+        chargeAlarm = prefs.getBoolean("chargeAlarm", chargeAlarm);
+        chargeLimit = prefs.getInt("chargeLimit", chargeLimit);
+        benchmarkActive = prefs.getBoolean("benchmarkActive", benchmarkActive);
+        updateLayoutHeight();
     }
 
     private void reloadHealthSamples() {
@@ -732,7 +760,7 @@ class BatteryDashboard extends View {
     private ArrayList<String[]> chargeWearRows() {
         ArrayList<String[]> rows = new ArrayList<>();
         for (int i = sessions.size() - 1; i >= 0; i--) {
-            String[] parts = sessions.get(i).split(",", 8);
+            String[] parts = sessions.get(i).split(",", -1);
             if (parts.length >= 8 && "Charge".equals(parts[0])) rows.add(parts);
         }
         int first = Math.max(0, rows.size() - 12);
@@ -1250,7 +1278,7 @@ class BatteryDashboard extends View {
             text(c, "Length", w - 75, y + 130, 9, faint, true);
             int row = 0;
             for (String session : sessions) {
-                String[] parts = session.split(",", 8);
+                String[] parts = session.split(",", -1);
                 if (parts.length < 4) continue;
                 float rowY = y + 160 + row * 44;
                 line(c, 36, rowY - 18, w - 36, rowY - 18, border, 1);
@@ -1277,7 +1305,7 @@ class BatteryDashboard extends View {
     }
 
     private void exportHistory() {
-        StringBuilder csv = new StringBuilder("type,change,duration,date,start_level,end_level,energy_mah,equivalent_full_cycles\n");
+        StringBuilder csv = new StringBuilder("type,change,duration,date,start_level,end_level,energy_mah,equivalent_full_cycles,screen_on_value,screen_off_value,screen_on_duration_min,screen_off_duration_min,deep_sleep_min,charger_source,start_timestamp_ms,end_timestamp_ms\n");
         for (String session : sessions) csv.append(session).append('\n');
         csv.append("\nlevel_percent\n");
         for (Integer point : longHistory) csv.append(point).append('\n');
@@ -1293,7 +1321,7 @@ class BatteryDashboard extends View {
 
     private void showSessionDetails(int index) {
         if (index < 0 || index >= sessions.size()) return;
-        String[] parts = sessions.get(index).split(",", 8);
+        String[] parts = sessions.get(index).split(",", -1);
         if (parts.length < 4) return;
         StringBuilder details = new StringBuilder();
         details.append(parts[0]).append(" session\n");
@@ -1306,7 +1334,36 @@ class BatteryDashboard extends View {
             details.append("\nEnergy: ").append(parts[6]).append(" mAh");
             if (parts.length >= 8) details.append("\nEquivalent full cycles: ").append(parts[7]);
         }
+        if (parts.length >= 14) {
+            boolean charge = "Charge".equals(parts[0]);
+            String unit = charge ? "mAh" : "%";
+            String on = parts[8];
+            String off = parts[9];
+            if (!charge) {
+                try { on = String.format(Locale.US, "%.1f", Integer.parseInt(parts[8]) / 10f); } catch (NumberFormatException ignored) { }
+                try { off = String.format(Locale.US, "%.1f", Integer.parseInt(parts[9]) / 10f); } catch (NumberFormatException ignored) { }
+            }
+            details.append("\nScreen on: ").append(on).append(' ').append(unit);
+            details.append("\nScreen off: ").append(off).append(' ').append(unit);
+            details.append("\nScreen-on time: ").append(parts[10]).append(" min");
+            details.append("\nScreen-off time: ").append(parts[11]).append(" min");
+            if (!charge) details.append("\nDeep sleep: ").append(parts[12]).append(" min");
+            if (charge) details.append("\nCharger: ").append(parts[13]);
+            if (parts.length >= 16) {
+                details.append("\nStarted: ").append(formatTimestamp(parts[14]));
+                details.append("\nEnded: ").append(formatTimestamp(parts[15]));
+            }
+        }
         new AlertDialog.Builder(getContext()).setTitle("Session details").setMessage(details.toString()).setPositiveButton("Close", null).show();
+    }
+
+    private String formatTimestamp(String value) {
+        try {
+            long timestamp = Long.parseLong(value);
+            return new SimpleDateFormat("MMM d, HH:mm", Locale.US).format(new Date(timestamp));
+        } catch (NumberFormatException ignored) {
+            return value;
+        }
     }
 
     private void drawStat(Canvas c, float x, float y, float width, float height, String label, String value, String unit, int accent, int primary, int muted, int border, int panel, String icon) {
@@ -1347,7 +1404,7 @@ class BatteryDashboard extends View {
         } else {
             int row = 0;
             for (String session : sessions) {
-                String[] parts = session.split(",", 8);
+                String[] parts = session.split(",", -1);
                 if (parts.length < 4) continue;
                 float rowY = y + 230 + row * 25;
                 line(c, x + 18, rowY - 14, x + width - 18, rowY - 14, border, 1);
