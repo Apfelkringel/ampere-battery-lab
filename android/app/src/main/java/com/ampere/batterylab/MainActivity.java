@@ -370,7 +370,7 @@ class BatteryDashboard extends View {
     }
 
     private void showSettings() {
-        String[] options = {"Dark theme", "AMOLED black", "Light theme", "Notification settings", "Overlay permission", "Quick tutorial"};
+        String[] options = {"Dark theme", "AMOLED black", "Light theme", "Notification settings", "Overlay permission", "Data & privacy", "Quick tutorial"};
         new AlertDialog.Builder(getContext()).setTitle("Settings").setItems(options, (dialog, which) -> {
             if (which == 0) { light = false; amoled = false; }
             else if (which == 1) { light = false; amoled = true; }
@@ -382,12 +382,23 @@ class BatteryDashboard extends View {
                 } catch (Exception ignored) { }
             } else if (which == 4) {
                 try { getContext().startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getContext().getPackageName()))); } catch (Exception ignored) { }
+            } else if (which == 5) {
+                showDataPrivacy();
             } else {
                 showTutorial(true);
             }
             prefs.edit().putBoolean("lightTheme", light).putBoolean("amoledTheme", amoled).apply();
             invalidate();
         }).show();
+    }
+
+    private void showDataPrivacy() {
+        new AlertDialog.Builder(getContext())
+                .setTitle("Data & privacy")
+                .setMessage("Ampere collects battery readings locally for your history and analysis: time, battery level, charging state, current, temperature, voltage and screen state.\n\nNo battery readings, account identifiers, location or installed-app lists are uploaded. The update checker only requests its configured version file.\n\nUse History → Export CSV whenever you want to analyze or share your data.")
+                .setPositiveButton("Export CSV", (dialog, which) -> exportHistory())
+                .setNegativeButton("Close", null)
+                .show();
     }
 
     void startSavedOverlay() {
@@ -697,8 +708,8 @@ class BatteryDashboard extends View {
         text(c, "Rolling window: up to 30 local days", 36, y + 464, 9, faint, false);
         text(c, "Deep sleep", 36, y + 494, 10, muted, false);
         text(c, deepSleepTime(), w - 75, y + 494, 11, Color.rgb(180, 154, 255), true);
-        text(c, "No data leaves this device.", 36, y + 524, 10, primary, true);
-        text(c, "Ampere is free and has no account or subscription.", 36, y + 548, 9, muted, false);
+        text(c, "Battery readings stay on this device.", 36, y + 524, 10, primary, true);
+        text(c, "Export only when you choose; no account or subscription.", 36, y + 548, 9, muted, false);
         rounded(c, w - 136, y + 566, w - 36, y + 600, 8, lime);
         text(c, "Export CSV", w - 119, y + 588, 9, Color.rgb(23, 28, 16), true);
     }
