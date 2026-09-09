@@ -1,7 +1,7 @@
 {
-  "versionCode": 59,
-  "versionName": "0.59",
+  "versionCode": 60,
+  "versionName": "0.60",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
   "sha256": "4eebbbaa9fe9bff48dacc3b706a9a61a1883e22851ba53c06806749734db603a",
-  "releaseNotes": "Backup & Restore zeigt jetzt den letzten automatischen Backup-Anstoß; Baseline-Änderungen melden Android sofort eine Datenänderung."
+  "releaseNotes": "Sichereres Backup, geprüfte Importe und begrenzte Update-Daten."
 }

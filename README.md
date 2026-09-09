@@ -40,7 +40,7 @@ Kostenlose, lokal arbeitende Android-Batterieanalyse als eigenständige Implemen
 - Backup-Dialog zeigt den letzten automatischen Backup-Anstoß; Baseline-Änderungen melden Android sofort eine Datenänderung
 - adaptive Darstellung ohne erzwungenes Hochformat für aktuelle Android-16/17-Geräte
 - Live-Overlay mit Akkustrom, CPU-Kernauslastung, Top-App und best-effort Prozessauslastung der Top-App
-- kein Konto und kein automatischer Upload von Messdaten; Netzwerk wird nur für den optionalen Update-Check verwendet
+- kein Konto und kein Upload an einen Ampere-Server; Android-Backup kann Verlauf und Einstellungen über den vom Gerät gewählten Backup-Transport sichern, detaillierte Telemetrie bleibt dabei ausgeschlossen und wird nur bei einem ausdrücklich gestarteten Export/Backup mitgenommen
 - Downloads werden auch nach einem App-Prozess-Neustart per Android-DownloadManager fortgesetzt, vor der Installation gehasht und von Android bestätigt
 
 ## Entwicklung
@@ -52,9 +52,12 @@ gradle lintDebug assembleDebug
 
 Ein Release-Build verwendet niemals einen Fallback- oder Debug-Schlüssel. Dafür müssen
 `AMPERE_KEYSTORE_FILE`, `AMPERE_KEYSTORE_PASSWORD`, `AMPERE_KEY_ALIAS` und
-`AMPERE_KEY_PASSWORD` gesetzt sein. Die öffentliche Update-APK nutzt eine private
-Release-Signatur; die Datei `android/ampere-release.lineage` enthält nur die öffentliche
-Android-Signatur-Lineage, niemals einen privaten Schlüssel.
+`AMPERE_KEY_PASSWORD` gesetzt sein. Die öffentliche Update-APK nutzt als aktuellen
+Signer eine private Release-Signatur (RSA 4096). Die Datei `android/ampere-release.lineage`
+enthält zusätzlich den öffentlichen Android-Debug-Vorgänger, damit bereits installierte
+Testversionen beim Übergang ihre Daten behalten; der Debug-Key ist nicht der aktuelle
+Signer und wird in CI ausdrücklich nicht als aktueller Release-Signer akzeptiert.
+Private Schlüssel werden niemals eingecheckt.
 
 Die Ausgaben liegen danach unter `android/app/build/outputs/apk/debug/app-debug.apk` und `android/app/build/outputs/apk/release/app-release.apk`.
 
@@ -67,6 +70,12 @@ und `sha256` als SHA-256-Hash ergänzt werden. Der private Release-Schlüssel bl
 GitHub-Secret; die Signatur-Lineage erlaubt den Übergang zur neuen Signatur, ohne die
 App-Daten zu löschen. Android zeigt aus Sicherheitsgründen weiterhin eine einmalige
 Installationsbestätigung an.
+
+Der sichtbare Backup-/Restore-Dialog erzeugt ein vollständiges JSON-Backup inklusive
+Telemetrie. Das automatische Android-Backup sichert nur den weniger sensiblen Verlauf
+und die Einstellungen und wird für Cloud-Backups ohne Verschlüsselungsmöglichkeit nicht
+freigegeben. Bei einer Deinstallation sollte vorab trotzdem ein sichtbares Backup erzeugt
+werden, weil Verfügbarkeit und Aufbewahrung des Android-Backups vom Gerät und Konto abhängen.
 
 GitHub Actions kann die Release-APK bei einem `v*`-Tag reproduzierbar bauen. Die privaten
 Schlüssel liegen ausschließlich in `AMPERE_ROTATED_KEYSTORE_BASE64` und

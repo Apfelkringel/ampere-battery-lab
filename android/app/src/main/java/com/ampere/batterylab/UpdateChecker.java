@@ -15,9 +15,9 @@ import android.widget.Toast;
 
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -32,6 +32,9 @@ final class UpdateChecker {
     private static final String DOWNLOAD_ID = "downloadId";
     private static final String DOWNLOAD_SHA256 = "downloadSha256";
     private static final long CHECK_INTERVAL_MS = 12L * 60L * 60L * 1000L;
+    private static final int MAX_MANIFEST_BYTES = 128 * 1024;
+    private static final int MAX_RELEASE_NOTES_CHARS = 8 * 1024;
+    private static final long MAX_APK_BYTES = 128L * 1024L * 1024L;
     private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor();
 
     private UpdateChecker() { }
@@ -75,21 +78,29 @@ final class UpdateChecker {
             connection.setReadTimeout(7000);
             connection.setRequestMethod("GET");
             connection.setUseCaches(false);
+            connection.setInstanceFollowRedirects(false);
             if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) return null;
+            long contentLength = connection.getContentLength();
+            if (contentLength > MAX_MANIFEST_BYTES) return null;
 
-            StringBuilder body = new StringBuilder();
-            try (InputStream stream = connection.getInputStream();
-                 BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
-                String line;
-                while ((line = reader.readLine()) != null) body.append(line);
+            ByteArrayOutputStream body = new ByteArrayOutputStream();
+            try (InputStream stream = connection.getInputStream()) {
+                byte[] buffer = new byte[8192];
+                int count;
+                while ((count = stream.read(buffer)) != -1) {
+                    if (body.size() + count > MAX_MANIFEST_BYTES) return null;
+                    body.write(buffer, 0, count);
+                }
             }
-            JSONObject json = new JSONObject(body.toString());
+            JSONObject json = new JSONObject(body.toString(StandardCharsets.UTF_8.name()));
             int versionCode = json.optInt("versionCode", 0);
             String versionName = json.optString("versionName", "");
             String apkUrl = json.optString("apkUrl", "");
             String sha256 = json.optString("sha256", "").trim().toLowerCase(Locale.US);
             String notes = json.optString("releaseNotes", "Neue Version verfügbar.");
-            if (versionCode <= BuildConfig.VERSION_CODE || versionName.isEmpty() || apkUrl.isEmpty() || !sha256.matches("[0-9a-f]{64}")) return null;
+            if (versionCode <= BuildConfig.VERSION_CODE || versionName.isEmpty() || versionName.length() > 64
+                    || apkUrl.isEmpty() || apkUrl.length() > 512 || notes.length() > MAX_RELEASE_NOTES_CHARS
+                    || !sha256.matches("[0-9a-f]{64}")) return null;
             URL apk = new URL(apkUrl);
             if (!isAllowedUpdateUrl(apk)) return null;
             return new UpdateInfo(versionCode, versionName, apkUrl, sha256, notes);
@@ -162,9 +173,14 @@ final class UpdateChecker {
         DownloadManager.Query query = new DownloadManager.Query().setFilterById(received);
         android.database.Cursor cursor = manager.query(query);
         boolean successful = false;
+        long totalSize = -1L;
         if (cursor != null) {
             try {
-                successful = cursor.moveToFirst() && cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS)) == DownloadManager.STATUS_SUCCESSFUL;
+                if (cursor.moveToFirst()) {
+                    successful = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS)) == DownloadManager.STATUS_SUCCESSFUL;
+                    int totalIndex = cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES);
+                    if (totalIndex >= 0) totalSize = cursor.getLong(totalIndex);
+                }
             } finally {
                 cursor.close();
             }
@@ -172,6 +188,12 @@ final class UpdateChecker {
         if (!successful) {
             prefs.edit().remove(DOWNLOAD_ID).remove(DOWNLOAD_SHA256).apply();
             Toast.makeText(context, "Update-Download fehlgeschlagen.", Toast.LENGTH_LONG).show();
+            return;
+        }
+        if (totalSize > MAX_APK_BYTES) {
+            manager.remove(received);
+            prefs.edit().remove(DOWNLOAD_ID).remove(DOWNLOAD_SHA256).apply();
+            Toast.makeText(context, "Update verworfen: Datei ist zu groß.", Toast.LENGTH_LONG).show();
             return;
         }
         Uri apkUri = manager.getUriForDownloadedFile(received);
@@ -209,7 +231,12 @@ final class UpdateChecker {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] buffer = new byte[8192];
             int count;
-            while ((count = stream.read(buffer)) != -1) digest.update(buffer, 0, count);
+            long total = 0L;
+            while ((count = stream.read(buffer)) != -1) {
+                total += count;
+                if (total > MAX_APK_BYTES) return false;
+                digest.update(buffer, 0, count);
+            }
             StringBuilder result = new StringBuilder(64);
             for (byte value : digest.digest()) result.append(String.format(Locale.US, "%02x", value));
             return result.toString().equalsIgnoreCase(expected);

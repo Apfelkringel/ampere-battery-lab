@@ -46,6 +46,7 @@ public class BatteryMonitorService extends Service {
 
     @Override public void onCreate() {
         super.onCreate();
+        MainActivity.migrateTelemetryPrefs(this);
         createChannel();
         startForeground(7, notification());
         IntentFilter batteryFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
@@ -109,6 +110,7 @@ public class BatteryMonitorService extends Service {
         if (raw < 0 || scale <= 0) return;
         int value = Math.max(0, Math.min(100, Math.round(raw * 100f / scale)));
         android.content.SharedPreferences prefs = getSharedPreferences("ampere-data", Context.MODE_PRIVATE);
+        android.content.SharedPreferences telemetryPrefs = getSharedPreferences("ampere-telemetry", Context.MODE_PRIVATE);
         long now = System.currentTimeMillis();
         int status = battery.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN);
         boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL;
@@ -134,7 +136,7 @@ public class BatteryMonitorService extends Service {
         int plugged = battery.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0);
         updateChargeStats(prefs, value, isCharging, chargeCounterMah, currentMa, now, interactive, plugged);
         recordSession(prefs, value, isCharging, chargeCounterMah, now);
-        recordTelemetrySample(prefs, now, value, isCharging, signedCurrentMa, temperature, battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0), chargeCounterMah, interactive, foregroundPackage, systemCycleCount, plugged);
+        recordTelemetrySample(telemetryPrefs, now, value, isCharging, signedCurrentMa, temperature, battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0), chargeCounterMah, interactive, foregroundPackage, systemCycleCount, plugged);
         requestAutomaticBackup(prefs, now);
         int benchmarkCapacity = updateBenchmark(prefs, value, isCharging, chargeCounterMah);
         if (benchmarkCapacity > 0) recordHealthSample(prefs, benchmarkCapacity);

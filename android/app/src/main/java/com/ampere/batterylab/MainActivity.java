@@ -39,9 +39,12 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 import java.util.Locale;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Set;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -51,6 +54,38 @@ public class MainActivity extends Activity {
     private static final int RESEARCH_EXPORT_REQUEST = 1203;
     private static final int CSV_EXPORT_REQUEST = 1204;
     private static final int MAX_BACKUP_BYTES = 4 * 1024 * 1024;
+    private static final String DATA_PREFS = "ampere-data";
+    private static final String TELEMETRY_PREFS = "ampere-telemetry";
+    private static final Set<String> RESTORABLE_DATA_KEYS = new HashSet<>(Arrays.asList(
+            "history", "historyLong", "lastSample", "healthSamples", "sessions",
+            "sessionStartedAt", "sessionStartLevel", "sessionStartChargeCounterMah", "lastCharging",
+            "chargeAlarm", "chargeAlarmSent", "chargeLimit", "benchmarkActive", "benchmarkCapacityMah",
+            "benchmarkStartLevel", "benchmarkStartCounterMah", "benchmarkChargeLastCounterMah",
+            "benchmarkChargeAddedMah", "benchmarkChargeStatsBaselineMah", "healthSampleSessionAt",
+            "lastChargeHealthReason", "totalChargedMah", "chargeCycles", "cycleLastLevel",
+            "dischargePercent", "samplingIntervalMin", "overlayEnabled", "historyDays", "lightTheme",
+            "amoledTheme", "designCapacityMah", "tutorialShown", "lastBackupRequestAt",
+            "chargeLastAt", "chargeLastCounterMah", "chargeLastLevel", "chargePlugged",
+            "chargeScreenOffMah", "chargeScreenOffMs", "chargeScreenOffPercent", "chargeScreenOnMah",
+            "chargeScreenOnMs", "chargeScreenOnPercent", "lastChargeDurationMin", "lastChargeEndAt",
+            "lastChargeEndLevel", "lastChargeEnergyMah", "lastChargePlugged", "lastChargeScreenOffMah",
+            "lastChargeScreenOffMs", "lastChargeScreenOffPercent", "lastChargeScreenOnMah",
+            "lastChargeScreenOnMs", "lastChargeScreenOnPercent", "lastChargeStartAt", "lastChargeStartLevel",
+            "dischargeLastAt", "dischargeLastCounterMah", "dischargeLastLevel", "dischargeMah",
+            "dischargeScreenOffMs", "dischargeScreenOffPercent", "dischargeScreenOnMs",
+            "dischargeScreenOnPercent", "dischargeStartAt", "dischargeDeepSleepMs", "lastDischargeDeepSleepMs",
+            "lastDischargeEndAt", "lastDischargeEndLevel", "lastDischargeMah", "lastDischargeScreenOffMs",
+            "lastDischargeScreenOffPercent", "lastDischargeScreenOnMs", "lastDischargeScreenOnPercent",
+            "lastDischargeStartAt", "sinceFullActive", "sinceFullDeepSleepMs", "sinceFullLastAt",
+            "sinceFullLastCounterMah", "sinceFullLastLevel", "sinceFullMah", "sinceFullPercent",
+            "sinceFullScreenOffMs", "sinceFullScreenOnMs", "sinceFullStartAt", "sinceFullStartLevel",
+            "systemCycleCount", "monitorLastCharging", "monitorSampleAt", "monitorSessionStartCounterMah",
+            "monitorSessionStartLevel", "monitorSessionStartedAt", "monitoringMs", "screenOffDurationMin",
+            "screenOnMs", "screenSampleAt"
+    ));
+    private static final Set<String> RESTORABLE_TELEMETRY_KEYS = new HashSet<>(Arrays.asList(
+            "telemetrySamples", "telemetryLastSampleAt"
+    ));
     private BatteryDashboard dashboard;
     private final BroadcastReceiver batteryReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
@@ -60,6 +95,7 @@ public class MainActivity extends Activity {
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        migrateTelemetryPrefs(this);
         Window window = getWindow();
         window.setStatusBarColor(Color.rgb(17, 19, 24));
         window.setNavigationBarColor(Color.rgb(17, 19, 24));
@@ -149,23 +185,18 @@ public class MainActivity extends Activity {
         try (OutputStream stream = getContentResolver().openOutputStream(uri)) {
             if (stream == null) throw new IllegalStateException("No output stream");
             JSONObject root = new JSONObject();
-            root.put("schema", 1);
+            root.put("schema", 2);
             root.put("package", getPackageName());
             root.put("createdAt", System.currentTimeMillis());
             JSONObject values = new JSONObject();
-            for (java.util.Map.Entry<String, ?> entry : getSharedPreferences("ampere-data", MODE_PRIVATE).getAll().entrySet()) {
-                Object value = entry.getValue();
-                JSONObject encoded = new JSONObject();
-                if (value instanceof Boolean) { encoded.put("type", "boolean"); encoded.put("value", value); }
-                else if (value instanceof Integer) { encoded.put("type", "int"); encoded.put("value", value); }
-                else if (value instanceof Long) { encoded.put("type", "long"); encoded.put("value", value); }
-                else if (value instanceof Float) { encoded.put("type", "float"); encoded.put("value", value); }
-                else if (value instanceof String) { encoded.put("type", "string"); encoded.put("value", value); }
-                else continue;
-                values.put(entry.getKey(), encoded);
-            }
+            encodePreferences(values, getSharedPreferences(DATA_PREFS, MODE_PRIVATE), RESTORABLE_DATA_KEYS);
             root.put("preferences", values);
-            stream.write(root.toString(2).getBytes(StandardCharsets.UTF_8));
+            JSONObject telemetryValues = new JSONObject();
+            encodePreferences(telemetryValues, getSharedPreferences(TELEMETRY_PREFS, MODE_PRIVATE), RESTORABLE_TELEMETRY_KEYS);
+            root.put("telemetryPreferences", telemetryValues);
+            byte[] output = root.toString(2).getBytes(StandardCharsets.UTF_8);
+            if (output.length > MAX_BACKUP_BYTES) throw new IllegalArgumentException("Backup too large");
+            stream.write(output);
             Toast.makeText(this, "Backup gespeichert.", Toast.LENGTH_LONG).show();
         } catch (Exception error) {
             Toast.makeText(this, "Backup konnte nicht gespeichert werden.", Toast.LENGTH_LONG).show();
@@ -185,21 +216,19 @@ public class MainActivity extends Activity {
                 bytes.write(buffer, 0, count);
             }
             JSONObject root = new JSONObject(bytes.toString("UTF-8"));
-            if (!getPackageName().equals(root.optString("package")) || root.optInt("schema", 0) != 1) throw new IllegalArgumentException("Invalid backup");
-            JSONObject values = root.getJSONObject("preferences");
-            SharedPreferences.Editor editor = getSharedPreferences("ampere-data", MODE_PRIVATE).edit().clear();
-            java.util.Iterator<String> keys = values.keys();
-            while (keys.hasNext()) {
-                String key = keys.next();
-                JSONObject encoded = values.getJSONObject(key);
-                String type = encoded.optString("type");
-                if ("boolean".equals(type)) editor.putBoolean(key, encoded.getBoolean("value"));
-                else if ("int".equals(type)) editor.putInt(key, encoded.getInt("value"));
-                else if ("long".equals(type)) editor.putLong(key, encoded.getLong("value"));
-                else if ("float".equals(type)) editor.putFloat(key, (float) encoded.getDouble("value"));
-                else if ("string".equals(type)) editor.putString(key, encoded.getString("value"));
+            int schema = root.optInt("schema", 0);
+            if (!getPackageName().equals(root.optString("package")) || (schema != 1 && schema != 2)) throw new IllegalArgumentException("Invalid backup");
+            SharedPreferences.Editor editor = getSharedPreferences(DATA_PREFS, MODE_PRIVATE).edit().clear();
+            restorePreferences(root.getJSONObject("preferences"), editor, RESTORABLE_DATA_KEYS);
+            SharedPreferences.Editor telemetryEditor = getSharedPreferences(TELEMETRY_PREFS, MODE_PRIVATE).edit().clear();
+            if (schema >= 2 && root.has("telemetryPreferences")) {
+                restorePreferences(root.getJSONObject("telemetryPreferences"), telemetryEditor, RESTORABLE_TELEMETRY_KEYS);
+            } else {
+                // Schema 1 stored all values in one object; migrate only the two known telemetry keys.
+                restorePreferences(root.getJSONObject("preferences"), telemetryEditor, RESTORABLE_TELEMETRY_KEYS);
             }
             editor.apply();
+            telemetryEditor.apply();
             BackupManager.dataChanged(getPackageName());
             dashboard.reloadStoredData();
             Intent battery = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
@@ -207,6 +236,50 @@ public class MainActivity extends Activity {
             Toast.makeText(this, "Backup wiederhergestellt.", Toast.LENGTH_LONG).show();
         } catch (Exception error) {
             Toast.makeText(this, "Backup ist ungültig oder konnte nicht gelesen werden.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private static void encodePreferences(JSONObject target, SharedPreferences source, Set<String> allowedKeys) throws Exception {
+        for (java.util.Map.Entry<String, ?> entry : source.getAll().entrySet()) {
+            if (!allowedKeys.contains(entry.getKey())) continue;
+            Object value = entry.getValue();
+            JSONObject encoded = new JSONObject();
+            if (value instanceof Boolean) { encoded.put("type", "boolean"); encoded.put("value", value); }
+            else if (value instanceof Integer) { encoded.put("type", "int"); encoded.put("value", value); }
+            else if (value instanceof Long) { encoded.put("type", "long"); encoded.put("value", value); }
+            else if (value instanceof Float) { encoded.put("type", "float"); encoded.put("value", value); }
+            else if (value instanceof String) { encoded.put("type", "string"); encoded.put("value", value); }
+            else continue;
+            target.put(entry.getKey(), encoded);
+        }
+    }
+
+    private static void restorePreferences(JSONObject values, SharedPreferences.Editor editor, Set<String> allowedKeys) throws Exception {
+        java.util.Iterator<String> keys = values.keys();
+        while (keys.hasNext()) {
+            String key = keys.next();
+            if (!allowedKeys.contains(key)) continue;
+            JSONObject encoded = values.getJSONObject(key);
+            String type = encoded.optString("type");
+            if ("boolean".equals(type)) editor.putBoolean(key, encoded.getBoolean("value"));
+            else if ("int".equals(type)) editor.putInt(key, encoded.getInt("value"));
+            else if ("long".equals(type)) editor.putLong(key, encoded.getLong("value"));
+            else if ("float".equals(type)) editor.putFloat(key, (float) encoded.getDouble("value"));
+            else if ("string".equals(type)) editor.putString(key, encoded.getString("value"));
+        }
+    }
+
+    static void migrateTelemetryPrefs(Context context) {
+        SharedPreferences oldPrefs = context.getSharedPreferences(DATA_PREFS, Context.MODE_PRIVATE);
+        SharedPreferences newPrefs = context.getSharedPreferences(TELEMETRY_PREFS, Context.MODE_PRIVATE);
+        if (newPrefs.contains("telemetrySamples") || !oldPrefs.contains("telemetrySamples")) return;
+        SharedPreferences.Editor migration = newPrefs.edit()
+                .putString("telemetrySamples", oldPrefs.getString("telemetrySamples", ""));
+        if (oldPrefs.contains("telemetryLastSampleAt")) {
+            migration.putLong("telemetryLastSampleAt", oldPrefs.getLong("telemetryLastSampleAt", 0L));
+        }
+        if (migration.commit()) {
+            oldPrefs.edit().remove("telemetrySamples").remove("telemetryLastSampleAt").commit();
         }
     }
 
@@ -277,7 +350,7 @@ public class MainActivity extends Activity {
             root.put("sessions", sessionRows);
 
             JSONArray telemetryRows = new JSONArray();
-            String telemetry = getSharedPreferences("ampere-data", MODE_PRIVATE).getString("telemetrySamples", "");
+            String telemetry = getSharedPreferences(TELEMETRY_PREFS, MODE_PRIVATE).getString("telemetrySamples", "");
             for (String sample : telemetry.split("\\n")) {
                 if (sample.trim().isEmpty()) continue;
                 String[] parts = sample.split(",", 11);
@@ -323,6 +396,7 @@ class BatteryDashboard extends View {
     private int sessionStartLevel = 0;
     private int sessionStartChargeCounterMah = 0;
     private final SharedPreferences prefs;
+    private final SharedPreferences telemetryPrefs;
     private final ArrayList<Integer> history = new ArrayList<>();
     private final ArrayList<Integer> longHistory = new ArrayList<>();
     private final ArrayList<Integer> healthSamples = new ArrayList<>();
@@ -350,6 +424,7 @@ class BatteryDashboard extends View {
         p.setTypeface(Typeface.create("sans", Typeface.NORMAL));
         setFocusable(true);
         prefs = context.getSharedPreferences("ampere-data", Context.MODE_PRIVATE);
+        telemetryPrefs = context.getSharedPreferences("ampere-telemetry", Context.MODE_PRIVATE);
         loadStoredData();
     }
 
@@ -655,7 +730,7 @@ class BatteryDashboard extends View {
 
     /** Calculates a weighted local seven-day charge rate from telemetry. */
     private float averageChargeRateMahPerHour() {
-        String saved = prefs.getString("telemetrySamples", "");
+        String saved = telemetryPrefs.getString("telemetrySamples", "");
         if (saved.isEmpty()) return 0f;
         long windowStart = System.currentTimeMillis() - 7L * 24L * 60L * 60L * 1000L;
         long previousAt = -1L;
@@ -716,7 +791,7 @@ class BatteryDashboard extends View {
 
     /** Calculates a local 7-day discharge rate from consecutive telemetry points. */
     private float averageDischargeRate(boolean screenOn) {
-        String saved = prefs.getString("telemetrySamples", "");
+        String saved = telemetryPrefs.getString("telemetrySamples", "");
         if (!saved.isEmpty()) {
             long windowStart = System.currentTimeMillis() - 7L * 24L * 60L * 60L * 1000L;
             long previousAt = -1L;
@@ -1112,7 +1187,7 @@ class BatteryDashboard extends View {
     private void showDataPrivacy() {
         new AlertDialog.Builder(getContext())
                 .setTitle("Data & privacy")
-                .setMessage("Ampere collects battery readings locally for your history and analysis: time, battery level, charging state, current, temperature, voltage and screen state. If you grant Usage access, the active foreground package is also stored locally to estimate app-related drain.\n\nNo battery readings, account identifiers, location or installed-app lists are uploaded. The update checker only requests its configured version file.\n\nCSV is a flat table. Research export is structured JSON and includes device model and Android version, but no serial number or advertising identifier. Both exports start only after you choose them.")
+                .setMessage("Ampere collects battery readings locally for your history and analysis: time, battery level, charging state, current, temperature, voltage and screen state. If you grant Usage access, the active foreground package is also stored locally to estimate app-related drain.\n\nNo battery readings, account identifiers, location or installed-app lists are sent to an Ampere server. Android automatic backup includes app history and settings only when your device's backup transport allows it; detailed telemetry stays local unless you explicitly export or back it up. The update checker only requests its configured version file.\n\nCSV is a flat table. Research export is structured JSON and includes device model and Android version, but no serial number or advertising identifier. Both exports start only after you choose them.")
                 .setPositiveButton("Export CSV", (dialog, which) -> exportHistory())
                 .setNeutralButton("Research JSON", (dialog, which) -> ((MainActivity) getContext()).createResearchExport())
                 .setNegativeButton("Close", null)
@@ -1128,6 +1203,7 @@ class BatteryDashboard extends View {
                     Context context = getContext();
                     SharedPreferences data = context.getSharedPreferences("ampere-data", Context.MODE_PRIVATE);
                     data.edit().clear().apply();
+                    context.getSharedPreferences("ampere-telemetry", Context.MODE_PRIVATE).edit().clear().apply();
                     BackupManager.dataChanged(context.getPackageName());
                     reloadStoredData();
                     Intent battery = ((Activity) context).registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
@@ -1166,7 +1242,7 @@ class BatteryDashboard extends View {
     private void showBackupRestore() {
         new AlertDialog.Builder(getContext())
                 .setTitle("Backup & restore")
-                .setMessage("Updates keep your data automatically. The monitor requests Android's backup provider in the background. " + backupStatus() + "\n\nBefore uninstalling, create a backup and restore it after reinstalling. Android cloud/device backup may also restore these settings when enabled on your device.")
+                .setMessage("Updates keep your data automatically. The monitor requests Android's backup provider in the background. Automatic Android backup covers history and settings; detailed telemetry remains local unless you create this explicit backup. " + backupStatus() + "\n\nBefore uninstalling, create a backup and restore it after reinstalling. Android cloud/device backup may also restore the included history and settings when enabled on your device.")
                 .setPositiveButton("Create backup", (dialog, which) -> ((MainActivity) getContext()).createBackup())
                 .setNeutralButton("Restore backup", (dialog, which) -> ((MainActivity) getContext()).restoreBackup())
                 .setNegativeButton("Close", null)
@@ -1476,7 +1552,7 @@ class BatteryDashboard extends View {
 
     /** Estimate direct app-attributed drain from local telemetry intervals. */
     private int telemetryAppMah(String packageName, long start, long end) {
-        String saved = prefs.getString("telemetrySamples", "");
+        String saved = telemetryPrefs.getString("telemetrySamples", "");
         if (saved.isEmpty()) return 0;
         String[] rows = saved.split("\\n");
         int total = 0;
@@ -1632,13 +1708,30 @@ class BatteryDashboard extends View {
 
     String historyCsv() {
         StringBuilder csv = new StringBuilder("type,change,duration,date,start_level,end_level,energy_mah,equivalent_full_cycles,screen_on_value,screen_off_value,screen_on_duration_min,screen_off_duration_min,deep_sleep_min,charger_source,start_timestamp_ms,end_timestamp_ms\n");
-        for (String session : sessions) csv.append(session).append('\n');
+        for (String session : sessions) appendCsvRow(csv, session.split(",", -1));
         csv.append("\nlevel_percent\n");
-        for (Integer point : longHistory) csv.append(point).append('\n');
+        for (Integer point : longHistory) appendCsvRow(csv, new String[]{String.valueOf(point)});
         csv.append("\ntelemetry_timestamp_ms,level_percent,charging,current_ma,temperature_c,voltage_v,charge_counter_mah,screen_on,foreground_package,system_cycle_count,plugged\n");
-        String telemetry = prefs.getString("telemetrySamples", "");
-        if (!telemetry.isEmpty()) csv.append(telemetry).append('\n');
+        String telemetry = telemetryPrefs.getString("telemetrySamples", "");
+        if (!telemetry.isEmpty()) for (String row : telemetry.split("\\n")) appendCsvRow(csv, row.split(",", -1));
         return csv.toString();
+    }
+
+    private void appendCsvRow(StringBuilder csv, String[] fields) {
+        for (int i = 0; i < fields.length; i++) {
+            if (i > 0) csv.append(',');
+            csv.append(csvField(fields[i]));
+        }
+        csv.append('\n');
+    }
+
+    private String csvField(String value) {
+        if (value == null) value = "";
+        if (!value.isEmpty() && (value.charAt(0) == '=' || value.charAt(0) == '+'
+                || value.charAt(0) == '-' || value.charAt(0) == '@')) value = "'" + value;
+        boolean quote = value.indexOf(',') >= 0 || value.indexOf('"') >= 0
+                || value.indexOf('\n') >= 0 || value.indexOf('\r') >= 0;
+        return quote ? "\"" + value.replace("\"", "\"\"") + "\"" : value;
     }
 
     private void showSessionDetails(int index) {
@@ -1747,7 +1840,7 @@ class BatteryDashboard extends View {
         rect.set(u(x), u(y), u(x + width), u(y + height));
         c.drawRoundRect(rect, u(12), u(12), p);
         text(c, chargingFilter ? "Charging current" : "Discharging current", x + 18, y + 28, 15, primary, true);
-        String saved = prefs.getString("telemetrySamples", "");
+        String saved = telemetryPrefs.getString("telemetrySamples", "");
         ArrayList<Integer> values = new ArrayList<>();
         if (!saved.isEmpty()) {
             for (String row : saved.split("\\n")) {
