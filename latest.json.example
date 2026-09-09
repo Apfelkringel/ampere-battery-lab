@@ -1,7 +1,7 @@
 {
-  "versionCode": 47,
-  "versionName": "0.47",
+  "versionCode": 48,
+  "versionName": "0.48",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "76cd8401fffa1b019baedabe9d260cb4ee5cfbff8dadd3e7592c7ac8361c2241",
-  "releaseNotes": "Health zeigt jetzt transparent, warum eine Ladesitzung noch nicht als Kapazitätsprobe zählt, und die insgesamt geladene Energiemenge."
+  "sha256": "23d692479b9623fbf57d77501198f8ed50de64a357071283d111baf3059e1d3b",
+  "releaseNotes": "Laufzeitprognosen nutzen jetzt lokale Bildschirm-an/aus-Entladeraten der letzten sieben Tage."
 }
