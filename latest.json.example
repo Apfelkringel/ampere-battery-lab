@@ -1,7 +1,7 @@
 {
-  "versionCode": 39,
-  "versionName": "0.39",
+  "versionCode": 40,
+  "versionName": "0.40",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "8889b141d910f31bef5bdbe923191da6f4463ea32e1326090b52b98f77684aea",
-  "releaseNotes": "History-Sitzungen enthalten jetzt detaillierte Bildschirm-, Ladequellen- und Zeitdaten für lokale Auswertungen."
+  "sha256": "674c67dc09ac896fa3ae29dc4e28abd1c6d3405d0d8fc4d67c248e4d1bb35bc9",
+  "releaseNotes": "CSV-Daten können jetzt direkt als Datei über den Android-Dateidialog gespeichert werden."
 }
