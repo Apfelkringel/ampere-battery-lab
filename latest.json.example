@@ -1,7 +1,7 @@
 {
-  "versionCode": 29,
-  "versionName": "0.29",
+  "versionCode": 30,
+  "versionName": "0.30",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "0bdfc0dc1cddffc111c3c0e71cb3089f1cd69e4c213f1bd16590e46022c8e2d7",
-  "releaseNotes": "Die Sitzungsdaten werden in Übersicht und History jetzt korrekt als Datum angezeigt."
+  "sha256": "9218079af1de7be2a23dffeb5a06eb4ba9439c86c8540d6d2445a37558d384e6",
+  "releaseNotes": "Die Ladeansicht zeigt jetzt die geschätzte Zeit bis zum konfigurierten Ladeziel oder bis 100 Prozent."
 }
