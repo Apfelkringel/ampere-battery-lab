@@ -695,6 +695,18 @@ class BatteryDashboard extends View {
         return String.format(Locale.US, "%.0f%%", charged * 100f / (designCapacityMah() * cycles));
     }
 
+    private String lastChargeEquivalentCycles() {
+        int energy = lastChargeEnergyMah();
+        int design = designCapacityMah();
+        return energy > 0 && design > 0 ? String.format(Locale.US, "%.2f EFC", energy / (float) design) : "—";
+    }
+
+    private String totalEquivalentCycles() {
+        int charged = prefs.getInt("totalChargedMah", 0);
+        int design = designCapacityMah();
+        return charged > 0 && design > 0 ? String.format(Locale.US, "%.2f EFC", charged / (float) design) : "—";
+    }
+
     private void setOverlayEnabled(boolean enabled) {
         if (enabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(getContext())) {
             try { getContext().startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getContext().getPackageName()))); } catch (Exception ignored) { getContext().startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)); }
@@ -1103,8 +1115,9 @@ class BatteryDashboard extends View {
         drawStat(c, 30 + (w - 48) / 2f, y + 316, (w - 48) / 2f, 105, "Charge cycles", String.valueOf(chargeCycles()), "", Color.rgb(180, 154, 255), primary, muted, border, panel, "grid");
         rounded(c, 18, y + 438, w - 18, y + 520, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 438), u(w - 18), u(y + 520)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "How this estimate works", 36, y + 468, 10, muted, true);
-        text(c, "Capacity is estimated from charge and discharge", 36, y + 493, 10, primary, false);
-        text(c, "samples collected on this device.", 36, y + 510, 10, primary, false);
+        text(c, "Capacity is estimated from local charge/discharge", 36, y + 493, 9, primary, false);
+        text(c, "samples · last charge " + lastChargeEquivalentCycles(), 36, y + 510, 9, primary, false);
+        text(c, "Total charged: " + totalEquivalentCycles(), w - 165, y + 493, 8, blue, true);
         rounded(c, 18, y + 548, w - 18, y + 615, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 548), u(w - 18), u(y + 615)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, benchmarkActive ? "Benchmark in progress" : "Manual benchmark", 36, y + 575, 11, primary, true);
         text(c, benchmarkActive ? "Charge above 95% to finish" : "Start below 25% for best results", 36, y + 595, 9, muted, false);
