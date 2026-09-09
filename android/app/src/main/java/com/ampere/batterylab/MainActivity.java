@@ -1154,6 +1154,7 @@ class BatteryDashboard extends View {
                             .remove("totalChargedMah").remove("chargeCycles")
                             .remove("cycleLastLevel").remove("dischargePercent")
                             .apply();
+                    BackupManager.dataChanged(context.getPackageName());
                     reloadStoredData();
                     Intent battery = ((Activity) context).registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
                     if (battery != null) readBattery(battery);
@@ -1165,11 +1166,18 @@ class BatteryDashboard extends View {
     private void showBackupRestore() {
         new AlertDialog.Builder(getContext())
                 .setTitle("Backup & restore")
-                .setMessage("Updates keep your data automatically. Before uninstalling, create a backup and restore it after reinstalling. Android cloud/device backup may also restore these settings when enabled on your device.")
+                .setMessage("Updates keep your data automatically. The monitor requests Android's backup provider in the background. " + backupStatus() + "\n\nBefore uninstalling, create a backup and restore it after reinstalling. Android cloud/device backup may also restore these settings when enabled on your device.")
                 .setPositiveButton("Create backup", (dialog, which) -> ((MainActivity) getContext()).createBackup())
                 .setNeutralButton("Restore backup", (dialog, which) -> ((MainActivity) getContext()).restoreBackup())
                 .setNegativeButton("Close", null)
                 .show();
+    }
+
+    private String backupStatus() {
+        long lastRequest = prefs.getLong("lastBackupRequestAt", 0L);
+        if (lastRequest <= 0L) return "No automatic backup request has been recorded yet.";
+        String date = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(new Date(lastRequest));
+        return "Last automatic backup request: " + date + ". Android controls the actual backup transport and timing.";
     }
 
     void startSavedOverlay() {
