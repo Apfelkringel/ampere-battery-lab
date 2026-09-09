@@ -32,7 +32,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - best-effort lokale Designkapazitäts-Erkennung, mit sichtbarem 4.500-mAh-Fallback und manuellem Override, wenn Android den Werkswert nicht freigibt
 - Health-Auswertung mit letztem Ladeverschleiß und äquivalenten Vollzyklen (EFC)
 - transparente Anzeige, warum eine Ladesitzung noch nicht als Health-Kapazitätsprobe zählt
-- Bildschirmzeit, Deep Sleep, Ladezyklen und optionale Vordergrund-App-Nutzung
+- Bildschirmzeit, echte Android-Suspendzeit (Deep Sleep), Ladezyklen und optionale Vordergrund-App-Nutzung
 - Bildschirm-Aufwachereignisse pro Entladephase als transparente Näherung für Deep-Sleep-Wakeups
 - Entladestatistik seit der letzten erkannten Volladung
 - lokale 7-Tage-Laufzeitprognose aus Bildschirm-an/aus-Telemetrie

@@ -19,6 +19,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.PowerManager;
+import android.os.SystemClock;
 import java.util.ArrayList;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -148,11 +149,12 @@ public class BatteryMonitorService extends Service {
         if (systemCycleCount >= 0) prefs.edit().putInt("systemCycleCount", systemCycleCount).apply();
         PowerManager power = (PowerManager) getSystemService(POWER_SERVICE);
         boolean interactive = power == null || power.isInteractive();
+        long deepSleepDeltaMs = recordDeepSleepClock(prefs);
         String foregroundPackage = foregroundPackage(now);
         NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         if (notificationManager != null) notificationManager.notify(7, statusNotification(value, isCharging, signedCurrentMa, temperature, battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0)));
-        updateSinceFullStats(prefs, value, isCharging, chargeCounterMah, currentMa, now, interactive);
-        updateDischargeStats(prefs, value, isCharging, chargeCounterMah, currentMa, now, interactive);
+        updateSinceFullStats(prefs, value, isCharging, chargeCounterMah, currentMa, now, interactive, deepSleepDeltaMs);
+        updateDischargeStats(prefs, value, isCharging, chargeCounterMah, currentMa, now, interactive, deepSleepDeltaMs);
         updateChargeStats(prefs, value, isCharging, chargeCounterMah, currentMa, now, interactive, plugged);
         recordSession(prefs, value, isCharging, chargeCounterMah, now);
         recordTelemetrySample(telemetryPrefs, now, value, isCharging, signedCurrentMa, temperature, battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0), chargeCounterMah, interactive, foregroundPackage, systemCycleCount, plugged);
@@ -200,6 +202,28 @@ public class BatteryMonitorService extends Service {
         if (prefs.getBoolean("sinceFullActive", false)) {
             prefs.edit().putInt("sinceFullWakeups", prefs.getInt("sinceFullWakeups", 0) + 1).apply();
         }
+    }
+
+    /**
+     * Measures actual system suspend time. elapsedRealtime includes deep sleep,
+     * while uptimeMillis stops during it. The persisted clock pair also lets a
+     * service restart continue the current session; a reboot resets the pair.
+     */
+    private long recordDeepSleepClock(android.content.SharedPreferences prefs) {
+        long elapsed = SystemClock.elapsedRealtime();
+        long uptime = SystemClock.uptimeMillis();
+        long previousElapsed = prefs.getLong("deepSleepClockElapsed", -1L);
+        long previousUptime = prefs.getLong("deepSleepClockUptime", -1L);
+        long delta = 0L;
+        if (previousElapsed >= 0L && previousUptime >= 0L
+                && elapsed >= previousElapsed && uptime >= previousUptime) {
+            delta = Math.max(0L, (elapsed - previousElapsed) - (uptime - previousUptime));
+        }
+        prefs.edit().putLong("deepSleepClockElapsed", elapsed)
+                .putLong("deepSleepClockUptime", uptime)
+                .putLong("deepSleepMs", prefs.getLong("deepSleepMs", 0L) + delta)
+                .apply();
+        return delta;
     }
 
     /**
@@ -327,7 +351,8 @@ public class BatteryMonitorService extends Service {
 
     /** Tracks battery use after the most recent observed full charge. */
     private void updateSinceFullStats(android.content.SharedPreferences prefs, int level, boolean charging,
-                                      int counterMah, int currentMa, long now, boolean interactive) {
+                                      int counterMah, int currentMa, long now, boolean interactive,
+                                      long deepSleepDeltaMs) {
         boolean active = prefs.getBoolean("sinceFullActive", false);
         if (charging && level >= 99 && !active) {
             prefs.edit().putBoolean("sinceFullActive", true).putLong("sinceFullStartAt", now)
@@ -353,7 +378,7 @@ public class BatteryMonitorService extends Service {
         }
         long screenOnMs = prefs.getLong("sinceFullScreenOnMs", 0L) + ((!charging && interactive) ? elapsed : 0L);
         long screenOffMs = prefs.getLong("sinceFullScreenOffMs", 0L) + ((!charging && !interactive) ? elapsed : 0L);
-        long deepSleepMs = prefs.getLong("sinceFullDeepSleepMs", 0L) + ((!charging && !interactive) ? elapsed : 0L);
+        long deepSleepMs = prefs.getLong("sinceFullDeepSleepMs", 0L) + (!charging ? deepSleepDeltaMs : 0L);
         prefs.edit().putInt("sinceFullLastLevel", level).putInt("sinceFullLastCounterMah", counterMah)
                 .putLong("sinceFullLastAt", now).putFloat("sinceFullPercent", usedPercent)
                 .putInt("sinceFullMah", usedMah).putLong("sinceFullScreenOnMs", screenOnMs)
@@ -500,9 +525,11 @@ public class BatteryMonitorService extends Service {
     }
 
     private void updateDischargeStats(android.content.SharedPreferences prefs, int level, boolean charging,
-                                      int counterMah, int currentMa, long now, boolean interactive) {
+                                      int counterMah, int currentMa, long now, boolean interactive,
+                                      long deepSleepDeltaMs) {
         boolean previousCharging = prefs.getBoolean("monitorLastCharging", charging);
         if (charging && !previousCharging) {
+            refreshDischargeDeepSleep(prefs);
             prefs.edit().putLong("lastDischargeScreenOnMs", prefs.getLong("dischargeScreenOnMs", 0L))
                     .putLong("lastDischargeScreenOffMs", prefs.getLong("dischargeScreenOffMs", 0L))
                     .putFloat("lastDischargeScreenOnPercent", prefs.getFloat("dischargeScreenOnPercent", 0f))
@@ -526,7 +553,9 @@ public class BatteryMonitorService extends Service {
                     .putLong("dischargeScreenOffMs", 0L).putFloat("dischargeScreenOnPercent", 0f)
                     .putFloat("dischargeScreenOffPercent", 0f).putInt("dischargeMah", 0).putInt("dischargeWakeups", 0)
                     .putLong("dischargeStartAt", now).apply();
-            prefs.edit().putLong("dischargeDeepSleepMs", 0L).apply();
+            prefs.edit().putLong("dischargeDeepSleepMs", 0L)
+                    .putLong("dischargeDeepSleepStartElapsed", SystemClock.elapsedRealtime())
+                    .putLong("dischargeDeepSleepStartUptime", SystemClock.uptimeMillis()).apply();
             return;
         }
         if (charging) return;
@@ -547,12 +576,28 @@ public class BatteryMonitorService extends Service {
         }
         long onMs = prefs.getLong("dischargeScreenOnMs", 0L) + (interactive ? elapsed : 0L);
         long offMs = prefs.getLong("dischargeScreenOffMs", 0L) + (interactive ? 0L : elapsed);
-        long deepSleepMs = prefs.getLong("dischargeDeepSleepMs", 0L) + (interactive ? 0L : elapsed);
+        long deepSleepMs = prefs.getLong("dischargeDeepSleepMs", 0L) + deepSleepDeltaMs;
         prefs.edit().putInt("dischargeLastLevel", level).putInt("dischargeLastCounterMah", counterMah)
                 .putLong("dischargeLastAt", now).putFloat("dischargeScreenOnPercent", onPercent)
                 .putFloat("dischargeScreenOffPercent", offPercent).putInt("dischargeMah", energy)
                 .putLong("dischargeScreenOnMs", onMs).putLong("dischargeScreenOffMs", offMs)
                 .putLong("dischargeDeepSleepMs", deepSleepMs).apply();
+    }
+
+    private void refreshDischargeDeepSleep(android.content.SharedPreferences prefs) {
+        long startElapsed = prefs.getLong("dischargeDeepSleepStartElapsed", -1L);
+        long startUptime = prefs.getLong("dischargeDeepSleepStartUptime", -1L);
+        long elapsed = SystemClock.elapsedRealtime();
+        long uptime = SystemClock.uptimeMillis();
+        if (startElapsed < 0L || startUptime < 0L) return;
+        if (elapsed < startElapsed || uptime < startUptime) {
+            prefs.edit().putLong("dischargeDeepSleepStartElapsed", elapsed)
+                    .putLong("dischargeDeepSleepStartUptime", uptime)
+                    .putLong("dischargeDeepSleepMs", 0L).apply();
+            return;
+        }
+        long deepSleepMs = Math.max(0L, (elapsed - startElapsed) - (uptime - startUptime));
+        prefs.edit().putLong("dischargeDeepSleepMs", deepSleepMs).apply();
     }
 
     private void updateChargeStats(android.content.SharedPreferences prefs, int level, boolean charging, int counterMah,
