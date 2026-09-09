@@ -1,7 +1,7 @@
 {
-  "versionCode": 46,
-  "versionName": "0.46",
+  "versionCode": 47,
+  "versionName": "0.47",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "752e344efba29f8bcfb6efe7daf62809dd58d6c8751519cc05bd65799da7b276",
-  "releaseNotes": "Die Designkapazität wird lokal automatisch aus Android-Batteriedaten erkannt und kann weiterhin manuell überschrieben werden."
+  "sha256": "76cd8401fffa1b019baedabe9d260cb4ee5cfbff8dadd3e7592c7ac8361c2241",
+  "releaseNotes": "Health zeigt jetzt transparent, warum eine Ladesitzung noch nicht als Kapazitätsprobe zählt, und die insgesamt geladene Energiemenge."
 }
