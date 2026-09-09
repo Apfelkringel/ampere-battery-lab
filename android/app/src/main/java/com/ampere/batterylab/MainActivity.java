@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.backup.BackupManager;
 import android.os.BatteryManager;
+import android.os.PowerManager;
 import android.os.Bundle;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -734,7 +735,7 @@ class BatteryDashboard extends View {
     }
 
     private void showSettings() {
-        String[] options = {"Dark theme", "AMOLED black", "Light theme", "Notification settings", "Overlay permission", "Data & privacy", "Backup & restore", "Quick tutorial", "Delete local data"};
+        String[] options = {"Dark theme", "AMOLED black", "Light theme", "Notification settings", "Overlay permission", "Data & privacy", "Backup & restore", "Background monitoring", "Quick tutorial", "Delete local data"};
         new AlertDialog.Builder(getContext()).setTitle("Settings").setItems(options, (dialog, which) -> {
             if (which == 0) { light = false; amoled = false; }
             else if (which == 1) { light = false; amoled = true; }
@@ -751,6 +752,8 @@ class BatteryDashboard extends View {
             } else if (which == 6) {
                 showBackupRestore();
             } else if (which == 7) {
+                requestBackgroundMonitoring();
+            } else if (which == 8) {
                 showTutorial(true);
             } else {
                 confirmDeleteData();
@@ -758,6 +761,31 @@ class BatteryDashboard extends View {
             prefs.edit().putBoolean("lightTheme", light).putBoolean("amoledTheme", amoled).apply();
             invalidate();
         }).show();
+    }
+
+    private void requestBackgroundMonitoring() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            Toast.makeText(getContext(), "Background monitoring is available on Android 6+.", Toast.LENGTH_LONG).show();
+            return;
+        }
+        PowerManager power = (PowerManager) getContext().getSystemService(Context.POWER_SERVICE);
+        if (power != null && power.isIgnoringBatteryOptimizations(getContext().getPackageName())) {
+            Toast.makeText(getContext(), "Background monitoring is already allowed.", Toast.LENGTH_LONG).show();
+            return;
+        }
+        new AlertDialog.Builder(getContext())
+                .setTitle("Background monitoring")
+                .setMessage("Android can pause background apps to save power. Allow Ampere to keep recording battery history and charge alarms while the app is closed?")
+                .setNegativeButton("Later", null)
+                .setPositiveButton("Open system setting", (dialog, which) -> {
+                    try {
+                        Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                                Uri.parse("package:" + getContext().getPackageName()));
+                        getContext().startActivity(intent);
+                    } catch (Exception ignored) {
+                        getContext().startActivity(new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS));
+                    }
+                }).show();
     }
 
     private void showDataPrivacy() {
