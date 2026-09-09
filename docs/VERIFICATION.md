@@ -15,8 +15,8 @@ Last verified: 2026-09-10 (Europe/Berlin)
 | Runtime | Result |
 | --- | --- |
 | Android 14 / API 34 | Fresh signed `0.85` install, compact German UI check, light/dark theme check, all five tabs, app launch and foreground monitor passed; no fatal exception occurred. |
-| Android 16 / API 36 | Fresh signed `0.82` install, app launch and foreground monitor passed. The installed package reported `versionCode 82`, `targetSdk 37`; no fatal exception occurred. |
-| Android 17 / API 37 | Fresh signed `0.82` install, app launch and foreground monitor passed. The installed package reported `versionCode 82`, `targetSdk 37`; no fatal exception occurred. |
+| Android 16 / API 36 | Fresh signed `0.85` install, app launch and foreground monitor passed. The installed package reported `versionCode 85`, `targetSdk 37`; no fatal exception occurred. |
+| Android 17 / API 37 | Fresh signed `0.85` install, app launch and foreground monitor passed. The installed package reported `versionCode 85`, `targetSdk 37`; no fatal exception occurred. |
 
 On API 37, an installed signed `0.79` instance fetched the public manifest,
 displayed the in-app `0.80` update dialog, downloaded the APK, reached Android's
