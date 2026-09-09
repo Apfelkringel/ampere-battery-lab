@@ -1,7 +1,7 @@
 {
-  "versionCode": 40,
-  "versionName": "0.40",
+  "versionCode": 41,
+  "versionName": "0.41",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "674c67dc09ac896fa3ae29dc4e28abd1c6d3405d0d8fc4d67c248e4d1bb35bc9",
-  "releaseNotes": "CSV-Daten können jetzt direkt als Datei über den Android-Dateidialog gespeichert werden."
+  "sha256": "e83a950cac4e961e96ab87f82857c29ab03adae94d911a006ff574606956a1f8",
+  "releaseNotes": "Die lokale Messfrequenz kann jetzt auf 5, 15, 30 oder 60 Minuten gestellt werden."
 }
