@@ -526,6 +526,21 @@ class BatteryDashboard extends View {
         return String.format(Locale.US, "%.1f%% / hour", currentMa * 100f / capacity);
     }
 
+    private String dischargeSpeed(boolean screenOn) {
+        String percentKey = screenOn ? "dischargeScreenOnPercent" : "dischargeScreenOffPercent";
+        String durationKey = screenOn ? "dischargeScreenOnMs" : "dischargeScreenOffMs";
+        if (charging) {
+            percentKey = "last" + Character.toUpperCase(percentKey.charAt(0)) + percentKey.substring(1);
+            durationKey = "last" + Character.toUpperCase(durationKey.charAt(0)) + durationKey.substring(1);
+        }
+        float percent = prefs.getFloat(percentKey, 0f);
+        long minutes = prefs.getLong(durationKey, 0L) / 60000L;
+        if (percent > 0f && minutes >= 5) return String.format(Locale.US, "%.1f%%/h", percent * 60f / minutes);
+        int capacity = estimatedCapacityMah();
+        if (charging || currentMa < 50 || capacity <= 0) return "—";
+        return String.format(Locale.US, "%.1f%%/h", currentMa * 100f / capacity);
+    }
+
     private String screenOnTime() {
         long minutes = prefs.getLong("screenOnMs", 0L) / 60000L;
         if (minutes <= 0) return "—";
@@ -865,6 +880,9 @@ class BatteryDashboard extends View {
         text(c, "based on recent use", w * .6f, y + 157, 9, faint, false);
         text(c, "Screen on / off", w * .6f, y + 187, 10, muted, false);
         text(c, dischargeRuntime(true) + " / " + dischargeRuntime(false), w * .6f, y + 207, 11, blue, true);
+        text(c, "Discharging speed", 36, y + 245, 10, muted, false);
+        text(c, dischargeSpeed(true) + " · " + dischargeSpeed(false), w - 145, y + 245, 10, blue, true);
+        text(c, "screen on / off", w - 112, y + 262, 8, faint, false);
         drawStat(c, 18, y + 316, (w - 48) / 2f, 105, "Screen-on time", dischargeDuration(true), "", Color.rgb(180, 154, 255), primary, muted, border, panel, "clock");
         drawStat(c, 30 + (w - 48) / 2f, y + 316, (w - 48) / 2f, 105, "Energy used", dischargeMah() > 0 ? String.valueOf(dischargeMah()) : "—", "mAh", blue, primary, muted, border, panel, "arrow");
         rounded(c, 18, y + 438, w - 18, y + 520, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 438), u(w - 18), u(y + 520)); c.drawRoundRect(rect, u(12), u(12), p);
