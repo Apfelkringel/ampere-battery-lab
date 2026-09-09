@@ -63,7 +63,7 @@ public class MainActivity extends Activity {
             "benchmarkStartLevel", "benchmarkStartCounterMah", "benchmarkChargeLastCounterMah",
             "benchmarkChargeAddedMah", "benchmarkChargeStatsBaselineMah", "healthSampleSessionAt",
             "lastChargeHealthReason", "totalChargedMah", "chargeCycles", "cycleLastLevel",
-            "dischargePercent", "samplingIntervalMin", "overlayEnabled", "historyDays", "lightTheme",
+            "dischargePercent", "deepSleepMs", "samplingIntervalMin", "overlayEnabled", "historyDays", "lightTheme",
             "amoledTheme", "designCapacityMah", "tutorialShown", "lastBackupRequestAt",
             "chargeLastAt", "chargeLastCounterMah", "chargeLastLevel", "chargePlugged",
             "chargeScreenOffMah", "chargeScreenOffMs", "chargeScreenOffPercent", "chargeScreenOnMah",
