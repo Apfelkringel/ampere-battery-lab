@@ -5,16 +5,16 @@ Last verified: 2026-09-10 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.82` (`versionCode 82`)
+- Version: `0.84` (`versionCode 84`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `e5de9dc0fa31ca8f7e44e166104da5b0f7cbb5d733dc7f5c19f74892afcb195c`
+- Release APK SHA-256: `20a47adcc75971b89f7cedb71b7a7d82318451f0ed022ba118e53aa9a18abc56`
 - The same hash is published in the public update repository manifest.
 
 ## Runtime checks
 
 | Runtime | Result |
 | --- | --- |
-| Android 14 / API 34 | Fresh signed `0.82` install, responsive compact UI check, all five tabs, app launch and foreground monitor passed; no fatal exception occurred. |
+| Android 14 / API 34 | Fresh signed `0.84` install, responsive compact UI check, automatic charging state, all five tabs, app launch and foreground monitor passed; no fatal exception occurred. |
 | Android 16 / API 36 | Fresh signed `0.82` install, app launch and foreground monitor passed. The installed package reported `versionCode 82`, `targetSdk 37`; no fatal exception occurred. |
 | Android 17 / API 37 | Fresh signed `0.82` install, app launch and foreground monitor passed. The installed package reported `versionCode 82`, `targetSdk 37`; no fatal exception occurred. |
 
@@ -24,11 +24,11 @@ package installer, and completed the update after the test emulator's unknown-
 sources permission was enabled. `firstInstallTime` remained unchanged and the
 monitor was restarted by `MY_PACKAGE_REPLACED` as a foreground service.
 
-Release `0.82` also compiles and passes lint locally after the responsive layout,
-timestamp-aware overview chart, expanded tab touch targets and accessibility
-summary changes. Direct handling for Android power-connected and
-power-disconnected broadcasts remains active in both the monitor service and the
-visible activity.
+Release `0.84` also compiles and passes lint locally after the responsive layout,
+timestamp-aware overview chart, separate runtime/speed summaries, expanded tab
+touch targets and accessibility summary changes. Direct handling for Android
+power-connected and power-disconnected broadcasts remains active in both the
+monitor service and the visible activity.
 
 The API-37 system image and AVD are generated test assets stored under
 `tooling/` on the external SSD and are ignored by Git.
