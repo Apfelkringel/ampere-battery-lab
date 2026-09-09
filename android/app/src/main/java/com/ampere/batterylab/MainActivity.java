@@ -936,7 +936,7 @@ class BatteryDashboard extends View {
         long end = System.currentTimeMillis();
         long start = prefs.getBoolean("sinceFullActive", false)
                 ? prefs.getLong("sinceFullStartAt", end - 24 * 60 * 60 * 1000L)
-                : prefs.getLong("dischargeStartAt", end - 24 * 60 * 60 * 1000L);
+                : prefs.getLong(charging ? "lastDischargeStartAt" : "dischargeStartAt", end - 24 * 60 * 60 * 1000L);
         if (start >= end) start = end - 60 * 60 * 1000L;
         List<UsageStats> stats = manager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, start, end);
         if (stats == null) return;
@@ -945,7 +945,7 @@ class BatteryDashboard extends View {
         });
         long totalForegroundMs = 0L;
         for (UsageStats stat : stats) if (!stat.getPackageName().equals(getContext().getPackageName())) totalForegroundMs += stat.getTotalTimeInForeground();
-        int totalEnergy = prefs.getInt("dischargeMah", 0);
+        int totalEnergy = dischargeMah();
         int row = 0;
         for (UsageStats stat : stats) {
             if (stat.getTotalTimeInForeground() < 60 * 1000L || stat.getPackageName().equals(getContext().getPackageName())) continue;
@@ -962,6 +962,46 @@ class BatteryDashboard extends View {
             if (++row == 3) break;
         }
         if (row == 0) text(c, "No app usage recorded since unplugging.", 36, y, 9, faint, false);
+        text(c, "Tap for all app details", 36, y + 87, 9, lime, true);
+    }
+
+    private void showAppUsageDetails() {
+        if (!hasUsageAccess()) {
+            try { getContext().startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS, Uri.parse("package:" + getContext().getPackageName()))); }
+            catch (Exception ignored) { getContext().startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)); }
+            return;
+        }
+        UsageStatsManager manager = (UsageStatsManager) getContext().getSystemService(Context.USAGE_STATS_SERVICE);
+        if (manager == null) return;
+        long end = System.currentTimeMillis();
+        long start = prefs.getBoolean("sinceFullActive", false)
+                ? prefs.getLong("sinceFullStartAt", end - 24 * 60 * 60 * 1000L)
+                : prefs.getLong(charging ? "lastDischargeStartAt" : "dischargeStartAt", end - 24 * 60 * 60 * 1000L);
+        if (start >= end) start = end - 60 * 60 * 1000L;
+        List<UsageStats> stats = manager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, start, end);
+        if (stats == null) return;
+        Collections.sort(stats, new Comparator<UsageStats>() {
+            @Override public int compare(UsageStats left, UsageStats right) { return Long.compare(right.getTotalTimeInForeground(), left.getTotalTimeInForeground()); }
+        });
+        long totalForegroundMs = 0L;
+        for (UsageStats stat : stats) if (!stat.getPackageName().equals(getContext().getPackageName())) totalForegroundMs += stat.getTotalTimeInForeground();
+        int totalEnergy = Math.max(0, dischargeMah());
+        StringBuilder details = new StringBuilder("Foreground time since the current discharge began.\n\n");
+        int row = 0;
+        for (UsageStats stat : stats) {
+            if (stat.getTotalTimeInForeground() < 60 * 1000L || stat.getPackageName().equals(getContext().getPackageName())) continue;
+            String app = stat.getPackageName();
+            try { app = getContext().getPackageManager().getApplicationLabel(getContext().getPackageManager().getApplicationInfo(stat.getPackageName(), 0)).toString(); } catch (Exception ignored) { }
+            long minutes = stat.getTotalTimeInForeground() / 60000L;
+            int appMah = telemetryAppMah(stat.getPackageName(), start, end);
+            if (appMah <= 0 && totalForegroundMs > 0L) appMah = Math.round(totalEnergy * stat.getTotalTimeInForeground() / (float) totalForegroundMs);
+            details.append(app).append("\n").append(minutes).append(" min · ")
+                    .append(appMah > 0 ? "~" + appMah + " mAh estimated" : "mAh unavailable")
+                    .append("\n\n");
+            if (++row == 50) break;
+        }
+        if (row == 0) details.append("No app usage recorded since unplugging.");
+        new AlertDialog.Builder(getContext()).setTitle("App usage details").setMessage(details.toString()).setPositiveButton("Close", null).show();
     }
 
     /** Estimate direct app-attributed drain from local 15-minute telemetry rows. */
@@ -1383,8 +1423,8 @@ class BatteryDashboard extends View {
             editDesignCapacity();
             return true;
         }
-        if (page == 2 && y > 700 && y < 920) {
-            try { getContext().startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS, Uri.parse("package:" + getContext().getPackageName()))); } catch (Exception ignored) { getContext().startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)); }
+        if (page == 2 && y > 640 && y < 920) {
+            showAppUsageDetails();
             return true;
         }
         return true;
