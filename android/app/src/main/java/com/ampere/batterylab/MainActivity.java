@@ -91,7 +91,19 @@ public class MainActivity extends Activity {
     private BatteryDashboard dashboard;
     private final BroadcastReceiver batteryReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
-            if (dashboard != null) dashboard.readBattery(intent);
+            if (dashboard == null || intent == null) return;
+            String action = intent.getAction();
+            if (Intent.ACTION_POWER_CONNECTED.equals(action)
+                    || Intent.ACTION_POWER_DISCONNECTED.equals(action)) {
+                // Power broadcasts carry no battery extras. Read Android's
+                // current sticky battery state so the visible status changes
+                // immediately when a cable is connected or removed.
+                Intent battery = MainActivity.this.registerReceiver(
+                        null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+                if (battery != null) dashboard.readBattery(battery);
+            } else {
+                dashboard.readBattery(intent);
+            }
         }
     };
 
@@ -124,6 +136,8 @@ public class MainActivity extends Activity {
         dashboard.startSavedOverlay();
         dashboard.postDelayed(() -> dashboard.showTutorial(false), 1200L);
         IntentFilter batteryFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        batteryFilter.addAction(Intent.ACTION_POWER_CONNECTED);
+        batteryFilter.addAction(Intent.ACTION_POWER_DISCONNECTED);
         Intent battery = Build.VERSION.SDK_INT >= 33 ? registerReceiver(batteryReceiver, batteryFilter, Context.RECEIVER_NOT_EXPORTED) : registerReceiver(batteryReceiver, batteryFilter);
         if (battery != null) dashboard.readBattery(battery);
     }
