@@ -1,0 +1,185 @@
+package com.ampere.batterylab;
+
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.Service;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.graphics.Color;
+import android.graphics.PixelFormat;
+import android.os.BatteryManager;
+import android.os.Build;
+import android.os.Handler;
+import android.os.IBinder;
+import android.os.Looper;
+import android.app.AppOpsManager;
+import android.app.usage.UsageStats;
+import android.app.usage.UsageStatsManager;
+import android.provider.Settings;
+import android.view.Gravity;
+import android.view.WindowManager;
+import android.widget.TextView;
+import android.graphics.drawable.GradientDrawable;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
+/** Local live current overlay, enabled explicitly by the user. */
+public class BatteryOverlayService extends Service {
+    private static final String CHANNEL_ID = "ampere-overlay";
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private WindowManager windowManager;
+    private TextView overlay;
+    private long[] previousCoreTotals = new long[0];
+    private long[] previousCoreIdles = new long[0];
+    private int cpuPercent = 0;
+    private final Runnable refresh = new Runnable() {
+        @Override public void run() {
+            updateText();
+            handler.postDelayed(this, 2000L);
+        }
+    };
+
+    @Override public void onCreate() {
+        super.onCreate();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
+            stopSelf();
+            return;
+        }
+        createChannel();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForeground(9, notification());
+        windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+        overlay = new TextView(this);
+        overlay.setTextColor(Color.rgb(242, 244, 239));
+        overlay.setTextSize(12f);
+        overlay.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+        overlay.setPadding(18, 12, 18, 12);
+        GradientDrawable background = new GradientDrawable();
+        background.setColor(Color.rgb(25, 28, 35));
+        background.setCornerRadius(18f);
+        background.setStroke(1, Color.rgb(199, 243, 107));
+        overlay.setBackground(background);
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY : WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                PixelFormat.TRANSLUCENT);
+        params.gravity = Gravity.TOP | Gravity.END;
+        params.x = 18;
+        params.y = 120;
+        try { windowManager.addView(overlay, params); } catch (WindowManager.BadTokenException ignored) { stopSelf(); return; }
+        handler.post(refresh);
+    }
+
+    private void createChannel() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
+        NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        if (manager != null) manager.createNotificationChannel(new NotificationChannel(CHANNEL_ID, "Live battery overlay", NotificationManager.IMPORTANCE_LOW));
+    }
+
+    private Notification notification() {
+        Intent launch = new Intent(this, MainActivity.class);
+        PendingIntent pending = PendingIntent.getActivity(this, 2, launch, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? new Notification.Builder(this, CHANNEL_ID) : new Notification.Builder(this);
+        return builder.setSmallIcon(R.drawable.ic_launcher)
+                .setContentTitle("Ampere overlay active")
+                .setContentText("Live battery readings are visible on screen")
+                .setContentIntent(pending)
+                .setOngoing(true)
+                .setShowWhen(false)
+                .build();
+    }
+
+    private void updateText() {
+        if (overlay == null) return;
+        Intent battery = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        if (battery == null) return;
+        int raw = battery.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+        int scale = battery.getIntExtra(BatteryManager.EXTRA_SCALE, 100);
+        int level = raw >= 0 && scale > 0 ? Math.round(raw * 100f / scale) : 0;
+        int temperature = battery.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0);
+        int voltage = battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0);
+        BatteryManager manager = (BatteryManager) getSystemService(BATTERY_SERVICE);
+        int microamps = manager == null ? 0 : manager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW);
+        if (microamps == Integer.MIN_VALUE || microamps == 0) {
+            microamps = manager == null ? 0 : manager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_AVERAGE);
+        }
+        int current = microamps == Integer.MIN_VALUE ? 0 : Math.abs(microamps) / 1000;
+        String currentText = current > 0 ? current + " mA" : "—";
+        overlay.setText("⚡ " + level + "%   " + currentText + "\n" + (voltage / 1000f) + " V   " + (temperature / 10f) + "°C   CPU cores " + readCpuPercent() + "%\nTop app: " + topApp());
+    }
+
+    private int readCpuPercent() {
+        try (BufferedReader reader = new BufferedReader(new FileReader("/proc/stat"))) {
+            String line;
+            long[] totals = new long[Runtime.getRuntime().availableProcessors()];
+            long[] idles = new long[totals.length];
+            int cores = 0;
+            while ((line = reader.readLine()) != null) {
+                if (!line.matches("^cpu\\d+\\s+.*")) {
+                    if (cores > 0) break;
+                    continue;
+                }
+                String[] values = line.trim().split("\\s+");
+                if (values.length < 5 || cores == totals.length) continue;
+                long total = 0L;
+                for (int i = 1; i < values.length; i++) total += Long.parseLong(values[i]);
+                totals[cores] = total;
+                idles[cores] = Long.parseLong(values[4]) + (values.length > 5 ? Long.parseLong(values[5]) : 0L);
+                cores++;
+            }
+            if (cores == 0) return cpuPercent;
+            if (previousCoreTotals.length != cores) {
+                previousCoreTotals = new long[cores];
+                previousCoreIdles = new long[cores];
+                System.arraycopy(totals, 0, previousCoreTotals, 0, cores);
+                System.arraycopy(idles, 0, previousCoreIdles, 0, cores);
+                return cpuPercent;
+            }
+            int totalPercent = 0;
+            int measured = 0;
+            for (int i = 0; i < cores; i++) {
+                long totalDelta = totals[i] - previousCoreTotals[i];
+                long idleDelta = idles[i] - previousCoreIdles[i];
+                if (totalDelta > 0L) { totalPercent += Math.max(0, Math.min(100, Math.round((totalDelta - idleDelta) * 100f / totalDelta))); measured++; }
+            }
+            if (measured > 0) cpuPercent = totalPercent / measured;
+            System.arraycopy(totals, 0, previousCoreTotals, 0, cores);
+            System.arraycopy(idles, 0, previousCoreIdles, 0, cores);
+        } catch (Exception ignored) { }
+        return cpuPercent;
+    }
+
+    private String topApp() {
+        AppOpsManager ops = (AppOpsManager) getSystemService(APP_OPS_SERVICE);
+        if (ops == null || ops.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), getPackageName()) != AppOpsManager.MODE_ALLOWED) return "usage access off";
+        UsageStatsManager manager = (UsageStatsManager) getSystemService(USAGE_STATS_SERVICE);
+        if (manager == null) return "—";
+        long end = System.currentTimeMillis();
+        List<UsageStats> stats = manager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, end - 60 * 60 * 1000L, end);
+        if (stats == null) return "—";
+        Collections.sort(stats, new Comparator<UsageStats>() {
+            @Override public int compare(UsageStats left, UsageStats right) { return Long.compare(right.getTotalTimeInForeground(), left.getTotalTimeInForeground()); }
+        });
+        for (UsageStats stat : stats) {
+            if (stat.getTotalTimeInForeground() < 60 * 1000L || stat.getPackageName().equals(getPackageName())) continue;
+            try { return getPackageManager().getApplicationLabel(getPackageManager().getApplicationInfo(stat.getPackageName(), 0)).toString(); } catch (Exception ignored) { return stat.getPackageName(); }
+        }
+        return "—";
+    }
+
+    @Override public int onStartCommand(Intent intent, int flags, int startId) { return START_STICKY; }
+
+    @Override public void onDestroy() {
+        handler.removeCallbacksAndMessages(null);
+        if (windowManager != null && overlay != null) try { windowManager.removeView(overlay); } catch (Exception ignored) { }
+        super.onDestroy();
+    }
+
+    @Override public IBinder onBind(Intent intent) { return null; }
+}

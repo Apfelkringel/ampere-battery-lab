@@ -1,0 +1,33 @@
+plugins {
+    id "com.android.application"
+}
+
+android {
+    namespace "com.ampere.batterylab"
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.ampere.batterylab"
+        minSdk 23
+        targetSdk 34
+        versionCode 2
+        versionName "0.2"
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    // Set this to the public HTTPS URL of latest.json before publishing updates.
+    buildTypes.each { type ->
+        type.buildConfigField "String", "UPDATE_MANIFEST_URL", '""'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.debug
+        }
+    }
+
+}
