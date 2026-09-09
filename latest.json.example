@@ -1,7 +1,7 @@
 {
-  "versionCode": 12,
-  "versionName": "0.12",
+  "versionCode": 13,
+  "versionName": "0.13",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "613ccc4d6c5548c0d9120051e2cbfe4bc8c650e3792e9965e4d4f2062cc30cd0",
-  "releaseNotes": "Die CSV-Telemetrie enthält jetzt tatsächlich die Ladequelle; Nutzungsanalyse bleibt fehlertolerant."
+  "sha256": "264c7d45ed990d1cf0469afcf22507ffe31da3e3fec36b18eb62ca515fdaac7c",
+  "releaseNotes": "Dashboard-Texte sind jetzt auf normalen Handydisplays vollständig lesbar."
 }
