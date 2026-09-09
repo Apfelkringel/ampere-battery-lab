@@ -1,7 +1,7 @@
 {
-  "versionCode": 54,
-  "versionName": "0.54",
+  "versionCode": 55,
+  "versionName": "0.55",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "f356fe99b4d78051a612a2c7b29e80faa611b67f8537c33163125138c716a6df",
-  "releaseNotes": "Die 30-Tage-History passt ihre gespeicherte Punktzahl jetzt automatisch an das gewählte Messintervall an."
+  "sha256": "2286cf78e280cc57107ef6dc1220d41a2013fa4133e8b93b7dc12cea3a3cb894",
+  "releaseNotes": "Ladezeit-Prognosen nutzen lokale 7-Tage-Laderaten, wenn Android keinen Systemwert liefert."
 }
