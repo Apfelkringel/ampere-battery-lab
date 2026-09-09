@@ -319,11 +319,30 @@ class BatteryDashboard extends View {
         healthSamples.clear();
         sessions.clear();
         loadStoredData();
+        updateLayoutHeight();
         invalidate();
     }
 
     ArrayList<String> sessionsForExport() {
         return new ArrayList<>(sessions);
+    }
+
+    private void updateLayoutHeight() {
+        int rowCount = Math.min(150, sessions.size());
+        int contentDp = page == 4 ? Math.max(1320, 560 + rowCount * 44) : 1320;
+        int contentPx = Math.round(contentDp * density);
+        setMinimumHeight(contentPx);
+        if (getLayoutParams() != null && getLayoutParams().height != contentPx) {
+            getLayoutParams().height = contentPx;
+            setLayoutParams(getLayoutParams());
+        }
+    }
+
+    private float historyExportTop() {
+        int rowCount = Math.min(150, sessions.size());
+        float listBottom = 182 + 160 + rowCount * 44f;
+        float panelBottom = Math.max(182 + 610, listBottom + 190);
+        return panelBottom - 48;
     }
 
     void readBattery(Intent intent) {
@@ -980,7 +999,10 @@ class BatteryDashboard extends View {
 
     private void drawHistoryPage(Canvas c, float w, float h, int panel, int raised, int border, int primary, int muted, int faint) {
         float y = 182;
-        rounded(c, 18, y, w - 18, y + 610, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y), u(w - 18), u(y + 610)); c.drawRoundRect(rect, u(12), u(12), p);
+        int rowCount = Math.min(150, sessions.size());
+        float listBottom = y + 160 + rowCount * 44f;
+        float panelBottom = Math.max(y + 610, listBottom + 190);
+        rounded(c, 18, y, w - 18, panelBottom, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y), u(w - 18), u(panelBottom)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "HISTORY", 36, y + 31, 10, muted, true);
         text(c, "Charge & discharge sessions", 36, y + 61, 20, primary, true);
         text(c, "Stored locally · up to 150 sessions", 36, y + 83, 10, faint, false);
@@ -1004,19 +1026,20 @@ class BatteryDashboard extends View {
                 text(c, parts[0], w * .53f, rowY, 9, parts[0].equals("Charge") ? lime : blue, true);
                 text(c, parts[1], w * .71f, rowY, 9, primary, true);
                 text(c, parts[2], w - 75, rowY, 9, faint, false);
-                if (++row == 5) break;
+                if (++row == rowCount) break;
             }
         }
-        line(c, 36, y + 405, w - 36, y + 405, border, 1);
-        text(c, "Samples recorded", 36, y + 438, 10, muted, false);
-        text(c, String.valueOf(longHistory.size()), w - 75, y + 438, 11, lime, true);
-        text(c, "Rolling window: up to 30 local days", 36, y + 464, 9, faint, false);
-        text(c, "Deep sleep", 36, y + 494, 10, muted, false);
-        text(c, deepSleepTime(), w - 75, y + 494, 11, Color.rgb(180, 154, 255), true);
-        text(c, "Battery readings stay on this device.", 36, y + 524, 10, primary, true);
-        text(c, "Export only when you choose; no account or subscription.", 36, y + 548, 9, muted, false);
-        rounded(c, w - 136, y + 566, w - 36, y + 600, 8, lime);
-        text(c, "Export CSV", w - 119, y + 588, 9, Color.rgb(23, 28, 16), true);
+        float summaryY = listBottom + 35;
+        line(c, 36, summaryY - 20, w - 36, summaryY - 20, border, 1);
+        text(c, "Samples recorded", 36, summaryY + 13, 10, muted, false);
+        text(c, String.valueOf(longHistory.size()), w - 75, summaryY + 13, 11, lime, true);
+        text(c, "Rolling window: up to 30 local days", 36, summaryY + 39, 9, faint, false);
+        text(c, "Deep sleep", 36, summaryY + 69, 10, muted, false);
+        text(c, deepSleepTime(), w - 75, summaryY + 69, 11, Color.rgb(180, 154, 255), true);
+        text(c, "Battery readings stay on this device.", 36, summaryY + 99, 10, primary, true);
+        text(c, "Export only when you choose; no account or subscription.", 36, summaryY + 121, 9, muted, false);
+        rounded(c, w - 136, panelBottom - 48, w - 36, panelBottom - 14, 8, lime);
+        text(c, "Export CSV", w - 119, panelBottom - 26, 9, Color.rgb(23, 28, 16), true);
     }
 
     private void exportHistory() {
@@ -1200,6 +1223,7 @@ class BatteryDashboard extends View {
         if (y >= 132 && y < 166) {
             float cell = (w - 36) / 5f;
             page = Math.max(0, Math.min(4, (int) ((x - 18) / cell)));
+            updateLayoutHeight();
             invalidate();
             return true;
         }
@@ -1235,12 +1259,13 @@ class BatteryDashboard extends View {
             setOverlayEnabled(!overlayEnabled);
             return true;
         }
-        if (page == 4 && y >= 330 && y < 570 && x < w - 145 && !sessions.isEmpty()) {
+        int historyRows = Math.min(150, sessions.size());
+        if (page == 4 && y >= 342 && y < 342 + historyRows * 44f && x < w - 145 && !sessions.isEmpty()) {
             int index = (int) ((y - 342) / 44);
             showSessionDetails(index);
             return true;
         }
-        if (page == 4 && y > 740 && y < 795 && x > w - 155) {
+        if (page == 4 && y > historyExportTop() && y < historyExportTop() + 45 && x > w - 155) {
             exportHistory();
             return true;
         }
