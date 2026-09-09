@@ -1037,7 +1037,6 @@ class BatteryDashboard extends View {
         new AlertDialog.Builder(getContext()).setTitle("Settings").setItems(options, (dialog, which) -> {
             if (which == 0) { light = false; amoled = false; }
             else if (which == 1) { light = false; amoled = true; }
-            else if (which == 2) { light = true; amoled = false; }
             else if (which == 3) {
                 try {
                     Intent notificationSettings = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, getContext().getPackageName());
@@ -1869,6 +1868,7 @@ class BatteryDashboard extends View {
             if (getParent() != null) getParent().requestDisallowInterceptTouchEvent(false);
             return true;
         }
+        performClick();
         float x = event.getX() / density, y = event.getY() / density;
         if (System.currentTimeMillis() - lastTouch < 80) return true;
         lastTouch = System.currentTimeMillis();
@@ -1954,6 +1954,11 @@ class BatteryDashboard extends View {
             showAppUsageDetails();
             return true;
         }
+        return true;
+    }
+
+    @Override public boolean performClick() {
+        super.performClick();
         return true;
     }
 }

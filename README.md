@@ -36,6 +36,7 @@ Kostenlose, lokal arbeitende Android-Batterieanalyse als eigenständige Implemen
 - 30-Tage-History passt die gespeicherte Punktzahl automatisch an das gewählte Messintervall an
 - Ladezeit-Prognosen nutzen lokale 7-Tage-Laderaten, wenn Android keinen Systemwert liefert
 - Health-Baseline kann nach einem Akkutausch zurückgesetzt werden, ohne History oder Telemetrie zu löschen
+- adaptive Darstellung ohne erzwungenes Hochformat für aktuelle Android-16/17-Geräte
 - Live-Overlay mit Akkustrom, CPU-Kernauslastung, Top-App und best-effort Prozessauslastung der Top-App
 - kein Konto und kein automatischer Upload von Messdaten; Netzwerk wird nur für den optionalen Update-Check verwendet
 - Downloads werden auch nach einem App-Prozess-Neustart per Android-DownloadManager fortgesetzt, vor der Installation gehasht und von Android bestätigt
