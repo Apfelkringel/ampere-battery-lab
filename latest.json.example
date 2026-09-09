@@ -1,7 +1,7 @@
 {
-  "versionCode": 73,
-  "versionName": "0.73",
+  "versionCode": 74,
+  "versionName": "0.74",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "cd462f2bf270f0e319d1440b76bc3dbf2e34d06d350d7ed9648e2a77b6892d15",
-  "releaseNotes": "Bildschirm-Wakeups werden jetzt auch in Sitzungsdetails und Analyse-Exports gespeichert."
+  "sha256": "e7ff204576613bcfa4fd02c5628afa7a58fc4d71257286bd17b206d4e07db206",
+  "releaseNotes": "Die Wakeup-Messung ist jetzt als v0.74 im Update-Kanal verfügbar."
 }
