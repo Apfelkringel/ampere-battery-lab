@@ -49,6 +49,7 @@ public class MainActivity extends Activity {
     private static final int CREATE_BACKUP_REQUEST = 1201;
     private static final int RESTORE_BACKUP_REQUEST = 1202;
     private static final int RESEARCH_EXPORT_REQUEST = 1203;
+    private static final int CSV_EXPORT_REQUEST = 1204;
     private static final int MAX_BACKUP_BYTES = 4 * 1024 * 1024;
     private BatteryDashboard dashboard;
     private final BroadcastReceiver batteryReceiver = new BroadcastReceiver() {
@@ -136,6 +137,7 @@ public class MainActivity extends Activity {
         if (requestCode == CREATE_BACKUP_REQUEST) writeBackup(uri);
         else if (requestCode == RESTORE_BACKUP_REQUEST) readBackup(uri);
         else if (requestCode == RESEARCH_EXPORT_REQUEST) writeResearchExport(uri);
+        else if (requestCode == CSV_EXPORT_REQUEST) writeCsvExport(uri);
     }
 
     private void writeBackup(Uri uri) {
@@ -209,6 +211,26 @@ public class MainActivity extends Activity {
                 .setType("application/json")
                 .putExtra(Intent.EXTRA_TITLE, "ampere-research-export.json");
         startActivityForResult(intent, RESEARCH_EXPORT_REQUEST);
+    }
+
+    void createCsvExport() {
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT)
+                .addCategory(Intent.CATEGORY_OPENABLE)
+                .setType("text/csv")
+                .putExtra(Intent.EXTRA_TITLE, "ampere-battery-export.csv");
+        startActivityForResult(intent, CSV_EXPORT_REQUEST);
+    }
+
+    private void writeCsvExport(Uri uri) {
+        try (OutputStream stream = getContentResolver().openOutputStream(uri)) {
+            if (stream == null || dashboard == null) throw new IllegalStateException("No output stream");
+            byte[] output = dashboard.historyCsv().getBytes(StandardCharsets.UTF_8);
+            if (output.length > MAX_BACKUP_BYTES) throw new IllegalArgumentException("CSV export too large");
+            stream.write(output);
+            Toast.makeText(this, "CSV-Export gespeichert.", Toast.LENGTH_LONG).show();
+        } catch (Exception ignored) {
+            Toast.makeText(this, "CSV-Export konnte nicht gespeichert werden.", Toast.LENGTH_LONG).show();
+        }
     }
 
     private void writeResearchExport(Uri uri) {
@@ -1305,6 +1327,10 @@ class BatteryDashboard extends View {
     }
 
     private void exportHistory() {
+        ((MainActivity) getContext()).createCsvExport();
+    }
+
+    String historyCsv() {
         StringBuilder csv = new StringBuilder("type,change,duration,date,start_level,end_level,energy_mah,equivalent_full_cycles,screen_on_value,screen_off_value,screen_on_duration_min,screen_off_duration_min,deep_sleep_min,charger_source,start_timestamp_ms,end_timestamp_ms\n");
         for (String session : sessions) csv.append(session).append('\n');
         csv.append("\nlevel_percent\n");
@@ -1312,11 +1338,7 @@ class BatteryDashboard extends View {
         csv.append("\ntelemetry_timestamp_ms,level_percent,charging,current_ma,temperature_c,voltage_v,charge_counter_mah,screen_on,foreground_package,system_cycle_count,plugged\n");
         String telemetry = prefs.getString("telemetrySamples", "");
         if (!telemetry.isEmpty()) csv.append(telemetry).append('\n');
-        Intent share = new Intent(Intent.ACTION_SEND);
-        share.setType("text/csv");
-        share.putExtra(Intent.EXTRA_SUBJECT, "Ampere battery data export");
-        share.putExtra(Intent.EXTRA_TEXT, csv.toString());
-        getContext().startActivity(Intent.createChooser(share, "Export battery data"));
+        return csv.toString();
     }
 
     private void showSessionDetails(int index) {
