@@ -1831,7 +1831,7 @@ class BatteryDashboard extends View {
             stroke(c, lime, 2); c.drawPath(path, p);
             fill(c, lime); float lastX = values.length == 1 ? chartX : chartX + chartW, lastY = chartY + chartH - values[values.length - 1] * chartH; c.drawCircle(u(lastX), u(lastY), u(4), p);
         }
-        text(c, historyDays == 30 ? "1" : "Mon", chartX, y + 166, 9, faint, false); text(c, historyDays == 30 ? "10" : "Wed", chartX + chartW * .32f, y + 166, 9, faint, false); text(c, historyDays == 30 ? "20" : "Fri", chartX + chartW * .64f, y + 166, 9, faint, false); text(c, historyDays == 30 ? "30" : "Sun", chartX + chartW - 23, y + 166, 9, faint, false);
+        text(c, chartAxisLabel(0f), chartX, y + 166, 9, faint, false); text(c, chartAxisLabel(.33f), chartX + chartW * .32f, y + 166, 9, faint, false); text(c, chartAxisLabel(.66f), chartX + chartW * .64f, y + 166, 9, faint, false); text(c, chartAxisLabel(1f), chartX + chartW - 23, y + 166, 9, faint, false);
         text(c, "Average " + chartAverage() + " · range " + chartRange(), x + 18, y + 189, 8, muted, false);
         text(c, "Recent sessions", x + 18, y + 204, 13, primary, true);
         if (sessions.isEmpty()) {
@@ -1901,8 +1901,38 @@ class BatteryDashboard extends View {
         text(c, "last " + count + " local samples", chartX, y + 199, 8, faint, false);
     }
 
+    /** Uses the requested time window from telemetry; old APKs fall back to their level history. */
+    private ArrayList<Integer> chartLevels() {
+        ArrayList<Integer> values = new ArrayList<>();
+        long end = System.currentTimeMillis();
+        long start = end - (historyDays == 30 ? 30L : 7L) * 24L * 60L * 60L * 1000L;
+        String saved = telemetryPrefs.getString("telemetrySamples", "");
+        if (!saved.isEmpty()) {
+            for (String row : saved.split("\\n")) {
+                String[] parts = row.split(",", 3);
+                if (parts.length < 2) continue;
+                try {
+                    long timestamp = Long.parseLong(parts[0]);
+                    if (timestamp < start || timestamp > end) continue;
+                    values.add(Math.max(0, Math.min(100, Integer.parseInt(parts[1]))));
+                } catch (NumberFormatException ignored) { }
+            }
+        }
+        if (!values.isEmpty()) return values;
+        ArrayList<Integer> fallback = historyDays == 30 ? longHistory : history;
+        values.addAll(fallback);
+        return values;
+    }
+
+    private String chartAxisLabel(float fraction) {
+        long end = System.currentTimeMillis();
+        long start = end - (historyDays == 30 ? 30L : 7L) * 24L * 60L * 60L * 1000L;
+        String pattern = historyDays == 30 ? "d MMM" : "EEE";
+        return new SimpleDateFormat(pattern, Locale.US).format(new Date(start + (long) ((end - start) * fraction)));
+    }
+
     private float[] chartValues() {
-        ArrayList<Integer> source = historyDays == 30 ? longHistory : history;
+        ArrayList<Integer> source = chartLevels();
         if (source.isEmpty()) return new float[0];
         int count = Math.min(12, source.size());
         float[] values = new float[count];
@@ -1914,7 +1944,7 @@ class BatteryDashboard extends View {
     }
 
     private String chartAverage() {
-        ArrayList<Integer> source = historyDays == 30 ? longHistory : history;
+        ArrayList<Integer> source = chartLevels();
         if (source.isEmpty()) return "—";
         int total = 0;
         for (Integer value : source) total += Math.max(0, Math.min(100, value));
@@ -1922,7 +1952,7 @@ class BatteryDashboard extends View {
     }
 
     private String chartRange() {
-        ArrayList<Integer> source = historyDays == 30 ? longHistory : history;
+        ArrayList<Integer> source = chartLevels();
         if (source.isEmpty()) return "—";
         int min = 100;
         int max = 0;

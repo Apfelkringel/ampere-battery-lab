@@ -34,6 +34,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - Bildschirmzeit, Deep Sleep, Ladezyklen und optionale Vordergrund-App-Nutzung
 - Entladestatistik seit der letzten erkannten Volladung
 - lokale 7-Tage-Laufzeitprognose aus Bildschirm-an/aus-Telemetrie
+- Verlaufsgrafik nutzt für 7/30 Tage die tatsächlichen lokalen Telemetrie-Zeitpunkte und echte Datums-/Wochentagsachsen
 - relative Verschleißwirkung des gewählten Ladeziels mit erhöhter Gewichtung hoher Ladezustände
 - speichert auch lange Ladesitzungen bei unverändertem Prozentstand (z. B. OEM-Ladelimit) anhand geladener mAh
 - optionale lokale Zuordnung der Vordergrund-App zu Telemetriepunkten und geschätztem App-Verbrauch
