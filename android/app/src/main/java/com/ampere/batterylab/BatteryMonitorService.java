@@ -130,9 +130,9 @@ public class BatteryMonitorService extends Service {
         String foregroundPackage = foregroundPackage(now);
         NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         if (notificationManager != null) notificationManager.notify(7, statusNotification(value, isCharging, currentMa, temperature, battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0)));
-        updateSinceFullStats(prefs, value, isCharging, chargeCounterMah, now, interactive);
-        updateDischargeStats(prefs, value, isCharging, chargeCounterMah, now, interactive);
-        updateChargeStats(prefs, isCharging, chargeCounterMah, now, interactive);
+        updateSinceFullStats(prefs, value, isCharging, chargeCounterMah, currentMa, now, interactive);
+        updateDischargeStats(prefs, value, isCharging, chargeCounterMah, currentMa, now, interactive);
+        updateChargeStats(prefs, isCharging, chargeCounterMah, currentMa, now, interactive);
         recordSession(prefs, value, isCharging, chargeCounterMah, now);
         recordTelemetrySample(prefs, now, value, isCharging, currentMa, temperature, battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0), chargeCounterMah, interactive, foregroundPackage, systemCycleCount, battery.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0));
         requestAutomaticBackup(prefs, now);
@@ -272,7 +272,7 @@ public class BatteryMonitorService extends Service {
 
     /** Tracks battery use after the most recent observed full charge. */
     private void updateSinceFullStats(android.content.SharedPreferences prefs, int level, boolean charging,
-                                      int counterMah, long now, boolean interactive) {
+                                      int counterMah, int currentMa, long now, boolean interactive) {
         boolean active = prefs.getBoolean("sinceFullActive", false);
         if (charging && level >= 99 && !active) {
             prefs.edit().putBoolean("sinceFullActive", true).putLong("sinceFullStartAt", now)
@@ -291,7 +291,11 @@ public class BatteryMonitorService extends Service {
         float usedPercent = prefs.getFloat("sinceFullPercent", 0f);
         if (!charging && level < previousLevel) usedPercent += previousLevel - level;
         int usedMah = prefs.getInt("sinceFullMah", 0);
-        if (!charging && counterMah > 0 && previousCounter > counterMah) usedMah += previousCounter - counterMah;
+        if (!charging && counterMah > 0 && previousCounter > 0 && previousCounter > counterMah) {
+            usedMah += previousCounter - counterMah;
+        } else if (!charging && counterMah <= 0 && currentMa > 0) {
+            usedMah += Math.round(currentMa * Math.min(elapsed, 30L * 60L * 1000L) / 3600000f);
+        }
         long screenOnMs = prefs.getLong("sinceFullScreenOnMs", 0L) + ((!charging && interactive) ? elapsed : 0L);
         long screenOffMs = prefs.getLong("sinceFullScreenOffMs", 0L) + ((!charging && !interactive) ? elapsed : 0L);
         long deepSleepMs = prefs.getLong("sinceFullDeepSleepMs", 0L) + ((!charging && !interactive) ? elapsed : 0L);
@@ -372,12 +376,19 @@ public class BatteryMonitorService extends Service {
     private int updateBenchmark(android.content.SharedPreferences prefs, int level, boolean charging, int counterMah) {
         if (!prefs.getBoolean("benchmarkActive", false)) return 0;
         int startLevel = prefs.getInt("benchmarkStartLevel", 100);
-        if (startLevel > 25 || !charging || counterMah <= 0) return 0;
+        if (startLevel > 25 || !charging) return 0;
         int lastCounter = prefs.getInt("benchmarkChargeLastCounterMah", 0);
         int startCounter = prefs.getInt("benchmarkStartCounterMah", 0);
         int added = prefs.getInt("benchmarkChargeAddedMah", 0);
-        int baseline = lastCounter > 0 ? lastCounter : startCounter;
-        if (baseline > 0 && counterMah > baseline) added += counterMah - baseline;
+        if (counterMah > 0) {
+            int baseline = lastCounter > 0 ? lastCounter : startCounter;
+            if (baseline > 0 && counterMah > baseline) added += counterMah - baseline;
+        } else {
+            int observedChargeMah = prefs.getInt("chargeScreenOnMah", 0) + prefs.getInt("chargeScreenOffMah", 0);
+            int observedBaseline = prefs.getInt("benchmarkChargeStatsBaselineMah", 0);
+            if (observedChargeMah > observedBaseline) added += observedChargeMah - observedBaseline;
+            prefs.edit().putInt("benchmarkChargeStatsBaselineMah", observedChargeMah).apply();
+        }
         android.content.SharedPreferences.Editor editor = prefs.edit()
                 .putInt("benchmarkChargeLastCounterMah", counterMah)
                 .putInt("benchmarkChargeAddedMah", added);
@@ -395,7 +406,8 @@ public class BatteryMonitorService extends Service {
         return 0;
     }
 
-    private void updateDischargeStats(android.content.SharedPreferences prefs, int level, boolean charging, int counterMah, long now, boolean interactive) {
+    private void updateDischargeStats(android.content.SharedPreferences prefs, int level, boolean charging,
+                                      int counterMah, int currentMa, long now, boolean interactive) {
         boolean previousCharging = prefs.getBoolean("monitorLastCharging", charging);
         if (charging && !previousCharging) {
             prefs.edit().putLong("lastDischargeScreenOnMs", prefs.getLong("dischargeScreenOnMs", 0L))
@@ -434,7 +446,11 @@ public class BatteryMonitorService extends Service {
             if (interactive) onPercent += previousLevel - level; else offPercent += previousLevel - level;
         }
         int energy = prefs.getInt("dischargeMah", 0);
-        if (counterMah > 0 && previousCounter > counterMah) energy += previousCounter - counterMah;
+        if (counterMah > 0 && previousCounter > 0 && previousCounter > counterMah) {
+            energy += previousCounter - counterMah;
+        } else if (counterMah <= 0 && currentMa > 0) {
+            energy += Math.round(currentMa * Math.min(elapsed, 30L * 60L * 1000L) / 3600000f);
+        }
         long onMs = prefs.getLong("dischargeScreenOnMs", 0L) + (interactive ? elapsed : 0L);
         long offMs = prefs.getLong("dischargeScreenOffMs", 0L) + (interactive ? 0L : elapsed);
         long deepSleepMs = prefs.getLong("dischargeDeepSleepMs", 0L) + (interactive ? 0L : elapsed);
@@ -445,7 +461,8 @@ public class BatteryMonitorService extends Service {
                 .putLong("dischargeDeepSleepMs", deepSleepMs).apply();
     }
 
-    private void updateChargeStats(android.content.SharedPreferences prefs, boolean charging, int counterMah, long now, boolean interactive) {
+    private void updateChargeStats(android.content.SharedPreferences prefs, boolean charging, int counterMah,
+                                   int currentMa, long now, boolean interactive) {
         boolean previousCharging = prefs.getBoolean("monitorLastCharging", charging);
         if (!charging && previousCharging) return;
         if (charging && !previousCharging) {
@@ -459,7 +476,14 @@ public class BatteryMonitorService extends Service {
         int previousCounter = prefs.getInt("chargeLastCounterMah", counterMah);
         long lastAt = prefs.getLong("chargeLastAt", now);
         long elapsed = Math.max(0L, now - lastAt);
-        int added = counterMah > previousCounter && previousCounter > 0 ? counterMah - previousCounter : 0;
+        int added;
+        if (counterMah > 0 && previousCounter > 0) {
+            added = counterMah > previousCounter ? counterMah - previousCounter : 0;
+        } else {
+            added = currentMa > 0
+                    ? Math.round(currentMa * Math.min(elapsed, 30L * 60L * 1000L) / 3600000f)
+                    : 0;
+        }
         long onMs = prefs.getLong("chargeScreenOnMs", 0L) + (interactive ? elapsed : 0L);
         long offMs = prefs.getLong("chargeScreenOffMs", 0L) + (interactive ? 0L : elapsed);
         int onMah = prefs.getInt("chargeScreenOnMah", 0) + (interactive ? added : 0);

@@ -1343,14 +1343,16 @@ class BatteryDashboard extends View {
                 benchmarkActive = false;
                 prefs.edit().putBoolean("benchmarkActive", false)
                         .remove("benchmarkStartLevel").remove("benchmarkStartCounterMah")
-                        .remove("benchmarkChargeLastCounterMah").remove("benchmarkChargeAddedMah").apply();
+                        .remove("benchmarkChargeLastCounterMah").remove("benchmarkChargeAddedMah")
+                        .remove("benchmarkChargeStatsBaselineMah").apply();
             } else if (charging || level > 25) {
                 Toast.makeText(getContext(), "Start the benchmark below 25% while unplugged.", Toast.LENGTH_LONG).show();
             } else {
                 benchmarkActive = true;
                 SharedPreferences.Editor editor = prefs.edit().putBoolean("benchmarkActive", true)
                         .putInt("benchmarkStartLevel", level).putInt("benchmarkChargeAddedMah", 0)
-                        .remove("benchmarkChargeLastCounterMah");
+                        .remove("benchmarkChargeLastCounterMah")
+                        .remove("benchmarkChargeStatsBaselineMah");
                 if (chargeCounterMah > 0) editor.putInt("benchmarkStartCounterMah", chargeCounterMah);
                 else editor.remove("benchmarkStartCounterMah");
                 editor.apply();
