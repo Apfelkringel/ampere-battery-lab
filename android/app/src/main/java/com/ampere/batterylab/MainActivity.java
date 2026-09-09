@@ -315,6 +315,7 @@ class BatteryDashboard extends View {
     private float temperature = 0f;
     private float voltage = 0f;
     private int currentMa = 0;
+    private int signedCurrentMa = 0;
     private int chargeCounterMah = 0;
     private int plugged = 0;
     private boolean lastCharging = false;
@@ -433,6 +434,7 @@ class BatteryDashboard extends View {
             microamps = manager == null ? 0 : manager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_AVERAGE);
         }
         currentMa = microamps == Integer.MIN_VALUE ? 0 : Math.abs(microamps) / 1000;
+        signedCurrentMa = currentMa == 0 ? 0 : (newCharging ? currentMa : -currentMa);
         int chargeCounter = manager == null ? 0 : manager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER);
         if (chargeCounter > 0) {
             chargeCounterMah = chargeCounter / 1000;
@@ -1248,7 +1250,7 @@ class BatteryDashboard extends View {
             try {
                 long timestamp = Long.parseLong(parts[0]);
                 if (timestamp < start || timestamp > end || "1".equals(parts[2])) continue;
-                int current = Integer.parseInt(parts[3]);
+                int current = Math.abs(Integer.parseInt(parts[3]));
                 if (current > 0) total += Math.round(current / 4f);
             } catch (NumberFormatException ignored) { }
         }

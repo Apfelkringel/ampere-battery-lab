@@ -109,13 +109,15 @@ public class BatteryOverlayService extends Service {
         int level = raw >= 0 && scale > 0 ? Math.round(raw * 100f / scale) : 0;
         int temperature = battery.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0);
         int voltage = battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0);
+        int status = battery.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN);
+        boolean charging = status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL;
         BatteryManager manager = (BatteryManager) getSystemService(BATTERY_SERVICE);
         int microamps = manager == null ? 0 : manager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW);
         if (microamps == Integer.MIN_VALUE || microamps == 0) {
             microamps = manager == null ? 0 : manager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_AVERAGE);
         }
         int current = microamps == Integer.MIN_VALUE ? 0 : Math.abs(microamps) / 1000;
-        String currentText = current > 0 ? current + " mA" : "—";
+        String currentText = current > 0 ? (charging ? "+" : "−") + current + " mA" : "—";
         int coreCpu = readCpuPercent();
         String topPackage = topAppPackage();
         String topLabel = topAppLabel(topPackage);

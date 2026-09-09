@@ -119,6 +119,7 @@ public class BatteryMonitorService extends Service {
             microamps = batteryManager == null ? 0 : batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_AVERAGE);
         }
         int currentMa = microamps == Integer.MIN_VALUE ? 0 : Math.abs(microamps) / 1000;
+        int signedCurrentMa = currentMa == 0 ? 0 : (isCharging ? currentMa : -currentMa);
         int temperature = battery.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0);
         int rawChargeCounter = batteryManager == null ? 0 : batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER);
         int chargeCounterMah = rawChargeCounter > 0 ? rawChargeCounter / 1000 : 0;
@@ -128,13 +129,13 @@ public class BatteryMonitorService extends Service {
         boolean interactive = power == null || power.isInteractive();
         String foregroundPackage = foregroundPackage(now);
         NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        if (notificationManager != null) notificationManager.notify(7, statusNotification(value, isCharging, currentMa, temperature, battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0)));
+        if (notificationManager != null) notificationManager.notify(7, statusNotification(value, isCharging, signedCurrentMa, temperature, battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0)));
         updateSinceFullStats(prefs, value, isCharging, chargeCounterMah, currentMa, now, interactive);
         updateDischargeStats(prefs, value, isCharging, chargeCounterMah, currentMa, now, interactive);
         int plugged = battery.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0);
         updateChargeStats(prefs, value, isCharging, chargeCounterMah, currentMa, now, interactive, plugged);
         recordSession(prefs, value, isCharging, chargeCounterMah, now);
-        recordTelemetrySample(prefs, now, value, isCharging, currentMa, temperature, battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0), chargeCounterMah, interactive, foregroundPackage, systemCycleCount, plugged);
+        recordTelemetrySample(prefs, now, value, isCharging, signedCurrentMa, temperature, battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0), chargeCounterMah, interactive, foregroundPackage, systemCycleCount, plugged);
         requestAutomaticBackup(prefs, now);
         int benchmarkCapacity = updateBenchmark(prefs, value, isCharging, chargeCounterMah);
         if (benchmarkCapacity > 0) recordHealthSample(prefs, benchmarkCapacity);
