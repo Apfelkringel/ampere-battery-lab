@@ -616,8 +616,10 @@ class BatteryDashboard extends View {
         if (level >= 99) return "Full";
         long systemMinutes = systemChargeTimeRemainingMinutes();
         if (systemMinutes > 0L) return formatDuration(systemMinutes);
-        if (currentMa < 50) return "—";
         int missingMah = Math.round(calculationCapacityMah() * (100 - level) / 100f);
+        float historicalRate = averageChargeRateMahPerHour();
+        if (historicalRate > 0f) return formatDuration(Math.max(1, Math.round(missingMah * 60f / historicalRate)));
+        if (currentMa < 50) return "—";
         return formatDuration(Math.max(1, Math.round(missingMah * 60f / currentMa)));
     }
 
@@ -636,17 +638,59 @@ class BatteryDashboard extends View {
     }
 
     private String chargeTimeEstimateLabel() {
-        return systemChargeTimeRemainingMinutes() > 0L
-                ? "Android system estimate"
-                : "local 7-day estimate";
+        if (systemChargeTimeRemainingMinutes() > 0L) return "Android system estimate";
+        return averageChargeRateMahPerHour() > 0f ? "local 7-day estimate" : "current estimate";
     }
 
     private String timeToLimit() {
         if (!charging) return "—";
         if (level >= chargeLimit) return "Reached";
-        if (currentMa < 50 || calculationCapacityMah() <= 0) return "—";
+        if (calculationCapacityMah() <= 0) return "—";
         int missingMah = Math.round(calculationCapacityMah() * (chargeLimit - level) / 100f);
+        float historicalRate = averageChargeRateMahPerHour();
+        if (historicalRate > 0f) return formatDuration(Math.max(1, Math.round(missingMah * 60f / historicalRate)));
+        if (currentMa < 50) return "—";
         return formatDuration(Math.max(1, Math.round(missingMah * 60f / currentMa)));
+    }
+
+    /** Calculates a weighted local seven-day charge rate from telemetry. */
+    private float averageChargeRateMahPerHour() {
+        String saved = prefs.getString("telemetrySamples", "");
+        if (saved.isEmpty()) return 0f;
+        long windowStart = System.currentTimeMillis() - 7L * 24L * 60L * 60L * 1000L;
+        long previousAt = -1L;
+        int previousCounter = 0;
+        boolean previousCharging = false;
+        float weightedRate = 0f;
+        long weightedMs = 0L;
+        for (String row : saved.split("\\n")) {
+            String[] parts = row.split(",", 11);
+            if (parts.length < 7) continue;
+            try {
+                long timestamp = Long.parseLong(parts[0]);
+                if (timestamp < windowStart) continue;
+                boolean sampleCharging = "1".equals(parts[2]);
+                int counter = Integer.parseInt(parts[6]);
+                int current = Math.abs(Integer.parseInt(parts[3]));
+                long gap = previousAt > 0L ? timestamp - previousAt : 0L;
+                if (sampleCharging && previousCharging && gap > 0L && gap <= 2L * 60L * 60L * 1000L) {
+                    float rate = 0f;
+                    if (counter > 0 && previousCounter > 0 && counter > previousCounter) {
+                        rate = (counter - previousCounter) * 3600000f / gap;
+                    } else if (current >= 50) {
+                        rate = current;
+                    }
+                    if (rate >= 50f && rate <= 20000f) {
+                        weightedRate += rate * gap;
+                        weightedMs += gap;
+                    }
+                }
+                previousAt = timestamp;
+                previousCounter = counter;
+                previousCharging = sampleCharging;
+            } catch (NumberFormatException ignored) { }
+        }
+        return weightedMs >= 5L * 60L * 1000L ? weightedRate / weightedMs : 0f;
     }
 
     /**
