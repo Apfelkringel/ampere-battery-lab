@@ -1,7 +1,7 @@
 {
-  "versionCode": 25,
-  "versionName": "0.25",
+  "versionCode": 26,
+  "versionName": "0.26",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "416b75e954b14d28eba88320d8248b82ec885ea2f1fa10ebf8356ca4f3bd6578",
-  "releaseNotes": "Der Discharging-Tab zeigt jetzt die Entladegeschwindigkeit für Bildschirm an und aus."
+  "sha256": "11d6f9456642d93b694699f36ee7dfebc8b8b881b8f7314ec9cb1e7bfb46b2c9",
+  "releaseNotes": "Charging und Discharging zeigen jetzt lokale Stromkurven mit Durchschnitt und Spitzenwert."
 }
