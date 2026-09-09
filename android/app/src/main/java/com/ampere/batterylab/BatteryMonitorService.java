@@ -37,6 +37,17 @@ public class BatteryMonitorService extends Service {
             recordSample(intent);
         }
     };
+    private boolean screenInteractive;
+    private final BroadcastReceiver screenReceiver = new BroadcastReceiver() {
+        @Override public void onReceive(Context context, Intent intent) {
+            if (Intent.ACTION_SCREEN_OFF.equals(intent.getAction())) {
+                screenInteractive = false;
+            } else if (Intent.ACTION_SCREEN_ON.equals(intent.getAction())) {
+                if (!screenInteractive) recordScreenWakeup();
+                screenInteractive = true;
+            }
+        }
+    };
     private final Runnable sampleTask = new Runnable() {
         @Override public void run() {
             recordSample();
@@ -51,6 +62,12 @@ public class BatteryMonitorService extends Service {
         startForeground(7, notification());
         IntentFilter batteryFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         if (Build.VERSION.SDK_INT >= 33) registerReceiver(batteryReceiver, batteryFilter, Context.RECEIVER_NOT_EXPORTED); else registerReceiver(batteryReceiver, batteryFilter);
+        PowerManager power = (PowerManager) getSystemService(POWER_SERVICE);
+        screenInteractive = power == null || power.isInteractive();
+        IntentFilter screenFilter = new IntentFilter();
+        screenFilter.addAction(Intent.ACTION_SCREEN_ON);
+        screenFilter.addAction(Intent.ACTION_SCREEN_OFF);
+        if (Build.VERSION.SDK_INT >= 33) registerReceiver(screenReceiver, screenFilter, Context.RECEIVER_NOT_EXPORTED); else registerReceiver(screenReceiver, screenFilter);
         recordSample();
         handler.postDelayed(sampleTask, sampleInterval());
     }
@@ -170,6 +187,17 @@ public class BatteryMonitorService extends Service {
         for (int i = 0; i < longPoints.size(); i++) { if (i > 0) longOutput.append(','); longOutput.append(longPoints.get(i)); }
         prefs.edit().putString("history", output.toString()).putString("historyLong", longOutput.toString()).putLong("lastSample", now).apply();
         updateUsageCounters(prefs, value, now);
+    }
+
+    /** Counts screen wake events as a transparent, device-independent wakeup proxy. */
+    private void recordScreenWakeup() {
+        android.content.SharedPreferences prefs = getSharedPreferences("ampere-data", MODE_PRIVATE);
+        if (!prefs.getBoolean("monitorLastCharging", false)) {
+            prefs.edit().putInt("dischargeWakeups", prefs.getInt("dischargeWakeups", 0) + 1).apply();
+        }
+        if (prefs.getBoolean("sinceFullActive", false)) {
+            prefs.edit().putInt("sinceFullWakeups", prefs.getInt("sinceFullWakeups", 0) + 1).apply();
+        }
     }
 
     /**
@@ -305,7 +333,7 @@ public class BatteryMonitorService extends Service {
                     .putInt("sinceFullLastCounterMah", counterMah).putLong("sinceFullLastAt", now)
                     .putFloat("sinceFullPercent", 0f).putInt("sinceFullMah", 0)
                     .putLong("sinceFullScreenOnMs", 0L).putLong("sinceFullScreenOffMs", 0L)
-                    .putLong("sinceFullDeepSleepMs", 0L).apply();
+                    .putLong("sinceFullDeepSleepMs", 0L).putInt("sinceFullWakeups", 0).apply();
             return;
         }
         if (!active) return;
@@ -477,6 +505,7 @@ public class BatteryMonitorService extends Service {
                     .putFloat("lastDischargeScreenOnPercent", prefs.getFloat("dischargeScreenOnPercent", 0f))
                     .putFloat("lastDischargeScreenOffPercent", prefs.getFloat("dischargeScreenOffPercent", 0f))
                     .putInt("lastDischargeMah", prefs.getInt("dischargeMah", 0))
+                    .putInt("lastDischargeWakeups", prefs.getInt("dischargeWakeups", 0))
                     .putLong("lastDischargeDeepSleepMs", prefs.getLong("dischargeDeepSleepMs", 0L))
                     .putLong("lastDischargeStartAt", prefs.getLong("dischargeStartAt", 0L))
                     .putLong("lastDischargeEndAt", now)
@@ -484,7 +513,7 @@ public class BatteryMonitorService extends Service {
                     .remove("dischargeLastLevel").remove("dischargeLastCounterMah")
                     .putLong("dischargeScreenOnMs", 0L).putLong("dischargeScreenOffMs", 0L)
                     .putFloat("dischargeScreenOnPercent", 0f).putFloat("dischargeScreenOffPercent", 0f)
-                    .putInt("dischargeMah", 0).putLong("dischargeLastAt", now)
+                    .putInt("dischargeMah", 0).putInt("dischargeWakeups", 0).putLong("dischargeLastAt", now)
                     .putLong("dischargeDeepSleepMs", 0L).apply();
             return;
         }
@@ -492,7 +521,7 @@ public class BatteryMonitorService extends Service {
             prefs.edit().putInt("dischargeLastLevel", level).putInt("dischargeLastCounterMah", counterMah)
                     .putLong("dischargeLastAt", now).putLong("dischargeScreenOnMs", 0L)
                     .putLong("dischargeScreenOffMs", 0L).putFloat("dischargeScreenOnPercent", 0f)
-                    .putFloat("dischargeScreenOffPercent", 0f).putInt("dischargeMah", 0)
+                    .putFloat("dischargeScreenOffPercent", 0f).putInt("dischargeMah", 0).putInt("dischargeWakeups", 0)
                     .putLong("dischargeStartAt", now).apply();
             prefs.edit().putLong("dischargeDeepSleepMs", 0L).apply();
             return;
@@ -604,6 +633,7 @@ public class BatteryMonitorService extends Service {
     }
 
     @Override public void onDestroy() {
+        try { unregisterReceiver(screenReceiver); } catch (IllegalArgumentException ignored) { }
         try { unregisterReceiver(batteryReceiver); } catch (IllegalArgumentException ignored) { }
         handler.removeCallbacksAndMessages(null);
         super.onDestroy();

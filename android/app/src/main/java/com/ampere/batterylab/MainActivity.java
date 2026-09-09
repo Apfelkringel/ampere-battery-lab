@@ -74,9 +74,11 @@ public class MainActivity extends Activity {
             "dischargeLastAt", "dischargeLastCounterMah", "dischargeLastLevel", "dischargeMah",
             "dischargeScreenOffMs", "dischargeScreenOffPercent", "dischargeScreenOnMs",
             "dischargeScreenOnPercent", "dischargeStartAt", "dischargeDeepSleepMs", "lastDischargeDeepSleepMs",
+            "dischargeWakeups", "lastDischargeWakeups",
             "lastDischargeEndAt", "lastDischargeEndLevel", "lastDischargeMah", "lastDischargeScreenOffMs",
             "lastDischargeScreenOffPercent", "lastDischargeScreenOnMs", "lastDischargeScreenOnPercent",
             "lastDischargeStartAt", "sinceFullActive", "sinceFullDeepSleepMs", "sinceFullLastAt",
+            "sinceFullWakeups",
             "sinceFullLastCounterMah", "sinceFullLastLevel", "sinceFullMah", "sinceFullPercent",
             "sinceFullScreenOffMs", "sinceFullScreenOnMs", "sinceFullStartAt", "sinceFullStartLevel",
             "systemCycleCount", "monitorLastCharging", "monitorSampleAt", "monitorSessionStartCounterMah",
@@ -923,6 +925,10 @@ class BatteryDashboard extends View {
         return String.format(Locale.US, "%.0f%%", Math.min(100f, deepMs * 100f / offMs));
     }
 
+    private int wakeupCount() {
+        return prefs.getInt(charging ? "lastDischargeWakeups" : "dischargeWakeups", 0);
+    }
+
     private String sinceFullRange() {
         if (!prefs.getBoolean("sinceFullActive", false)) return "No full-charge baseline";
         return prefs.getInt("sinceFullStartLevel", 100) + "% → " + prefs.getInt("sinceFullLastLevel", level) + "%";
@@ -1464,7 +1470,7 @@ class BatteryDashboard extends View {
         rounded(c, 18, y + 438, w - 18, y + 536, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 438), u(w - 18), u(y + 536)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "Usage note", 36, y + 468, 10, muted, true);
         text(c, "Current on " + dischargePercent(true) + " · off " + dischargePercent(false) + " · " + dischargeMah() + " mAh", 36, y + 486, 8, primary, false);
-        text(c, "Deep sleep: " + deepSleepPercent() + " · " + deepSleepTime(), 36, y + 502, 8, primary, false);
+        text(c, "Deep sleep: " + deepSleepPercent() + " · " + deepSleepTime() + " · screen wakeups " + wakeupCount(), 36, y + 502, 8, primary, false);
         text(c, "Since full: " + sinceFullUsageSummary(), 36, y + 518, 8, primary, false);
         rounded(c, 18, y + 540, w - 18, y + 715, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 540), u(w - 18), u(y + 715)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "Foreground app usage", 36, y + 571, 13, primary, true);

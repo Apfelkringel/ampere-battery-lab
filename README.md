@@ -32,6 +32,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - Health-Auswertung mit letztem Ladeverschleiß und äquivalenten Vollzyklen (EFC)
 - transparente Anzeige, warum eine Ladesitzung noch nicht als Health-Kapazitätsprobe zählt
 - Bildschirmzeit, Deep Sleep, Ladezyklen und optionale Vordergrund-App-Nutzung
+- Bildschirm-Aufwachereignisse pro Entladephase als transparente Näherung für Deep-Sleep-Wakeups
 - Entladestatistik seit der letzten erkannten Volladung
 - lokale 7-Tage-Laufzeitprognose aus Bildschirm-an/aus-Telemetrie
 - Verlaufsgrafik nutzt für 7/30 Tage die tatsächlichen lokalen Telemetrie-Zeitpunkte und echte Datums-/Wochentagsachsen
