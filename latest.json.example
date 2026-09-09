@@ -1,7 +1,7 @@
 {
-  "versionCode": 26,
-  "versionName": "0.26",
+  "versionCode": 27,
+  "versionName": "0.27",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "11d6f9456642d93b694699f36ee7dfebc8b8b881b8f7314ec9cb1e7bfb46b2c9",
-  "releaseNotes": "Charging und Discharging zeigen jetzt lokale Stromkurven mit Durchschnitt und Spitzenwert."
+  "sha256": "c8c7e291577ec0b33c254bf563f07e5ecec71e8fe8bd42f5264029942371d6e2",
+  "releaseNotes": "Auf Geräten ohne Charge-Counter werden Lade- und Entladeenergie jetzt aus Strom und Zeit integriert."
 }
