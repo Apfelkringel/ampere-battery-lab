@@ -707,6 +707,16 @@ class BatteryDashboard extends View {
         return charged > 0 && design > 0 ? String.format(Locale.US, "%.2f EFC", charged / (float) design) : "—";
     }
 
+    private ArrayList<String[]> chargeWearRows() {
+        ArrayList<String[]> rows = new ArrayList<>();
+        for (int i = sessions.size() - 1; i >= 0; i--) {
+            String[] parts = sessions.get(i).split(",", 8);
+            if (parts.length >= 8 && "Charge".equals(parts[0])) rows.add(parts);
+        }
+        int first = Math.max(0, rows.size() - 12);
+        return new ArrayList<>(rows.subList(first, rows.size()));
+    }
+
     private void setOverlayEnabled(boolean enabled) {
         if (enabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(getContext())) {
             try { getContext().startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getContext().getPackageName()))); } catch (Exception ignored) { getContext().startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)); }
@@ -1144,6 +1154,27 @@ class BatteryDashboard extends View {
             stroke(c, lime, 2); c.drawPath(trend, p);
             text(c, healthSamples.get(0) + " mAh", chartX, y + 835, 8, faint, false);
             text(c, healthSamples.get(healthSamples.size() - 1) + " mAh", w - 92, y + 835, 8, faint, false);
+        }
+        rounded(c, 18, y + 870, w - 18, y + 1045, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 870), u(w - 18), u(y + 1045)); c.drawRoundRect(rect, u(12), u(12), p);
+        text(c, "CHARGE WEAR", 36, y + 900, 10, muted, true);
+        text(c, "Equivalent full cycles per charge session", 36, y + 922, 9, primary, false);
+        ArrayList<String[]> wearRows = chargeWearRows();
+        if (wearRows.isEmpty()) {
+            text(c, "Complete a charge session to build this local trend.", 36, y + 980, 9, muted, false);
+        } else {
+            float chartX = 36, chartY = y + 938, chartW = w - 72, chartH = 74;
+            line(c, chartX, chartY + chartH, chartX + chartW, chartY + chartH, border, 1);
+            float max = 0.01f;
+            for (String[] parts : wearRows) try { max = Math.max(max, Float.parseFloat(parts[7])); } catch (NumberFormatException ignored) { }
+            for (int i = 0; i < wearRows.size(); i++) {
+                float value;
+                try { value = Math.max(0f, Float.parseFloat(wearRows.get(i)[7])); } catch (NumberFormatException ignored) { value = 0f; }
+                float barW = Math.max(8f, chartW / wearRows.size() - 6f);
+                float x = chartX + i * chartW / wearRows.size() + 3;
+                float top = chartY + chartH - chartH * Math.min(1f, value / max);
+                rounded(c, x, top, x + barW, chartY + chartH, 3, amber);
+                if (i == 0 || i == wearRows.size() - 1) text(c, wearRows.get(i)[3], x, y + 1030, 7, faint, false);
+            }
         }
     }
 
