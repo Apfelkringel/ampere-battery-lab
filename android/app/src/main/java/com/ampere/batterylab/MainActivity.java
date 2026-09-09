@@ -35,6 +35,7 @@ import java.io.OutputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import org.json.JSONObject;
+import org.json.JSONArray;
 import java.util.Locale;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,6 +45,7 @@ import java.util.Comparator;
 public class MainActivity extends Activity {
     private static final int CREATE_BACKUP_REQUEST = 1201;
     private static final int RESTORE_BACKUP_REQUEST = 1202;
+    private static final int RESEARCH_EXPORT_REQUEST = 1203;
     private static final int MAX_BACKUP_BYTES = 4 * 1024 * 1024;
     private BatteryDashboard dashboard;
     private final BroadcastReceiver batteryReceiver = new BroadcastReceiver() {
@@ -130,6 +132,7 @@ public class MainActivity extends Activity {
         Uri uri = data.getData();
         if (requestCode == CREATE_BACKUP_REQUEST) writeBackup(uri);
         else if (requestCode == RESTORE_BACKUP_REQUEST) readBackup(uri);
+        else if (requestCode == RESEARCH_EXPORT_REQUEST) writeResearchExport(uri);
     }
 
     private void writeBackup(Uri uri) {
@@ -196,6 +199,73 @@ public class MainActivity extends Activity {
             Toast.makeText(this, "Backup ist ungültig oder konnte nicht gelesen werden.", Toast.LENGTH_LONG).show();
         }
     }
+
+    void createResearchExport() {
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT)
+                .addCategory(Intent.CATEGORY_OPENABLE)
+                .setType("application/json")
+                .putExtra(Intent.EXTRA_TITLE, "ampere-research-export.json");
+        startActivityForResult(intent, RESEARCH_EXPORT_REQUEST);
+    }
+
+    private void writeResearchExport(Uri uri) {
+        try (OutputStream stream = getContentResolver().openOutputStream(uri)) {
+            if (stream == null) throw new IllegalStateException("No output stream");
+            JSONObject root = new JSONObject();
+            root.put("schema", 1);
+            root.put("app", "Ampere Battery Lab");
+            root.put("appVersion", BuildConfig.VERSION_NAME);
+            root.put("generatedAt", System.currentTimeMillis());
+            root.put("androidApi", Build.VERSION.SDK_INT);
+            root.put("deviceManufacturer", Build.MANUFACTURER);
+            root.put("deviceModel", Build.MODEL);
+            root.put("privacy", "Created after an explicit user export. No account, location, serial number or advertising identifier is included.");
+
+            JSONArray sessionRows = new JSONArray();
+            if (dashboard != null) for (String session : dashboard.sessionsForExport()) {
+                String[] parts = session.split(",", 8);
+                JSONObject row = new JSONObject();
+                if (parts.length > 0) row.put("type", parts[0]);
+                if (parts.length > 1) row.put("change", parts[1]);
+                if (parts.length > 2) row.put("duration", parts[2]);
+                if (parts.length > 3) row.put("date", parts[3]);
+                if (parts.length > 4) row.put("startLevel", parts[4]);
+                if (parts.length > 5) row.put("endLevel", parts[5]);
+                if (parts.length > 6) row.put("energyMah", parts[6]);
+                if (parts.length > 7) row.put("equivalentFullCycles", parts[7]);
+                sessionRows.put(row);
+            }
+            root.put("sessions", sessionRows);
+
+            JSONArray telemetryRows = new JSONArray();
+            String telemetry = getSharedPreferences("ampere-data", MODE_PRIVATE).getString("telemetrySamples", "");
+            for (String sample : telemetry.split("\\n")) {
+                if (sample.trim().isEmpty()) continue;
+                String[] parts = sample.split(",", 11);
+                if (parts.length < 11) continue;
+                JSONObject row = new JSONObject();
+                row.put("timestampMs", Long.parseLong(parts[0]));
+                row.put("levelPercent", Integer.parseInt(parts[1]));
+                row.put("charging", "1".equals(parts[2]));
+                row.put("currentMa", Integer.parseInt(parts[3]));
+                row.put("temperatureC", Double.parseDouble(parts[4]));
+                row.put("voltageV", Double.parseDouble(parts[5]));
+                row.put("chargeCounterMah", Integer.parseInt(parts[6]));
+                row.put("screenOn", "1".equals(parts[7]));
+                row.put("foregroundPackage", parts[8]);
+                row.put("systemCycleCount", Integer.parseInt(parts[9]));
+                row.put("plugged", Integer.parseInt(parts[10]));
+                telemetryRows.put(row);
+            }
+            root.put("telemetry", telemetryRows);
+            byte[] output = root.toString(2).getBytes(StandardCharsets.UTF_8);
+            if (output.length > MAX_BACKUP_BYTES) throw new IllegalArgumentException("Research export too large");
+            stream.write(output);
+            Toast.makeText(this, "Research-Export gespeichert.", Toast.LENGTH_LONG).show();
+        } catch (Exception ignored) {
+            Toast.makeText(this, "Research-Export konnte nicht gespeichert werden.", Toast.LENGTH_LONG).show();
+        }
+    }
 }
 
 class BatteryDashboard extends View {
@@ -250,6 +320,10 @@ class BatteryDashboard extends View {
         sessions.clear();
         loadStoredData();
         invalidate();
+    }
+
+    ArrayList<String> sessionsForExport() {
+        return new ArrayList<>(sessions);
     }
 
     void readBattery(Intent intent) {
@@ -566,9 +640,12 @@ class BatteryDashboard extends View {
     private void showDataPrivacy() {
         new AlertDialog.Builder(getContext())
                 .setTitle("Data & privacy")
-                .setMessage("Ampere collects battery readings locally for your history and analysis: time, battery level, charging state, current, temperature, voltage and screen state. If you grant Usage access, the active foreground package is also stored locally to estimate app-related drain.\n\nNo battery readings, account identifiers, location or installed-app lists are uploaded. The update checker only requests its configured version file.\n\nUse History → Export CSV whenever you want to analyze or share your data.")
-                .setPositiveButton("Export CSV", (dialog, which) -> exportHistory())
-                .setNeutralButton("Delete local data", (dialog, which) -> confirmDeleteData())
+                .setMessage("Ampere collects battery readings locally for your history and analysis: time, battery level, charging state, current, temperature, voltage and screen state. If you grant Usage access, the active foreground package is also stored locally to estimate app-related drain.\n\nNo battery readings, account identifiers, location or installed-app lists are uploaded. The update checker only requests its configured version file.\n\nExports start only after you choose them: CSV for a flat table or Research export for structured analysis. The research file includes device model and Android version, but no serial number or advertising identifier.")
+                .setItems(new String[]{"Export CSV", "Research export", "Delete local data"}, (dialog, which) -> {
+                    if (which == 0) exportHistory();
+                    else if (which == 1) ((MainActivity) getContext()).createResearchExport();
+                    else confirmDeleteData();
+                })
                 .setNegativeButton("Close", null)
                 .show();
     }
