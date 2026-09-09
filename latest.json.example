@@ -1,7 +1,7 @@
 {
-  "versionCode": 62,
-  "versionName": "0.62",
+  "versionCode": 63,
+  "versionName": "0.63",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "da1dce17b39a4543e5951b25c8cf475653857db7847eec3b631559e51b1c730d",
-  "releaseNotes": "Fehlerbehebung für die Light-Theme-Auswahl."
+  "sha256": "c3f7043bce3cd0bad295d4ab4b1e72d6a11961a553baf2969ad1ac04c8013b34",
+  "releaseNotes": "Robuster, signaturgeschützter Downloadabschluss für In-App-Updates."
 }
