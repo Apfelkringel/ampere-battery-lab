@@ -4,6 +4,7 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.ActivityManager;
 import android.app.Service;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -37,6 +38,10 @@ public class BatteryOverlayService extends Service {
     private long[] previousCoreTotals = new long[0];
     private long[] previousCoreIdles = new long[0];
     private int cpuPercent = 0;
+    private String previousProcessPackage = "";
+    private long previousProcessTicks = -1L;
+    private long previousSystemTicks = -1L;
+    private int processCpuPercent = 0;
     private final Runnable refresh = new Runnable() {
         @Override public void run() {
             updateText();
@@ -111,7 +116,12 @@ public class BatteryOverlayService extends Service {
         }
         int current = microamps == Integer.MIN_VALUE ? 0 : Math.abs(microamps) / 1000;
         String currentText = current > 0 ? current + " mA" : "—";
-        overlay.setText("⚡ " + level + "%   " + currentText + "\n" + (voltage / 1000f) + " V   " + (temperature / 10f) + "°C   CPU cores " + readCpuPercent() + "%\nTop app: " + topApp());
+        int coreCpu = readCpuPercent();
+        String topPackage = topAppPackage();
+        String topLabel = topAppLabel(topPackage);
+        int processCpu = readProcessCpuPercent(topPackage);
+        String processText = processCpu >= 0 ? processCpu + "%" : "—";
+        overlay.setText("⚡ " + level + "%   " + currentText + "\n" + (voltage / 1000f) + " V   " + (temperature / 10f) + "°C   CPU cores " + coreCpu + "%\nTop app: " + topLabel + " · process " + processText);
     }
 
     private int readCpuPercent() {
@@ -155,7 +165,7 @@ public class BatteryOverlayService extends Service {
         return cpuPercent;
     }
 
-    private String topApp() {
+    private String topAppPackage() {
         AppOpsManager ops = (AppOpsManager) getSystemService(APP_OPS_SERVICE);
         if (ops == null || ops.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), getPackageName()) != AppOpsManager.MODE_ALLOWED) return "usage access off";
         UsageStatsManager manager = (UsageStatsManager) getSystemService(USAGE_STATS_SERVICE);
@@ -168,9 +178,84 @@ public class BatteryOverlayService extends Service {
         });
         for (UsageStats stat : stats) {
             if (stat.getTotalTimeInForeground() < 60 * 1000L || stat.getPackageName().equals(getPackageName())) continue;
-            try { return getPackageManager().getApplicationLabel(getPackageManager().getApplicationInfo(stat.getPackageName(), 0)).toString(); } catch (Exception ignored) { return stat.getPackageName(); }
+            return stat.getPackageName();
         }
         return "—";
+    }
+
+    private String topAppLabel(String packageName) {
+        if (packageName == null || packageName.isEmpty()) return "—";
+        if ("usage access off".equals(packageName)) return packageName;
+        if ("—".equals(packageName)) return packageName;
+        try { return getPackageManager().getApplicationLabel(getPackageManager().getApplicationInfo(packageName, 0)).toString(); }
+        catch (Exception ignored) { return packageName; }
+    }
+
+    /** Best-effort process CPU usage from local kernel counters; no process list is uploaded. */
+    private int readProcessCpuPercent(String packageName) {
+        if (packageName == null || packageName.isEmpty() || "usage access off".equals(packageName) || "—".equals(packageName)) {
+            previousProcessPackage = "";
+            previousProcessTicks = -1L;
+            previousSystemTicks = -1L;
+            processCpuPercent = 0;
+            return -1;
+        }
+        try {
+            ActivityManager activity = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+            if (activity == null) return -1;
+            int pid = -1;
+            for (ActivityManager.RunningAppProcessInfo process : activity.getRunningAppProcesses()) {
+                if (process.processName != null && (process.processName.equals(packageName) || process.processName.startsWith(packageName + ":"))) {
+                    pid = process.pid;
+                    break;
+                }
+            }
+            if (pid <= 0) return -1;
+            long processTicks = readProcessTicks(pid);
+            long systemTicks = readSystemTicks();
+            if (processTicks < 0L || systemTicks < 0L) return -1;
+            if (!packageName.equals(previousProcessPackage)) {
+                previousProcessPackage = packageName;
+                previousProcessTicks = processTicks;
+                previousSystemTicks = systemTicks;
+                processCpuPercent = 0;
+                return 0;
+            }
+            long processDelta = processTicks - previousProcessTicks;
+            long systemDelta = systemTicks - previousSystemTicks;
+            previousProcessTicks = processTicks;
+            previousSystemTicks = systemTicks;
+            int cores = Math.max(1, Runtime.getRuntime().availableProcessors());
+            if (processDelta >= 0L && systemDelta > 0L) {
+                processCpuPercent = Math.max(0, Math.min(100 * cores, Math.round(processDelta * cores * 100f / systemDelta)));
+            }
+            return processCpuPercent;
+        } catch (Exception ignored) {
+            return -1;
+        }
+    }
+
+    private long readProcessTicks(int pid) throws Exception {
+        try (BufferedReader reader = new BufferedReader(new FileReader("/proc/" + pid + "/stat"))) {
+            String line = reader.readLine();
+            if (line == null) return -1L;
+            int closing = line.lastIndexOf(')');
+            if (closing < 0 || closing + 2 >= line.length()) return -1L;
+            String[] fields = line.substring(closing + 2).trim().split("\\s+");
+            if (fields.length < 13) return -1L;
+            return Long.parseLong(fields[11]) + Long.parseLong(fields[12]);
+        }
+    }
+
+    private long readSystemTicks() throws Exception {
+        try (BufferedReader reader = new BufferedReader(new FileReader("/proc/stat"))) {
+            String line = reader.readLine();
+            if (line == null || !line.startsWith("cpu ")) return -1L;
+            String[] fields = line.trim().split("\\s+");
+            long total = 0L;
+            for (int i = 1; i < fields.length; i++) total += Long.parseLong(fields[i]);
+            return total;
+        }
     }
 
     @Override public int onStartCommand(Intent intent, int flags, int startId) { return START_STICKY; }
