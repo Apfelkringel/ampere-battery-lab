@@ -1,7 +1,7 @@
 {
-  "versionCode": 52,
-  "versionName": "0.52",
+  "versionCode": 53,
+  "versionName": "0.53",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "5ee4c2e53ee701121d713630b023ef733743ddebb498796bb1ca0604c93eefe9",
-  "releaseNotes": "Die App-Verbrauchsschätzung berücksichtigt jetzt die tatsächlichen Zeitabstände der lokalen Telemetriepunkte."
+  "sha256": "bb5310918eb0e4eaadab708f82504c93c1651d2e6255fec0fed1ccff40f627af",
+  "releaseNotes": "Strombasierte mAh-Fallbacks berücksichtigen jetzt auch gewählte 60-Minuten-Messintervalle."
 }
