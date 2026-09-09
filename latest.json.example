@@ -1,7 +1,7 @@
 {
-  "versionCode": 10,
-  "versionName": "0.10",
+  "versionCode": 11,
+  "versionName": "0.11",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "41f41d974f9955e82bd12a25d48ce38aa3bbead4804cb43d21fa5771c04323f8",
-  "releaseNotes": "Optionale lokale Vordergrund-App-Zuordnung verbessert die Entladungsanalyse; Updatepfad auf älteren Android-Versionen ist robuster."
+  "sha256": "3f7c63463af2368c04d88d05fd3644d74f5fbafe9a040d5e1bd5b274c21a38fe",
+  "releaseNotes": "System-Akkuzyklen und Ladequelle werden zusätzlich erfasst; CSV-Auswertungen enthalten mehr Messkontext."
 }
