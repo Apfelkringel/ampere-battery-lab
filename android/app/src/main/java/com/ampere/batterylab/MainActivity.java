@@ -788,7 +788,7 @@ class BatteryDashboard extends View {
         if (saved.isEmpty()) return 0;
         int total = 0;
         for (String row : saved.split("\\n")) {
-            String[] parts = row.split(",", 10);
+            String[] parts = row.split(",", 11);
             if (parts.length < 9 || !packageName.equals(parts[8])) continue;
             try {
                 long timestamp = Long.parseLong(parts[0]);
@@ -900,7 +900,7 @@ class BatteryDashboard extends View {
         for (String session : sessions) csv.append(session).append('\n');
         csv.append("\nlevel_percent\n");
         for (Integer point : longHistory) csv.append(point).append('\n');
-        csv.append("\ntelemetry_timestamp_ms,level_percent,charging,current_ma,temperature_c,voltage_v,charge_counter_mah,screen_on,foreground_package,system_cycle_count\n");
+        csv.append("\ntelemetry_timestamp_ms,level_percent,charging,current_ma,temperature_c,voltage_v,charge_counter_mah,screen_on,foreground_package,system_cycle_count,plugged\n");
         String telemetry = prefs.getString("telemetrySamples", "");
         if (!telemetry.isEmpty()) csv.append(telemetry).append('\n');
         Intent share = new Intent(Intent.ACTION_SEND);
