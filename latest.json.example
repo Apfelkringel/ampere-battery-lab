@@ -2,6 +2,6 @@
   "versionCode": 8,
   "versionName": "0.8",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "cc042b71017788b41753cc85d8e70526ba62476bbf8be61b3a0a0cf0d167515e",
+  "sha256": "fbd01698cb484037bd85d6974c2e8bb3736def53d4a97e434107a55fbacd07d1",
   "releaseNotes": "Lokale Daten können jetzt vollständig gelöscht werden; Restore ersetzt alte Restdaten."
 }
