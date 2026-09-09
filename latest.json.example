@@ -1,7 +1,7 @@
 {
-  "versionCode": 72,
-  "versionName": "0.72",
+  "versionCode": 73,
+  "versionName": "0.73",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "44a944bff9e2079c6a3d329c796f53678bb9ff0a6b9ae64b2a8fc08a0ef3f03d",
-  "releaseNotes": "Entladephasen zählen jetzt lokale Bildschirm-Aufwachereignisse als transparente Deep-Sleep-Näherung."
+  "sha256": "cd462f2bf270f0e319d1440b76bc3dbf2e34d06d350d7ed9648e2a77b6892d15",
+  "releaseNotes": "Bildschirm-Wakeups werden jetzt auch in Sitzungsdetails und Analyse-Exports gespeichert."
 }
