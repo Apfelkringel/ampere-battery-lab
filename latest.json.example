@@ -1,7 +1,7 @@
 {
-  "versionCode": 27,
-  "versionName": "0.27",
+  "versionCode": 28,
+  "versionName": "0.28",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "c8c7e291577ec0b33c254bf563f07e5ecec71e8fe8bd42f5264029942371d6e2",
-  "releaseNotes": "Auf Geräten ohne Charge-Counter werden Lade- und Entladeenergie jetzt aus Strom und Zeit integriert."
+  "sha256": "08c6695b9a16b5e0b1487e4768c036aa7ae4e5943b2870d82e6ff437c783e567",
+  "releaseNotes": "Der Discharging-Tab zeigt jetzt den Deep-Sleep-Anteil bei ausgeschaltetem Bildschirm."
 }
