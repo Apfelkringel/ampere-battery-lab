@@ -485,8 +485,10 @@ class BatteryDashboard extends View {
         int rawLevel = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
         int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, 100);
         int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN);
+        int pluggedSource = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0);
         if (rawLevel >= 0 && scale > 0) level = Math.max(0, Math.min(100, Math.round(rawLevel * 100f / scale)));
-        boolean newCharging = status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL;
+        boolean newCharging = status == BatteryManager.BATTERY_STATUS_CHARGING
+                || (status == BatteryManager.BATTERY_STATUS_FULL && pluggedSource != 0);
         if (sessionStartedAt == 0L) {
             lastCharging = newCharging;
             sessionStartedAt = System.currentTimeMillis();
@@ -498,7 +500,7 @@ class BatteryDashboard extends View {
             sessionStartChargeCounterMah = 0;
         }
         charging = newCharging;
-        plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0);
+        plugged = pluggedSource;
         int temp = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -1);
         if (temp > 0) temperature = temp / 10f;
         int mv = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1);

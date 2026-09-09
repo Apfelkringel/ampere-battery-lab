@@ -113,7 +113,9 @@ public class BatteryMonitorService extends Service {
         android.content.SharedPreferences telemetryPrefs = getSharedPreferences("ampere-telemetry", Context.MODE_PRIVATE);
         long now = System.currentTimeMillis();
         int status = battery.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN);
-        boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL;
+        int plugged = battery.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0);
+        boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING
+                || (status == BatteryManager.BATTERY_STATUS_FULL && plugged != 0);
         BatteryManager batteryManager = (BatteryManager) getSystemService(BATTERY_SERVICE);
         int microamps = batteryManager == null ? 0 : batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW);
         if (microamps == Integer.MIN_VALUE || microamps == 0) {
@@ -133,7 +135,6 @@ public class BatteryMonitorService extends Service {
         if (notificationManager != null) notificationManager.notify(7, statusNotification(value, isCharging, signedCurrentMa, temperature, battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0)));
         updateSinceFullStats(prefs, value, isCharging, chargeCounterMah, currentMa, now, interactive);
         updateDischargeStats(prefs, value, isCharging, chargeCounterMah, currentMa, now, interactive);
-        int plugged = battery.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0);
         updateChargeStats(prefs, value, isCharging, chargeCounterMah, currentMa, now, interactive, plugged);
         recordSession(prefs, value, isCharging, chargeCounterMah, now);
         recordTelemetrySample(telemetryPrefs, now, value, isCharging, signedCurrentMa, temperature, battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0), chargeCounterMah, interactive, foregroundPackage, systemCycleCount, plugged);
