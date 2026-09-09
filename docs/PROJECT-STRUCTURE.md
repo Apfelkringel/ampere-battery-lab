@@ -26,3 +26,17 @@ workspace needs them for reproducible testing.
 The canonical workspace location is:
 
 `/Volumes/MacSSD/02_PROJECTS/Active/AccuBattery`
+
+The local checkout used to publish the public update artifact is kept next to
+it at:
+
+`/Volumes/MacSSD/02_PROJECTS/Active/AccuBattery-updates`
+
+Build the Android debug variant from the canonical workspace with Java 17:
+
+```sh
+cd /Volumes/MacSSD/02_PROJECTS/Active/AccuBattery/android
+JAVA_HOME=/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home \
+  PATH=/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home/bin:$PATH \
+  gradle --no-daemon lintDebug assembleDebug
+```
