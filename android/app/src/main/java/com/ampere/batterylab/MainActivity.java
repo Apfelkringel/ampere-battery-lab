@@ -41,6 +41,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Collections;
 import java.util.Comparator;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class MainActivity extends Activity {
     private static final int CREATE_BACKUP_REQUEST = 1201;
@@ -596,6 +598,50 @@ class BatteryDashboard extends View {
 
     private int lastChargeEnergyMah() { return prefs.getInt("lastChargeEnergyMah", 0); }
 
+    private int chargeStartLevelForDisplay() {
+        return charging ? prefs.getInt("monitorSessionStartLevel", sessionStartLevel)
+                : prefs.getInt("lastChargeStartLevel", 0);
+    }
+
+    private int chargeEndLevelForDisplay() {
+        return charging ? level : prefs.getInt("lastChargeEndLevel", 0);
+    }
+
+    private String chargeChangeForDisplay() {
+        int change = chargeEndLevelForDisplay() - chargeStartLevelForDisplay();
+        return change > 0 ? "+" + change + "%" : "—";
+    }
+
+    private String chargeDurationForDisplay() {
+        if (!charging) return lastChargeDuration();
+        long start = prefs.getLong("monitorSessionStartedAt", sessionStartedAt);
+        if (start <= 0L) return "—";
+        return formatDuration(Math.max(1L, (System.currentTimeMillis() - start) / 60000L));
+    }
+
+    private String chargeStartForDisplay() {
+        long start = charging ? prefs.getLong("monitorSessionStartedAt", sessionStartedAt)
+                : prefs.getLong("lastChargeStartAt", 0L);
+        return start > 0L ? new SimpleDateFormat("MMM d HH:mm", Locale.US).format(new Date(start)) : "—";
+    }
+
+    private int chargeEnergyForDisplay() {
+        if (charging) return prefs.getInt("chargeScreenOnMah", 0) + prefs.getInt("chargeScreenOffMah", 0);
+        return lastChargeEnergyMah();
+    }
+
+    private String chargeModeDetails(boolean screenOn) {
+        String mahKey = screenOn ? "chargeScreenOnMah" : "chargeScreenOffMah";
+        String msKey = screenOn ? "chargeScreenOnMs" : "chargeScreenOffMs";
+        String lastMahKey = "last" + Character.toUpperCase(mahKey.charAt(0)) + mahKey.substring(1);
+        String lastMsKey = "last" + Character.toUpperCase(msKey.charAt(0)) + msKey.substring(1);
+        int mah = charging ? prefs.getInt(mahKey, 0) : prefs.getInt(lastMahKey, prefs.getInt(mahKey, 0));
+        long ms = charging ? prefs.getLong(msKey, 0L) : prefs.getLong(lastMsKey, prefs.getLong(msKey, 0L));
+        if (mah <= 0 && ms <= 0L) return "—";
+        String duration = ms > 0L ? formatDuration(Math.max(1L, ms / 60000L)) : "—";
+        return mah + " mAh · " + duration;
+    }
+
     private String lastChargeRange() {
         long ended = prefs.getLong("lastChargeEndAt", 0L);
         if (ended <= 0L) return "—";
@@ -875,14 +921,26 @@ class BatteryDashboard extends View {
         text(c, overlayEnabled ? "Enabled" : "Disabled", w - 106, y + 314, 9, overlayEnabled ? lime : muted, false);
         rounded(c, w - 70, y + 303, w - 40, y + 319, 9, overlayEnabled ? Color.rgb(87, 108, 48) : border);
         rounded(c, overlayEnabled ? w - 55 : w - 68, y + 305, overlayEnabled ? w - 42 : w - 55, y + 317, 6, overlayEnabled ? lime : muted);
-        int energyAdded = charging ? sessionEnergyMah() : lastChargeEnergyMah();
+        int energyAdded = chargeEnergyForDisplay();
         drawStat(c, 18, y + 350, (w - 48) / 2f, 105, "Energy added", energyAdded > 0 ? "+" + energyAdded : "—", "mAh", lime, primary, muted, border, panel, "bolt");
         drawStat(c, 30 + (w - 48) / 2f, y + 350, (w - 48) / 2f, 105, "Battery health", healthDisplay(), healthPercent() > 0 ? "%" : "", lime, primary, muted, border, panel, "heart");
-        rounded(c, 18, y + 470, w - 18, y + 555, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 470), u(w - 18), u(y + 555)); c.drawRoundRect(rect, u(12), u(12), p);
-        text(c, "BATTERY CAPACITY ESTIMATE", 36, y + 500, 10, muted, true);
-        text(c, healthPercent() > 0 ? String.format(Locale.US, "%,d mAh", estimatedCapacityMah()) : "—", 36, y + 531, 24, lime, true);
-        text(c, healthPercent() > 0 ? "based on local charge samples" : "Complete longer charges to estimate capacity", w - 224, y + 529, 8, faint, false);
-        drawTelemetryChart(c, 18, y + 580, w - 36, 220, panel, border, primary, muted, faint, true);
+        rounded(c, 18, y + 470, w - 18, y + 615, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 470), u(w - 18), u(y + 615)); c.drawRoundRect(rect, u(12), u(12), p);
+        text(c, "CHARGE AMOUNT", 36, y + 500, 10, muted, true);
+        text(c, "Change", 36, y + 528, 8, faint, false);
+        text(c, chargeChangeForDisplay(), 36, y + 550, 13, primary, true);
+        text(c, "Duration", 150, y + 528, 8, faint, false);
+        text(c, chargeDurationForDisplay(), 150, y + 550, 13, primary, true);
+        text(c, "Started", 285, y + 528, 8, faint, false);
+        text(c, chargeStartForDisplay(), 285, y + 550, 13, primary, true);
+        text(c, "Screen on", 36, y + 582, 8, faint, false);
+        text(c, chargeModeDetails(true), 36, y + 600, 10, blue, true);
+        text(c, "Screen off", 285, y + 582, 8, faint, false);
+        text(c, chargeModeDetails(false), 285, y + 600, 10, blue, true);
+        rounded(c, 18, y + 635, w - 18, y + 720, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 635), u(w - 18), u(y + 720)); c.drawRoundRect(rect, u(12), u(12), p);
+        text(c, "BATTERY CAPACITY ESTIMATE", 36, y + 665, 10, muted, true);
+        text(c, healthPercent() > 0 ? String.format(Locale.US, "%,d mAh", estimatedCapacityMah()) : "—", 36, y + 696, 24, lime, true);
+        text(c, healthPercent() > 0 ? "based on local charge samples" : "Complete longer charges to estimate capacity", w - 224, y + 694, 8, faint, false);
+        drawTelemetryChart(c, 18, y + 745, w - 36, 220, panel, border, primary, muted, faint, true);
     }
 
     private void drawDischargingPage(Canvas c, float w, float h, int panel, int raised, int border, int primary, int muted, int faint) {

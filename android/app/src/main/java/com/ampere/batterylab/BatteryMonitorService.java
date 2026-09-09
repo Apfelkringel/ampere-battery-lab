@@ -464,7 +464,17 @@ public class BatteryMonitorService extends Service {
     private void updateChargeStats(android.content.SharedPreferences prefs, boolean charging, int counterMah,
                                    int currentMa, long now, boolean interactive) {
         boolean previousCharging = prefs.getBoolean("monitorLastCharging", charging);
-        if (!charging && previousCharging) return;
+        if (!charging && previousCharging) {
+            // Preserve the completed session's screen-on/off breakdown before
+            // the next charging session resets the live counters.
+            prefs.edit()
+                    .putLong("lastChargeScreenOnMs", prefs.getLong("chargeScreenOnMs", 0L))
+                    .putLong("lastChargeScreenOffMs", prefs.getLong("chargeScreenOffMs", 0L))
+                    .putInt("lastChargeScreenOnMah", prefs.getInt("chargeScreenOnMah", 0))
+                    .putInt("lastChargeScreenOffMah", prefs.getInt("chargeScreenOffMah", 0))
+                    .apply();
+            return;
+        }
         if (charging && !previousCharging) {
             prefs.edit().putInt("chargeLastCounterMah", counterMah).putLong("chargeLastAt", now)
                     .putLong("chargeScreenOnMs", 0L).putLong("chargeScreenOffMs", 0L)
