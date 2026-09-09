@@ -567,6 +567,16 @@ class BatteryDashboard extends View {
 
     private int estimatedCapacityMah() { return Math.round(designCapacityMah() * healthPercent() / 100f); }
 
+    /**
+     * Capacity used for time/rate calculations. A measured health estimate is
+     * preferred, while the detected factory capacity keeps live projections
+     * useful before the first health sample exists.
+     */
+    private int calculationCapacityMah() {
+        int measured = estimatedCapacityMah();
+        return measured > 0 ? measured : Math.max(0, designCapacityMah());
+    }
+
     private void editDesignCapacity() {
         EditText input = new EditText(getContext());
         input.setInputType(InputType.TYPE_CLASS_NUMBER);
@@ -602,7 +612,7 @@ class BatteryDashboard extends View {
         long systemMinutes = systemChargeTimeRemainingMinutes();
         if (systemMinutes > 0L) return formatDuration(systemMinutes);
         if (currentMa < 50) return "—";
-        int missingMah = Math.round(estimatedCapacityMah() * (100 - level) / 100f);
+        int missingMah = Math.round(calculationCapacityMah() * (100 - level) / 100f);
         return formatDuration(Math.max(1, Math.round(missingMah * 60f / currentMa)));
     }
 
@@ -629,9 +639,30 @@ class BatteryDashboard extends View {
     private String timeToLimit() {
         if (!charging) return "—";
         if (level >= chargeLimit) return "Reached";
-        if (currentMa < 50 || estimatedCapacityMah() <= 0) return "—";
-        int missingMah = Math.round(estimatedCapacityMah() * (chargeLimit - level) / 100f);
+        if (currentMa < 50 || calculationCapacityMah() <= 0) return "—";
+        int missingMah = Math.round(calculationCapacityMah() * (chargeLimit - level) / 100f);
         return formatDuration(Math.max(1, Math.round(missingMah * 60f / currentMa)));
+    }
+
+    /**
+     * Gives the selected charge target a transparent, relative stress score.
+     * It is deliberately not presented as a measured percentage of battery
+     * health: the actual cell chemistry and charge curve are device-specific.
+     * The score reflects the extra high-state-of-charge stress described in
+     * the app's charging guidance and is useful for comparing targets.
+     */
+    private String wearImpactToTarget() {
+        if (chargeLimit <= level) return "Reached";
+        float score = 0f;
+        for (int percent = Math.max(0, level); percent < chargeLimit; percent++) {
+            float stress = percent < 70 ? .70f
+                    : percent < 85 ? 1.0f + (percent - 70) * .04f
+                    : 1.60f + (percent - 85) * .10f;
+            score += stress;
+        }
+        float average = score / Math.max(1, chargeLimit - Math.max(0, level));
+        String label = average < .95f ? "Low" : average < 1.35f ? "Moderate" : "High";
+        return label + " · " + String.format(Locale.US, "%.1f×", average);
     }
 
     /** Calculates a local 7-day discharge rate from consecutive telemetry points. */
@@ -708,16 +739,16 @@ class BatteryDashboard extends View {
             return rate > 0f ? formatDuration(Math.max(1, Math.round(historicalLevel * 60f / rate)))
                     : (used > 0f && minutes >= 5 ? formatDuration(Math.max(1, Math.round(historicalLevel * minutes / used))) : "—");
         }
-        if (estimatedCapacityMah() <= 0) return "—";
+        if (calculationCapacityMah() <= 0) return "—";
         float rate = mixedDischargeRate();
         if (rate > 0f) return formatDuration(Math.max(1, Math.round(level * 60f / rate)));
         if (currentMa < 50) return "—";
-        int availableMah = Math.round(estimatedCapacityMah() * level / 100f);
+        int availableMah = Math.round(calculationCapacityMah() * level / 100f);
         return formatDuration(Math.max(1, Math.round(availableMah * 60f / currentMa)));
     }
 
     private String drainRate() {
-        int capacity = estimatedCapacityMah();
+        int capacity = calculationCapacityMah();
         if (charging || currentMa < 50 || capacity <= 0) return "—";
         return String.format(Locale.US, "%.1f%% / hour", currentMa * 100f / capacity);
     }
@@ -732,7 +763,7 @@ class BatteryDashboard extends View {
         float percent = prefs.getFloat(percentKey, 0f);
         long minutes = prefs.getLong(durationKey, 0L) / 60000L;
         if (percent > 0f && minutes >= 5) return String.format(Locale.US, "%.1f%%/h", percent * 60f / minutes);
-        int capacity = estimatedCapacityMah();
+        int capacity = calculationCapacityMah();
         if (charging || currentMa < 50 || capacity <= 0) return "—";
         return String.format(Locale.US, "%.1f%%/h", currentMa * 100f / capacity);
     }
@@ -881,7 +912,7 @@ class BatteryDashboard extends View {
         if (rate > 0f) return formatDuration(Math.max(1, Math.round(referenceLevel * 60f / rate)));
         if (currentMa < 50) return "—";
         int modeCurrent = screenOn ? currentMa : Math.max(50, Math.round(currentMa * .35f));
-        return formatDuration(Math.max(1, Math.round(estimatedCapacityMah() * referenceLevel / 100f * 60f / modeCurrent)));
+        return formatDuration(Math.max(1, Math.round(calculationCapacityMah() * referenceLevel / 100f * 60f / modeCurrent)));
     }
 
     private String chargeSpeed(boolean screenOn) {
@@ -1185,7 +1216,7 @@ class BatteryDashboard extends View {
 
     private void drawChargingPage(Canvas c, float w, float h, int panel, int raised, int border, int primary, int muted, int faint) {
         float y = 182;
-        rounded(c, 18, y, w - 18, y + 300, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y), u(w - 18), u(y + 300)); c.drawRoundRect(rect, u(12), u(12), p);
+        rounded(c, 18, y, w - 18, y + 366, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y), u(w - 18), u(y + 366)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "CHARGING SESSION", 36, y + 31, 10, muted, true);
         text(c, charging ? "Power connected" : "Most recent charge", 36, y + 58, 18, primary, true);
         drawBolt(c, 53, y + 105, lime, 1);
@@ -1202,37 +1233,39 @@ class BatteryDashboard extends View {
         rounded(c, 36, y + 205, w - 36, y + 209, 3, border);
         rounded(c, 36, y + 205, 36 + (w - 72) * chargeLimit / 100f, y + 209, 3, lime);
         text(c, "Charge speed on / off: " + chargeSpeed(true) + " / " + chargeSpeed(false), 36, y + 238, 9, faint, false);
-        rounded(c, 36, y + 257, w - 36, y + 287, 7, raised);
-        text(c, "Charge alarm", 50, y + 276, 10, primary, true);
-        text(c, chargeAlarm ? "Enabled" : "Disabled", w - 106, y + 276, 9, chargeAlarm ? lime : muted, false);
-        rounded(c, w - 70, y + 265, w - 40, y + 281, 9, chargeAlarm ? Color.rgb(87, 108, 48) : border);
-        rounded(c, chargeAlarm ? w - 55 : w - 68, y + 267, chargeAlarm ? w - 42 : w - 55, y + 279, 6, chargeAlarm ? lime : muted);
-        rounded(c, 36, y + 295, w - 36, y + 325, 7, raised);
-        text(c, "Live stats overlay", 50, y + 314, 10, primary, true);
-        text(c, overlayEnabled ? "Enabled" : "Disabled", w - 106, y + 314, 9, overlayEnabled ? lime : muted, false);
-        rounded(c, w - 70, y + 303, w - 40, y + 319, 9, overlayEnabled ? Color.rgb(87, 108, 48) : border);
-        rounded(c, overlayEnabled ? w - 55 : w - 68, y + 305, overlayEnabled ? w - 42 : w - 55, y + 317, 6, overlayEnabled ? lime : muted);
+        text(c, "Wear impact to target", 36, y + 258, 9, muted, false);
+        text(c, wearImpactToTarget(), w - 126, y + 258, 9, amber, true);
+        rounded(c, 36, y + 287, w - 36, y + 317, 7, raised);
+        text(c, "Charge alarm", 50, y + 306, 10, primary, true);
+        text(c, chargeAlarm ? "Enabled" : "Disabled", w - 106, y + 306, 9, chargeAlarm ? lime : muted, false);
+        rounded(c, w - 70, y + 295, w - 40, y + 311, 9, chargeAlarm ? Color.rgb(87, 108, 48) : border);
+        rounded(c, chargeAlarm ? w - 55 : w - 68, y + 297, chargeAlarm ? w - 42 : w - 55, y + 309, 6, chargeAlarm ? lime : muted);
+        rounded(c, 36, y + 325, w - 36, y + 355, 7, raised);
+        text(c, "Live stats overlay", 50, y + 344, 10, primary, true);
+        text(c, overlayEnabled ? "Enabled" : "Disabled", w - 106, y + 344, 9, overlayEnabled ? lime : muted, false);
+        rounded(c, w - 70, y + 333, w - 40, y + 349, 9, overlayEnabled ? Color.rgb(87, 108, 48) : border);
+        rounded(c, overlayEnabled ? w - 55 : w - 68, y + 335, overlayEnabled ? w - 42 : w - 55, y + 347, 6, overlayEnabled ? lime : muted);
         int energyAdded = chargeEnergyForDisplay();
-        drawStat(c, 18, y + 350, (w - 48) / 2f, 105, "Energy added", energyAdded > 0 ? "+" + energyAdded : "—", "mAh", lime, primary, muted, border, panel, "bolt");
-        drawStat(c, 30 + (w - 48) / 2f, y + 350, (w - 48) / 2f, 105, "Battery health", healthDisplay(), healthPercent() > 0 ? "%" : "", lime, primary, muted, border, panel, "heart");
-        rounded(c, 18, y + 470, w - 18, y + 615, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 470), u(w - 18), u(y + 615)); c.drawRoundRect(rect, u(12), u(12), p);
-        text(c, "CHARGE AMOUNT", 36, y + 500, 10, muted, true);
-        text(c, "Change", 36, y + 528, 8, faint, false);
-        text(c, chargeChangeForDisplay(), 36, y + 550, 13, primary, true);
-        text(c, "Duration", 150, y + 528, 8, faint, false);
-        text(c, chargeDurationForDisplay(), 150, y + 550, 13, primary, true);
-        text(c, "Started", 285, y + 528, 8, faint, false);
-        text(c, chargeStartForDisplay(), 285, y + 550, 13, primary, true);
-        text(c, "Screen on", 36, y + 582, 8, faint, false);
-        text(c, chargeModeDetails(true), 36, y + 600, 10, blue, true);
-        text(c, "Screen off", 285, y + 582, 8, faint, false);
-        text(c, chargeModeDetails(false), 285, y + 600, 10, blue, true);
-        rounded(c, 18, y + 635, w - 18, y + 720, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 635), u(w - 18), u(y + 720)); c.drawRoundRect(rect, u(12), u(12), p);
-        text(c, "BATTERY CAPACITY ESTIMATE", 36, y + 665, 10, muted, true);
-        text(c, healthPercent() > 0 ? String.format(Locale.US, "%,d mAh", estimatedCapacityMah()) : "—", 36, y + 696, 24, lime, true);
-        text(c, healthPercent() > 0 ? "based on local charge samples" : "Complete longer charges to estimate capacity", w - 224, y + 694, 8, faint, false);
-        text(c, healthEstimateStatus(), 36, y + 714, 8, faint, false);
-        drawTelemetryChart(c, 18, y + 745, w - 36, 220, panel, border, primary, muted, faint, true);
+        drawStat(c, 18, y + 380, (w - 48) / 2f, 105, "Energy added", energyAdded > 0 ? "+" + energyAdded : "—", "mAh", lime, primary, muted, border, panel, "bolt");
+        drawStat(c, 30 + (w - 48) / 2f, y + 380, (w - 48) / 2f, 105, "Battery health", healthDisplay(), healthPercent() > 0 ? "%" : "", lime, primary, muted, border, panel, "heart");
+        rounded(c, 18, y + 500, w - 18, y + 645, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 500), u(w - 18), u(y + 645)); c.drawRoundRect(rect, u(12), u(12), p);
+        text(c, "CHARGE AMOUNT", 36, y + 530, 10, muted, true);
+        text(c, "Change", 36, y + 558, 8, faint, false);
+        text(c, chargeChangeForDisplay(), 36, y + 580, 13, primary, true);
+        text(c, "Duration", 150, y + 558, 8, faint, false);
+        text(c, chargeDurationForDisplay(), 150, y + 580, 13, primary, true);
+        text(c, "Started", 285, y + 558, 8, faint, false);
+        text(c, chargeStartForDisplay(), 285, y + 580, 13, primary, true);
+        text(c, "Screen on", 36, y + 612, 8, faint, false);
+        text(c, chargeModeDetails(true), 36, y + 630, 10, blue, true);
+        text(c, "Screen off", 285, y + 612, 8, faint, false);
+        text(c, chargeModeDetails(false), 285, y + 630, 10, blue, true);
+        rounded(c, 18, y + 665, w - 18, y + 750, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 665), u(w - 18), u(y + 750)); c.drawRoundRect(rect, u(12), u(12), p);
+        text(c, "BATTERY CAPACITY ESTIMATE", 36, y + 695, 10, muted, true);
+        text(c, healthPercent() > 0 ? String.format(Locale.US, "%,d mAh", estimatedCapacityMah()) : "—", 36, y + 726, 24, lime, true);
+        text(c, healthPercent() > 0 ? "based on local charge samples" : "Complete longer charges to estimate capacity", w - 224, y + 724, 8, faint, false);
+        text(c, healthEstimateStatus(), 36, y + 744, 8, faint, false);
+        drawTelemetryChart(c, 18, y + 775, w - 36, 220, panel, border, primary, muted, faint, true);
     }
 
     private void drawDischargingPage(Canvas c, float w, float h, int panel, int raised, int border, int primary, int muted, int faint) {
@@ -1770,7 +1803,7 @@ class BatteryDashboard extends View {
             invalidate();
             return true;
         }
-        if (page == 1 && y > 425 && y < 475 && x > w - 130) {
+        if (page == 1 && y > 455 && y < 510 && x > w - 130) {
             chargeAlarm = !chargeAlarm;
             prefs.edit().putBoolean("chargeAlarm", chargeAlarm).apply();
             if (!chargeAlarm) {
@@ -1791,7 +1824,7 @@ class BatteryDashboard extends View {
             invalidate();
             return true;
         }
-        if (page == 1 && y > 475 && y < 530 && x > w - 140) {
+        if (page == 1 && y > 500 && y < 560 && x > w - 140) {
             setOverlayEnabled(!overlayEnabled);
             return true;
         }
