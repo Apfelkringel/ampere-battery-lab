@@ -1,7 +1,7 @@
 {
-  "versionCode": 28,
-  "versionName": "0.28",
+  "versionCode": 29,
+  "versionName": "0.29",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "08c6695b9a16b5e0b1487e4768c036aa7ae4e5943b2870d82e6ff437c783e567",
-  "releaseNotes": "Der Discharging-Tab zeigt jetzt den Deep-Sleep-Anteil bei ausgeschaltetem Bildschirm."
+  "sha256": "0bdfc0dc1cddffc111c3c0e71cb3089f1cd69e4c213f1bd16590e46022c8e2d7",
+  "releaseNotes": "Die Sitzungsdaten werden in Übersicht und History jetzt korrekt als Datum angezeigt."
 }
