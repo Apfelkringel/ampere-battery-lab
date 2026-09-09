@@ -1033,7 +1033,7 @@ class BatteryDashboard extends View {
     }
 
     private void showSettings() {
-        String[] options = {"Dark theme", "AMOLED black", "Light theme", "Notification settings", "Overlay permission", "Data & privacy", "Backup & restore", "Background monitoring", "Data collection", "Check for updates", "Quick tutorial", "Delete local data"};
+        String[] options = {"Dark theme", "AMOLED black", "Light theme", "Notification settings", "Overlay permission", "Data & privacy", "Backup & restore", "Background monitoring", "Data collection", "Check for updates", "Quick tutorial", "Reset health baseline", "Delete local data"};
         new AlertDialog.Builder(getContext()).setTitle("Settings").setItems(options, (dialog, which) -> {
             if (which == 0) { light = false; amoled = false; }
             else if (which == 1) { light = false; amoled = true; }
@@ -1057,6 +1057,8 @@ class BatteryDashboard extends View {
                 UpdateChecker.checkNow((Activity) getContext());
             } else if (which == 10) {
                 showTutorial(true);
+            } else if (which == 11) {
+                confirmResetHealthBaseline();
             } else {
                 confirmDeleteData();
             }
@@ -1132,6 +1134,31 @@ class BatteryDashboard extends View {
                     Intent battery = ((Activity) context).registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
                     if (battery != null) readBattery(battery);
                     Toast.makeText(context, "Lokale Daten gelöscht.", Toast.LENGTH_LONG).show();
+                })
+                .show();
+    }
+
+    private void confirmResetHealthBaseline() {
+        new AlertDialog.Builder(getContext())
+                .setTitle("Reset health baseline?")
+                .setMessage("This starts the battery-health and benchmark calculation over, for example after replacing the battery. Existing sessions, telemetry, settings and exports stay available.")
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Reset baseline", (dialog, which) -> {
+                    Context context = getContext();
+                    SharedPreferences data = context.getSharedPreferences("ampere-data", Context.MODE_PRIVATE);
+                    data.edit()
+                            .remove("healthSamples").remove("benchmarkCapacityMah")
+                            .remove("benchmarkActive").remove("benchmarkStartLevel")
+                            .remove("benchmarkStartCounterMah").remove("benchmarkChargeLastCounterMah")
+                            .remove("benchmarkChargeAddedMah").remove("benchmarkChargeStatsBaselineMah")
+                            .remove("healthSampleSessionAt").remove("lastChargeHealthReason")
+                            .remove("totalChargedMah").remove("chargeCycles")
+                            .remove("cycleLastLevel").remove("dischargePercent")
+                            .apply();
+                    reloadStoredData();
+                    Intent battery = ((Activity) context).registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+                    if (battery != null) readBattery(battery);
+                    Toast.makeText(context, "Health-Baseline zurückgesetzt; Verlauf bleibt erhalten.", Toast.LENGTH_LONG).show();
                 })
                 .show();
     }
