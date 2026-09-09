@@ -1885,8 +1885,12 @@ class BatteryDashboard extends View {
                 String[] parts = row.split(",", 11);
                 if (parts.length < 4 || !String.valueOf(chargingFilter ? 1 : 0).equals(parts[2])) continue;
                 try {
-                    int current = Integer.parseInt(parts[3]);
-                    if (current > 0) values.add(current);
+                    int signedCurrent = Integer.parseInt(parts[3]);
+                    // Telemetry keeps direction explicit: charging is positive,
+                    // discharging is negative. The chart shows magnitude while
+                    // retaining the selected direction in its title/filter.
+                    boolean matchesDirection = chargingFilter ? signedCurrent > 0 : signedCurrent < 0;
+                    if (matchesDirection) values.add(Math.abs(signedCurrent));
                 } catch (NumberFormatException ignored) { }
             }
         }
