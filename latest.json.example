@@ -1,6 +1,7 @@
 {
-  "versionCode": 4,
-  "versionName": "0.4",
+  "versionCode": 5,
+  "versionName": "0.5",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "releaseNotes": "Android 14–17-Kompatibilität, automatische Android-Sicherung und sichtbarer Datenexport."
+  "sha256": "ddb465152c95c1aed65cd4e9d62465f6aa49d944eb99413d295a46d09b50384e",
+  "releaseNotes": "Sicherheits-Härtung für Signierung, Update-Host und APK-Integrität."
 }

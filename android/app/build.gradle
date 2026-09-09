@@ -13,8 +13,8 @@ android {
         // APK installable on older Android versions as a bonus.
         minSdk 23
         targetSdk 37
-        versionCode 4
-        versionName "0.4"
+        versionCode 5
+        versionName "0.5"
     }
 
     buildFeatures {
@@ -23,12 +23,13 @@ android {
 
     signingConfigs {
         release {
-            if (ciKeystorePath != null && file(ciKeystorePath).exists()) {
-                storeFile file(ciKeystorePath)
-                storePassword System.getenv("AMPERE_KEYSTORE_PASSWORD") ?: "android"
-                keyAlias System.getenv("AMPERE_KEY_ALIAS") ?: "androiddebugkey"
-                keyPassword System.getenv("AMPERE_KEY_PASSWORD") ?: "android"
+            if (ciKeystorePath == null || !file(ciKeystorePath).exists()) {
+                throw new GradleException("Release builds require AMPERE_KEYSTORE_FILE; refusing debug signing.")
             }
+            storeFile file(ciKeystorePath)
+            storePassword System.getenv("AMPERE_KEYSTORE_PASSWORD") ?: "android"
+            keyAlias System.getenv("AMPERE_KEY_ALIAS") ?: "androiddebugkey"
+            keyPassword System.getenv("AMPERE_KEY_PASSWORD") ?: "android"
         }
     }
 
@@ -40,7 +41,7 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            signingConfig ciKeystorePath != null ? signingConfigs.release : signingConfigs.debug
+            signingConfig signingConfigs.release
         }
     }
 

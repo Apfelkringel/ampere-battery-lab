@@ -21,6 +21,8 @@ import java.io.InputStreamReader;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.security.MessageDigest;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -28,6 +30,7 @@ import java.util.concurrent.Executors;
 final class UpdateChecker {
     private static final String PREFS = "ampere-update";
     private static final String DOWNLOAD_ID = "downloadId";
+    private static final String DOWNLOAD_SHA256 = "downloadSha256";
     private static final long CHECK_INTERVAL_MS = 12L * 60L * 60L * 1000L;
     private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor();
     private static BroadcastReceiver downloadReceiver;
@@ -56,7 +59,7 @@ final class UpdateChecker {
         HttpURLConnection connection = null;
         try {
             URL url = new URL(manifestUrl);
-            if (!"https".equalsIgnoreCase(url.getProtocol())) return null;
+            if (!isAllowedUpdateUrl(url)) return null;
             connection = (HttpURLConnection) url.openConnection();
             connection.setConnectTimeout(7000);
             connection.setReadTimeout(7000);
@@ -74,16 +77,25 @@ final class UpdateChecker {
             int versionCode = json.optInt("versionCode", 0);
             String versionName = json.optString("versionName", "");
             String apkUrl = json.optString("apkUrl", "");
+            String sha256 = json.optString("sha256", "").trim().toLowerCase(Locale.US);
             String notes = json.optString("releaseNotes", "Neue Version verfügbar.");
-            if (versionCode <= BuildConfig.VERSION_CODE || versionName.isEmpty() || apkUrl.isEmpty()) return null;
+            if (versionCode <= BuildConfig.VERSION_CODE || versionName.isEmpty() || apkUrl.isEmpty() || !sha256.matches("[0-9a-f]{64}")) return null;
             URL apk = new URL(apkUrl);
-            if (!"https".equalsIgnoreCase(apk.getProtocol())) return null;
-            return new UpdateInfo(versionCode, versionName, apkUrl, notes);
+            if (!isAllowedUpdateUrl(apk)) return null;
+            return new UpdateInfo(versionCode, versionName, apkUrl, sha256, notes);
         } catch (Exception ignored) {
             return null;
         } finally {
             if (connection != null) connection.disconnect();
         }
+    }
+
+    private static boolean isAllowedUpdateUrl(URL url) {
+        return "https".equalsIgnoreCase(url.getProtocol())
+                && url.getPort() == -1
+                && url.getUserInfo() == null
+                && "raw.githubusercontent.com".equalsIgnoreCase(url.getHost())
+                && url.getPath().startsWith("/Apfelkringel/ampere-battery-lab-updates/");
     }
 
     private static void showUpdateDialog(Activity activity, UpdateInfo update) {
@@ -114,7 +126,10 @@ final class UpdateChecker {
 
             registerDownloadReceiver(activity, manager);
             long id = manager.enqueue(request);
-            activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putLong(DOWNLOAD_ID, id).apply();
+            activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+                    .putLong(DOWNLOAD_ID, id)
+                    .putString(DOWNLOAD_SHA256, update.sha256)
+                    .apply();
             Toast.makeText(activity, "Update wird heruntergeladen …", Toast.LENGTH_LONG).show();
         } catch (Exception error) {
             Toast.makeText(activity, "Update konnte nicht gestartet werden.", Toast.LENGTH_LONG).show();
@@ -149,14 +164,25 @@ final class UpdateChecker {
                     Toast.makeText(context, "Update-Datei konnte nicht geöffnet werden.", Toast.LENGTH_LONG).show();
                     return;
                 }
-                Intent install = new Intent(Intent.ACTION_VIEW).setDataAndType(apkUri, "application/vnd.android.package-archive");
-                install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                install.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                try {
-                    context.startActivity(install);
-                } catch (Exception ignored) {
-                    Toast.makeText(context, "Bitte die heruntergeladene APK aus den Dateien öffnen.", Toast.LENGTH_LONG).show();
-                }
+                String expectedSha256 = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(DOWNLOAD_SHA256, "");
+                EXECUTOR.execute(() -> {
+                    boolean verified = verifySha256(context, apkUri, expectedSha256);
+                    context.getMainExecutor().execute(() -> {
+                        if (!verified) {
+                            manager.remove(received);
+                            Toast.makeText(context, "Update verworfen: Integritätsprüfung fehlgeschlagen.", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        Intent install = new Intent(Intent.ACTION_VIEW).setDataAndType(apkUri, "application/vnd.android.package-archive");
+                        install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        install.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        try {
+                            context.startActivity(install);
+                        } catch (Exception ignored) {
+                            Toast.makeText(context, "Bitte die heruntergeladene APK aus den Dateien öffnen.", Toast.LENGTH_LONG).show();
+                        }
+                    });
+                });
             }
         };
         IntentFilter filter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
@@ -165,16 +191,34 @@ final class UpdateChecker {
         else activity.getApplicationContext().registerReceiver(downloadReceiver, filter);
     }
 
+    private static boolean verifySha256(Context context, Uri uri, String expected) {
+        if (expected == null || !expected.matches("[0-9a-fA-F]{64}")) return false;
+        try (InputStream stream = context.getContentResolver().openInputStream(uri)) {
+            if (stream == null) return false;
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] buffer = new byte[8192];
+            int count;
+            while ((count = stream.read(buffer)) != -1) digest.update(buffer, 0, count);
+            StringBuilder result = new StringBuilder(64);
+            for (byte value : digest.digest()) result.append(String.format(Locale.US, "%02x", value));
+            return result.toString().equalsIgnoreCase(expected);
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
     private static final class UpdateInfo {
         final int versionCode;
         final String versionName;
         final String apkUrl;
+        final String sha256;
         final String notes;
 
-        UpdateInfo(int versionCode, String versionName, String apkUrl, String notes) {
+        UpdateInfo(int versionCode, String versionName, String apkUrl, String sha256, String notes) {
             this.versionCode = versionCode;
             this.versionName = versionName;
             this.apkUrl = apkUrl;
+            this.sha256 = sha256;
             this.notes = notes;
         }
     }

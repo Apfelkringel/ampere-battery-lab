@@ -28,12 +28,19 @@ cd android
 gradle lintDebug assembleDebug
 ```
 
+Ein Release-Build verwendet absichtlich niemals den Debug-Schlüssel. Dafür müssen
+`AMPERE_KEYSTORE_FILE`, `AMPERE_KEYSTORE_PASSWORD`, `AMPERE_KEY_ALIAS` und
+`AMPERE_KEY_PASSWORD` gesetzt sein.
+
 Die Ausgaben liegen danach unter `android/app/build/outputs/apk/debug/app-debug.apk` und `android/app/build/outputs/apk/release/app-release.apk`.
 
 ## Kostenlose In-App-Updates
 
 Der Update-Checker prüft optional eine öffentliche HTTPS-Datei im JSON-Format. Die URL wird in `android/app/build.gradle` bei `UPDATE_MANIFEST_URL` eingetragen; ein Beispiel liegt in `latest.json.example`.
 
-Für jede neue Version muss `versionCode` erhöht, die APK unter `apkUrl` veröffentlicht und derselbe Signaturschlüssel wie bei der vorherigen APK verwendet werden. Android zeigt aus Sicherheitsgründen weiterhin eine einmalige Installationsbestätigung an.
+Für jede neue Version muss `versionCode` erhöht, die APK unter `apkUrl` veröffentlicht,
+`sha256` als SHA-256-Hash ergänzt und derselbe Signaturschlüssel wie bei der vorherigen
+APK verwendet werden. Android zeigt aus Sicherheitsgründen weiterhin eine einmalige
+Installationsbestätigung an.
 
 GitHub Actions kann die Release-APK bei einem `v*`-Tag reproduzierbar bauen. Der dafür nötige, update-kompatible Schlüssel liegt ausschließlich im privaten Secret `AMPERE_KEYSTORE_BASE64`.
