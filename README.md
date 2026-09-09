@@ -18,6 +18,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 ## Enthalten
 
 - Live-Ladezustand, Strom, Spannung und Temperatur
+- Ladeerkennung erfolgt automatisch über Android; der Status ist keine manuelle Schaltfläche
 - Charging-, Discharging-, Health- und History-Ansichten
 - lokaler Ladealarm und einstellbares Ladeziel
 - vollständige Ladesitzungsdetails mit Prozentänderung, Startzeit, Dauer sowie Bildschirm-an/aus-Aufteilung

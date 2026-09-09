@@ -1382,9 +1382,9 @@ class BatteryDashboard extends View {
         text(c, "Design capacity " + String.format(Locale.US, "%,d mAh", designCapacityMah()), 255, top + 236, 9, faint, false);
         rounded(c, 36, top + 263, 18 + heroW - 36, top + 301, 8, raised);
         drawBolt(c, 52, top + 282, lime, .8f);
-        text(c, charging ? "Charger connected" : "On battery", 68, top + 278, 10, primary, true);
+        text(c, charging ? "Charging detected" : "On battery", 68, top + 278, 10, primary, true);
         String powerText = currentMa > 0 ? String.format(Locale.US, "Approx. %.1f W live draw", currentMa * voltage / 1000f) : "Waiting for current reading";
-        String detectionText = charging ? chargerTypeDisplay() + " · detected by Android" : powerText + " · detected by Android";
+        String detectionText = charging ? chargerTypeDisplay() + " · automatic Android detection" : powerText + " · automatic Android detection";
         text(c, detectionText, 68, top + 293, 9, muted, false);
         text(c, liveCurrentDisplay(), 285, top + 285, 9, charging ? lime : blue, false);
 

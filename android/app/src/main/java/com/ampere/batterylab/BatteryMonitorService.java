@@ -101,7 +101,7 @@ public class BatteryMonitorService extends Service {
             int capacity = prefs.getInt("benchmarkCapacityMah", 0);
             int design = BatteryCapacity.designCapacityMah(this);
             int health = capacity > 0 && design > 0 ? Math.round(capacity * 100f / design) : 0;
-            details += "\n" + (isCharging ? "Charger connected" : "Screen and background use tracked locally")
+            details += "\n" + (isCharging ? "Charging detected" : "Screen and background use tracked locally")
                     + (health > 0 ? " · health " + health + "%" : "")
                     + (capacity > 0 ? " · estimate " + capacity + " mAh" : "");
         }
