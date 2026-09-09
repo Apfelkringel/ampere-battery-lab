@@ -2,6 +2,6 @@
   "versionCode": 65,
   "versionName": "0.65",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "REPLACE_WITH_CI_SHA256",
+  "sha256": "07f99f5036f01b2641a3ea276b53c64eb46bc40cdeef7b3ca8760248bf212ae4",
   "releaseNotes": "Android-Backup sichert jetzt zusätzlich lokale Telemetrie bei verschlüsseltem Backup."
 }
