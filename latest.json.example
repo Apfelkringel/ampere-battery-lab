@@ -1,7 +1,7 @@
 {
-  "versionCode": 51,
-  "versionName": "0.51",
+  "versionCode": 52,
+  "versionName": "0.52",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "82bcd5d2b6d706e3757a0bcd28ec94caec98fb1698d308542967133030aa88df",
-  "releaseNotes": "Lange Ladesitzungen bei OEM-Ladelimit werden jetzt auch bei unverändertem Prozentstand in History und Gesamt-mAh gespeichert."
+  "sha256": "5ee4c2e53ee701121d713630b023ef733743ddebb498796bb1ca0604c93eefe9",
+  "releaseNotes": "Die App-Verbrauchsschätzung berücksichtigt jetzt die tatsächlichen Zeitabstände der lokalen Telemetriepunkte."
 }
