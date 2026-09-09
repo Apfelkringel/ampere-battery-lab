@@ -1,7 +1,7 @@
 {
-  "versionCode": 11,
-  "versionName": "0.11",
+  "versionCode": 12,
+  "versionName": "0.12",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "3f7c63463af2368c04d88d05fd3644d74f5fbafe9a040d5e1bd5b274c21a38fe",
-  "releaseNotes": "System-Akkuzyklen und Ladequelle werden zusätzlich erfasst; CSV-Auswertungen enthalten mehr Messkontext."
+  "sha256": "613ccc4d6c5548c0d9120051e2cbfe4bc8c650e3792e9965e4d4f2062cc30cd0",
+  "releaseNotes": "Die CSV-Telemetrie enthält jetzt tatsächlich die Ladequelle; Nutzungsanalyse bleibt fehlertolerant."
 }
