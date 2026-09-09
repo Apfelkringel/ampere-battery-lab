@@ -488,6 +488,7 @@ class BatteryDashboard extends View {
             }
         }
         if (longHistory.isEmpty()) longHistory.addAll(history);
+        while (longHistory.size() > longHistoryRetentionSamples()) longHistory.remove(0);
         String savedHealth = prefs.getString("healthSamples", "");
         if (!savedHealth.isEmpty()) for (String value : savedHealth.split(",")) try { healthSamples.add(Integer.parseInt(value)); } catch (NumberFormatException ignored) { }
         String savedSessions = prefs.getString("sessions", "");
@@ -514,7 +515,7 @@ class BatteryDashboard extends View {
         history.add(level);
         while (history.size() > 48) history.remove(0);
         longHistory.add(level);
-        while (longHistory.size() > 2880) longHistory.remove(0);
+        while (longHistory.size() > longHistoryRetentionSamples()) longHistory.remove(0);
         StringBuilder values = new StringBuilder();
         for (int i = 0; i < history.size(); i++) { if (i > 0) values.append(','); values.append(history.get(i)); }
         StringBuilder longValues = new StringBuilder();
@@ -526,6 +527,10 @@ class BatteryDashboard extends View {
         int minutes = prefs.getInt("samplingIntervalMin", 15);
         if (minutes != 5 && minutes != 15 && minutes != 30 && minutes != 60) minutes = 15;
         return minutes * 60L * 1000L;
+    }
+
+    private int longHistoryRetentionSamples() {
+        return Math.max(1, (int) Math.ceil(30L * 24L * 60L * 60L * 1000L / (double) samplingIntervalMs()));
     }
 
     private String formatDuration(long minutes) {

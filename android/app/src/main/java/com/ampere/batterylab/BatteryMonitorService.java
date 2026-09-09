@@ -163,7 +163,7 @@ public class BatteryMonitorService extends Service {
         ArrayList<Integer> longPoints = new ArrayList<>();
         if (!savedLong.isEmpty()) for (String point : savedLong.split(",")) try { longPoints.add(Integer.parseInt(point)); } catch (NumberFormatException ignored) { }
         longPoints.add(value);
-        while (longPoints.size() > 2880) longPoints.remove(0);
+        while (longPoints.size() > longHistoryRetentionSamples()) longPoints.remove(0);
         StringBuilder longOutput = new StringBuilder();
         for (int i = 0; i < longPoints.size(); i++) { if (i > 0) longOutput.append(','); longOutput.append(longPoints.get(i)); }
         prefs.edit().putString("history", output.toString()).putString("historyLong", longOutput.toString()).putLong("lastSample", now).apply();
@@ -210,6 +210,10 @@ public class BatteryMonitorService extends Service {
         int minutes = prefs.getInt("samplingIntervalMin", 15);
         if (minutes != 5 && minutes != 15 && minutes != 30 && minutes != 60) minutes = 15;
         return minutes * 60L * 1000L;
+    }
+
+    private int longHistoryRetentionSamples() {
+        return Math.max(1, (int) Math.ceil(30L * 24L * 60L * 60L * 1000L / (double) sampleInterval()));
     }
 
     /** Cap stale integration while honoring the selected sampling interval. */
