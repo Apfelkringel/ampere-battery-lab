@@ -109,6 +109,11 @@ public class MainActivity extends Activity {
         }
     }
 
+    void restartMonitorService() {
+        stopService(new Intent(this, BatteryMonitorService.class));
+        startMonitorService();
+    }
+
     @Override protected void onDestroy() {
         unregisterReceiver(batteryReceiver);
         super.onDestroy();
@@ -503,7 +508,7 @@ class BatteryDashboard extends View {
     private void saveSample() {
         long now = System.currentTimeMillis();
         long lastSample = prefs.getLong("lastSample", 0L);
-        if (now - lastSample < 5 * 60 * 1000L && !history.isEmpty()) return;
+        if (now - lastSample < samplingIntervalMs() && !history.isEmpty()) return;
         history.add(level);
         while (history.size() > 48) history.remove(0);
         longHistory.add(level);
@@ -513,6 +518,12 @@ class BatteryDashboard extends View {
         StringBuilder longValues = new StringBuilder();
         for (int i = 0; i < longHistory.size(); i++) { if (i > 0) longValues.append(','); longValues.append(longHistory.get(i)); }
         prefs.edit().putString("history", values.toString()).putString("historyLong", longValues.toString()).putLong("lastSample", now).apply();
+    }
+
+    private long samplingIntervalMs() {
+        int minutes = prefs.getInt("samplingIntervalMin", 15);
+        if (minutes != 5 && minutes != 15 && minutes != 30 && minutes != 60) minutes = 15;
+        return minutes * 60L * 1000L;
     }
 
     private String formatDuration(long minutes) {
@@ -806,7 +817,7 @@ class BatteryDashboard extends View {
     }
 
     private void showSettings() {
-        String[] options = {"Dark theme", "AMOLED black", "Light theme", "Notification settings", "Overlay permission", "Data & privacy", "Backup & restore", "Background monitoring", "Check for updates", "Quick tutorial", "Delete local data"};
+        String[] options = {"Dark theme", "AMOLED black", "Light theme", "Notification settings", "Overlay permission", "Data & privacy", "Backup & restore", "Background monitoring", "Data collection", "Check for updates", "Quick tutorial", "Delete local data"};
         new AlertDialog.Builder(getContext()).setTitle("Settings").setItems(options, (dialog, which) -> {
             if (which == 0) { light = false; amoled = false; }
             else if (which == 1) { light = false; amoled = true; }
@@ -825,8 +836,10 @@ class BatteryDashboard extends View {
             } else if (which == 7) {
                 requestBackgroundMonitoring();
             } else if (which == 8) {
-                UpdateChecker.checkNow((Activity) getContext());
+                showDataCollection();
             } else if (which == 9) {
+                UpdateChecker.checkNow((Activity) getContext());
+            } else if (which == 10) {
                 showTutorial(true);
             } else {
                 confirmDeleteData();
@@ -834,6 +847,24 @@ class BatteryDashboard extends View {
             prefs.edit().putBoolean("lightTheme", light).putBoolean("amoledTheme", amoled).apply();
             invalidate();
         }).show();
+    }
+
+    private void showDataCollection() {
+        final int[] intervals = {5, 15, 30, 60};
+        final String[] labels = {"Every 5 minutes", "Every 15 minutes (recommended)", "Every 30 minutes", "Every 60 minutes"};
+        int current = prefs.getInt("samplingIntervalMin", 15);
+        int selected = 1;
+        for (int i = 0; i < intervals.length; i++) if (intervals[i] == current) selected = i;
+        final int[] choice = {selected};
+        new AlertDialog.Builder(getContext())
+                .setTitle("Data collection · local only")
+                .setSingleChoiceItems(labels, selected, (dialog, which) -> choice[0] = which)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Save", (dialog, which) -> {
+                    prefs.edit().putInt("samplingIntervalMin", intervals[choice[0]]).apply();
+                    ((MainActivity) getContext()).restartMonitorService();
+                    invalidate();
+                }).show();
     }
 
     private void requestBackgroundMonitoring() {

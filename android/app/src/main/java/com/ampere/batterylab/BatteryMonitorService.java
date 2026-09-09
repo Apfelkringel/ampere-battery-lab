@@ -26,12 +26,11 @@ import java.util.Locale;
 
 /**
  * Lightweight, local-only recorder. It samples the public Android battery
- * broadcast every 15 minutes and keeps short and 30-day local histories.
+ * broadcast at the configured interval and keeps short and 30-day local histories.
  */
 public class BatteryMonitorService extends Service {
     private static final String CHANNEL_ID = "ampere-monitor";
     private static final String ALARM_CHANNEL_ID = "ampere-charge-alarm";
-    private static final long SAMPLE_INTERVAL = 15 * 60 * 1000L;
     private static final int MAX_TELEMETRY_SAMPLES = 2880;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final BroadcastReceiver batteryReceiver = new BroadcastReceiver() {
@@ -42,7 +41,7 @@ public class BatteryMonitorService extends Service {
     private final Runnable sampleTask = new Runnable() {
         @Override public void run() {
             recordSample();
-            handler.postDelayed(this, SAMPLE_INTERVAL);
+            handler.postDelayed(this, sampleInterval());
         }
     };
 
@@ -53,7 +52,7 @@ public class BatteryMonitorService extends Service {
         IntentFilter batteryFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         if (Build.VERSION.SDK_INT >= 33) registerReceiver(batteryReceiver, batteryFilter, Context.RECEIVER_NOT_EXPORTED); else registerReceiver(batteryReceiver, batteryFilter);
         recordSample();
-        handler.postDelayed(sampleTask, SAMPLE_INTERVAL);
+        handler.postDelayed(sampleTask, sampleInterval());
     }
 
     @Override public int onStartCommand(Intent intent, int flags, int startId) { return START_STICKY; }
@@ -151,7 +150,7 @@ public class BatteryMonitorService extends Service {
             if (manager != null) manager.cancel(8);
             if (alarmSent) prefs.edit().putBoolean("chargeAlarmSent", false).apply();
         }
-        if (now - prefs.getLong("lastSample", 0L) < 5 * 60 * 1000L) return;
+        if (now - prefs.getLong("lastSample", 0L) < sampleInterval()) return;
         String saved = prefs.getString("history", "");
         ArrayList<Integer> points = new ArrayList<>();
         if (!saved.isEmpty()) for (String point : saved.split(",")) try { points.add(Integer.parseInt(point)); } catch (NumberFormatException ignored) { }
@@ -179,7 +178,7 @@ public class BatteryMonitorService extends Service {
                                       int voltageMv, int chargeCounterMah, boolean screenOn,
                                       String foregroundPackage, int systemCycleCount, int plugged) {
         long last = prefs.getLong("telemetryLastSampleAt", 0L);
-        if (now - last < SAMPLE_INTERVAL) return;
+        if (now - last < sampleInterval()) return;
         String saved = prefs.getString("telemetrySamples", "");
         StringBuilder all = new StringBuilder(saved.length() + 96);
         if (!saved.isEmpty()) all.append(saved).append('\n');
@@ -203,6 +202,13 @@ public class BatteryMonitorService extends Service {
         }
         prefs.edit().putString("telemetrySamples", trimmed.toString())
                 .putLong("telemetryLastSampleAt", now).apply();
+    }
+
+    private long sampleInterval() {
+        android.content.SharedPreferences prefs = getSharedPreferences("ampere-data", Context.MODE_PRIVATE);
+        int minutes = prefs.getInt("samplingIntervalMin", 15);
+        if (minutes != 5 && minutes != 15 && minutes != 30 && minutes != 60) minutes = 15;
+        return minutes * 60L * 1000L;
     }
 
     /**
