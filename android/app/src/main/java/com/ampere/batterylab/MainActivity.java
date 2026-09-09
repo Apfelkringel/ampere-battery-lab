@@ -1112,6 +1112,7 @@ class BatteryDashboard extends View {
         new AlertDialog.Builder(getContext()).setTitle("Settings").setItems(options, (dialog, which) -> {
             if (which == 0) { light = false; amoled = false; }
             else if (which == 1) { light = false; amoled = true; }
+            else if (which == 2) { light = true; amoled = false; }
             else if (which == 3) {
                 try {
                     Intent notificationSettings = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, getContext().getPackageName());
