@@ -1,7 +1,7 @@
 {
-  "versionCode": 24,
-  "versionName": "0.24",
+  "versionCode": 25,
+  "versionName": "0.25",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "3b2e628a214bcf8fac50aa8de6d8a9333c189e549e9b21d8d712689eac7bc71d",
-  "releaseNotes": "Der History-Tab zeigt jetzt alle gespeicherten Sitzungen und bleibt vollständig scrollbar."
+  "sha256": "416b75e954b14d28eba88320d8248b82ec885ea2f1fa10ebf8356ca4f3bd6578",
+  "releaseNotes": "Der Discharging-Tab zeigt jetzt die Entladegeschwindigkeit für Bildschirm an und aus."
 }
