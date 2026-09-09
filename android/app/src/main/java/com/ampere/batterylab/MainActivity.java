@@ -613,7 +613,7 @@ class BatteryDashboard extends View {
     }
 
     private void showSettings() {
-        String[] options = {"Dark theme", "AMOLED black", "Light theme", "Notification settings", "Overlay permission", "Data & privacy", "Backup & restore", "Quick tutorial"};
+        String[] options = {"Dark theme", "AMOLED black", "Light theme", "Notification settings", "Overlay permission", "Data & privacy", "Backup & restore", "Quick tutorial", "Delete local data"};
         new AlertDialog.Builder(getContext()).setTitle("Settings").setItems(options, (dialog, which) -> {
             if (which == 0) { light = false; amoled = false; }
             else if (which == 1) { light = false; amoled = true; }
@@ -629,8 +629,10 @@ class BatteryDashboard extends View {
                 showDataPrivacy();
             } else if (which == 6) {
                 showBackupRestore();
-            } else {
+            } else if (which == 7) {
                 showTutorial(true);
+            } else {
+                confirmDeleteData();
             }
             prefs.edit().putBoolean("lightTheme", light).putBoolean("amoledTheme", amoled).apply();
             invalidate();
@@ -640,12 +642,9 @@ class BatteryDashboard extends View {
     private void showDataPrivacy() {
         new AlertDialog.Builder(getContext())
                 .setTitle("Data & privacy")
-                .setMessage("Ampere collects battery readings locally for your history and analysis: time, battery level, charging state, current, temperature, voltage and screen state. If you grant Usage access, the active foreground package is also stored locally to estimate app-related drain.\n\nNo battery readings, account identifiers, location or installed-app lists are uploaded. The update checker only requests its configured version file.\n\nExports start only after you choose them: CSV for a flat table or Research export for structured analysis. The research file includes device model and Android version, but no serial number or advertising identifier.")
-                .setItems(new String[]{"Export CSV", "Research export", "Delete local data"}, (dialog, which) -> {
-                    if (which == 0) exportHistory();
-                    else if (which == 1) ((MainActivity) getContext()).createResearchExport();
-                    else confirmDeleteData();
-                })
+                .setMessage("Ampere collects battery readings locally for your history and analysis: time, battery level, charging state, current, temperature, voltage and screen state. If you grant Usage access, the active foreground package is also stored locally to estimate app-related drain.\n\nNo battery readings, account identifiers, location or installed-app lists are uploaded. The update checker only requests its configured version file.\n\nCSV is a flat table. Research export is structured JSON and includes device model and Android version, but no serial number or advertising identifier. Both exports start only after you choose them.")
+                .setPositiveButton("Export CSV", (dialog, which) -> exportHistory())
+                .setNeutralButton("Research JSON", (dialog, which) -> ((MainActivity) getContext()).createResearchExport())
                 .setNegativeButton("Close", null)
                 .show();
     }
