@@ -1,7 +1,7 @@
 {
-  "versionCode": 42,
-  "versionName": "0.42",
+  "versionCode": 43,
+  "versionName": "0.43",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "99c2e6d21c80730168f31557ad06fc660a6809ed0cf251edd14e43c6d070ddcf",
-  "releaseNotes": "Historische Ladegeschwindigkeiten bleiben sichtbar; die Release-Signatur wurde auf einen privaten Schlüssel mit Android-Key-Rotation gehärtet."
+  "sha256": "2e39cb1f1c73c99b8fc8f4491ba38c4030c21dcb2f1bb316b2ccf90e169d22c3",
+  "releaseNotes": "Update-Downloads werden nach einem App-Prozess-Neustart weiter verarbeitet und vor der Installation erneut geprüft."
 }
