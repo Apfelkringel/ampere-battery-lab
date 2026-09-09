@@ -650,7 +650,7 @@ class BatteryDashboard extends View {
         text(c, charging ? "Charging" : "On battery", 108, top + 204, 10, muted, false);
         int health = healthPercent();
         text(c, health == 0 ? "Not measured" : (health > 80 ? "Good condition" : "Needs attention"), 255, top + 117, 17, primary, true);
-        text(c, health == 0 ? "Complete a low-to-full charge benchmark." : (health > 80 ? "Battery is within its expected range." : "Capacity is below the expected range."), 255, top + 141, 10, muted, false);
+        text(c, health == 0 ? "Run benchmark" : (health > 80 ? "Healthy range" : "Below expected"), 255, top + 141, 10, muted, false);
         text(c, "Estimated full capacity", 255, top + 181, 10, muted, false);
         text(c, health > 0 ? String.format(Locale.US, "%,d mAh", estimatedCapacityMah()) : "—", 255, top + 201, 12, primary, true);
         rounded(c, 255, top + 215, 18 + heroW - 28, top + 219, 3, border);
@@ -837,7 +837,7 @@ class BatteryDashboard extends View {
         rounded(c, 18, y + 710, w - 18, y + 850, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 710), u(w - 18), u(y + 850)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "Capacity samples", 36, y + 740, 12, primary, true);
         if (healthSamples.size() < 2) {
-            text(c, "Complete more full charges to build a health trend.", 36, y + 781, 9, muted, false);
+            text(c, "Complete more charges to build a trend.", 36, y + 781, 9, muted, false);
         } else {
             float chartX = 36, chartY = y + 758, chartW = w - 72, chartH = 58;
             line(c, chartX, chartY + chartH, chartX + chartW, chartY + chartH, border, 1);
@@ -863,8 +863,8 @@ class BatteryDashboard extends View {
         line(c, 36, y + 105, w - 36, y + 105, border, 1);
         if (sessions.isEmpty()) {
             text(c, "No completed sessions yet.", 36, y + 145, 11, primary, true);
-            text(c, "Leave the monitor running while charging or using", 36, y + 171, 10, muted, false);
-            text(c, "your phone to create local history entries.", 36, y + 189, 10, muted, false);
+            text(c, "Keep the monitor running to create", 36, y + 171, 10, muted, false);
+            text(c, "local history entries.", 36, y + 189, 10, muted, false);
         } else {
             text(c, "Date", 36, y + 130, 9, faint, true);
             text(c, "Type", w * .53f, y + 130, 9, faint, true);
@@ -961,7 +961,7 @@ class BatteryDashboard extends View {
         text(c, "Average", x + width - 103, y + 58, 9, muted, false);
         text(c, "Recent sessions", x + 18, y + 204, 13, primary, true);
         if (sessions.isEmpty()) {
-            text(c, "Sessions will appear after a charge or discharge cycle.", x + 18, y + 230, 9, faint, false);
+            text(c, "Complete a cycle to see sessions.", x + 18, y + 230, 9, faint, false);
         } else {
             int row = 0;
             for (String session : sessions) {
