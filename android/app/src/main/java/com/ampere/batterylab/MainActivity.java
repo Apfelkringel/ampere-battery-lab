@@ -633,6 +633,11 @@ class BatteryDashboard extends View {
 
     private String voltageDisplay() { return voltage > 0f ? String.format(Locale.US, "%.2f", voltage) : "—"; }
 
+    private String liveCurrentDisplay() {
+        if (currentMa <= 0) return "—";
+        return (charging ? "+" : "−") + currentMa + " mA";
+    }
+
     private String chargerTypeDisplay() {
         if (!charging) return "Not connected";
         if (plugged == BatteryManager.BATTERY_PLUGGED_AC) return "AC charger";
@@ -1364,7 +1369,7 @@ class BatteryDashboard extends View {
         String powerText = currentMa > 0 ? String.format(Locale.US, "Approx. %.1f W live draw", currentMa * voltage / 1000f) : "Waiting for current reading";
         String detectionText = charging ? chargerTypeDisplay() + " · detected by Android" : powerText + " · detected by Android";
         text(c, detectionText, 68, top + 293, 9, muted, false);
-        text(c, currentMa > 0 ? currentMa + " mA" : "—", 285, top + 285, 9, lime, false);
+        text(c, liveCurrentDisplay(), 285, top + 285, 9, charging ? lime : blue, false);
 
         float cardsTop = top + heroH + 14;
         float cardGap = 12;
