@@ -1,7 +1,7 @@
 {
-  "versionCode": 48,
-  "versionName": "0.48",
+  "versionCode": 49,
+  "versionName": "0.49",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "23d692479b9623fbf57d77501198f8ed50de64a357071283d111baf3059e1d3b",
-  "releaseNotes": "Laufzeitprognosen nutzen jetzt lokale Bildschirm-an/aus-Entladeraten der letzten sieben Tage."
+  "sha256": "2232fa5a7a2aa2ee638d18a99e49705a6a30bbddd27f7e72c121b6ad7a48fce9",
+  "releaseNotes": "Die Ladezeit bis 100 Prozent nutzt jetzt, wenn verfügbar, die Android-Systemprognose und fällt sonst auf die lokale 7-Tage-Schätzung zurück."
 }
