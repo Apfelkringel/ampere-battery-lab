@@ -749,6 +749,10 @@ class BatteryDashboard extends View {
         int energyAdded = charging ? sessionEnergyMah() : lastChargeEnergyMah();
         drawStat(c, 18, y + 350, (w - 48) / 2f, 105, "Energy added", energyAdded > 0 ? "+" + energyAdded : "—", "mAh", lime, primary, muted, border, panel, "bolt");
         drawStat(c, 30 + (w - 48) / 2f, y + 350, (w - 48) / 2f, 105, "Battery health", healthDisplay(), healthPercent() > 0 ? "%" : "", lime, primary, muted, border, panel, "heart");
+        rounded(c, 18, y + 470, w - 18, y + 555, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 470), u(w - 18), u(y + 555)); c.drawRoundRect(rect, u(12), u(12), p);
+        text(c, "BATTERY CAPACITY ESTIMATE", 36, y + 500, 10, muted, true);
+        text(c, healthPercent() > 0 ? String.format(Locale.US, "%,d mAh", estimatedCapacityMah()) : "—", 36, y + 531, 24, lime, true);
+        text(c, healthPercent() > 0 ? "based on local charge samples" : "Complete longer charges to estimate capacity", w - 224, y + 529, 8, faint, false);
     }
 
     private void drawDischargingPage(Canvas c, float w, float h, int panel, int raised, int border, int primary, int muted, int faint) {
