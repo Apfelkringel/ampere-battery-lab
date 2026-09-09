@@ -13,8 +13,8 @@ android {
         // APK installable on older Android versions as a bonus.
         minSdk 23
         targetSdk 37
-        versionCode 41
-        versionName "0.41"
+        versionCode 42
+        versionName "0.42"
     }
 
     buildFeatures {
@@ -25,9 +25,9 @@ android {
         release {
             if (ciKeystorePath != null && file(ciKeystorePath).exists()) {
                 storeFile file(ciKeystorePath)
-                storePassword System.getenv("AMPERE_KEYSTORE_PASSWORD") ?: "android"
-                keyAlias System.getenv("AMPERE_KEY_ALIAS") ?: "androiddebugkey"
-                keyPassword System.getenv("AMPERE_KEY_PASSWORD") ?: "android"
+                storePassword System.getenv("AMPERE_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("AMPERE_KEY_ALIAS")
+                keyPassword System.getenv("AMPERE_KEY_PASSWORD")
             }
         }
     }
@@ -36,8 +36,11 @@ android {
     // task must provide the explicit keystore and can never fall back to debug.
     gradle.taskGraph.whenReady { taskGraph ->
         boolean releaseTask = taskGraph.allTasks.any { it.name.toLowerCase().contains("release") }
-        if (releaseTask && (ciKeystorePath == null || !file(ciKeystorePath).exists())) {
-            throw new GradleException("Release builds require AMPERE_KEYSTORE_FILE; refusing debug signing.")
+        if (releaseTask && (ciKeystorePath == null || !file(ciKeystorePath).exists()
+                || System.getenv("AMPERE_KEYSTORE_PASSWORD") == null
+                || System.getenv("AMPERE_KEY_ALIAS") == null
+                || System.getenv("AMPERE_KEY_PASSWORD") == null)) {
+            throw new GradleException("Release builds require the private AMPERE signing credentials; refusing fallback signing.")
         }
     }
 

@@ -751,19 +751,37 @@ class BatteryDashboard extends View {
     }
 
     private String dischargeRuntime(boolean screenOn) {
-        float percent = prefs.getFloat(screenOn ? "dischargeScreenOnPercent" : "dischargeScreenOffPercent", 0f);
-        long minutes = prefs.getLong(screenOn ? "dischargeScreenOnMs" : "dischargeScreenOffMs", 0L) / 60000L;
-        if (percent > 0f && minutes >= 5) return formatDuration(Math.max(1, Math.round(level * minutes / percent)));
+        String percentKey = screenOn ? "dischargeScreenOnPercent" : "dischargeScreenOffPercent";
+        String durationKey = screenOn ? "dischargeScreenOnMs" : "dischargeScreenOffMs";
+        if (charging) {
+            percentKey = "last" + Character.toUpperCase(percentKey.charAt(0)) + percentKey.substring(1);
+            durationKey = "last" + Character.toUpperCase(durationKey.charAt(0)) + durationKey.substring(1);
+        }
+        float percent = prefs.getFloat(percentKey, 0f);
+        long minutes = prefs.getLong(durationKey, 0L) / 60000L;
+        int referenceLevel = charging ? prefs.getInt("lastDischargeEndLevel", level) : level;
+        if (percent > 0f && minutes >= 5) return formatDuration(Math.max(1, Math.round(referenceLevel * minutes / percent)));
         if (charging || currentMa < 50) return "—";
         int modeCurrent = screenOn ? currentMa : Math.max(50, Math.round(currentMa * .35f));
-        return formatDuration(Math.max(1, Math.round(estimatedCapacityMah() * level / 100f * 60f / modeCurrent)));
+        return formatDuration(Math.max(1, Math.round(estimatedCapacityMah() * referenceLevel / 100f * 60f / modeCurrent)));
     }
 
     private String chargeSpeed(boolean screenOn) {
-        int mah = prefs.getInt(screenOn ? "chargeScreenOnMah" : "chargeScreenOffMah", 0);
-        long minutes = prefs.getLong(screenOn ? "chargeScreenOnMs" : "chargeScreenOffMs", 0L) / 60000L;
+        String mahKey = screenOn ? "chargeScreenOnMah" : "chargeScreenOffMah";
+        String durationKey = screenOn ? "chargeScreenOnMs" : "chargeScreenOffMs";
+        if (!charging) {
+            mahKey = "last" + Character.toUpperCase(mahKey.charAt(0)) + mahKey.substring(1);
+            durationKey = "last" + Character.toUpperCase(durationKey.charAt(0)) + durationKey.substring(1);
+        }
+        int mah = prefs.getInt(mahKey, 0);
+        long minutes = prefs.getLong(durationKey, 0L) / 60000L;
         if (mah <= 0 || minutes < 5) return "—";
-        return String.format(Locale.US, "%.0f mA", mah * 60f / minutes);
+        float percent = screenOn ? prefs.getFloat("chargeScreenOnPercent", 0f) : prefs.getFloat("chargeScreenOffPercent", 0f);
+        if (!charging) percent = screenOn ? prefs.getFloat("lastChargeScreenOnPercent", 0f) : prefs.getFloat("lastChargeScreenOffPercent", 0f);
+        float percentPerHour = percent > 0f ? percent * 60f / minutes : 0f;
+        return percentPerHour > 0f
+                ? String.format(Locale.US, "%.0f mA · %.1f%%/h", mah * 60f / minutes, percentPerHour)
+                : String.format(Locale.US, "%.0f mA", mah * 60f / minutes);
     }
 
     private int chargeCycles() {
@@ -1059,6 +1077,7 @@ class BatteryDashboard extends View {
         text(c, charging ? (chargeLimit >= 100 ? "Time to full" : "Time to limit") : "Last charge", w * .6f, y + 96, 10, muted, false);
         text(c, charging ? (chargeLimit >= 100 ? timeToFull() : timeToLimit()) : lastChargeRange(), w * .6f, y + 126, 20, primary, true);
         text(c, charging ? "estimated" : lastChargeDuration(), w * .6f, y + 145, 9, faint, false);
+        text(c, "Temp " + temperatureDisplay() + " °C · Voltage " + voltageDisplay() + " V", 78, y + 151, 8, faint, false);
         text(c, "Charge limit", 36, y + 190, 10, muted, false);
         text(c, chargeLimit + "%", w - 67, y + 190, 10, lime, true);
         text(c, "Source: " + chargerTypeDisplay(), 36, y + 169, 9, faint, false);
@@ -1115,6 +1134,8 @@ class BatteryDashboard extends View {
         text(c, "Discharging speed", 36, y + 245, 10, muted, false);
         text(c, dischargeSpeed(true) + " · " + dischargeSpeed(false), w - 145, y + 245, 10, blue, true);
         text(c, "screen on / off", w - 112, y + 262, 8, faint, false);
+        text(c, "Live current", 36, y + 280, 9, muted, false);
+        text(c, !charging && currentMa > 0 ? "−" + currentMa + " mA" : "—", w - 95, y + 280, 10, blue, true);
         drawStat(c, 18, y + 316, (w - 48) / 2f, 105, "Screen-on time", dischargeDuration(true), "", Color.rgb(180, 154, 255), primary, muted, border, panel, "clock");
         drawStat(c, 30 + (w - 48) / 2f, y + 316, (w - 48) / 2f, 105, "Energy used", dischargeMah() > 0 ? String.valueOf(dischargeMah()) : "—", "mAh", blue, primary, muted, border, panel, "arrow");
         rounded(c, 18, y + 438, w - 18, y + 520, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 438), u(w - 18), u(y + 520)); c.drawRoundRect(rect, u(12), u(12), p);

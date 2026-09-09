@@ -36,9 +36,11 @@ cd android
 gradle lintDebug assembleDebug
 ```
 
-Ein Release-Build verwendet absichtlich niemals den Debug-Schlüssel. Dafür müssen
+Ein Release-Build verwendet niemals einen Fallback- oder Debug-Schlüssel. Dafür müssen
 `AMPERE_KEYSTORE_FILE`, `AMPERE_KEYSTORE_PASSWORD`, `AMPERE_KEY_ALIAS` und
-`AMPERE_KEY_PASSWORD` gesetzt sein.
+`AMPERE_KEY_PASSWORD` gesetzt sein. Die öffentliche Update-APK nutzt eine private
+Release-Signatur; die Datei `android/ampere-release.lineage` enthält nur die öffentliche
+Android-Signatur-Lineage, niemals einen privaten Schlüssel.
 
 Die Ausgaben liegen danach unter `android/app/build/outputs/apk/debug/app-debug.apk` und `android/app/build/outputs/apk/release/app-release.apk`.
 
@@ -46,9 +48,13 @@ Die Ausgaben liegen danach unter `android/app/build/outputs/apk/debug/app-debug.
 
 Der Update-Checker prüft optional eine öffentliche HTTPS-Datei im JSON-Format. Die URL wird in `android/app/build.gradle` bei `UPDATE_MANIFEST_URL` eingetragen; ein Beispiel liegt in `latest.json.example`.
 
-Für jede neue Version muss `versionCode` erhöht, die APK unter `apkUrl` veröffentlicht,
-`sha256` als SHA-256-Hash ergänzt und derselbe Signaturschlüssel wie bei der vorherigen
-APK verwendet werden. Android zeigt aus Sicherheitsgründen weiterhin eine einmalige
+Für jede neue Version muss `versionCode` erhöht, die APK unter `apkUrl` veröffentlicht
+und `sha256` als SHA-256-Hash ergänzt werden. Der private Release-Schlüssel bleibt im
+GitHub-Secret; die Signatur-Lineage erlaubt den Übergang zur neuen Signatur, ohne die
+App-Daten zu löschen. Android zeigt aus Sicherheitsgründen weiterhin eine einmalige
 Installationsbestätigung an.
 
-GitHub Actions kann die Release-APK bei einem `v*`-Tag reproduzierbar bauen. Der dafür nötige, update-kompatible Schlüssel liegt ausschließlich im privaten Secret `AMPERE_KEYSTORE_BASE64`.
+GitHub Actions kann die Release-APK bei einem `v*`-Tag reproduzierbar bauen. Die privaten
+Schlüssel liegen ausschließlich in `AMPERE_ROTATED_KEYSTORE_BASE64` und
+`AMPERE_KEYSTORE_BASE64` (nur für die Signaturrotation); Passwörter und Alias liegen in
+den zugehörigen `AMPERE_ROTATED_*`-Secrets.

@@ -132,7 +132,7 @@ public class BatteryMonitorService extends Service {
         updateSinceFullStats(prefs, value, isCharging, chargeCounterMah, currentMa, now, interactive);
         updateDischargeStats(prefs, value, isCharging, chargeCounterMah, currentMa, now, interactive);
         int plugged = battery.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0);
-        updateChargeStats(prefs, isCharging, chargeCounterMah, currentMa, now, interactive, plugged);
+        updateChargeStats(prefs, value, isCharging, chargeCounterMah, currentMa, now, interactive, plugged);
         recordSession(prefs, value, isCharging, chargeCounterMah, now);
         recordTelemetrySample(prefs, now, value, isCharging, currentMa, temperature, battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0), chargeCounterMah, interactive, foregroundPackage, systemCycleCount, plugged);
         requestAutomaticBackup(prefs, now);
@@ -498,7 +498,7 @@ public class BatteryMonitorService extends Service {
                 .putLong("dischargeDeepSleepMs", deepSleepMs).apply();
     }
 
-    private void updateChargeStats(android.content.SharedPreferences prefs, boolean charging, int counterMah,
+    private void updateChargeStats(android.content.SharedPreferences prefs, int level, boolean charging, int counterMah,
                                    int currentMa, long now, boolean interactive, int plugged) {
         boolean previousCharging = prefs.getBoolean("monitorLastCharging", charging);
         if (!charging && previousCharging) {
@@ -509,15 +509,18 @@ public class BatteryMonitorService extends Service {
                     .putLong("lastChargeScreenOffMs", prefs.getLong("chargeScreenOffMs", 0L))
                     .putInt("lastChargeScreenOnMah", prefs.getInt("chargeScreenOnMah", 0))
                     .putInt("lastChargeScreenOffMah", prefs.getInt("chargeScreenOffMah", 0))
+                    .putFloat("lastChargeScreenOnPercent", prefs.getFloat("chargeScreenOnPercent", 0f))
+                    .putFloat("lastChargeScreenOffPercent", prefs.getFloat("chargeScreenOffPercent", 0f))
                     .putInt("lastChargePlugged", prefs.getInt("chargePlugged", plugged))
                     .apply();
             return;
         }
         if (charging && !previousCharging) {
-            prefs.edit().putInt("chargeLastCounterMah", counterMah).putLong("chargeLastAt", now)
+            prefs.edit().putInt("chargeLastCounterMah", counterMah).putInt("chargeLastLevel", level).putLong("chargeLastAt", now)
                     .putInt("chargePlugged", plugged)
                     .putLong("chargeScreenOnMs", 0L).putLong("chargeScreenOffMs", 0L)
                     .putInt("chargeScreenOnMah", 0).putInt("chargeScreenOffMah", 0)
+                    .putFloat("chargeScreenOnPercent", 0f).putFloat("chargeScreenOffPercent", 0f)
                     .putBoolean("chargeAlarmSent", false).apply();
             return;
         }
@@ -537,10 +540,19 @@ public class BatteryMonitorService extends Service {
         long offMs = prefs.getLong("chargeScreenOffMs", 0L) + (interactive ? 0L : elapsed);
         int onMah = prefs.getInt("chargeScreenOnMah", 0) + (interactive ? added : 0);
         int offMah = prefs.getInt("chargeScreenOffMah", 0) + (interactive ? 0 : added);
+        float onPercent = prefs.getFloat("chargeScreenOnPercent", 0f);
+        float offPercent = prefs.getFloat("chargeScreenOffPercent", 0f);
+        int previousLevel = prefs.getInt("chargeLastLevel", level);
+        if (level > previousLevel) {
+            float delta = level - previousLevel;
+            if (interactive) onPercent += delta; else offPercent += delta;
+        }
         prefs.edit().putInt("chargeLastCounterMah", counterMah).putLong("chargeLastAt", now)
                 .putInt("chargePlugged", prefs.getInt("chargePlugged", plugged))
                 .putLong("chargeScreenOnMs", onMs).putLong("chargeScreenOffMs", offMs)
-                .putInt("chargeScreenOnMah", onMah).putInt("chargeScreenOffMah", offMah).apply();
+                .putInt("chargeScreenOnMah", onMah).putInt("chargeScreenOffMah", offMah)
+                .putFloat("chargeScreenOnPercent", onPercent).putFloat("chargeScreenOffPercent", offPercent)
+                .putInt("chargeLastLevel", level).apply();
     }
 
     private String chargerLabel(int plugged) {
