@@ -644,7 +644,10 @@ class BatteryDashboard extends View {
     private int designCapacityMah() { return BatteryCapacity.designCapacityMah(getContext()); }
 
     private String designCapacitySource() {
-        return BatteryCapacity.hasManualOverride(getContext()) ? "Manual override" : "Automatic device value when available";
+        if (BatteryCapacity.hasManualOverride(getContext())) return "Manual override";
+        return BatteryCapacity.hasAutomaticValue()
+                ? "Automatically detected when Android exposes it"
+                : "Fallback 4,500 mAh · set manually for accuracy";
     }
 
     private int estimatedCapacityMah() { return Math.round(designCapacityMah() * healthPercent() / 100f); }

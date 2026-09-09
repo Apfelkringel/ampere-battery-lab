@@ -28,7 +28,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - strukturierter Research-Export als JSON mit Messreihen, Sitzungen und Geräte-/Android-Kontext nach ausdrücklicher Nutzeraktion
 - einstellbare lokale Messfrequenz (5/15/30/60 Minuten) für Hintergrundmonitor und Verlauf
 - Kapazitätsschätzung und manueller Health-Benchmark
-- automatische lokale Designkapazitäts-Erkennung aus Android-Batteriedaten mit manuellem Override
+- best-effort lokale Designkapazitäts-Erkennung, mit sichtbarem 4.500-mAh-Fallback und manuellem Override, wenn Android den Werkswert nicht freigibt
 - Health-Auswertung mit letztem Ladeverschleiß und äquivalenten Vollzyklen (EFC)
 - transparente Anzeige, warum eine Ladesitzung noch nicht als Health-Kapazitätsprobe zählt
 - Bildschirmzeit, Deep Sleep, Ladezyklen und optionale Vordergrund-App-Nutzung

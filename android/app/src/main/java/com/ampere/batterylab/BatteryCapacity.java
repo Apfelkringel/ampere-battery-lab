@@ -11,6 +11,7 @@ final class BatteryCapacity {
     private static final int FALLBACK_MAH = 4500;
     private static final int MIN_MAH = 500;
     private static final int MAX_MAH = 30000;
+    private static int cachedDetectedMah = -1;
 
     private BatteryCapacity() { }
 
@@ -18,7 +19,7 @@ final class BatteryCapacity {
         SharedPreferences prefs = context.getSharedPreferences("ampere-data", Context.MODE_PRIVATE);
         int override = prefs.getInt("designCapacityMah", 0);
         if (valid(override)) return override;
-        int detected = detectFromSysfs();
+        int detected = automaticCapacityMah();
         return valid(detected) ? detected : FALLBACK_MAH;
     }
 
@@ -28,7 +29,16 @@ final class BatteryCapacity {
         return valid(override);
     }
 
+    static boolean hasAutomaticValue() {
+        return valid(automaticCapacityMah());
+    }
+
     private static boolean valid(int mah) { return mah >= MIN_MAH && mah <= MAX_MAH; }
+
+    private static int automaticCapacityMah() {
+        if (cachedDetectedMah < 0) cachedDetectedMah = detectFromSysfs();
+        return cachedDetectedMah;
+    }
 
     private static int detectFromSysfs() {
         try {
