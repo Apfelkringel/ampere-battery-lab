@@ -1,7 +1,7 @@
 {
-  "versionCode": 53,
-  "versionName": "0.53",
+  "versionCode": 54,
+  "versionName": "0.54",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "bb5310918eb0e4eaadab708f82504c93c1651d2e6255fec0fed1ccff40f627af",
-  "releaseNotes": "Strombasierte mAh-Fallbacks berücksichtigen jetzt auch gewählte 60-Minuten-Messintervalle."
+  "sha256": "f356fe99b4d78051a612a2c7b29e80faa611b67f8537c33163125138c716a6df",
+  "releaseNotes": "Die 30-Tage-History passt ihre gespeicherte Punktzahl jetzt automatisch an das gewählte Messintervall an."
 }
