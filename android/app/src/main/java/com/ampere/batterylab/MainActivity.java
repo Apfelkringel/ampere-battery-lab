@@ -44,6 +44,7 @@ import java.util.Comparator;
 public class MainActivity extends Activity {
     private static final int CREATE_BACKUP_REQUEST = 1201;
     private static final int RESTORE_BACKUP_REQUEST = 1202;
+    private static final int MAX_BACKUP_BYTES = 4 * 1024 * 1024;
     private BatteryDashboard dashboard;
     private final BroadcastReceiver batteryReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
@@ -146,11 +147,16 @@ public class MainActivity extends Activity {
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
             byte[] buffer = new byte[8192];
             int count;
-            while ((count = stream.read(buffer)) != -1) bytes.write(buffer, 0, count);
+            int total = 0;
+            while ((count = stream.read(buffer)) != -1) {
+                total += count;
+                if (total > MAX_BACKUP_BYTES) throw new IllegalArgumentException("Backup too large");
+                bytes.write(buffer, 0, count);
+            }
             JSONObject root = new JSONObject(bytes.toString("UTF-8"));
             if (!getPackageName().equals(root.optString("package")) || root.optInt("schema", 0) != 1) throw new IllegalArgumentException("Invalid backup");
             JSONObject values = root.getJSONObject("preferences");
-            SharedPreferences.Editor editor = getSharedPreferences("ampere-data", MODE_PRIVATE).edit();
+            SharedPreferences.Editor editor = getSharedPreferences("ampere-data", MODE_PRIVATE).edit().clear();
             java.util.Iterator<String> keys = values.keys();
             while (keys.hasNext()) {
                 String key = keys.next();
@@ -508,7 +514,26 @@ class BatteryDashboard extends View {
                 .setTitle("Data & privacy")
                 .setMessage("Ampere collects battery readings locally for your history and analysis: time, battery level, charging state, current, temperature, voltage and screen state.\n\nNo battery readings, account identifiers, location or installed-app lists are uploaded. The update checker only requests its configured version file.\n\nUse History → Export CSV whenever you want to analyze or share your data.")
                 .setPositiveButton("Export CSV", (dialog, which) -> exportHistory())
+                .setNeutralButton("Delete local data", (dialog, which) -> confirmDeleteData())
                 .setNegativeButton("Close", null)
+                .show();
+    }
+
+    private void confirmDeleteData() {
+        new AlertDialog.Builder(getContext())
+                .setTitle("Delete local data?")
+                .setMessage("This removes local history, sessions, health samples, telemetry and settings. Android backup may still contain an older copy until it is replaced.")
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Delete", (dialog, which) -> {
+                    Context context = getContext();
+                    SharedPreferences data = context.getSharedPreferences("ampere-data", Context.MODE_PRIVATE);
+                    data.edit().clear().apply();
+                    BackupManager.dataChanged(context.getPackageName());
+                    reloadStoredData();
+                    Intent battery = ((Activity) context).registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+                    if (battery != null) readBattery(battery);
+                    Toast.makeText(context, "Lokale Daten gelöscht.", Toast.LENGTH_LONG).show();
+                })
                 .show();
     }
 
