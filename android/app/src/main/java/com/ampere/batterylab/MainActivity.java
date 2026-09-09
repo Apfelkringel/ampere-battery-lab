@@ -896,7 +896,7 @@ class BatteryDashboard extends View {
     }
 
     private void exportHistory() {
-        StringBuilder csv = new StringBuilder("type,change,duration,date,start_level,end_level,energy_mah\n");
+        StringBuilder csv = new StringBuilder("type,change,duration,date,start_level,end_level,energy_mah,equivalent_full_cycles\n");
         for (String session : sessions) csv.append(session).append('\n');
         csv.append("\nlevel_percent\n");
         for (Integer point : longHistory) csv.append(point).append('\n');
@@ -912,7 +912,7 @@ class BatteryDashboard extends View {
 
     private void showSessionDetails(int index) {
         if (index < 0 || index >= sessions.size()) return;
-        String[] parts = sessions.get(index).split(",", 7);
+        String[] parts = sessions.get(index).split(",", 8);
         if (parts.length < 4) return;
         StringBuilder details = new StringBuilder();
         details.append(parts[0]).append(" session\n");
@@ -923,6 +923,7 @@ class BatteryDashboard extends View {
             details.append("\nStart: ").append(parts[4]).append('%');
             details.append("\nEnd: ").append(parts[5]).append('%');
             details.append("\nEnergy: ").append(parts[6]).append(" mAh");
+            if (parts.length >= 8) details.append("\nEquivalent full cycles: ").append(parts[7]);
         }
         new AlertDialog.Builder(getContext()).setTitle("Session details").setMessage(details.toString()).setPositiveButton("Close", null).show();
     }

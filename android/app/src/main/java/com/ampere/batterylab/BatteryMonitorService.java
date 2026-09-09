@@ -276,7 +276,9 @@ public class BatteryMonitorService extends Service {
             int energy = counterMah > 0 && startCounter > 0 ? (previousCharging ? Math.max(0, counterMah - startCounter) : Math.max(0, startCounter - counterMah)) : 0;
             String type = change > 0 ? "Charge" : "Discharge";
             String date = new SimpleDateFormat("MMM d HH:mm", Locale.US).format(new Date(now));
-            String entry = type + "," + (change > 0 ? "+" : "") + change + "%," + duration(minutes) + "," + date + "," + startLevel + "," + level + "," + energy;
+            int designCapacity = prefs.getInt("designCapacityMah", 4500);
+            float cycleEquivalent = energy > 0 && designCapacity > 0 ? energy / (float) designCapacity : Math.abs(change) / 100f;
+            String entry = type + "," + (change > 0 ? "+" : "") + change + "%," + duration(minutes) + "," + date + "," + startLevel + "," + level + "," + energy + "," + String.format(Locale.US, "%.2f", cycleEquivalent);
             String saved = prefs.getString("sessions", "");
             ArrayList<String> sessions = new ArrayList<>();
             if (!saved.isEmpty()) for (String session : saved.split("\\|")) if (!session.isEmpty()) sessions.add(session);
