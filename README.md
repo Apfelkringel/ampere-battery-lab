@@ -45,6 +45,8 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - 30-Tage-History passt die gespeicherte Punktzahl automatisch an das gewählte Messintervall an
 - lokale Telemetrie behält ebenfalls ungefähr 30 Tage bei jeder Messfrequenz (5/15/30/60 Minuten)
 - Ladezeit-Prognosen nutzen lokale 7-Tage-Laderaten, wenn Android keinen Systemwert liefert
+- verbleibende Nutzungszeit wird als gemischt, Bildschirm-an und Bildschirm-aus ausgewiesen
+- separate Ladegeschwindigkeitswerte für Bildschirm-an und Bildschirm-aus in mA und %/h
 - Health-Baseline kann nach einem Akkutausch zurückgesetzt werden, ohne History oder Telemetrie zu löschen
 - Backup-Dialog zeigt den letzten automatischen Backup-Anstoß; Baseline-Änderungen melden Android sofort eine Datenänderung
 - adaptive Darstellung ohne erzwungenes Hochformat für aktuelle Android-16/17-Geräte

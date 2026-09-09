@@ -473,7 +473,7 @@ class BatteryDashboard extends View {
 
     private void updateLayoutHeight() {
         int rowCount = Math.min(150, sessions.size());
-        int contentDp = page == 4 ? Math.max(1320, 600 + rowCount * 44) : 1320;
+        int contentDp = page == 4 ? Math.max(1320, 600 + rowCount * 44) : (page == 1 ? 1550 : 1320);
         int contentPx = Math.round(contentDp * density);
         setMinimumHeight(contentPx);
         if (getLayoutParams() != null && getLayoutParams().height != contentPx) {
@@ -1090,7 +1090,7 @@ class BatteryDashboard extends View {
         return formatDuration(Math.max(1, Math.round(calculationCapacityMah() * referenceLevel / 100f * 60f / modeCurrent)));
     }
 
-    private String chargeSpeed(boolean screenOn) {
+    private int chargeSpeedMahPerHour(boolean screenOn) {
         String mahKey = screenOn ? "chargeScreenOnMah" : "chargeScreenOffMah";
         String durationKey = screenOn ? "chargeScreenOnMs" : "chargeScreenOffMs";
         if (!charging) {
@@ -1099,13 +1099,39 @@ class BatteryDashboard extends View {
         }
         int mah = prefs.getInt(mahKey, 0);
         long minutes = prefs.getLong(durationKey, 0L) / 60000L;
-        if (mah <= 0 || minutes < 5) return "—";
-        float percent = screenOn ? prefs.getFloat("chargeScreenOnPercent", 0f) : prefs.getFloat("chargeScreenOffPercent", 0f);
-        if (!charging) percent = screenOn ? prefs.getFloat("lastChargeScreenOnPercent", 0f) : prefs.getFloat("lastChargeScreenOffPercent", 0f);
-        float percentPerHour = percent > 0f ? percent * 60f / minutes : 0f;
-        return percentPerHour > 0f
-                ? String.format(Locale.US, "%.0f mA · %.1f%%/h", mah * 60f / minutes, percentPerHour)
-                : String.format(Locale.US, "%.0f mA", mah * 60f / minutes);
+        if (mah <= 0 || minutes < 5) return 0;
+        return Math.round(mah * 60f / minutes);
+    }
+
+    private float chargeSpeedPercentPerHour(boolean screenOn) {
+        String percentKey = screenOn ? "chargeScreenOnPercent" : "chargeScreenOffPercent";
+        String durationKey = screenOn ? "chargeScreenOnMs" : "chargeScreenOffMs";
+        if (!charging) {
+            percentKey = "last" + Character.toUpperCase(percentKey.charAt(0)) + percentKey.substring(1);
+            durationKey = "last" + Character.toUpperCase(durationKey.charAt(0)) + durationKey.substring(1);
+        }
+        float percent = prefs.getFloat(percentKey, 0f);
+        long minutes = prefs.getLong(durationKey, 0L) / 60000L;
+        return percent > 0f && minutes >= 5 ? percent * 60f / minutes : 0f;
+    }
+
+    private String chargeSpeed(boolean screenOn) {
+        int mahPerHour = chargeSpeedMahPerHour(screenOn);
+        if (mahPerHour <= 0) return "—";
+        float percentPerHour = chargeSpeedPercentPerHour(screenOn);
+        if (percentPerHour > 0f) return String.format(Locale.US, "%d mA · %.1f%%/h", mahPerHour, percentPerHour);
+        return String.format(Locale.US, "%d mA", mahPerHour);
+    }
+
+    private String compactChargeSpeed(boolean screenOn) {
+        int mahPerHour = chargeSpeedMahPerHour(screenOn);
+        if (mahPerHour <= 0) return "—";
+        return String.format(Locale.US, "%d mA", mahPerHour);
+    }
+
+    private String compactChargeSpeedRate(boolean screenOn) {
+        float percentPerHour = chargeSpeedPercentPerHour(screenOn);
+        return percentPerHour > 0f ? String.format(Locale.US, "%.1f%%/h", percentPerHour) : "rate unavailable";
     }
 
     private int chargeCycles() {
@@ -1512,13 +1538,44 @@ class BatteryDashboard extends View {
             text(c, "Screen off", 285, y + 612, 8, faint, false);
             text(c, chargeModeDetails(false), 285, y + 630, 10, blue, true);
         }
-        float capacityTop = compact ? y + 720 : y + 665;
+        float remainingTop = compact ? y + 720 : y + 665;
+        rounded(c, 18, remainingTop, w - 18, remainingTop + 105, 12, panel); stroke(c, border, 1); rect.set(u(18), u(remainingTop), u(w - 18), u(remainingTop + 105)); c.drawRoundRect(rect, u(12), u(12), p);
+        text(c, "REMAINING USE TIME", 36, remainingTop + 30, 10, muted, true);
+        float useColumn = compact ? 36 : 36;
+        float useColumnOn = compact ? 130 : 160;
+        float useColumnOff = compact ? 224 : 284;
+        text(c, "Mixed", useColumn, remainingTop + 58, 8, faint, false);
+        text(c, runtimeEstimate(), useColumn, remainingTop + 80, compact ? 10 : 12, primary, true);
+        text(c, "Screen on", useColumnOn, remainingTop + 58, 8, faint, false);
+        text(c, dischargeRuntime(true), useColumnOn, remainingTop + 80, compact ? 10 : 12, blue, true);
+        text(c, "Screen off", useColumnOff, remainingTop + 58, 8, faint, false);
+        text(c, dischargeRuntime(false), useColumnOff, remainingTop + 80, compact ? 10 : 12, blue, true);
+        text(c, "Based on recent local usage", 36, remainingTop + 98, 8, faint, false);
+        float capacityTop = remainingTop + 125;
         rounded(c, 18, capacityTop, w - 18, capacityTop + 85, 12, panel); stroke(c, border, 1); rect.set(u(18), u(capacityTop), u(w - 18), u(capacityTop + 85)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "BATTERY CAPACITY ESTIMATE", 36, capacityTop + 30, 10, muted, true);
         text(c, healthPercent() > 0 ? String.format(Locale.US, "%,d mAh", estimatedCapacityMah()) : "—", 36, capacityTop + 61, 24, lime, true);
         rightText(c, healthPercent() > 0 ? "based on local charge samples" : "Complete longer charges to estimate capacity", w - 30, capacityTop + 59, 8, faint, false);
         text(c, healthEstimateStatus(), 36, capacityTop + 79, 8, faint, false);
-        drawTelemetryChart(c, 18, compact ? y + 830 : y + 775, w - 36, 220, panel, border, primary, muted, faint, true);
+        float speedTop = capacityTop + 110;
+        rounded(c, 18, speedTop, w - 18, speedTop + 105, 12, panel); stroke(c, border, 1); rect.set(u(18), u(speedTop), u(w - 18), u(speedTop + 105)); c.drawRoundRect(rect, u(12), u(12), p);
+        text(c, "CHARGE SPEED", 36, speedTop + 30, 10, muted, true);
+        if (compact) {
+            float secondColumn = 164;
+            text(c, "Screen on", 36, speedTop + 58, 8, faint, false);
+            text(c, compactChargeSpeed(true), 36, speedTop + 78, 11, primary, true);
+            text(c, compactChargeSpeedRate(true), 36, speedTop + 95, 8, blue, false);
+            text(c, "Screen off", secondColumn, speedTop + 58, 8, faint, false);
+            text(c, compactChargeSpeed(false), secondColumn, speedTop + 78, 11, primary, true);
+            text(c, compactChargeSpeedRate(false), secondColumn, speedTop + 95, 8, blue, false);
+        } else {
+            text(c, "Screen on", 36, speedTop + 62, 9, faint, false);
+            text(c, chargeSpeed(true), 36, speedTop + 84, 13, primary, true);
+            text(c, "Screen off", w * .54f, speedTop + 62, 9, faint, false);
+            text(c, chargeSpeed(false), w * .54f, speedTop + 84, 13, primary, true);
+            text(c, "Measured from local session data", 36, speedTop + 99, 8, faint, false);
+        }
+        drawTelemetryChart(c, 18, speedTop + 125, w - 36, 220, panel, border, primary, muted, faint, true);
     }
 
     private void drawDischargingPage(Canvas c, float w, float h, int panel, int raised, int border, int primary, int muted, int faint) {

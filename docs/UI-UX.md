@@ -11,6 +11,8 @@ charging state, blue for neutral telemetry and amber for warnings or wear.
 - Charging details switch from three columns to a two-row layout below 380 dp.
 - Charts use their real telemetry timestamps, so uneven background sampling does
   not create false equal time gaps.
+- Charging and discharging estimates keep mixed, screen-on and screen-off modes
+  visibly separate so the measurement basis is not hidden in one combined value.
 - Session previews are capped on the overview; the complete list remains in
   History and stays scrollable.
 - The activity is not forced into portrait, and Android system-bar insets are
