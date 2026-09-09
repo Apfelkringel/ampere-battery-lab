@@ -2,6 +2,6 @@
   "versionCode": 60,
   "versionName": "0.60",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "4eebbbaa9fe9bff48dacc3b706a9a61a1883e22851ba53c06806749734db603a",
+  "sha256": "a033dd58d7a0c03f63c32bbbc69b35b18f5f4811d20a20ea2f42145e3860ab4d",
   "releaseNotes": "Sichereres Backup, geprüfte Importe und begrenzte Update-Daten."
 }
