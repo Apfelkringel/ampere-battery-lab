@@ -50,6 +50,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - Live-Overlay mit Akkustrom, CPU-Kernauslastung, Top-App und best-effort Prozessauslastung der Top-App
 - kein Konto und kein Upload an einen Ampere-Server; Android-Backup kann Verlauf, Einstellungen und lokale Telemetrie über den vom Gerät gewählten Backup-Transport sichern, wobei Cloud-Backups ohne Verschlüsselungsmöglichkeit ausgeschlossen werden; der sichtbare Export/Backup bleibt zusätzlich verfügbar
 - Downloads werden auch nach einem App-Prozess-Neustart per Android-DownloadManager fortgesetzt, vor der Installation gehasht und von Android bestätigt
+- der Hintergrundmonitor prüft höchstens alle 12 Stunden die öffentliche Update-Datei und meldet neue Versionen per Android-Benachrichtigung
 
 ## Entwicklung
 

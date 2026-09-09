@@ -133,9 +133,19 @@ public class MainActivity extends Activity {
         if (dashboard == null) return;
         startMonitorService();
         dashboard.startSavedOverlay();
-        UpdateChecker.check(this);
+        if (UpdateChecker.isUpdateIntent(getIntent())) {
+            getIntent().setAction(null);
+            UpdateChecker.checkNow(this);
+        } else {
+            UpdateChecker.check(this);
+        }
         Intent battery = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         if (battery != null) dashboard.readBattery(battery);
+    }
+
+    @Override protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
     }
 
     private void startMonitorService() {

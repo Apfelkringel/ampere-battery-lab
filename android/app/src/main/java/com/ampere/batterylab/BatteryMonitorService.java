@@ -70,6 +70,7 @@ public class BatteryMonitorService extends Service {
         if (Build.VERSION.SDK_INT >= 33) registerReceiver(screenReceiver, screenFilter, Context.RECEIVER_NOT_EXPORTED); else registerReceiver(screenReceiver, screenFilter);
         recordSample();
         handler.postDelayed(sampleTask, sampleInterval());
+        UpdateChecker.checkInBackground(this);
     }
 
     @Override public int onStartCommand(Intent intent, int flags, int startId) { return START_STICKY; }
@@ -156,6 +157,7 @@ public class BatteryMonitorService extends Service {
         recordSession(prefs, value, isCharging, chargeCounterMah, now);
         recordTelemetrySample(telemetryPrefs, now, value, isCharging, signedCurrentMa, temperature, battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0), chargeCounterMah, interactive, foregroundPackage, systemCycleCount, plugged);
         requestAutomaticBackup(prefs, now);
+        UpdateChecker.checkInBackground(this);
         int benchmarkCapacity = updateBenchmark(prefs, value, isCharging, chargeCounterMah);
         if (benchmarkCapacity > 0) recordHealthSample(prefs, benchmarkCapacity);
         int limit = prefs.getInt("chargeLimit", 80);

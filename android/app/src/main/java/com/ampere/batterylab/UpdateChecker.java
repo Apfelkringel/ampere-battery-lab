@@ -3,6 +3,10 @@ package com.ampere.batterylab;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -29,6 +33,9 @@ import java.util.concurrent.Executors;
 /** Checks for optional APK updates. No battery or usage data is sent. */
 final class UpdateChecker {
     private static final String PREFS = "ampere-update";
+    private static final String UPDATE_CHANNEL_ID = "ampere-updates";
+    private static final int UPDATE_NOTIFICATION_ID = 10;
+    private static final String ACTION_SHOW_UPDATE = "com.ampere.batterylab.SHOW_UPDATE";
     private static final String DOWNLOAD_ID = "downloadId";
     private static final String DOWNLOAD_SHA256 = "downloadSha256";
     private static final long CHECK_INTERVAL_MS = 12L * 60L * 60L * 1000L;
@@ -45,6 +52,29 @@ final class UpdateChecker {
 
     static void checkNow(Activity activity) {
         check(activity, true);
+    }
+
+    static boolean isUpdateIntent(Intent intent) {
+        return intent != null && ACTION_SHOW_UPDATE.equals(intent.getAction());
+    }
+
+    /** Performs a throttled manifest-only check from the persistent monitor service. */
+    static void checkInBackground(Context context) {
+        String manifestUrl = BuildConfig.UPDATE_MANIFEST_URL;
+        if (manifestUrl == null || manifestUrl.trim().isEmpty()) return;
+        Context app = context.getApplicationContext();
+        SharedPreferences prefs = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        long now = System.currentTimeMillis();
+        if (now - prefs.getLong("lastBackgroundCheck", 0L) < CHECK_INTERVAL_MS) return;
+        prefs.edit().putLong("lastBackgroundCheck", now).apply();
+        EXECUTOR.execute(() -> {
+            UpdateInfo update = fetch(manifestUrl);
+            if (update == null) return;
+            int notifiedVersion = prefs.getInt("notifiedVersionCode", 0);
+            if (update.versionCode <= notifiedVersion) return;
+            notifyUpdateAvailable(app, update);
+            prefs.edit().putInt("notifiedVersionCode", update.versionCode).apply();
+        });
     }
 
     private static void check(Activity activity, boolean force) {
@@ -121,12 +151,36 @@ final class UpdateChecker {
 
     private static void showUpdateDialog(Activity activity, UpdateInfo update) {
         if (activity.isFinishing() || activity.isDestroyed()) return;
+        NotificationManager manager = (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (manager != null) manager.cancel(UPDATE_NOTIFICATION_ID);
         new AlertDialog.Builder(activity)
                 .setTitle("Update verfügbar · " + update.versionName)
                 .setMessage(update.notes + "\n\nDie APK wird kostenlos heruntergeladen. Android fragt anschließend noch einmal nach deiner Bestätigung.")
                 .setNegativeButton("Später", null)
                 .setPositiveButton("Herunterladen", (dialog, which) -> download(activity, update))
                 .show();
+    }
+
+    private static void notifyUpdateAvailable(Context context, UpdateInfo update) {
+        NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (manager == null) return;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            manager.createNotificationChannel(new NotificationChannel(UPDATE_CHANNEL_ID, "App updates", NotificationManager.IMPORTANCE_DEFAULT));
+        }
+        Intent open = new Intent(context, MainActivity.class).setAction(ACTION_SHOW_UPDATE)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent pending = PendingIntent.getActivity(context, UPDATE_NOTIFICATION_ID, open,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+                ? new Notification.Builder(context, UPDATE_CHANNEL_ID) : new Notification.Builder(context);
+        builder.setSmallIcon(R.drawable.ic_launcher)
+                .setContentTitle("Ampere-Update verfügbar · " + update.versionName)
+                .setContentText("Tippen, um die kostenlose Aktualisierung zu prüfen")
+                .setStyle(new Notification.BigTextStyle().bigText(update.notes))
+                .setContentIntent(pending)
+                .setAutoCancel(true)
+                .setShowWhen(false);
+        manager.notify(UPDATE_NOTIFICATION_ID, builder.build());
     }
 
     private static void download(Activity activity, UpdateInfo update) {
