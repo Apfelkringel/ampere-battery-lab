@@ -1,7 +1,7 @@
 {
-  "versionCode": 56,
-  "versionName": "0.56",
+  "versionCode": 57,
+  "versionName": "0.57",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "c20cd6f7c032aa1a5e615332339132deae4fe50c3db463d6a32f123ab1b7efa8",
-  "releaseNotes": "Health-Baseline kann nach einem Akkutausch zurückgesetzt werden, ohne History oder Telemetrie zu löschen."
+  "sha256": "2a34d88601a640e650b56aeacb15873e3fb45f202fe394b325662d972936f74b",
+  "releaseNotes": "Android-16/17-Darstellung ist adaptiv; die App erzwingt kein Hochformat mehr und meldet Klicks besser an Bedienungshilfen."
 }
