@@ -959,7 +959,7 @@ class BatteryDashboard extends View {
             fill(c, lime); float lastX = values.length == 1 ? chartX : chartX + chartW, lastY = chartY + chartH - values[values.length - 1] * chartH; c.drawCircle(u(lastX), u(lastY), u(4), p);
         }
         text(c, historyDays == 30 ? "1" : "Mon", chartX, y + 166, 9, faint, false); text(c, historyDays == 30 ? "10" : "Wed", chartX + chartW * .32f, y + 166, 9, faint, false); text(c, historyDays == 30 ? "20" : "Fri", chartX + chartW * .64f, y + 166, 9, faint, false); text(c, historyDays == 30 ? "30" : "Sun", chartX + chartW - 23, y + 166, 9, faint, false);
-        text(c, "Average", x + width - 103, y + 58, 9, muted, false);
+        text(c, "Average " + chartAverage() + " · range " + chartRange(), x + 18, y + 189, 8, muted, false);
         text(c, "Recent sessions", x + 18, y + 204, 13, primary, true);
         if (sessions.isEmpty()) {
             text(c, "Complete a cycle to see sessions.", x + 18, y + 230, 9, faint, false);
@@ -989,6 +989,27 @@ class BatteryDashboard extends View {
             values[i] = Math.max(0, Math.min(100, value)) / 100f;
         }
         return values;
+    }
+
+    private String chartAverage() {
+        ArrayList<Integer> source = historyDays == 30 ? longHistory : history;
+        if (source.isEmpty()) return "—";
+        int total = 0;
+        for (Integer value : source) total += Math.max(0, Math.min(100, value));
+        return String.format(Locale.US, "%.0f%%", total / (float) source.size());
+    }
+
+    private String chartRange() {
+        ArrayList<Integer> source = historyDays == 30 ? longHistory : history;
+        if (source.isEmpty()) return "—";
+        int min = 100;
+        int max = 0;
+        for (Integer value : source) {
+            int clipped = Math.max(0, Math.min(100, value));
+            min = Math.min(min, clipped);
+            max = Math.max(max, clipped);
+        }
+        return min + "–" + max + "%";
     }
 
     private void drawPlaceholder(Canvas c, float w, float h, int page, int panel, int border, int primary, int muted) {
