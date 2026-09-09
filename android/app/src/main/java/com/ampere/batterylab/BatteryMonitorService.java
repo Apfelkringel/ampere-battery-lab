@@ -212,6 +212,11 @@ public class BatteryMonitorService extends Service {
         return minutes * 60L * 1000L;
     }
 
+    /** Cap stale integration while honoring the selected sampling interval. */
+    private long accountingIntervalCapMs() {
+        return Math.max(30L * 60L * 1000L, sampleInterval());
+    }
+
     /**
      * Returns the most recently resumed package when Usage Access is enabled.
      * Android may omit events while the device is idle or when the vendor
@@ -295,14 +300,14 @@ public class BatteryMonitorService extends Service {
         int previousLevel = prefs.getInt("sinceFullLastLevel", level);
         int previousCounter = prefs.getInt("sinceFullLastCounterMah", counterMah);
         long lastAt = prefs.getLong("sinceFullLastAt", now);
-        long elapsed = Math.min(30L * 60L * 1000L, Math.max(0L, now - lastAt));
+        long elapsed = Math.min(accountingIntervalCapMs(), Math.max(0L, now - lastAt));
         float usedPercent = prefs.getFloat("sinceFullPercent", 0f);
         if (!charging && level < previousLevel) usedPercent += previousLevel - level;
         int usedMah = prefs.getInt("sinceFullMah", 0);
         if (!charging && counterMah > 0 && previousCounter > 0 && previousCounter > counterMah) {
             usedMah += previousCounter - counterMah;
         } else if (!charging && counterMah <= 0 && currentMa > 0) {
-            usedMah += Math.round(currentMa * Math.min(elapsed, 30L * 60L * 1000L) / 3600000f);
+            usedMah += Math.round(currentMa * elapsed / 3600000f);
         }
         long screenOnMs = prefs.getLong("sinceFullScreenOnMs", 0L) + ((!charging && interactive) ? elapsed : 0L);
         long screenOffMs = prefs.getLong("sinceFullScreenOffMs", 0L) + ((!charging && !interactive) ? elapsed : 0L);
@@ -494,7 +499,7 @@ public class BatteryMonitorService extends Service {
         if (counterMah > 0 && previousCounter > 0 && previousCounter > counterMah) {
             energy += previousCounter - counterMah;
         } else if (counterMah <= 0 && currentMa > 0) {
-            energy += Math.round(currentMa * Math.min(elapsed, 30L * 60L * 1000L) / 3600000f);
+            energy += Math.round(currentMa * Math.min(elapsed, accountingIntervalCapMs()) / 3600000f);
         }
         long onMs = prefs.getLong("dischargeScreenOnMs", 0L) + (interactive ? elapsed : 0L);
         long offMs = prefs.getLong("dischargeScreenOffMs", 0L) + (interactive ? 0L : elapsed);
@@ -541,7 +546,7 @@ public class BatteryMonitorService extends Service {
             added = counterMah > previousCounter ? counterMah - previousCounter : 0;
         } else {
             added = currentMa > 0
-                    ? Math.round(currentMa * Math.min(elapsed, 30L * 60L * 1000L) / 3600000f)
+                    ? Math.round(currentMa * Math.min(elapsed, accountingIntervalCapMs()) / 3600000f)
                     : 0;
         }
         long onMs = prefs.getLong("chargeScreenOnMs", 0L) + (interactive ? elapsed : 0L);
