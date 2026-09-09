@@ -120,6 +120,7 @@ public class BatteryMonitorService extends Service {
         String foregroundPackage = foregroundPackage(now);
         NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         if (notificationManager != null) notificationManager.notify(7, statusNotification(value, isCharging, currentMa, temperature, battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0)));
+        updateSinceFullStats(prefs, value, isCharging, chargeCounterMah, now, interactive);
         updateDischargeStats(prefs, value, isCharging, chargeCounterMah, now, interactive);
         updateChargeStats(prefs, isCharging, chargeCounterMah, now, interactive);
         recordSession(prefs, value, isCharging, chargeCounterMah, now);
@@ -257,6 +258,37 @@ public class BatteryMonitorService extends Service {
                 .putInt("chargeCycles", cycles).putLong("screenOnMs", screenOnMs)
                 .putLong("screenSampleAt", now).putLong("monitoringMs", monitoringMs)
                 .putLong("deepSleepMs", deepSleepMs).putLong("monitorSampleAt", now).apply();
+    }
+
+    /** Tracks battery use after the most recent observed full charge. */
+    private void updateSinceFullStats(android.content.SharedPreferences prefs, int level, boolean charging,
+                                      int counterMah, long now, boolean interactive) {
+        boolean active = prefs.getBoolean("sinceFullActive", false);
+        if (charging && level >= 99 && !active) {
+            prefs.edit().putBoolean("sinceFullActive", true).putLong("sinceFullStartAt", now)
+                    .putInt("sinceFullStartLevel", level).putInt("sinceFullLastLevel", level)
+                    .putInt("sinceFullLastCounterMah", counterMah).putLong("sinceFullLastAt", now)
+                    .putFloat("sinceFullPercent", 0f).putInt("sinceFullMah", 0)
+                    .putLong("sinceFullScreenOnMs", 0L).putLong("sinceFullScreenOffMs", 0L)
+                    .putLong("sinceFullDeepSleepMs", 0L).apply();
+            return;
+        }
+        if (!active) return;
+        int previousLevel = prefs.getInt("sinceFullLastLevel", level);
+        int previousCounter = prefs.getInt("sinceFullLastCounterMah", counterMah);
+        long lastAt = prefs.getLong("sinceFullLastAt", now);
+        long elapsed = Math.min(30L * 60L * 1000L, Math.max(0L, now - lastAt));
+        float usedPercent = prefs.getFloat("sinceFullPercent", 0f);
+        if (!charging && level < previousLevel) usedPercent += previousLevel - level;
+        int usedMah = prefs.getInt("sinceFullMah", 0);
+        if (!charging && counterMah > 0 && previousCounter > counterMah) usedMah += previousCounter - counterMah;
+        long screenOnMs = prefs.getLong("sinceFullScreenOnMs", 0L) + ((!charging && interactive) ? elapsed : 0L);
+        long screenOffMs = prefs.getLong("sinceFullScreenOffMs", 0L) + ((!charging && !interactive) ? elapsed : 0L);
+        long deepSleepMs = prefs.getLong("sinceFullDeepSleepMs", 0L) + ((!charging && !interactive) ? elapsed : 0L);
+        prefs.edit().putInt("sinceFullLastLevel", level).putInt("sinceFullLastCounterMah", counterMah)
+                .putLong("sinceFullLastAt", now).putFloat("sinceFullPercent", usedPercent)
+                .putInt("sinceFullMah", usedMah).putLong("sinceFullScreenOnMs", screenOnMs)
+                .putLong("sinceFullScreenOffMs", screenOffMs).putLong("sinceFullDeepSleepMs", deepSleepMs).apply();
     }
 
     private void recordSession(android.content.SharedPreferences prefs, int level, boolean charging, int counterMah, long now) {

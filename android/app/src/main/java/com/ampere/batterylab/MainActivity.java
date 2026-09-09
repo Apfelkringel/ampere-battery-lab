@@ -441,6 +441,26 @@ class BatteryDashboard extends View {
         return (minutes / 60) + "h " + (minutes % 60) + "m";
     }
 
+    private String sinceFullRange() {
+        if (!prefs.getBoolean("sinceFullActive", false)) return "No full-charge baseline";
+        return prefs.getInt("sinceFullStartLevel", 100) + "% → " + prefs.getInt("sinceFullLastLevel", level) + "%";
+    }
+
+    private String sinceFullDuration() {
+        if (!prefs.getBoolean("sinceFullActive", false)) return "—";
+        long start = prefs.getLong("sinceFullStartAt", 0L);
+        if (start <= 0L) return "—";
+        return formatDuration(Math.max(1L, (System.currentTimeMillis() - start) / 60000L));
+    }
+
+    private String sinceFullUsageSummary() {
+        if (!prefs.getBoolean("sinceFullActive", false)) return "No full baseline yet";
+        String range = prefs.getFloat("sinceFullPercent", 0f) > 0f
+                ? String.format(Locale.US, "%.0f%% used", prefs.getFloat("sinceFullPercent", 0f)) : "0% used";
+        int mah = prefs.getInt("sinceFullMah", 0);
+        return range + " · " + sinceFullDuration() + " · " + (mah > 0 ? mah + " mAh" : "—");
+    }
+
     private int dischargeMah() { return prefs.getInt(charging ? "lastDischargeMah" : "dischargeMah", 0); }
 
     private int lastChargeEnergyMah() { return prefs.getInt("lastChargeEnergyMah", 0); }
@@ -746,8 +766,9 @@ class BatteryDashboard extends View {
         drawStat(c, 30 + (w - 48) / 2f, y + 316, (w - 48) / 2f, 105, "Energy used", dischargeMah() > 0 ? String.valueOf(dischargeMah()) : "—", "mAh", blue, primary, muted, border, panel, "arrow");
         rounded(c, 18, y + 438, w - 18, y + 520, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 438), u(w - 18), u(y + 520)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "Usage note", 36, y + 468, 10, muted, true);
-        text(c, "Screen on " + dischargePercent(true) + " · off " + dischargePercent(false) + " · " + dischargeMah() + " mAh", 36, y + 493, 9, primary, false);
-        text(c, "Deep sleep: " + deepSleepTime() + " · on " + dischargeDuration(true) + " / off " + dischargeDuration(false), 36, y + 510, 9, primary, false);
+        text(c, "Current on " + dischargePercent(true) + " · off " + dischargePercent(false) + " · " + dischargeMah() + " mAh", 36, y + 486, 8, primary, false);
+        text(c, "Deep sleep: " + deepSleepTime() + " · on " + dischargeDuration(true) + " / off " + dischargeDuration(false), 36, y + 502, 8, primary, false);
+        text(c, "Since full: " + sinceFullUsageSummary(), 36, y + 518, 8, primary, false);
         rounded(c, 18, y + 540, w - 18, y + 715, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 540), u(w - 18), u(y + 715)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "Foreground app usage", 36, y + 571, 13, primary, true);
         if (hasUsageAccess()) {
@@ -771,7 +792,9 @@ class BatteryDashboard extends View {
         UsageStatsManager manager = (UsageStatsManager) getContext().getSystemService(Context.USAGE_STATS_SERVICE);
         if (manager == null) return;
         long end = System.currentTimeMillis();
-        long start = prefs.getLong("dischargeStartAt", end - 24 * 60 * 60 * 1000L);
+        long start = prefs.getBoolean("sinceFullActive", false)
+                ? prefs.getLong("sinceFullStartAt", end - 24 * 60 * 60 * 1000L)
+                : prefs.getLong("dischargeStartAt", end - 24 * 60 * 60 * 1000L);
         if (start >= end) start = end - 60 * 60 * 1000L;
         List<UsageStats> stats = manager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, start, end);
         if (stats == null) return;
