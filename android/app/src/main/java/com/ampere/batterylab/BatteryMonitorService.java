@@ -35,7 +35,16 @@ public class BatteryMonitorService extends Service {
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final BroadcastReceiver batteryReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
-            recordSample(intent);
+            String action = intent == null ? null : intent.getAction();
+            if (Intent.ACTION_POWER_CONNECTED.equals(action)
+                    || Intent.ACTION_POWER_DISCONNECTED.equals(action)) {
+                // Power broadcasts are not battery-status intents. Read the
+                // current sticky battery state so a session boundary and the
+                // charge alarm are recorded immediately when a cable changes.
+                recordSample();
+            } else {
+                recordSample(intent);
+            }
         }
     };
     private boolean screenInteractive;
@@ -62,6 +71,8 @@ public class BatteryMonitorService extends Service {
         createChannel();
         startForeground(7, notification());
         IntentFilter batteryFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        batteryFilter.addAction(Intent.ACTION_POWER_CONNECTED);
+        batteryFilter.addAction(Intent.ACTION_POWER_DISCONNECTED);
         if (Build.VERSION.SDK_INT >= 33) registerReceiver(batteryReceiver, batteryFilter, Context.RECEIVER_NOT_EXPORTED); else registerReceiver(batteryReceiver, batteryFilter);
         PowerManager power = (PowerManager) getSystemService(POWER_SERVICE);
         screenInteractive = power == null || power.isInteractive();
