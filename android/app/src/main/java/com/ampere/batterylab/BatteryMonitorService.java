@@ -113,6 +113,8 @@ public class BatteryMonitorService extends Service {
         int temperature = battery.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0);
         int rawChargeCounter = batteryManager == null ? 0 : batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER);
         int chargeCounterMah = rawChargeCounter > 0 ? rawChargeCounter / 1000 : 0;
+        int systemCycleCount = battery.getIntExtra("android.os.extra.CYCLE_COUNT", -1);
+        if (systemCycleCount >= 0) prefs.edit().putInt("systemCycleCount", systemCycleCount).apply();
         PowerManager power = (PowerManager) getSystemService(POWER_SERVICE);
         boolean interactive = power == null || power.isInteractive();
         String foregroundPackage = foregroundPackage(now);
@@ -121,7 +123,7 @@ public class BatteryMonitorService extends Service {
         updateDischargeStats(prefs, value, isCharging, chargeCounterMah, now, interactive);
         updateChargeStats(prefs, isCharging, chargeCounterMah, now, interactive);
         recordSession(prefs, value, isCharging, chargeCounterMah, now);
-        recordTelemetrySample(prefs, now, value, isCharging, currentMa, temperature, battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0), chargeCounterMah, interactive, foregroundPackage);
+        recordTelemetrySample(prefs, now, value, isCharging, currentMa, temperature, battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0), chargeCounterMah, interactive, foregroundPackage, systemCycleCount);
         requestAutomaticBackup(prefs, now);
         int benchmarkCapacity = updateBenchmark(prefs, value, isCharging, chargeCounterMah);
         if (benchmarkCapacity > 0) recordHealthSample(prefs, benchmarkCapacity);
@@ -163,7 +165,7 @@ public class BatteryMonitorService extends Service {
     private void recordTelemetrySample(android.content.SharedPreferences prefs, long now, int level,
                                       boolean isCharging, int currentMa, int temperatureTenths,
                                       int voltageMv, int chargeCounterMah, boolean screenOn,
-                                      String foregroundPackage) {
+                                      String foregroundPackage, int systemCycleCount) {
         long last = prefs.getLong("telemetryLastSampleAt", 0L);
         if (now - last < SAMPLE_INTERVAL) return;
         String saved = prefs.getString("telemetrySamples", "");
@@ -177,7 +179,8 @@ public class BatteryMonitorService extends Service {
                 .append(String.format(Locale.US, "%.3f", voltageMv / 1000f)).append(',')
                 .append(chargeCounterMah).append(',')
                 .append(screenOn ? 1 : 0).append(',')
-                .append(foregroundPackage == null ? "" : foregroundPackage);
+                .append(foregroundPackage == null ? "" : foregroundPackage).append(',')
+                .append(systemCycleCount);
         String[] rows = all.toString().split("\\n");
         int first = Math.max(0, rows.length - MAX_TELEMETRY_SAMPLES);
         StringBuilder trimmed = new StringBuilder();

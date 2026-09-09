@@ -189,6 +189,7 @@ class BatteryDashboard extends View {
     private float voltage = 0f;
     private int currentMa = 0;
     private int chargeCounterMah = 0;
+    private int plugged = 0;
     private boolean lastCharging = false;
     private long sessionStartedAt = 0L;
     private int sessionStartLevel = 0;
@@ -247,6 +248,7 @@ class BatteryDashboard extends View {
             sessionStartChargeCounterMah = 0;
         }
         charging = newCharging;
+        plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0);
         int temp = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -1);
         if (temp > 0) temperature = temp / 10f;
         int mv = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1);
@@ -347,6 +349,14 @@ class BatteryDashboard extends View {
     private String temperatureDisplay() { return temperature > 0f ? String.format(Locale.US, "%.1f", temperature) : "—"; }
 
     private String voltageDisplay() { return voltage > 0f ? String.format(Locale.US, "%.2f", voltage) : "—"; }
+
+    private String chargerTypeDisplay() {
+        if (!charging) return "Not connected";
+        if (plugged == BatteryManager.BATTERY_PLUGGED_AC) return "AC charger";
+        if (plugged == BatteryManager.BATTERY_PLUGGED_USB) return "USB";
+        if (plugged == BatteryManager.BATTERY_PLUGGED_WIRELESS) return "Wireless";
+        return "External power";
+    }
 
     private int designCapacityMah() { return prefs.getInt("designCapacityMah", 4500); }
 
@@ -459,7 +469,10 @@ class BatteryDashboard extends View {
         return String.format(Locale.US, "%.0f mA", mah * 60f / minutes);
     }
 
-    private int chargeCycles() { return prefs.getInt("chargeCycles", 0); }
+    private int chargeCycles() {
+        int reported = prefs.getInt("systemCycleCount", -1);
+        return reported >= 0 ? reported : prefs.getInt("chargeCycles", 0);
+    }
 
     private String chargingEfficiency() {
         int charged = prefs.getInt("totalChargedMah", 0);
@@ -678,6 +691,7 @@ class BatteryDashboard extends View {
         text(c, charging ? "estimated" : lastChargeDuration(), w * .6f, y + 145, 9, faint, false);
         text(c, "Charge limit", 36, y + 190, 10, muted, false);
         text(c, chargeLimit + "%", w - 67, y + 190, 10, lime, true);
+        text(c, "Source: " + chargerTypeDisplay(), 36, y + 169, 9, faint, false);
         rounded(c, 36, y + 205, w - 36, y + 209, 3, border);
         rounded(c, 36, y + 205, 36 + (w - 72) * chargeLimit / 100f, y + 209, 3, lime);
         text(c, "Charge speed on / off: " + chargeSpeed(true) + " / " + chargeSpeed(false), 36, y + 238, 9, faint, false);
@@ -774,7 +788,7 @@ class BatteryDashboard extends View {
         if (saved.isEmpty()) return 0;
         int total = 0;
         for (String row : saved.split("\\n")) {
-            String[] parts = row.split(",", 9);
+            String[] parts = row.split(",", 10);
             if (parts.length < 9 || !packageName.equals(parts[8])) continue;
             try {
                 long timestamp = Long.parseLong(parts[0]);
@@ -886,7 +900,7 @@ class BatteryDashboard extends View {
         for (String session : sessions) csv.append(session).append('\n');
         csv.append("\nlevel_percent\n");
         for (Integer point : longHistory) csv.append(point).append('\n');
-        csv.append("\ntelemetry_timestamp_ms,level_percent,charging,current_ma,temperature_c,voltage_v,charge_counter_mah,screen_on,foreground_package\n");
+        csv.append("\ntelemetry_timestamp_ms,level_percent,charging,current_ma,temperature_c,voltage_v,charge_counter_mah,screen_on,foreground_package,system_cycle_count\n");
         String telemetry = prefs.getString("telemetrySamples", "");
         if (!telemetry.isEmpty()) csv.append(telemetry).append('\n');
         Intent share = new Intent(Intent.ACTION_SEND);
