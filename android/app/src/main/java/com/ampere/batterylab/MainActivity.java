@@ -1357,10 +1357,9 @@ class BatteryDashboard extends View {
         drawBolt(c, 52, top + 282, lime, .8f);
         text(c, charging ? "Charger connected" : "On battery", 68, top + 278, 10, primary, true);
         String powerText = currentMa > 0 ? String.format(Locale.US, "Approx. %.1f W live draw", currentMa * voltage / 1000f) : "Waiting for current reading";
-        text(c, charging ? "Live Android reading" : powerText, 68, top + 293, 9, muted, false);
+        String detectionText = charging ? chargerTypeDisplay() + " · detected by Android" : powerText + " · detected by Android";
+        text(c, detectionText, 68, top + 293, 9, muted, false);
         text(c, currentMa > 0 ? currentMa + " mA" : "—", 285, top + 285, 9, lime, false);
-        rounded(c, 18 + heroW - 72, top + 274, 18 + heroW - 41, top + 290, 9, charging ? Color.rgb(87, 108, 48) : border);
-        rounded(c, charging ? 18 + heroW - 56 : 18 + heroW - 70, top + 276, charging ? 18 + heroW - 43 : 18 + heroW - 57, top + 288, 6, charging ? lime : muted);
 
         float cardsTop = top + heroH + 14;
         float cardGap = 12;
@@ -1994,7 +1993,6 @@ class BatteryDashboard extends View {
             invalidate();
             return true;
         }
-        if (page == 0 && y > 445 && y < 520 && x > w - 130) { charging = !charging; invalidate(); return true; }
         if (page == 0 && y > 750 && y < 805 && x > w - 140) {
             historyDays = historyDays == 7 ? 30 : 7;
             prefs.edit().putInt("historyDays", historyDays).apply();
