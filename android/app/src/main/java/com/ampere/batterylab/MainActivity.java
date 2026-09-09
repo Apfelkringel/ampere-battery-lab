@@ -226,6 +226,9 @@ class BatteryDashboard extends View {
     private int historyDays = 7;
     private int page = 0;
     private long lastTouch;
+    private float touchDownY;
+    private float lastTouchY;
+    private boolean touchDragged;
     private final int lime = Color.rgb(199, 243, 107);
     private final int blue = Color.rgb(118, 184, 255);
     private final int amber = Color.rgb(242, 179, 106);
@@ -1079,7 +1082,34 @@ class BatteryDashboard extends View {
     private void drawGrid(Canvas c, float cx, float cy, int color) { stroke(c,color,1.4f); c.drawRoundRect(new RectF(u(cx-8),u(cy-8),u(cx-1),u(cy-1)),u(1),u(1),p); c.drawRoundRect(new RectF(u(cx+1),u(cy-8),u(cx+8),u(cy-1)),u(1),u(1),p); c.drawRoundRect(new RectF(u(cx-8),u(cy+1),u(cx-1),u(cy+8)),u(1),u(1),p); c.drawRoundRect(new RectF(u(cx+1),u(cy+1),u(cx+8),u(cy+8)),u(1),u(1),p); }
 
     @Override public boolean onTouchEvent(MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            touchDownY = event.getY();
+            lastTouchY = touchDownY;
+            touchDragged = false;
+            return true;
+        }
+        if (event.getAction() == MotionEvent.ACTION_MOVE) {
+            float currentY = event.getY();
+            float delta = lastTouchY - currentY;
+            if (Math.abs(currentY - touchDownY) > 8f * density) touchDragged = true;
+            if (touchDragged && getParent() != null) getParent().requestDisallowInterceptTouchEvent(true);
+            if (touchDragged && getParent() instanceof ScrollView) {
+                ((ScrollView) getParent()).scrollBy(0, Math.round(delta));
+            }
+            lastTouchY = currentY;
+            return true;
+        }
+        if (event.getAction() == MotionEvent.ACTION_CANCEL) {
+            touchDragged = false;
+            if (getParent() != null) getParent().requestDisallowInterceptTouchEvent(false);
+            return true;
+        }
         if (event.getAction() != MotionEvent.ACTION_UP) return true;
+        if (touchDragged) {
+            touchDragged = false;
+            if (getParent() != null) getParent().requestDisallowInterceptTouchEvent(false);
+            return true;
+        }
         float x = event.getX() / density, y = event.getY() / density;
         if (System.currentTimeMillis() - lastTouch < 80) return true;
         lastTouch = System.currentTimeMillis();
