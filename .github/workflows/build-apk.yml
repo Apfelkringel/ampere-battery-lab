@@ -80,7 +80,7 @@ jobs:
 
       - name: Verify release signing identity
         run: |
-          expected="ddf85ed2129e657a7accb0e3d25318f68ed0db4df294e039665dcac045cecda6"
+          expected="301bed44b5cc342485b485b24baeea404dbdb216e6e3e134ad2ebd6b28d1dce3"
           actual=$("$ANDROID_HOME/build-tools/37.0.0/apksigner" verify --print-certs android/app/build/outputs/apk/release/app-release.apk | awk -F': ' '/SHA-256 digest/ { print $NF; exit }')
           test "$actual" = "$expected"
           "$ANDROID_HOME/build-tools/37.0.0/apksigner" verify --min-sdk-version 23 android/app/build/outputs/apk/release/app-release.apk
