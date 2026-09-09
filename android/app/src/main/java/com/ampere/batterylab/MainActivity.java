@@ -690,6 +690,20 @@ class BatteryDashboard extends View {
 
     private int lastChargeEnergyMah() { return prefs.getInt("lastChargeEnergyMah", 0); }
 
+    private int totalChargedMah() { return Math.max(0, prefs.getInt("totalChargedMah", 0)); }
+
+    private String healthEstimateStatus() {
+        if (charging) {
+            int change = chargeEndLevelForDisplay() - chargeStartLevelForDisplay();
+            int energy = chargeEnergyForDisplay();
+            if (change < 5) return "Health sample needs at least 5% level change";
+            if (energy <= 0) return "Waiting for readable energy data";
+            return "Included when this charge session ends";
+        }
+        String reason = prefs.getString("lastChargeHealthReason", "");
+        return reason.isEmpty() ? "Longer charges with readable energy improve accuracy" : reason;
+    }
+
     private int chargeStartLevelForDisplay() {
         return charging ? prefs.getInt("monitorSessionStartLevel", sessionStartLevel)
                 : prefs.getInt("lastChargeStartLevel", 0);
@@ -1122,6 +1136,7 @@ class BatteryDashboard extends View {
         text(c, "BATTERY CAPACITY ESTIMATE", 36, y + 665, 10, muted, true);
         text(c, healthPercent() > 0 ? String.format(Locale.US, "%,d mAh", estimatedCapacityMah()) : "—", 36, y + 696, 24, lime, true);
         text(c, healthPercent() > 0 ? "based on local charge samples" : "Complete longer charges to estimate capacity", w - 224, y + 694, 8, faint, false);
+        text(c, healthEstimateStatus(), 36, y + 714, 8, faint, false);
         drawTelemetryChart(c, 18, y + 745, w - 36, 220, panel, border, primary, muted, faint, true);
     }
 
@@ -1147,7 +1162,7 @@ class BatteryDashboard extends View {
         text(c, !charging && currentMa > 0 ? "−" + currentMa + " mA" : "—", w - 95, y + 280, 10, blue, true);
         drawStat(c, 18, y + 316, (w - 48) / 2f, 105, "Screen-on time", dischargeDuration(true), "", Color.rgb(180, 154, 255), primary, muted, border, panel, "clock");
         drawStat(c, 30 + (w - 48) / 2f, y + 316, (w - 48) / 2f, 105, "Energy used", dischargeMah() > 0 ? String.valueOf(dischargeMah()) : "—", "mAh", blue, primary, muted, border, panel, "arrow");
-        rounded(c, 18, y + 438, w - 18, y + 520, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 438), u(w - 18), u(y + 520)); c.drawRoundRect(rect, u(12), u(12), p);
+        rounded(c, 18, y + 438, w - 18, y + 536, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 438), u(w - 18), u(y + 536)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "Usage note", 36, y + 468, 10, muted, true);
         text(c, "Current on " + dischargePercent(true) + " · off " + dischargePercent(false) + " · " + dischargeMah() + " mAh", 36, y + 486, 8, primary, false);
         text(c, "Deep sleep: " + deepSleepPercent() + " · " + deepSleepTime(), 36, y + 502, 8, primary, false);
@@ -1289,7 +1304,8 @@ class BatteryDashboard extends View {
         text(c, "How this estimate works", 36, y + 468, 10, muted, true);
         text(c, "Capacity is estimated from local charge/discharge", 36, y + 493, 9, primary, false);
         text(c, "samples · last charge " + lastChargeEquivalentCycles(), 36, y + 510, 9, primary, false);
-        text(c, "Total charged: " + totalEquivalentCycles(), w - 165, y + 493, 8, blue, true);
+        text(c, "Total charged: " + (totalChargedMah() > 0 ? totalChargedMah() + " mAh" : "—"), w - 165, y + 493, 8, blue, true);
+        text(c, "Equivalent: " + totalEquivalentCycles(), w - 165, y + 512, 8, blue, true);
         rounded(c, 18, y + 548, w - 18, y + 615, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 548), u(w - 18), u(y + 615)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, benchmarkActive ? "Benchmark in progress" : "Manual benchmark", 36, y + 575, 11, primary, true);
         text(c, benchmarkActive ? "Charge above 95% to finish" : "Start below 25% for best results", 36, y + 595, 9, muted, false);

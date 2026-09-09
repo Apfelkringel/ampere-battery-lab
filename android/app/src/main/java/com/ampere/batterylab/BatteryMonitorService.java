@@ -373,12 +373,17 @@ public class BatteryMonitorService extends Service {
             android.content.SharedPreferences.Editor editor = prefs.edit().putString("sessions", output.toString());
             if (previousCharging && energy > 0) editor.putInt("totalChargedMah", prefs.getInt("totalChargedMah", 0) + energy);
             if (previousCharging) {
+                String healthReason;
+                if (change < 5) healthReason = "Not enough battery-level change (at least 5% is needed)";
+                else if (energy <= 0) healthReason = "Energy counter/current unavailable";
+                else healthReason = "Included in the next health average";
                 editor.putInt("lastChargeStartLevel", startLevel)
                         .putInt("lastChargeEndLevel", level)
                         .putInt("lastChargeEnergyMah", energy)
                         .putLong("lastChargeDurationMin", minutes)
                         .putLong("lastChargeStartAt", startedAt)
-                        .putLong("lastChargeEndAt", now);
+                        .putLong("lastChargeEndAt", now)
+                        .putString("lastChargeHealthReason", healthReason);
             }
             editor.apply();
             if (previousCharging && change >= 5 && energy > 0) {

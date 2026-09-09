@@ -24,6 +24,7 @@ Kostenlose, lokal arbeitende Android-Batterieanalyse als eigenständige Implemen
 - Kapazitätsschätzung und manueller Health-Benchmark
 - automatische lokale Designkapazitäts-Erkennung aus Android-Batteriedaten mit manuellem Override
 - Health-Auswertung mit letztem Ladeverschleiß und äquivalenten Vollzyklen (EFC)
+- transparente Anzeige, warum eine Ladesitzung noch nicht als Health-Kapazitätsprobe zählt
 - Bildschirmzeit, Deep Sleep, Ladezyklen und optionale Vordergrund-App-Nutzung
 - Entladestatistik seit der letzten erkannten Volladung
 - optionale lokale Zuordnung der Vordergrund-App zu Telemetriepunkten und geschätztem App-Verbrauch
