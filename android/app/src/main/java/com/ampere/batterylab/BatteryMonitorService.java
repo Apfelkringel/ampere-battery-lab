@@ -4,6 +4,9 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.AppOpsManager;
+import android.app.usage.UsageEvents;
+import android.app.usage.UsageStatsManager;
 import android.app.backup.BackupManager;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -112,12 +115,13 @@ public class BatteryMonitorService extends Service {
         int chargeCounterMah = rawChargeCounter > 0 ? rawChargeCounter / 1000 : 0;
         PowerManager power = (PowerManager) getSystemService(POWER_SERVICE);
         boolean interactive = power == null || power.isInteractive();
+        String foregroundPackage = foregroundPackage(now);
         NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         if (notificationManager != null) notificationManager.notify(7, statusNotification(value, isCharging, currentMa, temperature, battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0)));
         updateDischargeStats(prefs, value, isCharging, chargeCounterMah, now, interactive);
         updateChargeStats(prefs, isCharging, chargeCounterMah, now, interactive);
         recordSession(prefs, value, isCharging, chargeCounterMah, now);
-        recordTelemetrySample(prefs, now, value, isCharging, currentMa, temperature, battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0), chargeCounterMah, interactive);
+        recordTelemetrySample(prefs, now, value, isCharging, currentMa, temperature, battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0), chargeCounterMah, interactive, foregroundPackage);
         requestAutomaticBackup(prefs, now);
         int benchmarkCapacity = updateBenchmark(prefs, value, isCharging, chargeCounterMah);
         if (benchmarkCapacity > 0) recordHealthSample(prefs, benchmarkCapacity);
@@ -158,7 +162,8 @@ public class BatteryMonitorService extends Service {
      */
     private void recordTelemetrySample(android.content.SharedPreferences prefs, long now, int level,
                                       boolean isCharging, int currentMa, int temperatureTenths,
-                                      int voltageMv, int chargeCounterMah, boolean screenOn) {
+                                      int voltageMv, int chargeCounterMah, boolean screenOn,
+                                      String foregroundPackage) {
         long last = prefs.getLong("telemetryLastSampleAt", 0L);
         if (now - last < SAMPLE_INTERVAL) return;
         String saved = prefs.getString("telemetrySamples", "");
@@ -171,7 +176,8 @@ public class BatteryMonitorService extends Service {
                 .append(String.format(Locale.US, "%.1f", temperatureTenths / 10f)).append(',')
                 .append(String.format(Locale.US, "%.3f", voltageMv / 1000f)).append(',')
                 .append(chargeCounterMah).append(',')
-                .append(screenOn ? 1 : 0);
+                .append(screenOn ? 1 : 0).append(',')
+                .append(foregroundPackage == null ? "" : foregroundPackage);
         String[] rows = all.toString().split("\\n");
         int first = Math.max(0, rows.length - MAX_TELEMETRY_SAMPLES);
         StringBuilder trimmed = new StringBuilder();
@@ -181,6 +187,33 @@ public class BatteryMonitorService extends Service {
         }
         prefs.edit().putString("telemetrySamples", trimmed.toString())
                 .putLong("telemetryLastSampleAt", now).apply();
+    }
+
+    /**
+     * Returns the most recently resumed package when Usage Access is enabled.
+     * Android may omit events while the device is idle or when the vendor
+     * restricts usage history, so this value is intentionally best-effort.
+     */
+    private String foregroundPackage(long end) {
+        AppOpsManager ops = (AppOpsManager) getSystemService(APP_OPS_SERVICE);
+        if (ops == null || ops.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS,
+                android.os.Process.myUid(), getPackageName()) != AppOpsManager.MODE_ALLOWED) return "";
+        UsageStatsManager manager = (UsageStatsManager) getSystemService(USAGE_STATS_SERVICE);
+        if (manager == null) return "";
+        UsageEvents events = manager.queryEvents(end - 2L * 60L * 60L * 1000L, end);
+        if (events == null) return "";
+        UsageEvents.Event event = new UsageEvents.Event();
+        String current = "";
+        while (events.hasNextEvent()) {
+            events.getNextEvent(event);
+            int type = event.getEventType();
+            if (type == UsageEvents.Event.MOVE_TO_FOREGROUND
+                    || (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+                    && type == UsageEvents.Event.ACTIVITY_RESUMED)) {
+                current = event.getPackageName();
+            }
+        }
+        return getPackageName().equals(current) ? "" : current;
     }
 
     /** Ask Android's configured backup provider to schedule a background backup.

@@ -1,5 +1,6 @@
 package com.ampere.batterylab;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
@@ -11,6 +12,8 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.widget.Toast;
 
 import org.json.JSONObject;
@@ -136,6 +139,7 @@ final class UpdateChecker {
         }
     }
 
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     private static void registerDownloadReceiver(Activity activity, DownloadManager manager) {
         if (downloadReceiver != null) return;
         downloadReceiver = new BroadcastReceiver() {
@@ -167,7 +171,7 @@ final class UpdateChecker {
                 String expectedSha256 = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(DOWNLOAD_SHA256, "");
                 EXECUTOR.execute(() -> {
                     boolean verified = verifySha256(context, apkUri, expectedSha256);
-                    context.getMainExecutor().execute(() -> {
+                    new Handler(Looper.getMainLooper()).post(() -> {
                         if (!verified) {
                             manager.remove(received);
                             Toast.makeText(context, "Update verworfen: Integritätsprüfung fehlgeschlagen.", Toast.LENGTH_LONG).show();

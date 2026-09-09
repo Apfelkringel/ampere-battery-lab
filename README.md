@@ -18,6 +18,7 @@ Kostenlose, lokal arbeitende Android-Batterieanalyse als eigenständige Implemen
 - analysefähiger lokaler CSV-Export mit Zeitreihe für Akkustand, Strom, Temperatur, Spannung und Bildschirmstatus
 - Kapazitätsschätzung und manueller Health-Benchmark
 - Bildschirmzeit, Deep Sleep, Ladezyklen und optionale Vordergrund-App-Nutzung
+- optionale lokale Zuordnung der Vordergrund-App zu Telemetriepunkten und geschätztem App-Verbrauch
 - Live-Overlay mit Akkustrom, CPU-Auslastung und Top-App
 - kein Konto und kein automatischer Upload von Messdaten; Netzwerk wird nur für den optionalen Update-Check verwendet
 

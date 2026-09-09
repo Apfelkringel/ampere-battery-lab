@@ -512,7 +512,7 @@ class BatteryDashboard extends View {
     private void showDataPrivacy() {
         new AlertDialog.Builder(getContext())
                 .setTitle("Data & privacy")
-                .setMessage("Ampere collects battery readings locally for your history and analysis: time, battery level, charging state, current, temperature, voltage and screen state.\n\nNo battery readings, account identifiers, location or installed-app lists are uploaded. The update checker only requests its configured version file.\n\nUse History → Export CSV whenever you want to analyze or share your data.")
+                .setMessage("Ampere collects battery readings locally for your history and analysis: time, battery level, charging state, current, temperature, voltage and screen state. If you grant Usage access, the active foreground package is also stored locally to estimate app-related drain.\n\nNo battery readings, account identifiers, location or installed-app lists are uploaded. The update checker only requests its configured version file.\n\nUse History → Export CSV whenever you want to analyze or share your data.")
                 .setPositiveButton("Export CSV", (dialog, which) -> exportHistory())
                 .setNeutralButton("Delete local data", (dialog, which) -> confirmDeleteData())
                 .setNegativeButton("Close", null)
@@ -757,12 +757,33 @@ class BatteryDashboard extends View {
             try { app = getContext().getPackageManager().getApplicationLabel(getContext().getPackageManager().getApplicationInfo(stat.getPackageName(), 0)).toString(); } catch (Exception ignored) { }
             long minutes = stat.getTotalTimeInForeground() / 60000L;
             text(c, app, 36, y + row * 27, 10, primary, true);
-            int appMah = totalForegroundMs > 0L ? Math.round(totalEnergy * stat.getTotalTimeInForeground() / (float) totalForegroundMs) : 0;
-            text(c, minutes + " min · " + appMah + " mAh", w - 145, y + row * 27, 8, muted, false);
+            int appMah = telemetryAppMah(stat.getPackageName(), start, end);
+            if (appMah <= 0 && totalForegroundMs > 0L) {
+                appMah = Math.round(totalEnergy * stat.getTotalTimeInForeground() / (float) totalForegroundMs);
+            }
+            text(c, minutes + " min · " + (appMah > 0 ? "~" + appMah : "—") + " mAh est.", w - 166, y + row * 27, 8, muted, false);
             line(c, 36, y + row * 27 + 9, w - 36, y + row * 27 + 9, Color.rgb(43, 47, 56), 1);
             if (++row == 3) break;
         }
         if (row == 0) text(c, "No app usage recorded since unplugging.", 36, y, 9, faint, false);
+    }
+
+    /** Estimate direct app-attributed drain from local 15-minute telemetry rows. */
+    private int telemetryAppMah(String packageName, long start, long end) {
+        String saved = prefs.getString("telemetrySamples", "");
+        if (saved.isEmpty()) return 0;
+        int total = 0;
+        for (String row : saved.split("\\n")) {
+            String[] parts = row.split(",", 9);
+            if (parts.length < 9 || !packageName.equals(parts[8])) continue;
+            try {
+                long timestamp = Long.parseLong(parts[0]);
+                if (timestamp < start || timestamp > end || "1".equals(parts[2])) continue;
+                int current = Integer.parseInt(parts[3]);
+                if (current > 0) total += Math.round(current / 4f);
+            } catch (NumberFormatException ignored) { }
+        }
+        return total;
     }
 
     private void drawHealthPage(Canvas c, float w, float h, int panel, int raised, int border, int primary, int muted, int faint) {
@@ -865,7 +886,7 @@ class BatteryDashboard extends View {
         for (String session : sessions) csv.append(session).append('\n');
         csv.append("\nlevel_percent\n");
         for (Integer point : longHistory) csv.append(point).append('\n');
-        csv.append("\ntelemetry_timestamp_ms,level_percent,charging,current_ma,temperature_c,voltage_v,charge_counter_mah,screen_on\n");
+        csv.append("\ntelemetry_timestamp_ms,level_percent,charging,current_ma,temperature_c,voltage_v,charge_counter_mah,screen_on,foreground_package\n");
         String telemetry = prefs.getString("telemetrySamples", "");
         if (!telemetry.isEmpty()) csv.append(telemetry).append('\n');
         Intent share = new Intent(Intent.ACTION_SEND);
