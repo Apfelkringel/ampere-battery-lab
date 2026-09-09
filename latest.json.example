@@ -1,7 +1,7 @@
 {
-  "versionCode": 35,
-  "versionName": "0.35",
+  "versionCode": 36,
+  "versionName": "0.36",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "3d74900fa310b180bfeb3c2fb77e5adbcd666658eb7fe0c926d501f99503080b",
-  "releaseNotes": "Neue Einstellung für zuverlässigeres Hintergrundmonitoring und lokale Messreihen bei geschlossener App."
+  "sha256": "db65fa4ed80352b26bbb873811f1f33ffe8435d83c02091625e35fa56331f748",
+  "releaseNotes": "Der History-Tab zeigt jetzt direkt Session-Anzahlen und kumulierte Lade-/Entladeenergie."
 }
