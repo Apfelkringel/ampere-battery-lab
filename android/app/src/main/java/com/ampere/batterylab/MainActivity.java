@@ -1047,7 +1047,7 @@ class BatteryDashboard extends View {
             text(c, "Length", w - 75, y + 130, 9, faint, true);
             int row = 0;
             for (String session : sessions) {
-                String[] parts = session.split(",", 4);
+                String[] parts = session.split(",", 8);
                 if (parts.length < 4) continue;
                 float rowY = y + 160 + row * 44;
                 line(c, 36, rowY - 18, w - 36, rowY - 18, border, 1);
@@ -1142,7 +1142,7 @@ class BatteryDashboard extends View {
         } else {
             int row = 0;
             for (String session : sessions) {
-                String[] parts = session.split(",", 4);
+                String[] parts = session.split(",", 8);
                 if (parts.length < 4) continue;
                 float rowY = y + 230 + row * 25;
                 line(c, x + 18, rowY - 14, x + width - 18, rowY - 14, border, 1);
