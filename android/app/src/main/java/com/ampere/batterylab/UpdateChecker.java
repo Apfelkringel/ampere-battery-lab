@@ -41,20 +41,31 @@ final class UpdateChecker {
     private UpdateChecker() { }
 
     static void check(Activity activity) {
+        check(activity, false);
+    }
+
+    static void checkNow(Activity activity) {
+        check(activity, true);
+    }
+
+    private static void check(Activity activity, boolean force) {
         String manifestUrl = BuildConfig.UPDATE_MANIFEST_URL;
         if (manifestUrl == null || manifestUrl.trim().isEmpty()) return;
 
         SharedPreferences prefs = activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         long now = System.currentTimeMillis();
-        if (now - prefs.getLong("lastCheck", 0L) < CHECK_INTERVAL_MS) return;
+        if (!force && now - prefs.getLong("lastCheck", 0L) < CHECK_INTERVAL_MS) return;
         prefs.edit().putLong("lastCheck", now).apply();
 
         WeakReference<Activity> activityRef = new WeakReference<>(activity);
         EXECUTOR.execute(() -> {
             UpdateInfo update = fetch(manifestUrl);
             Activity target = activityRef.get();
-            if (update == null || target == null || target.isFinishing()) return;
-            target.runOnUiThread(() -> showUpdateDialog(target, update));
+            if (target == null || target.isFinishing()) return;
+            target.runOnUiThread(() -> {
+                if (update != null) showUpdateDialog(target, update);
+                else if (force) Toast.makeText(target, "No new update found (or the update server is unavailable).", Toast.LENGTH_LONG).show();
+            });
         });
     }
 

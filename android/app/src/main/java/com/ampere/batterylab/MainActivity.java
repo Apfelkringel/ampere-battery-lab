@@ -756,7 +756,7 @@ class BatteryDashboard extends View {
     }
 
     private void showSettings() {
-        String[] options = {"Dark theme", "AMOLED black", "Light theme", "Notification settings", "Overlay permission", "Data & privacy", "Backup & restore", "Background monitoring", "Quick tutorial", "Delete local data"};
+        String[] options = {"Dark theme", "AMOLED black", "Light theme", "Notification settings", "Overlay permission", "Data & privacy", "Backup & restore", "Background monitoring", "Check for updates", "Quick tutorial", "Delete local data"};
         new AlertDialog.Builder(getContext()).setTitle("Settings").setItems(options, (dialog, which) -> {
             if (which == 0) { light = false; amoled = false; }
             else if (which == 1) { light = false; amoled = true; }
@@ -775,6 +775,8 @@ class BatteryDashboard extends View {
             } else if (which == 7) {
                 requestBackgroundMonitoring();
             } else if (which == 8) {
+                UpdateChecker.checkNow((Activity) getContext());
+            } else if (which == 9) {
                 showTutorial(true);
             } else {
                 confirmDeleteData();
