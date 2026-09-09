@@ -1,7 +1,7 @@
 {
-  "versionCode": 63,
-  "versionName": "0.63",
+  "versionCode": 64,
+  "versionName": "0.64",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "c3f7043bce3cd0bad295d4ab4b1e72d6a11961a553baf2969ad1ac04c8013b34",
-  "releaseNotes": "Robuster, signaturgeschützter Downloadabschluss für In-App-Updates."
+  "sha256": "9f0787ed0445a370770550ee9500e0e5d1e3604edde4774076960759d713930d",
+  "releaseNotes": "History-Sitzungen öffnen jetzt direkt die passende Lade- oder Entladeansicht."
 }
