@@ -1391,19 +1391,29 @@ class BatteryDashboard extends View {
         new AlertDialog.Builder(getContext()).setTitle("App usage details").setMessage(details.toString()).setPositiveButton("Close", null).show();
     }
 
-    /** Estimate direct app-attributed drain from local 15-minute telemetry rows. */
+    /** Estimate direct app-attributed drain from local telemetry intervals. */
     private int telemetryAppMah(String packageName, long start, long end) {
         String saved = prefs.getString("telemetrySamples", "");
         if (saved.isEmpty()) return 0;
+        String[] rows = saved.split("\\n");
         int total = 0;
-        for (String row : saved.split("\\n")) {
+        for (int index = 0; index < rows.length; index++) {
+            String row = rows[index];
             String[] parts = row.split(",", 11);
             if (parts.length < 9 || !packageName.equals(parts[8])) continue;
             try {
                 long timestamp = Long.parseLong(parts[0]);
                 if (timestamp < start || timestamp > end || "1".equals(parts[2])) continue;
                 int current = Math.abs(Integer.parseInt(parts[3]));
-                if (current > 0) total += Math.round(current / 4f);
+                if (current <= 0) continue;
+                long intervalEnd = end;
+                if (index + 1 < rows.length) {
+                    String[] nextParts = rows[index + 1].split(",", 2);
+                    try { intervalEnd = Long.parseLong(nextParts[0]); } catch (NumberFormatException ignored) { }
+                }
+                if (intervalEnd <= timestamp) intervalEnd = timestamp + samplingIntervalMs();
+                intervalEnd = Math.min(end, Math.min(intervalEnd, timestamp + 2L * 60L * 60L * 1000L));
+                if (intervalEnd > timestamp) total += Math.round(current * (intervalEnd - timestamp) / 3600000f);
             } catch (NumberFormatException ignored) { }
         }
         return total;
