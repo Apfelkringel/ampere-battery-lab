@@ -863,6 +863,7 @@ class BatteryDashboard extends View {
         text(c, "BATTERY CAPACITY ESTIMATE", 36, y + 500, 10, muted, true);
         text(c, healthPercent() > 0 ? String.format(Locale.US, "%,d mAh", estimatedCapacityMah()) : "—", 36, y + 531, 24, lime, true);
         text(c, healthPercent() > 0 ? "based on local charge samples" : "Complete longer charges to estimate capacity", w - 224, y + 529, 8, faint, false);
+        drawTelemetryChart(c, 18, y + 580, w - 36, 220, panel, border, primary, muted, faint, true);
     }
 
     private void drawDischargingPage(Canvas c, float w, float h, int panel, int raised, int border, int primary, int muted, int faint) {
@@ -900,6 +901,7 @@ class BatteryDashboard extends View {
             text(c, "the most battery while in the foreground.", 36, y + 645, 10, muted, false);
             text(c, "Tap here to open Android settings", 36, y + 683, 9, lime, true);
         }
+        drawTelemetryChart(c, 18, y + 735, w - 36, 220, panel, border, primary, muted, faint, false);
     }
 
     private boolean hasUsageAccess() {
@@ -1142,6 +1144,55 @@ class BatteryDashboard extends View {
                 row++;
             }
         }
+    }
+
+    private void drawTelemetryChart(Canvas c, float x, float y, float width, float height,
+                                    int panel, int border, int primary, int muted, int faint,
+                                    boolean chargingFilter) {
+        rounded(c, x, y, x + width, y + height, 12, panel);
+        stroke(c, border, 1);
+        rect.set(u(x), u(y), u(x + width), u(y + height));
+        c.drawRoundRect(rect, u(12), u(12), p);
+        text(c, chargingFilter ? "Charging current" : "Discharging current", x + 18, y + 28, 15, primary, true);
+        String saved = prefs.getString("telemetrySamples", "");
+        ArrayList<Integer> values = new ArrayList<>();
+        if (!saved.isEmpty()) {
+            for (String row : saved.split("\\n")) {
+                String[] parts = row.split(",", 11);
+                if (parts.length < 4 || !String.valueOf(chargingFilter ? 1 : 0).equals(parts[2])) continue;
+                try {
+                    int current = Integer.parseInt(parts[3]);
+                    if (current > 0) values.add(current);
+                } catch (NumberFormatException ignored) { }
+            }
+        }
+        int count = Math.min(48, values.size());
+        float chartX = x + 18, chartY = y + 51, chartW = width - 36, chartH = 105;
+        for (int i = 0; i < 3; i++) line(c, chartX, chartY + i * chartH / 2f, chartX + chartW, chartY + i * chartH / 2f, border, 1);
+        if (count == 0) {
+            text(c, "Waiting for local telemetry samples.", chartX, chartY + 57, 10, faint, false);
+            return;
+        }
+        int min = Integer.MAX_VALUE, max = 0, total = 0;
+        for (int i = values.size() - count; i < values.size(); i++) {
+            int current = values.get(i);
+            min = Math.min(min, current);
+            max = Math.max(max, current);
+            total += current;
+        }
+        int scaleMax = Math.max(100, max);
+        Path path = new Path();
+        for (int i = 0; i < count; i++) {
+            int current = values.get(values.size() - count + i);
+            float px = count == 1 ? chartX : chartX + i * chartW / (count - 1);
+            float py = chartY + chartH - current * chartH / (float) scaleMax;
+            if (i == 0) path.moveTo(u(px), u(py)); else path.lineTo(u(px), u(py));
+        }
+        stroke(c, chargingFilter ? lime : blue, 2);
+        c.drawPath(path, p);
+        text(c, max + " mA peak", chartX, y + 181, 9, muted, false);
+        text(c, String.format(Locale.US, "avg %d mA", Math.round(total / (float) count)), x + width - 92, y + 181, 9, muted, false);
+        text(c, "last " + count + " local samples", chartX, y + 199, 8, faint, false);
     }
 
     private float[] chartValues() {
