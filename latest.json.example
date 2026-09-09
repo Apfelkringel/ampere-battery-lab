@@ -1,7 +1,7 @@
 {
-  "versionCode": 70,
-  "versionName": "0.70",
+  "versionCode": 71,
+  "versionName": "0.71",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "7cf05ce6e8b2473a50ae33192875539770398d4a547898c9d8be149780992584",
-  "releaseNotes": "Lade- und Entladestrom zeigen jetzt immer die korrekte Richtung an."
+  "sha256": "076abbe3e8f2ef1448a2a1cb407a9a4a886112bb2bada085ad5fb20459f1805d",
+  "releaseNotes": "Die 7-/30-Tage-Grafik nutzt jetzt echte lokale Telemetrie-Zeitfenster und Zeitachsen."
 }
