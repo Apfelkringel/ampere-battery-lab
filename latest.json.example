@@ -1,7 +1,7 @@
 {
-  "versionCode": 5,
-  "versionName": "0.5",
+  "versionCode": 6,
+  "versionName": "0.6",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
   "sha256": "69605c58964d603346c575df6b38ebac487168df7d21ac907eee1ac19675d538",
-  "releaseNotes": "Sicherheits-Härtung für Signierung, Update-Host und APK-Integrität."
+  "releaseNotes": "Akku-Broadcasts sind jetzt gegen fremde Apps abgeschirmt."
 }

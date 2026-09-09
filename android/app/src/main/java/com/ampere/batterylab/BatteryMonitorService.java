@@ -48,7 +48,7 @@ public class BatteryMonitorService extends Service {
         createChannel();
         startForeground(7, notification());
         IntentFilter batteryFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-        if (Build.VERSION.SDK_INT >= 33) registerReceiver(batteryReceiver, batteryFilter, Context.RECEIVER_EXPORTED); else registerReceiver(batteryReceiver, batteryFilter);
+        if (Build.VERSION.SDK_INT >= 33) registerReceiver(batteryReceiver, batteryFilter, Context.RECEIVER_NOT_EXPORTED); else registerReceiver(batteryReceiver, batteryFilter);
         recordSample();
         handler.postDelayed(sampleTask, SAMPLE_INTERVAL);
     }

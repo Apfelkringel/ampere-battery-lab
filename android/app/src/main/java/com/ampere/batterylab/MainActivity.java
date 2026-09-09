@@ -79,7 +79,7 @@ public class MainActivity extends Activity {
         dashboard.startSavedOverlay();
         dashboard.postDelayed(() -> dashboard.showTutorial(false), 1200L);
         IntentFilter batteryFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-        Intent battery = Build.VERSION.SDK_INT >= 33 ? registerReceiver(batteryReceiver, batteryFilter, Context.RECEIVER_EXPORTED) : registerReceiver(batteryReceiver, batteryFilter);
+        Intent battery = Build.VERSION.SDK_INT >= 33 ? registerReceiver(batteryReceiver, batteryFilter, Context.RECEIVER_NOT_EXPORTED) : registerReceiver(batteryReceiver, batteryFilter);
         if (battery != null) dashboard.readBattery(battery);
     }
 
