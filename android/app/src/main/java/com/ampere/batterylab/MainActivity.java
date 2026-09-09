@@ -1739,6 +1739,7 @@ class BatteryDashboard extends View {
         if (index < 0 || index >= sessions.size()) return;
         String[] parts = sessions.get(index).split(",", -1);
         if (parts.length < 4) return;
+        boolean charge = "Charge".equals(parts[0]);
         StringBuilder details = new StringBuilder();
         details.append(parts[0]).append(" session\n");
         details.append("Date: ").append(parts[3]).append('\n');
@@ -1751,7 +1752,6 @@ class BatteryDashboard extends View {
             if (parts.length >= 8) details.append("\nEquivalent full cycles: ").append(parts[7]);
         }
         if (parts.length >= 14) {
-            boolean charge = "Charge".equals(parts[0]);
             String unit = charge ? "mAh" : "%";
             String on = parts[8];
             String off = parts[9];
@@ -1770,7 +1770,17 @@ class BatteryDashboard extends View {
                 details.append("\nEnded: ").append(formatTimestamp(parts[15]));
             }
         }
-        new AlertDialog.Builder(getContext()).setTitle("Session details").setMessage(details.toString()).setPositiveButton("Close", null).show();
+        new AlertDialog.Builder(getContext())
+                .setTitle("Session details")
+                .setMessage(details.toString())
+                .setNegativeButton("Close", null)
+                .setPositiveButton(charge ? "Open charging" : "Open discharging", (dialog, which) -> {
+                    page = charge ? 1 : 2;
+                    updateLayoutHeight();
+                    if (getParent() instanceof ScrollView) ((ScrollView) getParent()).smoothScrollTo(0, 0);
+                    invalidate();
+                })
+                .show();
     }
 
     private String formatTimestamp(String value) {
