@@ -5,6 +5,7 @@ plugins {
 android {
     namespace "com.ampere.batterylab"
     compileSdk 34
+    def ciKeystorePath = System.getenv("AMPERE_KEYSTORE_FILE")
 
     defaultConfig {
         applicationId "com.ampere.batterylab"
@@ -18,6 +19,17 @@ android {
         buildConfig true
     }
 
+    signingConfigs {
+        release {
+            if (ciKeystorePath != null && file(ciKeystorePath).exists()) {
+                storeFile file(ciKeystorePath)
+                storePassword System.getenv("AMPERE_KEYSTORE_PASSWORD") ?: "android"
+                keyAlias System.getenv("AMPERE_KEY_ALIAS") ?: "androiddebugkey"
+                keyPassword System.getenv("AMPERE_KEY_PASSWORD") ?: "android"
+            }
+        }
+    }
+
     // Set this to the public HTTPS URL of latest.json before publishing updates.
     buildTypes.each { type ->
         type.buildConfigField "String", "UPDATE_MANIFEST_URL", '""'
@@ -26,7 +38,7 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            signingConfig signingConfigs.debug
+            signingConfig ciKeystorePath != null ? signingConfigs.release : signingConfigs.debug
         }
     }
 
