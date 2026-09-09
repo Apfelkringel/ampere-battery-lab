@@ -122,12 +122,16 @@ public class BatteryMonitorService extends Service {
         int benchmarkCapacity = updateBenchmark(prefs, value, isCharging, chargeCounterMah);
         if (benchmarkCapacity > 0) recordHealthSample(prefs, benchmarkCapacity);
         int limit = prefs.getInt("chargeLimit", 80);
-        if (prefs.getBoolean("chargeAlarm", true) && isCharging && value >= limit) {
+        boolean alarmEnabled = prefs.getBoolean("chargeAlarm", true);
+        boolean alarmSent = prefs.getBoolean("chargeAlarmSent", false);
+        if (alarmEnabled && isCharging && value >= limit && !alarmSent) {
             NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
             if (manager != null) manager.notify(8, alarmNotification(value, limit));
-        } else if (!isCharging || value < limit) {
+            prefs.edit().putBoolean("chargeAlarmSent", true).apply();
+        } else if (!alarmEnabled || !isCharging || value < limit) {
             NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
             if (manager != null) manager.cancel(8);
+            if (alarmSent) prefs.edit().putBoolean("chargeAlarmSent", false).apply();
         }
         if (now - prefs.getLong("lastSample", 0L) < 5 * 60 * 1000L) return;
         String saved = prefs.getString("history", "");
@@ -362,7 +366,8 @@ public class BatteryMonitorService extends Service {
         if (charging && !previousCharging) {
             prefs.edit().putInt("chargeLastCounterMah", counterMah).putLong("chargeLastAt", now)
                     .putLong("chargeScreenOnMs", 0L).putLong("chargeScreenOffMs", 0L)
-                    .putInt("chargeScreenOnMah", 0).putInt("chargeScreenOffMah", 0).apply();
+                    .putInt("chargeScreenOnMah", 0).putInt("chargeScreenOffMah", 0)
+                    .putBoolean("chargeAlarmSent", false).apply();
             return;
         }
         if (!charging) return;

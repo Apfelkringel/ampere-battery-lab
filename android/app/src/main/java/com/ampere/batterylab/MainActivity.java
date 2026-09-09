@@ -2,6 +2,7 @@ package com.ampere.batterylab;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.backup.BackupManager;
 import android.os.BatteryManager;
 import android.os.Bundle;
 import android.content.BroadcastReceiver;
@@ -162,6 +163,7 @@ public class MainActivity extends Activity {
                 else if ("string".equals(type)) editor.putString(key, encoded.getString("value"));
             }
             editor.apply();
+            BackupManager.dataChanged(getPackageName());
             dashboard.reloadStoredData();
             Intent battery = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
             if (battery != null) dashboard.readBattery(battery);
@@ -981,6 +983,7 @@ class BatteryDashboard extends View {
             if (!chargeAlarm) {
                 android.app.NotificationManager manager = (android.app.NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
                 if (manager != null) manager.cancel(8);
+                prefs.edit().putBoolean("chargeAlarmSent", false).apply();
             }
             invalidate();
             return true;
