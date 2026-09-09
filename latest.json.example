@@ -1,7 +1,7 @@
 {
-  "versionCode": 22,
-  "versionName": "0.22",
+  "versionCode": 23,
+  "versionName": "0.23",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "97317d69504ebc2602b32d038950fc91e214b1e1dfd71210ee8682869cfab838",
-  "releaseNotes": "Strukturierter Research-Export für lokale Messreihen und Sitzungen, nur nach ausdrücklicher Nutzeraktion."
+  "sha256": "35f56efbf919ae7a6408e401f4ea5b3df3da5b2c6ef4ac5255842135b7485cce",
+  "releaseNotes": "Datenschutzdialog mit erreichbarem CSV- und Research-JSON-Export; Löschung bleibt als eigener Settings-Punkt verfügbar."
 }
