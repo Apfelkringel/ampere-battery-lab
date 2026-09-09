@@ -450,9 +450,11 @@ class BatteryDashboard extends View {
         density = getResources().getDisplayMetrics().density;
         p.setTypeface(Typeface.create("sans", Typeface.NORMAL));
         setFocusable(true);
+        setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
         prefs = context.getSharedPreferences("ampere-data", Context.MODE_PRIVATE);
         telemetryPrefs = context.getSharedPreferences("ampere-telemetry", Context.MODE_PRIVATE);
         loadStoredData();
+        updateAccessibilitySummary();
     }
 
     void reloadStoredData() {
@@ -485,6 +487,13 @@ class BatteryDashboard extends View {
         float listBottom = 182 + 160 + rowCount * 44f;
         float panelBottom = Math.max(182 + 610, listBottom + 250);
         return panelBottom - 48;
+    }
+
+    private float overviewChartTop() {
+        float width = getWidth() / density;
+        float heroWidth = Math.min(width - 36, 470);
+        float heroHeight = heroWidth < 410f ? 400f : 320f;
+        return 182 + heroHeight + 14 + 234;
     }
 
     private int sessionCount(String type) {
@@ -550,6 +559,7 @@ class BatteryDashboard extends View {
         benchmarkActive = prefs.getBoolean("benchmarkActive", benchmarkActive);
         saveSample();
         reloadLiveCollections();
+        updateAccessibilitySummary();
         invalidate();
     }
 
@@ -1321,6 +1331,14 @@ class BatteryDashboard extends View {
     private void stroke(Canvas c, int color, float width) { p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(u(width)); p.setStrokeCap(Paint.Cap.ROUND); p.setStrokeJoin(Paint.Join.ROUND); p.setColor(color); }
     private void type(float size, int color, boolean bold) { p.setTextSize(u(size)); p.setColor(color); p.setTypeface(Typeface.create("sans", bold ? Typeface.BOLD : Typeface.NORMAL)); p.setStyle(Paint.Style.FILL); }
     private void text(Canvas c, String value, float x, float y, float size, int color, boolean bold) { type(size, color, bold); c.drawText(value, u(x), u(y), p); }
+    private void centeredText(Canvas c, String value, float centerX, float y, float size, int color, boolean bold) {
+        type(size, color, bold);
+        c.drawText(value, u(centerX) - p.measureText(value) / 2f, u(y), p);
+    }
+    private void rightText(Canvas c, String value, float rightX, float y, float size, int color, boolean bold) {
+        type(size, color, bold);
+        c.drawText(value, u(rightX) - p.measureText(value), u(y), p);
+    }
     private void rounded(Canvas c, float l, float t, float r, float b, float radius, int color) { fill(c, color); rect.set(u(l), u(t), u(r), u(b)); c.drawRoundRect(rect, u(radius), u(radius), p); }
     private void line(Canvas c, float x1, float y1, float x2, float y2, int color, float width) { stroke(c, color, width); c.drawLine(u(x1), u(y1), u(x2), u(y2), p); }
 
@@ -1378,29 +1396,49 @@ class BatteryDashboard extends View {
     private void drawOverview(Canvas c, float w, float h, int panel, int raised, int border, int primary, int muted, int faint) {
         float top = 182;
         float heroW = Math.min(w - 36, 470);
-        float heroH = 320;
+        boolean compact = heroW < 410f;
+        float heroH = compact ? 400f : 320f;
         rounded(c, 18, top, 18 + heroW, top + heroH, 12, panel);
         stroke(c, border, 1); rect.set(u(18), u(top), u(18 + heroW), u(top + heroH)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "BATTERY LEVEL", 36, top + 31, 10, muted, true);
         text(c, "Live status", 36, top + 56, 17, primary, true);
-        drawGauge(c, 135, top + 170, 101, level, primary, faint);
-        text(c, level + "%", 91, top + 178, 52, primary, true);
-        text(c, charging ? "Charging" : "On battery", 108, top + 204, 10, muted, false);
         int health = healthPercent();
-        text(c, health == 0 ? "Not measured" : (health > 80 ? "Good condition" : "Needs attention"), 255, top + 117, 17, primary, true);
-        text(c, health == 0 ? "Run benchmark" : (health > 80 ? "Healthy range" : "Below expected"), 255, top + 141, 10, muted, false);
-        text(c, "Estimated full capacity", 255, top + 181, 10, muted, false);
-        text(c, health > 0 ? String.format(Locale.US, "%,d mAh", estimatedCapacityMah()) : "—", 255, top + 201, 12, primary, true);
-        rounded(c, 255, top + 215, 18 + heroW - 28, top + 219, 3, border);
-        if (health > 0) rounded(c, 255, top + 215, 255 + (heroW - 46) * Math.min(1f, health / 100f), top + 219, 3, lime);
-        text(c, "Design capacity " + String.format(Locale.US, "%,d mAh", designCapacityMah()), 255, top + 236, 9, faint, false);
-        rounded(c, 36, top + 263, 18 + heroW - 36, top + 301, 8, raised);
-        drawBolt(c, 52, top + 282, lime, .8f);
-        text(c, charging ? "Charging detected" : "On battery", 68, top + 278, 10, primary, true);
         String powerText = currentMa > 0 ? String.format(Locale.US, "Approx. %.1f W live draw", currentMa * voltage / 1000f) : "Waiting for current reading";
         String detectionText = charging ? chargerTypeDisplay() + " · automatic Android detection" : powerText + " · automatic Android detection";
-        text(c, detectionText, 68, top + 293, 9, muted, false);
-        text(c, liveCurrentDisplay(), 285, top + 285, 9, charging ? lime : blue, false);
+        if (compact) {
+            float centerX = 18 + heroW / 2f;
+            drawGauge(c, centerX, top + 153, 80, level, primary, faint);
+            centeredText(c, level + "%", centerX, top + 168, 44, primary, true);
+            centeredText(c, charging ? "Charging" : "On battery", centerX, top + 207, 9, muted, false);
+            text(c, "Battery health", 36, top + 258, 9, muted, false);
+            text(c, health == 0 ? "Not measured" : health + "%", 36, top + 280, 14, primary, true);
+            float capacityX = 18 + heroW * .57f;
+            text(c, "Estimated capacity", capacityX, top + 258, 9, muted, false);
+            text(c, health > 0 ? String.format(Locale.US, "%,d mAh", estimatedCapacityMah()) : "—", capacityX, top + 280, 12, primary, true);
+            text(c, "Design " + String.format(Locale.US, "%,d mAh", designCapacityMah()), capacityX, top + 297, 8, faint, false);
+            rounded(c, 36, top + 315, 18 + heroW - 36, top + 369, 8, raised);
+            drawBolt(c, 52, top + 333, lime, .8f);
+            text(c, charging ? "Charging detected" : "On battery", 68, top + 332, 10, primary, true);
+            String compactDetection = charging ? chargerTypeDisplay() + " · automatic" : "automatic battery detection";
+            text(c, compactDetection, 68, top + 350, 8, muted, false);
+            rightText(c, liveCurrentDisplay(), 18 + heroW - 14, top + 339, 9, charging ? lime : blue, false);
+        } else {
+            drawGauge(c, 135, top + 170, 101, level, primary, faint);
+            text(c, level + "%", 91, top + 178, 52, primary, true);
+            text(c, charging ? "Charging" : "On battery", 108, top + 204, 10, muted, false);
+            text(c, health == 0 ? "Not measured" : (health > 80 ? "Good condition" : "Needs attention"), 255, top + 117, 17, primary, true);
+            text(c, health == 0 ? "Run benchmark" : (health > 80 ? "Healthy range" : "Below expected"), 255, top + 141, 10, muted, false);
+            text(c, "Estimated full capacity", 255, top + 181, 10, muted, false);
+            text(c, health > 0 ? String.format(Locale.US, "%,d mAh", estimatedCapacityMah()) : "—", 255, top + 201, 12, primary, true);
+            rounded(c, 255, top + 215, 18 + heroW - 28, top + 219, 3, border);
+            if (health > 0) rounded(c, 255, top + 215, 255 + (heroW - 46) * Math.min(1f, health / 100f), top + 219, 3, lime);
+            text(c, "Design capacity " + String.format(Locale.US, "%,d mAh", designCapacityMah()), 255, top + 236, 9, faint, false);
+            rounded(c, 36, top + 263, 18 + heroW - 36, top + 301, 8, raised);
+            drawBolt(c, 52, top + 282, lime, .8f);
+            text(c, charging ? "Charging detected" : "On battery", 68, top + 278, 10, primary, true);
+            text(c, detectionText, 68, top + 293, 9, muted, false);
+            rightText(c, liveCurrentDisplay(), 18 + heroW - 14, top + 285, 9, charging ? lime : blue, false);
+        }
 
         float cardsTop = top + heroH + 14;
         float cardGap = 12;
@@ -1448,24 +1486,39 @@ class BatteryDashboard extends View {
         int energyAdded = chargeEnergyForDisplay();
         drawStat(c, 18, y + 380, (w - 48) / 2f, 105, "Energy added", energyAdded > 0 ? "+" + energyAdded : "—", "mAh", lime, primary, muted, border, panel, "bolt");
         drawStat(c, 30 + (w - 48) / 2f, y + 380, (w - 48) / 2f, 105, "Battery health", healthDisplay(), healthPercent() > 0 ? "%" : "", lime, primary, muted, border, panel, "heart");
-        rounded(c, 18, y + 500, w - 18, y + 645, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 500), u(w - 18), u(y + 645)); c.drawRoundRect(rect, u(12), u(12), p);
+        boolean compact = w < 380f;
+        float amountBottom = compact ? y + 700 : y + 645;
+        rounded(c, 18, y + 500, w - 18, amountBottom, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 500), u(w - 18), u(amountBottom)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "CHARGE AMOUNT", 36, y + 530, 10, muted, true);
         text(c, "Change", 36, y + 558, 8, faint, false);
         text(c, chargeChangeForDisplay(), 36, y + 580, 13, primary, true);
-        text(c, "Duration", 150, y + 558, 8, faint, false);
-        text(c, chargeDurationForDisplay(), 150, y + 580, 13, primary, true);
-        text(c, "Started", 285, y + 558, 8, faint, false);
-        text(c, chargeStartForDisplay(), 285, y + 580, 13, primary, true);
-        text(c, "Screen on", 36, y + 612, 8, faint, false);
-        text(c, chargeModeDetails(true), 36, y + 630, 10, blue, true);
-        text(c, "Screen off", 285, y + 612, 8, faint, false);
-        text(c, chargeModeDetails(false), 285, y + 630, 10, blue, true);
-        rounded(c, 18, y + 665, w - 18, y + 750, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 665), u(w - 18), u(y + 750)); c.drawRoundRect(rect, u(12), u(12), p);
-        text(c, "BATTERY CAPACITY ESTIMATE", 36, y + 695, 10, muted, true);
-        text(c, healthPercent() > 0 ? String.format(Locale.US, "%,d mAh", estimatedCapacityMah()) : "—", 36, y + 726, 24, lime, true);
-        text(c, healthPercent() > 0 ? "based on local charge samples" : "Complete longer charges to estimate capacity", w - 224, y + 724, 8, faint, false);
-        text(c, healthEstimateStatus(), 36, y + 744, 8, faint, false);
-        drawTelemetryChart(c, 18, y + 775, w - 36, 220, panel, border, primary, muted, faint, true);
+        if (compact) {
+            float secondColumn = 164;
+            text(c, "Duration", secondColumn, y + 558, 8, faint, false);
+            text(c, chargeDurationForDisplay(), secondColumn, y + 580, 12, primary, true);
+            text(c, "Started", 36, y + 612, 8, faint, false);
+            text(c, chargeStartForDisplay(), 36, y + 634, 11, primary, true);
+            text(c, "Screen on", 36, y + 666, 8, faint, false);
+            text(c, chargeModeDetails(true), 36, y + 686, 9, blue, true);
+            text(c, "Screen off", secondColumn, y + 666, 8, faint, false);
+            text(c, chargeModeDetails(false), secondColumn, y + 686, 9, blue, true);
+        } else {
+            text(c, "Duration", 150, y + 558, 8, faint, false);
+            text(c, chargeDurationForDisplay(), 150, y + 580, 13, primary, true);
+            text(c, "Started", 285, y + 558, 8, faint, false);
+            text(c, chargeStartForDisplay(), 285, y + 580, 13, primary, true);
+            text(c, "Screen on", 36, y + 612, 8, faint, false);
+            text(c, chargeModeDetails(true), 36, y + 630, 10, blue, true);
+            text(c, "Screen off", 285, y + 612, 8, faint, false);
+            text(c, chargeModeDetails(false), 285, y + 630, 10, blue, true);
+        }
+        float capacityTop = compact ? y + 720 : y + 665;
+        rounded(c, 18, capacityTop, w - 18, capacityTop + 85, 12, panel); stroke(c, border, 1); rect.set(u(18), u(capacityTop), u(w - 18), u(capacityTop + 85)); c.drawRoundRect(rect, u(12), u(12), p);
+        text(c, "BATTERY CAPACITY ESTIMATE", 36, capacityTop + 30, 10, muted, true);
+        text(c, healthPercent() > 0 ? String.format(Locale.US, "%,d mAh", estimatedCapacityMah()) : "—", 36, capacityTop + 61, 24, lime, true);
+        rightText(c, healthPercent() > 0 ? "based on local charge samples" : "Complete longer charges to estimate capacity", w - 30, capacityTop + 59, 8, faint, false);
+        text(c, healthEstimateStatus(), 36, capacityTop + 79, 8, faint, false);
+        drawTelemetryChart(c, 18, compact ? y + 830 : y + 775, w - 36, 220, panel, border, primary, muted, faint, true);
     }
 
     private void drawDischargingPage(Canvas c, float w, float h, int panel, int raised, int border, int primary, int muted, int faint) {
@@ -1850,18 +1903,32 @@ class BatteryDashboard extends View {
         text(c, "30D", x + width - 51, y + 30, 8, historyDays == 30 ? Color.rgb(23, 28, 16) : muted, true);
         float chartX = x + 18, chartY = y + 51, chartW = width - 36, chartH = 94;
         for (int i = 0; i < 3; i++) line(c, chartX, chartY + i * 45, chartX + chartW, chartY + i * 45, border, 1);
-        float[] values = chartValues();
-        if (values.length == 0) {
+        ArrayList<LevelPoint> points = chartPoints();
+        if (points.isEmpty()) {
             text(c, "Waiting for local battery samples.", chartX, chartY + 52, 10, faint, false);
         } else {
+            long end = System.currentTimeMillis();
+            long start = end - chartWindowMs();
+            int first = Math.max(0, points.size() - 48);
             Path path = new Path();
-            for (int i = 0; i < values.length; i++) {
-                float px = u(values.length == 1 ? chartX : chartX + i * chartW / (values.length - 1));
-                float py = u(chartY + chartH - values[i] * chartH);
-                if (i == 0) path.moveTo(px, py); else path.lineTo(px, py);
+            boolean pathStarted = false;
+            for (int i = first; i < points.size(); i++) {
+                LevelPoint point = points.get(i);
+                float timeFraction = Math.max(0f, Math.min(1f, (point.timestamp - start) / (float) chartWindowMs()));
+                float px = u(chartX + timeFraction * chartW);
+                float py = u(chartY + chartH - point.level / 100f * chartH);
+                if (!pathStarted) {
+                    path.moveTo(px, py);
+                    pathStarted = true;
+                } else {
+                    path.lineTo(px, py);
+                }
             }
             stroke(c, lime, 2); c.drawPath(path, p);
-            fill(c, lime); float lastX = values.length == 1 ? chartX : chartX + chartW, lastY = chartY + chartH - values[values.length - 1] * chartH; c.drawCircle(u(lastX), u(lastY), u(4), p);
+            LevelPoint last = points.get(points.size() - 1);
+            float lastFraction = Math.max(0f, Math.min(1f, (last.timestamp - start) / (float) chartWindowMs()));
+            fill(c, lime);
+            c.drawCircle(u(chartX + lastFraction * chartW), u(chartY + chartH - last.level / 100f * chartH), u(4), p);
         }
         text(c, chartAxisLabel(0f), chartX, y + 166, 9, faint, false); text(c, chartAxisLabel(.33f), chartX + chartW * .32f, y + 166, 9, faint, false); text(c, chartAxisLabel(.66f), chartX + chartW * .64f, y + 166, 9, faint, false); text(c, chartAxisLabel(1f), chartX + chartW - 23, y + 166, 9, faint, false);
         text(c, "Average " + chartAverage() + " · range " + chartRange(), x + 18, y + 189, 8, muted, false);
@@ -1871,6 +1938,7 @@ class BatteryDashboard extends View {
         } else {
             int row = 0;
             for (String session : sessions) {
+                if (row == 4) break;
                 String[] parts = session.split(",", -1);
                 if (parts.length < 4) continue;
                 float rowY = y + 230 + row * 25;
@@ -1881,6 +1949,7 @@ class BatteryDashboard extends View {
                 text(c, parts[2], x + width - 62, rowY, 9, faint, false);
                 row++;
             }
+            if (sessions.size() > row) text(c, "More sessions in History", x + 18, y + 337, 8, faint, false);
         }
     }
 
@@ -1937,11 +2006,25 @@ class BatteryDashboard extends View {
         text(c, "last " + count + " local samples", chartX, y + 199, 8, faint, false);
     }
 
-    /** Uses the requested time window from telemetry; old APKs fall back to their level history. */
-    private ArrayList<Integer> chartLevels() {
-        ArrayList<Integer> values = new ArrayList<>();
+    private static final class LevelPoint {
+        final long timestamp;
+        final int level;
+
+        LevelPoint(long timestamp, int level) {
+            this.timestamp = timestamp;
+            this.level = level;
+        }
+    }
+
+    private long chartWindowMs() {
+        return (historyDays == 30 ? 30L : 7L) * 24L * 60L * 60L * 1000L;
+    }
+
+    /** Uses timestamped telemetry; old APKs fall back to their level history. */
+    private ArrayList<LevelPoint> chartPoints() {
+        ArrayList<LevelPoint> points = new ArrayList<>();
         long end = System.currentTimeMillis();
-        long start = end - (historyDays == 30 ? 30L : 7L) * 24L * 60L * 60L * 1000L;
+        long start = end - chartWindowMs();
         String saved = telemetryPrefs.getString("telemetrySamples", "");
         if (!saved.isEmpty()) {
             for (String row : saved.split("\\n")) {
@@ -1950,13 +2033,24 @@ class BatteryDashboard extends View {
                 try {
                     long timestamp = Long.parseLong(parts[0]);
                     if (timestamp < start || timestamp > end) continue;
-                    values.add(Math.max(0, Math.min(100, Integer.parseInt(parts[1]))));
+                    points.add(new LevelPoint(timestamp, Math.max(0, Math.min(100, Integer.parseInt(parts[1])))));
                 } catch (NumberFormatException ignored) { }
             }
         }
-        if (!values.isEmpty()) return values;
+        if (!points.isEmpty()) return points;
         ArrayList<Integer> fallback = historyDays == 30 ? longHistory : history;
-        values.addAll(fallback);
+        long fallbackEnd = System.currentTimeMillis();
+        long fallbackStart = fallbackEnd - Math.max(0, fallback.size() - 1) * samplingIntervalMs();
+        for (int i = 0; i < fallback.size(); i++) {
+            points.add(new LevelPoint(fallbackStart + i * samplingIntervalMs(),
+                    Math.max(0, Math.min(100, fallback.get(i)))));
+        }
+        return points;
+    }
+
+    private ArrayList<Integer> chartLevels() {
+        ArrayList<Integer> values = new ArrayList<>();
+        for (LevelPoint point : chartPoints()) values.add(point.level);
         return values;
     }
 
@@ -2014,6 +2108,12 @@ class BatteryDashboard extends View {
 
     private String pageName() { return page == 1 ? "Charging" : page == 2 ? "Discharging" : page == 3 ? "Battery health" : page == 4 ? "History" : "Overview"; }
 
+    private void updateAccessibilitySummary() {
+        String state = charging ? "Charging detected" : "On battery";
+        setContentDescription(pageName() + ". " + state + ". Battery level " + level + " percent. "
+                + "Tabs: Overview, Charge, Drain, Health, History. Current tab: " + pageName() + ".");
+    }
+
     private void drawGauge(Canvas c, float cx, float cy, float radius, int value, int primary, int faint) {
         stroke(c, Color.rgb(43, 47, 56), 9); rect.set(u(cx - radius), u(cy - radius), u(cx + radius), u(cy + radius)); c.drawArc(rect, -90, 360, false, p);
         stroke(c, lime, 9); c.drawArc(rect, -90, 360 * value / 100f, false, p);
@@ -2062,14 +2162,15 @@ class BatteryDashboard extends View {
         float w = getWidth() / density;
         if (y < 60 && x > w - 180 && x < w - 143) { showSettings(); return true; }
         if (y < 60 && x > w - 138) { light = !light; amoled = false; prefs.edit().putBoolean("lightTheme", light).putBoolean("amoledTheme", amoled).apply(); invalidate(); return true; }
-        if (y >= 132 && y < 166) {
+        if (y >= 124 && y < 174) {
             float cell = (w - 36) / 5f;
             page = Math.max(0, Math.min(4, (int) ((x - 18) / cell)));
+            updateAccessibilitySummary();
             updateLayoutHeight();
             invalidate();
             return true;
         }
-        if (page == 0 && y > 750 && y < 805 && x > w - 140) {
+        if (page == 0 && y > overviewChartTop() + 8 && y < overviewChartTop() + 60 && x > w - 140) {
             historyDays = historyDays == 7 ? 30 : 7;
             prefs.edit().putInt("historyDays", historyDays).apply();
             invalidate();
