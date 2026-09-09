@@ -1,7 +1,7 @@
 {
-  "versionCode": 68,
-  "versionName": "0.68",
+  "versionCode": 69,
+  "versionName": "0.69",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "33f17498eebf3406c70b21e286ddc1d35a1492fdde37a698f233bfb660328cdf",
-  "releaseNotes": "Voll geladen zählt nur mit gemeldeter Stromquelle als verbunden."
+  "sha256": "4d7b2e68715dd71b94e5ab9f8b7e3af55aee6f56ce8482a14f3212ae63aeb682",
+  "releaseNotes": "Die Designkapazität zeigt jetzt klar, wenn Android nur den 4.500-mAh-Fallback zulässt."
 }
