@@ -14,8 +14,8 @@ Last verified: 2026-09-09 (Europe/Berlin)
 
 | Runtime | Result |
 | --- | --- |
-| Android 14 / API 34 | App launch and update-path checks passed; foreground monitor remained active. |
-| Android 16 / API 36 | App launch, foreground monitor and signed `0.78 -> 0.79` package update passed. `firstInstallTime` and preferences were preserved; no fatal exception occurred. |
+| Android 14 / API 34 | Fresh signed `0.80` install, app launch and foreground monitor passed; no fatal exception occurred. |
+| Android 16 / API 36 | Fresh signed `0.80` install, app launch and foreground monitor passed. The installed package reported `versionCode 80`, `targetSdk 37`, preserved `firstInstallTime` across replacement, and produced no fatal exception. |
 | Android 17 / API 37 | Fresh signed `0.80` install, app launch, foreground monitor and navigation through Overview, Charge, Drain, Health and History passed; no fatal exception occurred. |
 
 On API 37, an installed signed `0.79` instance fetched the public manifest,
