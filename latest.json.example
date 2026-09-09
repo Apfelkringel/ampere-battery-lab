@@ -1,7 +1,7 @@
 {
-  "versionCode": 55,
-  "versionName": "0.55",
+  "versionCode": 56,
+  "versionName": "0.56",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "2286cf78e280cc57107ef6dc1220d41a2013fa4133e8b93b7dc12cea3a3cb894",
-  "releaseNotes": "Ladezeit-Prognosen nutzen lokale 7-Tage-Laderaten, wenn Android keinen Systemwert liefert."
+  "sha256": "c20cd6f7c032aa1a5e615332339132deae4fe50c3db463d6a32f123ab1b7efa8",
+  "releaseNotes": "Health-Baseline kann nach einem Akkutausch zurückgesetzt werden, ohne History oder Telemetrie zu löschen."
 }
