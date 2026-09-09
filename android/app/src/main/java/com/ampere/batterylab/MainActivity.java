@@ -599,9 +599,31 @@ class BatteryDashboard extends View {
     private String timeToFull() {
         if (!charging) return "—";
         if (level >= 99) return "Full";
+        long systemMinutes = systemChargeTimeRemainingMinutes();
+        if (systemMinutes > 0L) return formatDuration(systemMinutes);
         if (currentMa < 50) return "—";
         int missingMah = Math.round(estimatedCapacityMah() * (100 - level) / 100f);
         return formatDuration(Math.max(1, Math.round(missingMah * 60f / currentMa)));
+    }
+
+    /**
+     * Android's vendor-backed charge-time estimate is often more accurate
+     * than a single instantaneous current reading. It is optional and may be
+     * unavailable on devices that do not expose a charging estimate.
+     */
+    private long systemChargeTimeRemainingMinutes() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P || !charging || level >= 99) return 0L;
+        BatteryManager manager = (BatteryManager) getContext().getSystemService(Context.BATTERY_SERVICE);
+        if (manager == null) return 0L;
+        long remainingMs = manager.computeChargeTimeRemaining();
+        if (remainingMs <= 0L || remainingMs > 7L * 24L * 60L * 60L * 1000L) return 0L;
+        return Math.max(1L, Math.round(remainingMs / 60000f));
+    }
+
+    private String chargeTimeEstimateLabel() {
+        return systemChargeTimeRemainingMinutes() > 0L
+                ? "Android system estimate"
+                : "local 7-day estimate";
     }
 
     private String timeToLimit() {
@@ -1172,7 +1194,7 @@ class BatteryDashboard extends View {
         line(c, w * .54f, y + 86, w * .54f, y + 156, border, 1);
         text(c, charging ? (chargeLimit >= 100 ? "Time to full" : "Time to limit") : "Last charge", w * .6f, y + 96, 10, muted, false);
         text(c, charging ? (chargeLimit >= 100 ? timeToFull() : timeToLimit()) : lastChargeRange(), w * .6f, y + 126, 20, primary, true);
-        text(c, charging ? "estimated" : lastChargeDuration(), w * .6f, y + 145, 9, faint, false);
+        text(c, charging ? (chargeLimit >= 100 ? chargeTimeEstimateLabel() : "local 7-day estimate") : lastChargeDuration(), w * .6f, y + 145, 9, faint, false);
         text(c, "Temp " + temperatureDisplay() + " °C · Voltage " + voltageDisplay() + " V", 78, y + 151, 8, faint, false);
         text(c, "Charge limit", 36, y + 190, 10, muted, false);
         text(c, chargeLimit + "%", w - 67, y + 190, 10, lime, true);
