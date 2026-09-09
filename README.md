@@ -22,6 +22,7 @@ Kostenlose, lokal arbeitende Android-Batterieanalyse als eigenständige Implemen
 - strukturierter Research-Export als JSON mit Messreihen, Sitzungen und Geräte-/Android-Kontext nach ausdrücklicher Nutzeraktion
 - einstellbare lokale Messfrequenz (5/15/30/60 Minuten) für Hintergrundmonitor und Verlauf
 - Kapazitätsschätzung und manueller Health-Benchmark
+- automatische lokale Designkapazitäts-Erkennung aus Android-Batteriedaten mit manuellem Override
 - Health-Auswertung mit letztem Ladeverschleiß und äquivalenten Vollzyklen (EFC)
 - Bildschirmzeit, Deep Sleep, Ladezyklen und optionale Vordergrund-App-Nutzung
 - Entladestatistik seit der letzten erkannten Volladung

@@ -81,7 +81,7 @@ public class BatteryMonitorService extends Service {
         if (value >= 0) {
             android.content.SharedPreferences prefs = getSharedPreferences("ampere-data", MODE_PRIVATE);
             int capacity = prefs.getInt("benchmarkCapacityMah", 0);
-            int design = prefs.getInt("designCapacityMah", 4500);
+            int design = BatteryCapacity.designCapacityMah(this);
             int health = capacity > 0 && design > 0 ? Math.round(capacity * 100f / design) : 0;
             details += "\n" + (isCharging ? "Charger connected" : "Screen and background use tracked locally")
                     + (health > 0 ? " · health " + health + "%" : "")
@@ -358,7 +358,7 @@ public class BatteryMonitorService extends Service {
                 if (energy <= 0) energy = prefs.getInt("lastDischargeMah", 0);
             }
             String date = new SimpleDateFormat("MMM d HH:mm", Locale.US).format(new Date(now));
-            int designCapacity = prefs.getInt("designCapacityMah", 4500);
+            int designCapacity = BatteryCapacity.designCapacityMah(this);
             float cycleEquivalent = energy > 0 && designCapacity > 0 ? energy / (float) designCapacity : Math.abs(change) / 100f;
             String entry = type + "," + (change > 0 ? "+" : "") + change + "%," + duration(minutes) + "," + date + "," + startLevel + "," + level + "," + energy + "," + String.format(Locale.US, "%.2f", cycleEquivalent)
                     + "," + screenOnValue + "," + screenOffValue + "," + (screenOnMs / 60000L) + "," + (screenOffMs / 60000L)

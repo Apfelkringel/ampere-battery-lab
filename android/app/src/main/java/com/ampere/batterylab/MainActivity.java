@@ -559,7 +559,11 @@ class BatteryDashboard extends View {
         return "External power";
     }
 
-    private int designCapacityMah() { return prefs.getInt("designCapacityMah", 4500); }
+    private int designCapacityMah() { return BatteryCapacity.designCapacityMah(getContext()); }
+
+    private String designCapacitySource() {
+        return BatteryCapacity.hasManualOverride(getContext()) ? "Manual override" : "Automatic device value when available";
+    }
 
     private int estimatedCapacityMah() { return Math.round(designCapacityMah() * healthPercent() / 100f); }
 
@@ -570,13 +574,16 @@ class BatteryDashboard extends View {
         input.setSelectAllOnFocus(true);
         new AlertDialog.Builder(getContext())
                 .setTitle("Design capacity")
-                .setMessage("Enter the factory capacity in mAh.")
+                .setMessage("Enter the factory capacity in mAh. Enter 0 to use the device value automatically when Android exposes it.")
                 .setView(input)
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Save", (dialog, which) -> {
                     try {
                         int capacity = Integer.parseInt(input.getText().toString().trim());
-                        if (capacity >= 500 && capacity <= 20000) {
+                        if (capacity == 0) {
+                            prefs.edit().remove("designCapacityMah").apply();
+                            invalidate();
+                        } else if (capacity >= 500 && capacity <= 30000) {
                             prefs.edit().putInt("designCapacityMah", capacity).apply();
                             invalidate();
                         }
@@ -1290,7 +1297,7 @@ class BatteryDashboard extends View {
         text(c, benchmarkActive ? "Active" : "Start", w - 88, y + 585, 9, benchmarkActive ? lime : Color.rgb(23, 28, 16), true);
         rounded(c, 18, y + 630, w - 18, y + 697, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 630), u(w - 18), u(y + 697)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "Design capacity", 36, y + 659, 11, primary, true);
-        text(c, "Factory rating used for health estimates", 36, y + 680, 9, muted, false);
+            text(c, designCapacitySource(), 36, y + 680, 9, muted, false);
         text(c, String.format(Locale.US, "%,d mAh", designCapacityMah()), w - 112, y + 667, 10, lime, true);
         rounded(c, 18, y + 710, w - 18, y + 850, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 710), u(w - 18), u(y + 850)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "Capacity samples", 36, y + 740, 12, primary, true);
