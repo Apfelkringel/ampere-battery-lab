@@ -364,6 +364,11 @@ class BatteryDashboard extends View {
         return total;
     }
 
+    private String sessionEnergyDisplay(String type, String prefix) {
+        int total = sessionEnergyTotal(type);
+        return total > 0 ? prefix + total + " mAh" : prefix + "— mAh";
+    }
+
     void readBattery(Intent intent) {
         int rawLevel = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
         int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, 100);
@@ -656,7 +661,7 @@ class BatteryDashboard extends View {
         long ms = charging ? prefs.getLong(msKey, 0L) : prefs.getLong(lastMsKey, prefs.getLong(msKey, 0L));
         if (mah <= 0 && ms <= 0L) return "—";
         String duration = ms > 0L ? formatDuration(Math.max(1L, ms / 60000L)) : "—";
-        return mah + " mAh · " + duration;
+        return (mah > 0 ? mah + " mAh" : "— mAh") + " · " + duration;
     }
 
     private String lastChargeRange() {
@@ -1262,7 +1267,7 @@ class BatteryDashboard extends View {
         text(c, "Deep sleep", 36, summaryY + 69, 10, muted, false);
         text(c, deepSleepTime(), w - 75, summaryY + 69, 11, Color.rgb(180, 154, 255), true);
         text(c, "Sessions: " + sessionCount("Charge") + " charge · " + sessionCount("Discharge") + " discharge", 36, summaryY + 99, 9, primary, true);
-        text(c, "Energy: +" + sessionEnergyTotal("Charge") + " / -" + sessionEnergyTotal("Discharge") + " mAh", 36, summaryY + 121, 9, blue, true);
+        text(c, "Energy: " + sessionEnergyDisplay("Charge", "+") + " / " + sessionEnergyDisplay("Discharge", "-"), 36, summaryY + 121, 9, blue, true);
         text(c, "Battery readings stay on this device.", 36, summaryY + 143, 9, primary, true);
         text(c, "Export only when you choose; no account or subscription.", 36, summaryY + 165, 8, muted, false);
         rounded(c, w - 136, panelBottom - 48, w - 36, panelBottom - 14, 8, lime);
