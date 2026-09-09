@@ -1,7 +1,7 @@
 {
-  "versionCode": 18,
-  "versionName": "0.18",
+  "versionCode": 19,
+  "versionName": "0.19",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "be619261ffffad76b1b0947f632d9d17544edcda105dcbc1d1e5a016262a4faa",
-  "releaseNotes": "Die langen Übersichten lassen sich jetzt zuverlässig per Wischgeste scrollen."
+  "sha256": "48b113bed4a0dfec03c7c36706d7c332af6ec70d17838b44e47a8e6e495b1286",
+  "releaseNotes": "Lange Übersichten sind jetzt vollständig scrollbar, auch auf Geräten mit Edge-to-Edge-Layout."
 }
