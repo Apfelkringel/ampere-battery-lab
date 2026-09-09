@@ -332,7 +332,7 @@ class BatteryDashboard extends View {
 
     private void updateLayoutHeight() {
         int rowCount = Math.min(150, sessions.size());
-        int contentDp = page == 4 ? Math.max(1320, 560 + rowCount * 44) : 1320;
+        int contentDp = page == 4 ? Math.max(1320, 600 + rowCount * 44) : 1320;
         int contentPx = Math.round(contentDp * density);
         setMinimumHeight(contentPx);
         if (getLayoutParams() != null && getLayoutParams().height != contentPx) {
@@ -344,8 +344,24 @@ class BatteryDashboard extends View {
     private float historyExportTop() {
         int rowCount = Math.min(150, sessions.size());
         float listBottom = 182 + 160 + rowCount * 44f;
-        float panelBottom = Math.max(182 + 610, listBottom + 190);
+        float panelBottom = Math.max(182 + 610, listBottom + 250);
         return panelBottom - 48;
+    }
+
+    private int sessionCount(String type) {
+        int count = 0;
+        for (String session : sessions) if (session.startsWith(type + ",")) count++;
+        return count;
+    }
+
+    private int sessionEnergyTotal(String type) {
+        int total = 0;
+        for (String session : sessions) {
+            String[] parts = session.split(",", 8);
+            if (parts.length < 7 || !type.equals(parts[0])) continue;
+            try { total += Math.max(0, Integer.parseInt(parts[6])); } catch (NumberFormatException ignored) { }
+        }
+        return total;
     }
 
     void readBattery(Intent intent) {
@@ -1210,7 +1226,7 @@ class BatteryDashboard extends View {
         float y = 182;
         int rowCount = Math.min(150, sessions.size());
         float listBottom = y + 160 + rowCount * 44f;
-        float panelBottom = Math.max(y + 610, listBottom + 190);
+        float panelBottom = Math.max(y + 610, listBottom + 250);
         rounded(c, 18, y, w - 18, panelBottom, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y), u(w - 18), u(panelBottom)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "HISTORY", 36, y + 31, 10, muted, true);
         text(c, "Charge & discharge sessions", 36, y + 61, 20, primary, true);
@@ -1245,8 +1261,10 @@ class BatteryDashboard extends View {
         text(c, "Rolling window: up to 30 local days", 36, summaryY + 39, 9, faint, false);
         text(c, "Deep sleep", 36, summaryY + 69, 10, muted, false);
         text(c, deepSleepTime(), w - 75, summaryY + 69, 11, Color.rgb(180, 154, 255), true);
-        text(c, "Battery readings stay on this device.", 36, summaryY + 99, 10, primary, true);
-        text(c, "Export only when you choose; no account or subscription.", 36, summaryY + 121, 9, muted, false);
+        text(c, "Sessions: " + sessionCount("Charge") + " charge · " + sessionCount("Discharge") + " discharge", 36, summaryY + 99, 9, primary, true);
+        text(c, "Energy: +" + sessionEnergyTotal("Charge") + " / -" + sessionEnergyTotal("Discharge") + " mAh", 36, summaryY + 121, 9, blue, true);
+        text(c, "Battery readings stay on this device.", 36, summaryY + 143, 9, primary, true);
+        text(c, "Export only when you choose; no account or subscription.", 36, summaryY + 165, 8, muted, false);
         rounded(c, w - 136, panelBottom - 48, w - 36, panelBottom - 14, 8, lime);
         text(c, "Export CSV", w - 119, panelBottom - 26, 9, Color.rgb(23, 28, 16), true);
     }
