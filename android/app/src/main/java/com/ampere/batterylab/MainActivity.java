@@ -70,6 +70,7 @@ public class MainActivity extends Activity {
             });
         }
         int contentHeight = Math.round(1320 * getResources().getDisplayMetrics().density);
+        dashboard.setMinimumHeight(contentHeight);
         scroll.addView(dashboard, new ScrollView.LayoutParams(-1, contentHeight));
         setContentView(scroll);
         startMonitorService();
