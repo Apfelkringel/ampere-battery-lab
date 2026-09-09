@@ -503,8 +503,18 @@ class BatteryDashboard extends View {
     }
 
     private String timeToFull() {
-        if (!charging || currentMa < 50) return "—";
+        if (!charging) return "—";
+        if (level >= 99) return "Full";
+        if (currentMa < 50) return "—";
         int missingMah = Math.round(estimatedCapacityMah() * (100 - level) / 100f);
+        return formatDuration(Math.max(1, Math.round(missingMah * 60f / currentMa)));
+    }
+
+    private String timeToLimit() {
+        if (!charging) return "—";
+        if (level >= chargeLimit) return "Reached";
+        if (currentMa < 50 || estimatedCapacityMah() <= 0) return "—";
+        int missingMah = Math.round(estimatedCapacityMah() * (chargeLimit - level) / 100f);
         return formatDuration(Math.max(1, Math.round(missingMah * 60f / currentMa)));
     }
 
@@ -846,8 +856,8 @@ class BatteryDashboard extends View {
         text(c, charging && currentMa > 0 ? currentMa + " mA" : "—", 77, y + 112, 31, primary, true);
         text(c, charging ? "live charge current" : "unplugged · historical data", 78, y + 132, 9, muted, false);
         line(c, w * .54f, y + 86, w * .54f, y + 156, border, 1);
-        text(c, charging ? "Time to full" : "Last charge", w * .6f, y + 96, 10, muted, false);
-        text(c, charging ? timeToFull() : lastChargeRange(), w * .6f, y + 126, 20, primary, true);
+        text(c, charging ? (chargeLimit >= 100 ? "Time to full" : "Time to limit") : "Last charge", w * .6f, y + 96, 10, muted, false);
+        text(c, charging ? (chargeLimit >= 100 ? timeToFull() : timeToLimit()) : lastChargeRange(), w * .6f, y + 126, 20, primary, true);
         text(c, charging ? "estimated" : lastChargeDuration(), w * .6f, y + 145, 9, faint, false);
         text(c, "Charge limit", 36, y + 190, 10, muted, false);
         text(c, chargeLimit + "%", w - 67, y + 190, 10, lime, true);
