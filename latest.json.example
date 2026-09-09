@@ -1,7 +1,7 @@
 {
-  "versionCode": 38,
-  "versionName": "0.38",
+  "versionCode": 39,
+  "versionName": "0.39",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "a8739e14d58d8a9bcbd94b57fbd0319b55575ac61f983bf1e825290f105d7140",
-  "releaseNotes": "Im Menü kann jetzt jederzeit manuell nach einem signierten kostenlosen Update gesucht werden."
+  "sha256": "8889b141d910f31bef5bdbe923191da6f4463ea32e1326090b52b98f77684aea",
+  "releaseNotes": "History-Sitzungen enthalten jetzt detaillierte Bildschirm-, Ladequellen- und Zeitdaten für lokale Auswertungen."
 }
