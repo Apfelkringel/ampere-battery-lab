@@ -1,7 +1,7 @@
 {
-  "versionCode": 32,
-  "versionName": "0.32",
+  "versionCode": 33,
+  "versionName": "0.33",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "0d8a5cff73bafe423ff0b0628ffeec272f3c353174194d6d330397394359536f",
-  "releaseNotes": "Die Ladeansicht zeigt jetzt vollständige Sitzungsdetails mit Prozentänderung, Dauer, Startzeit und getrennten Bildschirm-an/aus-Werten."
+  "sha256": "aeca5430dc0e7c6c94563f049b11b8d881fe316121cd4aa7e0dc65564c8d4361",
+  "releaseNotes": "Die Gesundheitsanalyse zeigt jetzt auch den letzten Ladeverschleiß und die gesamten äquivalenten Vollzyklen."
 }
