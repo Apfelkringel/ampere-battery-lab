@@ -18,6 +18,12 @@ Last verified: 2026-09-09 (Europe/Berlin)
 | Android 16 / API 36 | App launch, foreground monitor and signed `0.78 -> 0.79` package update passed. `firstInstallTime` and preferences were preserved; no fatal exception occurred. |
 | Android 17 / API 37 | Fresh signed `0.80` install, app launch, foreground monitor and navigation through Overview, Charge, Drain, Health and History passed; no fatal exception occurred. |
 
+On API 37, an installed signed `0.79` instance fetched the public manifest,
+displayed the in-app `0.80` update dialog, downloaded the APK, reached Android's
+package installer, and completed the update after the test emulator's unknown-
+sources permission was enabled. `firstInstallTime` remained unchanged and the
+monitor was restarted by `MY_PACKAGE_REPLACED` as a foreground service.
+
 Release `0.80` also compiles and passes lint locally after adding direct handling
 for Android power-connected and power-disconnected broadcasts.
 
