@@ -1,7 +1,7 @@
 {
-  "versionCode": 15,
-  "versionName": "0.15",
+  "versionCode": 16,
+  "versionName": "0.16",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "1639be25567c1d6679f1f318a2f9a97bf1f71a9a04dad2791c7071e12ec81304",
-  "releaseNotes": "Verlaufskarten zeigen jetzt Durchschnitt sowie Minimum/Maximum der lokalen Messreihe."
+  "sha256": "def950d8de66b2114f16df8c7e3861eb073ad3a2a6648ad8d776d237e60bc42d",
+  "releaseNotes": "Beim Zurückkehren in die App werden Monitor, Overlay, Akkuwerte und Update-Check zuverlässiger aufgefrischt."
 }
