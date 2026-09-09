@@ -1,7 +1,7 @@
 {
-  "versionCode": 41,
-  "versionName": "0.41",
+  "versionCode": 42,
+  "versionName": "0.42",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "e83a950cac4e961e96ab87f82857c29ab03adae94d911a006ff574606956a1f8",
-  "releaseNotes": "Die lokale Messfrequenz kann jetzt auf 5, 15, 30 oder 60 Minuten gestellt werden."
+  "sha256": "99c2e6d21c80730168f31557ad06fc660a6809ed0cf251edd14e43c6d070ddcf",
+  "releaseNotes": "Historische Ladegeschwindigkeiten bleiben sichtbar; die Release-Signatur wurde auf einen privaten Schlüssel mit Android-Key-Rotation gehärtet."
 }
