@@ -5,7 +5,7 @@ Last verified: 2026-09-10 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.115` (`versionCode 115`)
+- Version: `0.116` (`versionCode 116`)
 - `minSdk 23`, `targetSdk 37`
 - Release APK SHA-256: `4fbaee470afcd403c4d9c404f9662783bcbff8f62f7e6babecebb021c290f787`
 - The same hash is published in the public update repository manifest.
@@ -142,6 +142,10 @@ area closes settings consistently on compact Android windows.
 Release `0.115` removes the arbitrary 4,500-mAh design-capacity fallback. When
 Android cannot expose the factory value, capacity-dependent calculations now
 remain explicitly unavailable until a real value is detected or entered.
+
+Release `0.116` persists the visible activity's active-session start state after
+every battery read, so process restarts and backups do not lose the current
+charging/discharging start level, timestamp or charge-counter baseline.
 
 The current public update path was also exercised from signed `0.90` to signed
 `0.91` on API 36. The app fetched the 0.91 manifest, showed the in-app dialog,

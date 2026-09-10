@@ -595,6 +595,11 @@ class BatteryDashboard extends View {
                 prefs.edit().putInt("sessionStartChargeCounterMah", sessionStartChargeCounterMah).apply();
             }
         }
+        prefs.edit().putBoolean("lastCharging", lastCharging)
+                .putLong("sessionStartedAt", sessionStartedAt)
+                .putInt("sessionStartLevel", sessionStartLevel)
+                .putInt("sessionStartChargeCounterMah", sessionStartChargeCounterMah)
+                .apply();
         benchmarkActive = prefs.getBoolean("benchmarkActive", benchmarkActive);
         saveSample();
         reloadLiveCollections();
