@@ -2,6 +2,6 @@
   "versionCode": 125,
   "versionName": "0.125",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "10f0886307d64a3440dffbd94b5e8ad93585bbdffd58c0658f870931a97e7c70",
+  "sha256": "90a64eb0c787140020fc39566d53d8a5447f008b6b09f93919bd7934fd915bbb",
   "releaseNotes": "Neue Akku-Kachel für die Android-Schnelleinstellungen mit realen Live-Messwerten."
 }
