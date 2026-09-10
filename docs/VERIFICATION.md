@@ -5,9 +5,9 @@ Last verified: 2026-09-10 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.94` (`versionCode 94`)
+- Version: `0.95` (`versionCode 95`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `9982186fd96fa58423ba5683c9d20fee2a818e8dbdb3d5ed08f92dd4feacb716`
+- Release APK SHA-256: pending signed `v0.95` workflow artifact
 - The same hash is published in the public update repository manifest.
 
 ## Runtime checks
@@ -52,6 +52,11 @@ Release `0.94` moves manifest lookup to the pinned GitHub Contents API path with
 an explicit raw-content media type. This avoids depending on the staleable
 `raw/main` manifest CDN while retaining the same fixed repository and APK
 signature checks.
+
+Release `0.95` measures text against the active centered content column, clips
+the body to that column, adapts header controls below 390 dp, includes display
+cutout insets, and uses a wider but bounded hero surface. The start page was
+rendered on API 36 at 240×640, 320×640, 411×800, 700×1000 and 800×411.
 
 The current public update path was also exercised from signed `0.90` to signed
 `0.91` on API 36. The app fetched the 0.91 manifest, showed the in-app dialog,

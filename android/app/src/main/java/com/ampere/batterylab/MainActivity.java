@@ -113,8 +113,8 @@ public class MainActivity extends Activity {
         super.onCreate(state);
         migrateTelemetryPrefs(this);
         Window window = getWindow();
-        window.setStatusBarColor(Color.rgb(17, 19, 24));
-        window.setNavigationBarColor(Color.rgb(17, 19, 24));
+        window.setStatusBarColor(Color.rgb(11, 16, 17));
+        window.setNavigationBarColor(Color.rgb(11, 16, 17));
         window.getDecorView().setSystemUiVisibility(0);
         dashboard = new BatteryDashboard(this);
         ScrollView scroll = new ScrollView(this);
@@ -122,7 +122,7 @@ public class MainActivity extends Activity {
         if (Build.VERSION.SDK_INT >= 35) {
             window.setDecorFitsSystemWindows(false);
             scroll.setOnApplyWindowInsetsListener((view, insets) -> {
-                android.graphics.Insets bars = insets.getInsets(WindowInsets.Type.systemBars());
+                android.graphics.Insets bars = insets.getInsets(WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout());
                 view.setPadding(view.getPaddingLeft(), bars.top, view.getPaddingRight(), bars.bottom);
                 return insets;
             });
@@ -444,6 +444,11 @@ class BatteryDashboard extends View {
     private float lastTouchY;
     private boolean touchDragged;
     private int pressedRegion = 0;
+    // Drawing happens in two coordinate spaces: the full window for the
+    // header and the centered body column for every page. Keeping the active
+    // width here prevents generic text helpers from measuring against the
+    // physical display and overflowing cards on tablets/foldables.
+    private float layoutWidthDp;
     private final int lime = Color.rgb(199, 243, 107);
     private final int blue = Color.rgb(118, 184, 255);
     private final int amber = Color.rgb(242, 179, 106);
@@ -496,7 +501,7 @@ class BatteryDashboard extends View {
     private float overviewChartTop() {
         float width = getWidth() / density;
         float bodyWidth = contentWidth(width);
-        float heroWidth = Math.min(bodyWidth - 36, 470);
+        float heroWidth = Math.min(bodyWidth - 36, 520);
         float heroHeight = heroWidth < 410f ? 400f : 320f;
         return 182 + heroHeight + 14 + 234;
     }
@@ -1385,21 +1390,21 @@ class BatteryDashboard extends View {
     private void stroke(Canvas c, int color, float width) { p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(u(width)); p.setStrokeCap(Paint.Cap.ROUND); p.setStrokeJoin(Paint.Join.ROUND); p.setColor(color); }
     private void type(float size, int color, boolean bold) { p.setTextSize(u(size)); p.setColor(color); p.setTypeface(Typeface.create("sans", bold ? Typeface.BOLD : Typeface.NORMAL)); p.setStyle(Paint.Style.FILL); }
     private void text(Canvas c, String value, float x, float y, float size, int color, boolean bold) {
-        float viewWidth = getWidth() / density;
+        float viewWidth = layoutWidthDp > 0f ? layoutWidthDp : getWidth() / density;
         float safeX = Math.max(8f, Math.min(x, Math.max(8f, viewWidth - 8f)));
         String fitted = fitText(value, Math.max(1f, viewWidth - safeX - 8f), size, bold);
         type(size, color, bold);
         c.drawText(fitted, u(safeX), u(y), p);
     }
     private void centeredText(Canvas c, String value, float centerX, float y, float size, int color, boolean bold) {
-        float viewWidth = getWidth() / density;
+        float viewWidth = layoutWidthDp > 0f ? layoutWidthDp : getWidth() / density;
         float halfWidth = Math.max(1f, Math.min(centerX - 8f, viewWidth - centerX - 8f));
         String fitted = fitText(value, halfWidth * 2f, size, bold);
         type(size, color, bold);
         c.drawText(fitted, u(centerX) - p.measureText(fitted) / 2f, u(y), p);
     }
     private void rightText(Canvas c, String value, float rightX, float y, float size, int color, boolean bold) {
-        float viewWidth = getWidth() / density;
+        float viewWidth = layoutWidthDp > 0f ? layoutWidthDp : getWidth() / density;
         float safeRight = Math.max(8f, Math.min(rightX, viewWidth - 8f));
         String fitted = fitText(value, Math.max(1f, safeRight - 8f), size, bold);
         type(size, color, bold);
@@ -1471,6 +1476,7 @@ class BatteryDashboard extends View {
         super.onDraw(c);
         float w = getWidth() / density;
         float h = getHeight() / density;
+        layoutWidthDp = w;
         int bg = light ? Color.rgb(243, 245, 239) : (amoled ? Color.BLACK : Color.rgb(11, 16, 17));
         int panel = light ? Color.WHITE : (amoled ? Color.rgb(5, 5, 5) : Color.rgb(20, 28, 25));
         int raised = light ? Color.rgb(238, 241, 233) : (amoled ? Color.rgb(12, 12, 12) : Color.rgb(28, 39, 33));
@@ -1490,12 +1496,15 @@ class BatteryDashboard extends View {
         float bodyWidth = contentWidth(w);
         c.save();
         c.translate(u(bodyInset), 0);
+        c.clipRect(0, 0, u(bodyWidth), getHeight());
+        layoutWidthDp = bodyWidth;
         if (page == 0) drawOverview(c, bodyWidth, h, panel, raised, border, primary, muted, faint);
         else if (page == 1) drawChargingPage(c, bodyWidth, h, panel, raised, border, primary, muted, faint);
         else if (page == 2) drawDischargingPage(c, bodyWidth, h, panel, raised, border, primary, muted, faint);
         else if (page == 3) drawHealthPage(c, bodyWidth, h, panel, raised, border, primary, muted, faint);
         else drawHistoryPage(c, bodyWidth, h, panel, raised, border, primary, muted, faint);
         c.restore();
+        layoutWidthDp = w;
     }
 
     private void drawHeader(Canvas c, float w, int primary, int muted, int border, int panel) {
@@ -1507,7 +1516,7 @@ class BatteryDashboard extends View {
         text(c, fitText(buildLabel, w < 300f ? 34f : 116f, 7.5f, true), 70, 56, 7.5f, lime, true);
         text(c, page == 0 ? "Überwachung  /  Übersicht" : "Überwachung  /  " + pageName(), 18, 80, 10, muted, false);
         text(c, page == 0 ? "Live-Übersicht" : pageName(), 18, 111, 28, primary, true);
-        if (w < 300f) {
+        if (w < 390f) {
             // At the narrowest phone widths, two comfortable controls are
             // safer than three controls colliding with the brand label.
             rounded(c, w - 56, 20, w - 20, 52, 10, isPressed(2) ? pressedFill(panel, true) : panel);
@@ -1579,7 +1588,7 @@ class BatteryDashboard extends View {
 
     private void drawOverview(Canvas c, float w, float h, int panel, int raised, int border, int primary, int muted, int faint) {
         float top = 182;
-        float heroW = Math.min(w - 36, 470);
+        float heroW = Math.min(w - 36, 520);
         boolean compact = heroW < 410f;
         float heroH = compact ? 400f : 320f;
         frame(c, 18, top, 18 + heroW, top + heroH, panel, border, lime);
@@ -1616,8 +1625,9 @@ class BatteryDashboard extends View {
             rounded(c, 36, top + 315 + compactStatusOffset, 18 + heroW - 36, top + 369 + compactStatusOffset, 8, raised);
             drawBolt(c, 52, top + 333 + compactStatusOffset, lime, .8f);
             text(c, charging ? "Laden erkannt" : "Akkubetrieb", 68, top + 332 + compactStatusOffset, 10, primary, true);
-            String compactDetection = charging ? chargerTypeDisplay() + " · automatisch" : "Akku automatisch erkannt";
-            text(c, compactDetection, 68, top + 350 + compactStatusOffset, 8, muted, false);
+            String compactDetection = charging ? (heroW < 230f ? chargerTypeDisplay() : chargerTypeDisplay() + " · automatisch")
+                    : (heroW < 230f ? "Automatisch erkannt" : "Akku automatisch erkannt");
+            text(c, fitText(compactDetection, Math.max(60f, heroW - 112f), 8, false), 68, top + 350 + compactStatusOffset, 8, muted, false);
             rightText(c, liveCurrentDisplay(), 18 + heroW - 14, top + 339 + compactStatusOffset, 9, charging ? lime : blue, false);
         } else {
             drawGauge(c, 135, top + 170, 101, level, primary, faint);
@@ -1633,7 +1643,7 @@ class BatteryDashboard extends View {
             rounded(c, 36, top + 263, 18 + heroW - 36, top + 301, 8, raised);
             drawBolt(c, 52, top + 282, lime, .8f);
             text(c, charging ? "Laden erkannt" : "Akkubetrieb", 68, top + 278, 10, primary, true);
-            text(c, detectionText, 68, top + 293, 9, muted, false);
+            text(c, fitText(detectionText, Math.max(80f, heroW - 108f), 9, false), 68, top + 293, 9, muted, false);
             rightText(c, liveCurrentDisplay(), 18 + heroW - 14, top + 285, 9, charging ? lime : blue, false);
         }
 
