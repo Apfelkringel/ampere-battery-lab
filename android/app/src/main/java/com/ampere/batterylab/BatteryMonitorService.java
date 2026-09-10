@@ -490,10 +490,12 @@ public class BatteryMonitorService extends Service {
             if (energy <= 0) energy = prefs.getInt("lastDischargeMah", 0);
         }
         // A session is a percentage-based history item. Android can expose a
-        // stale charge counter while a cable/status blip is being confirmed;
-        // that must never create a misleading "0%" row. Preserve genuine
-        // charge energy in the aggregate, but keep the session list clean.
-        if (change == 0) {
+        // stale counter or a one-sample level reversal while a cable/status
+        // blip is being confirmed. Neither a 0% row nor a backwards charging
+        // row is useful history. Preserve genuine charge energy in the
+        // aggregate, but keep the session list directional and clean.
+        boolean validDirection = previousCharging ? change > 0 : change < 0;
+        if (!validDirection) {
             if (previousCharging && energy > 0) {
                 prefs.edit().putInt("totalChargedMah", prefs.getInt("totalChargedMah", 0) + energy).apply();
             }

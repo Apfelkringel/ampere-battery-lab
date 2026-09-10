@@ -96,6 +96,7 @@ public class MainActivity extends Activity {
             "telemetrySamples", "telemetryLastSampleAt"
     ));
     private BatteryDashboard dashboard;
+    private boolean batteryReceiverRegistered;
     private final BroadcastReceiver batteryReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
             if (dashboard == null || intent == null) return;
@@ -147,6 +148,7 @@ public class MainActivity extends Activity {
         batteryFilter.addAction(Intent.ACTION_POWER_CONNECTED);
         batteryFilter.addAction(Intent.ACTION_POWER_DISCONNECTED);
         Intent battery = Build.VERSION.SDK_INT >= 33 ? registerReceiver(batteryReceiver, batteryFilter, Context.RECEIVER_NOT_EXPORTED) : registerReceiver(batteryReceiver, batteryFilter);
+        batteryReceiverRegistered = true;
         if (battery != null) dashboard.readBattery(battery);
     }
 
@@ -186,7 +188,10 @@ public class MainActivity extends Activity {
     }
 
     @Override protected void onDestroy() {
-        unregisterReceiver(batteryReceiver);
+        if (batteryReceiverRegistered) {
+            try { unregisterReceiver(batteryReceiver); } catch (IllegalArgumentException ignored) { }
+            batteryReceiverRegistered = false;
+        }
         super.onDestroy();
     }
 
@@ -655,7 +660,7 @@ class BatteryDashboard extends View {
         if (savedSessions == null || savedSessions.isEmpty()) return;
         StringBuilder cleaned = new StringBuilder();
         for (String value : savedSessions.split("\\|")) {
-            if (value.isEmpty() || isZeroSignalSession(value)) continue;
+            if (value.isEmpty() || isInvalidSession(value)) continue;
             sessions.add(value);
             if (cleaned.length() > 0) cleaned.append('|');
             cleaned.append(value);
@@ -663,13 +668,15 @@ class BatteryDashboard extends View {
         if (!savedSessions.equals(cleaned.toString())) prefs.edit().putString("sessions", cleaned.toString()).apply();
     }
 
-    private boolean isZeroSignalSession(String value) {
+    private boolean isInvalidSession(String value) {
         String[] parts = value.split(",", -1);
         if (parts.length < 7) return false;
         try {
+            String type = parts[0];
             int change = Integer.parseInt(parts[1].replace("%", "").replace("+", ""));
-            int energy = Integer.parseInt(parts[6]);
-            return change == 0;
+            if ("Charge".equals(type)) return change <= 0;
+            if ("Discharge".equals(type)) return change >= 0;
+            return false;
         } catch (NumberFormatException ignored) {
             return false;
         }
@@ -1954,13 +1961,21 @@ class BatteryDashboard extends View {
         text(c, "LADEVORGANG", 36, y + 31, 10, muted, true);
         text(c, charging ? "Ladevorgang aktiv" : "Letzter Ladevorgang", 36, y + 58, 18, primary, true);
         drawBolt(c, 53, y + 105, lime, 1);
-        text(c, charging && currentMa > 0 ? currentMa + " mA" : "—", 77, y + 112, 31, primary, true);
-        text(c, charging ? "Ladestrom live" : "getrennt · Verlaufsdaten", 78, y + 132, 9, muted, false);
-        line(c, w * .54f, y + 86, w * .54f, y + 156, border, 1);
-        text(c, charging ? (chargeLimit >= 100 ? "Zeit bis voll" : "Zeit bis Ziel") : "Letzte Ladung", w * .6f, y + 96, 10, muted, false);
-        text(c, charging ? (chargeLimit >= 100 ? timeToFull() : timeToLimit()) : lastChargeRange(), w * .6f, y + 126, 20, primary, true);
-        text(c, charging ? (chargeLimit >= 100 ? chargeTimeEstimateLabel() : "lokale 7-Tage-Schätzung") : lastChargeDuration(), w * .6f, y + 145, 9, faint, false);
-        text(c, "Temp. " + temperatureDisplay() + " °C · Spannung " + voltageDisplay() + " V", 78, y + 151, 8, faint, false);
+        // On a 320 dp window the old 31 dp current label crossed the column
+        // divider. Give the left and right metrics explicit bounds and move the
+        // environmental line below the divider in the compact composition.
+        boolean narrowHeader = w < 390f;
+        float dividerX = narrowHeader ? w * .58f : w * .54f;
+        float rightColumn = narrowHeader ? w * .62f : w * .6f;
+        boundedText(c, charging && currentMa > 0 ? currentMa + " mA" : "—", 77, dividerX - 8,
+                y + 112, narrowHeader ? 27 : 31, primary, true);
+        boundedText(c, charging ? "Ladestrom live" : "getrennt · Verlaufsdaten", 78, dividerX - 8,
+                y + 132, 9, muted, false);
+        line(c, dividerX, y + 86, dividerX, y + (narrowHeader ? 145 : 156), border, 1);
+        text(c, charging ? (chargeLimit >= 100 ? "Zeit bis voll" : "Zeit bis Ziel") : "Letzte Ladung", rightColumn, y + 96, 10, muted, false);
+        text(c, charging ? (chargeLimit >= 100 ? timeToFull() : timeToLimit()) : lastChargeRange(), rightColumn, y + 126, 20, primary, true);
+        text(c, charging ? (chargeLimit >= 100 ? chargeTimeEstimateLabel() : "lokale 7-Tage-Schätzung") : lastChargeDuration(), rightColumn, y + 145, 9, faint, false);
+        text(c, "Temp. " + temperatureDisplay() + " °C · Spannung " + voltageDisplay() + " V", narrowHeader ? 36 : 78, y + 151, 8, faint, false);
         text(c, "Ladeziel", 36, y + 190, 10, muted, false);
         text(c, chargeLimit + "%", w - 67, y + 190, 10, lime, true);
         text(c, "Quelle: " + chargerTypeDisplay(), 36, y + 169, 9, faint, false);
@@ -2657,18 +2672,6 @@ class BatteryDashboard extends View {
             max = Math.max(max, clipped);
         }
         return min + "–" + max + "%";
-    }
-
-    private void drawPlaceholder(Canvas c, float w, float h, int page, int panel, int border, int primary, int muted) {
-        float y = 182;
-        rounded(c, 18, y, w - 18, Math.min(h - 35, y + 380), 12, panel); stroke(c, border, 1); rect.set(u(18), u(y), u(w - 18), u(Math.min(h - 35, y + 380))); c.drawRoundRect(rect, u(12), u(12), p);
-        rounded(c, 38, y + 32, 86, y + 80, 12, Color.argb(30, Color.red(lime), Color.green(lime), Color.blue(lime)));
-        drawBolt(c, 62, y + 56, lime, 1);
-        text(c, "AMPERE-ÜBERWACHUNG", 38, y + 114, 10, muted, true);
-        text(c, pageName(), 38, y + 145, 23, primary, true);
-        text(c, "Diese Ansicht ist für Live-Gerätedaten bereit.", 38, y + 180, 11, muted, false);
-        text(c, "Das Dashboard liest direkt aus Android und", 38, y + 200, 11, muted, false);
-        text(c, "speichert Messwerte auf diesem Gerät.", 38, y + 219, 11, muted, false);
     }
 
     private String pageName() { return page == 1 ? "Laden" : page == 2 ? "Entladen" : page == 3 ? "Akkugesundheit" : page == 4 ? "Verlauf" : "Übersicht"; }

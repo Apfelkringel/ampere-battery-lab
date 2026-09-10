@@ -224,7 +224,10 @@ final class UpdateChecker {
     }
 
     private static boolean isAllowedManifestUrl(URL url) {
-        return "api.github.com".equalsIgnoreCase(url.getHost())
+        return "https".equalsIgnoreCase(url.getProtocol())
+                && url.getPort() == -1
+                && url.getUserInfo() == null
+                && "api.github.com".equalsIgnoreCase(url.getHost())
                 && EXPECTED_MANIFEST_PATH.equals(url.getPath());
     }
 
