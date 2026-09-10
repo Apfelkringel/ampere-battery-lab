@@ -1,7 +1,7 @@
 {
-  "versionCode": 124,
-  "versionName": "0.124",
+  "versionCode": 125,
+  "versionName": "0.125",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
   "sha256": "10f0886307d64a3440dffbd94b5e8ad93585bbdffd58c0658f870931a97e7c70",
-  "releaseNotes": "Die erkannte Quelle der Android-Zykluszählung wird jetzt ebenfalls in Backups erhalten."
+  "releaseNotes": "Neue Akku-Kachel für die Android-Schnelleinstellungen mit realen Live-Messwerten."
 }

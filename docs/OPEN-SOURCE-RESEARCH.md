@@ -21,6 +21,10 @@ Apache-2.0- und MIT-Projekten verwendet; GPL-Code wurde nicht übernommen.
 - [RTMON](https://github.com/n1th1n-19/RTMON), MIT: klassisches Android-
   `RemoteViews`-Widget mit systemnahen Messwerten und sparsamer Aktualisierung;
   als Architektur- und Resize-Referenz geprüft.
+- [BatteryTile](https://github.com/Solarphlare/BatteryTile), GPL-3.0: zeigt,
+  wie eine reine Informationskachel Strom, Spannung, Temperatur und Ladestatus
+  sinnvoll bündelt. Verwendet wurde nur die Produktidee; der Quellcode wurde
+  nicht übernommen.
 
 ## Bewusst nicht übernommen
 
@@ -57,3 +61,7 @@ Es liest den aktuellen Sticky-Akku-Broadcast und `BatteryManager` direkt, wird
 bei jedem laufenden Monitor-Sample aktualisiert und hat zusätzlich den von
 Android vorgegebenen 30-Minuten-Fallback. Es übernimmt keine Daten und keine
 Lizenz aus den GPL-Referenzprojekten; nicht verfügbare Werte bleiben `—`.
+
+Die Schnelleinstellung ist ebenfalls eine reine Informationskachel: Sie ändert
+keine Systemeinstellung und öffnet beim Tippen nur Ampere. Für Android 14 und
+höher verwendet sie den vorgeschriebenen `PendingIntent`-Startpfad.
