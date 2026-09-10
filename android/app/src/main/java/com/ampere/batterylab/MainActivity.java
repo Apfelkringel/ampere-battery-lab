@@ -577,9 +577,9 @@ class BatteryDashboard extends View {
         charging = newCharging;
         plugged = pluggedSource;
         int temp = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -1);
-        if (temp > 0) temperature = temp / 10f;
+        temperature = temp > 0 ? temp / 10f : 0f;
         int mv = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1);
-        if (mv > 0) voltage = mv / 1000f;
+        voltage = mv > 0 ? mv / 1000f : 0f;
         BatteryManager manager = (BatteryManager) getContext().getSystemService(Context.BATTERY_SERVICE);
         int microamps = manager == null ? 0 : manager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW);
         if (microamps == Integer.MIN_VALUE || microamps == 0) {
@@ -742,6 +742,11 @@ class BatteryDashboard extends View {
         return String.format(Locale.GERMANY, "%,d mAh", value);
     }
 
+    private String designCapacityDisplay() {
+        int design = designCapacityMah();
+        return design > 0 ? mahDisplay(design) : "Nicht verfügbar";
+    }
+
     private String liveCurrentDisplay() {
         if (currentMa <= 0) return "—";
         return (charging ? "+" : "−") + currentMa + " mA";
@@ -759,8 +764,8 @@ class BatteryDashboard extends View {
 
     private String designCapacitySource() {
         if (BatteryCapacity.hasManualOverride(getContext())) return "Manuell festgelegt";
-        return BatteryCapacity.hasAutomaticValue()
-                ? "Automatisch von Android erkannt"
+        return BatteryCapacity.hasAutomaticValue(getContext())
+                ? BatteryCapacity.automaticSource(getContext())
                 : "Nicht verfügbar · Nennkapazität manuell festlegen";
     }
 
@@ -1807,7 +1812,7 @@ class BatteryDashboard extends View {
                     top + 258 + compactDetailsOffset, 9, muted, false);
             boundedText(c, health > 0 ? mahDisplay(estimatedCapacityMah()) : "—", capacityX, compactDetailsRight,
                     top + 280 + compactDetailsOffset, 12, primary, true);
-            boundedText(c, "Nennwert " + mahDisplay(designCapacityMah()), capacityX, compactDetailsRight,
+            boundedText(c, "Nennwert " + designCapacityDisplay(), capacityX, compactDetailsRight,
                     top + 297 + compactDetailsOffset, 8, faint, false);
             float compactStatusOffset = heroW < 230f ? 20f : 0f;
             rounded(c, 36, top + 315 + compactStatusOffset, 18 + heroW - 36, top + 369 + compactStatusOffset, 8, raised);
@@ -1839,7 +1844,7 @@ class BatteryDashboard extends View {
             boundedText(c, health > 0 ? mahDisplay(estimatedCapacityMah()) : "—", 255, detailRight, top + 201, 12, primary, true);
             rounded(c, 255, top + 215, detailRight, top + 219, 3, border);
             if (health > 0) rounded(c, 255, top + 215, 255 + (detailRight - 255) * Math.min(1f, health / 100f), top + 219, 3, lime);
-            boundedText(c, "Nennkapazität " + mahDisplay(designCapacityMah()), 255, detailRight, top + 236, 9, faint, false);
+            boundedText(c, "Nennkapazität " + designCapacityDisplay(), 255, detailRight, top + 236, 9, faint, false);
             float statusTop = top + 271f;
             rounded(c, 36, statusTop, 18 + heroW - 36, statusTop + 38, 8, raised);
             drawBolt(c, 52, statusTop + 19, lime, .8f);
@@ -1907,7 +1912,7 @@ class BatteryDashboard extends View {
         boundedText(c, "Akkugesundheit", detailX, detailRight, top + 108, 7, muted, false);
         boundedText(c, "Volle Kapazität", detailX, detailRight, top + 130, 7, muted, false);
         boundedText(c, health > 0 ? mahDisplay(estimatedCapacityMah()) : "—", detailX, detailRight, top + 146, 11, primary, true);
-        boundedText(c, "Nennwert " + mahDisplay(designCapacityMah()), detailX, detailRight, top + 160, 7, faint, false);
+        boundedText(c, "Nennwert " + designCapacityDisplay(), detailX, detailRight, top + 160, 7, faint, false);
 
         rounded(c, 36, top + 164, heroRight - 18, top + 176, 5, raised);
         drawBolt(c, 46, top + 170, lime, .5f);
@@ -2281,7 +2286,7 @@ class BatteryDashboard extends View {
         rounded(c, 18, y + 630, w - 18, y + 697, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 630), u(w - 18), u(y + 697)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "Nennkapazität", 36, y + 659, 11, primary, true);
             text(c, designCapacitySource(), 36, y + 680, 9, muted, false);
-        text(c, mahDisplay(designCapacityMah()), w - 112, y + 667, 10, lime, true);
+        rightText(c, designCapacityDisplay(), w - 30, y + 667, 10, design > 0 ? lime : muted, true);
         rounded(c, 18, y + 710, w - 18, y + 850, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 710), u(w - 18), u(y + 850)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "Kapazitätsmessungen", 36, y + 740, 12, primary, true);
         if (design <= 0) {

@@ -111,7 +111,11 @@ public class BatteryMonitorService extends Service {
         PendingIntent pending = PendingIntent.getActivity(this, 0, launch, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? new Notification.Builder(this, CHANNEL_ID) : new Notification.Builder(this);
         String title = value >= 0 ? value + "% · " + (isCharging ? "Laden" : "Akkubetrieb") : "Ampere überwacht den Akku";
-        String details = value >= 0 ? (currentMa > 0 ? currentMa + " mA" : "Strom nicht verfügbar") + " · " + (temperatureTenths / 10f) + "°C" + (voltageMv > 0 ? " · " + String.format(Locale.US, "%.2f V", voltageMv / 1000f) : "") : "Akkumesswerte werden auf diesem Gerät gespeichert";
+        int currentMagnitudeMa = Math.abs(currentMa);
+        String temperatureText = temperatureTenths > 0
+                ? String.format(Locale.US, "%.1f°C", temperatureTenths / 10f)
+                : "Temperatur nicht verfügbar";
+        String details = value >= 0 ? (currentMagnitudeMa > 0 ? currentMagnitudeMa + " mA" : "Strom nicht verfügbar") + " · " + temperatureText + (voltageMv > 0 ? " · " + String.format(Locale.US, "%.2f V", voltageMv / 1000f) : "") : "Akkumesswerte werden auf diesem Gerät gespeichert";
         if (value >= 0) {
             android.content.SharedPreferences prefs = getSharedPreferences("ampere-data", MODE_PRIVATE);
             int capacity = prefs.getInt("benchmarkCapacityMah", 0);
