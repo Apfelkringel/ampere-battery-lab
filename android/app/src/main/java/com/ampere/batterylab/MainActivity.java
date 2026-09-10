@@ -576,10 +576,7 @@ class BatteryDashboard extends View {
             }
         }
         sessions.clear();
-        String savedSessions = prefs.getString("sessions", "");
-        if (!savedSessions.isEmpty()) {
-            for (String value : savedSessions.split("\\|")) if (!value.isEmpty()) sessions.add(value);
-        }
+        loadSessions(prefs.getString("sessions", ""));
         chargeAlarm = prefs.getBoolean("chargeAlarm", chargeAlarm);
         chargeLimit = prefs.getInt("chargeLimit", chargeLimit);
         benchmarkActive = prefs.getBoolean("benchmarkActive", benchmarkActive);
@@ -610,9 +607,7 @@ class BatteryDashboard extends View {
         String savedHealth = prefs.getString("healthSamples", "");
         if (!savedHealth.isEmpty()) for (String value : savedHealth.split(",")) try { healthSamples.add(Integer.parseInt(value)); } catch (NumberFormatException ignored) { }
         String savedSessions = prefs.getString("sessions", "");
-        if (!savedSessions.isEmpty()) {
-            for (String value : savedSessions.split("\\|")) if (!value.isEmpty()) sessions.add(value);
-        }
+        loadSessions(savedSessions);
         sessionStartedAt = prefs.getLong("sessionStartedAt", 0L);
         sessionStartLevel = prefs.getInt("sessionStartLevel", level);
         sessionStartChargeCounterMah = prefs.getInt("sessionStartChargeCounterMah", 0);
@@ -624,6 +619,31 @@ class BatteryDashboard extends View {
         historyDays = prefs.getInt("historyDays", 7) == 30 ? 30 : 7;
         light = prefs.getBoolean("lightTheme", false);
         amoled = prefs.getBoolean("amoledTheme", false);
+    }
+
+    /** Loads history while dropping legacy cable/status blips without a signal. */
+    private void loadSessions(String savedSessions) {
+        if (savedSessions == null || savedSessions.isEmpty()) return;
+        StringBuilder cleaned = new StringBuilder();
+        for (String value : savedSessions.split("\\|")) {
+            if (value.isEmpty() || isZeroSignalSession(value)) continue;
+            sessions.add(value);
+            if (cleaned.length() > 0) cleaned.append('|');
+            cleaned.append(value);
+        }
+        if (!savedSessions.equals(cleaned.toString())) prefs.edit().putString("sessions", cleaned.toString()).apply();
+    }
+
+    private boolean isZeroSignalSession(String value) {
+        String[] parts = value.split(",", -1);
+        if (parts.length < 7) return false;
+        try {
+            int change = Integer.parseInt(parts[1].replace("%", "").replace("+", ""));
+            int energy = Integer.parseInt(parts[6]);
+            return change == 0 && energy <= 0;
+        } catch (NumberFormatException ignored) {
+            return false;
+        }
     }
 
     private void saveSample() {
