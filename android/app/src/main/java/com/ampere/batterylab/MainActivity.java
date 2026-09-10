@@ -640,7 +640,7 @@ class BatteryDashboard extends View {
         try {
             int change = Integer.parseInt(parts[1].replace("%", "").replace("+", ""));
             int energy = Integer.parseInt(parts[6]);
-            return change == 0 && energy <= 0;
+            return change == 0;
         } catch (NumberFormatException ignored) {
             return false;
         }
@@ -1471,14 +1471,14 @@ class BatteryDashboard extends View {
         super.onDraw(c);
         float w = getWidth() / density;
         float h = getHeight() / density;
-        int bg = light ? Color.rgb(243, 245, 239) : (amoled ? Color.BLACK : Color.rgb(17, 19, 24));
-        int panel = light ? Color.WHITE : (amoled ? Color.rgb(5, 5, 5) : Color.rgb(25, 28, 35));
-        int raised = light ? Color.rgb(238, 241, 233) : (amoled ? Color.rgb(12, 12, 12) : Color.rgb(29, 32, 40));
-        int border = light ? Color.rgb(223, 228, 217) : (amoled ? Color.rgb(36, 36, 36) : Color.rgb(43, 47, 56));
+        int bg = light ? Color.rgb(243, 245, 239) : (amoled ? Color.BLACK : Color.rgb(11, 16, 17));
+        int panel = light ? Color.WHITE : (amoled ? Color.rgb(5, 5, 5) : Color.rgb(20, 28, 25));
+        int raised = light ? Color.rgb(238, 241, 233) : (amoled ? Color.rgb(12, 12, 12) : Color.rgb(28, 39, 33));
+        int border = light ? Color.rgb(223, 228, 217) : (amoled ? Color.rgb(36, 36, 36) : Color.rgb(49, 66, 55));
         int primary = light ? Color.rgb(23, 26, 29) : Color.rgb(242, 244, 239);
         int muted = light ? Color.rgb(105, 113, 105) : Color.rgb(138, 145, 157);
         int faint = light ? Color.rgb(154, 164, 155) : Color.rgb(102, 109, 121);
-        int bgTop = light ? Color.rgb(250, 252, 247) : (amoled ? Color.BLACK : Color.rgb(24, 28, 34));
+        int bgTop = light ? Color.rgb(250, 252, 247) : (amoled ? Color.BLACK : Color.rgb(20, 30, 25));
         p.setShader(new LinearGradient(0, 0, 0, u(Math.min(h, 520)), bgTop, bg, Shader.TileMode.CLAMP));
         fill(c, bg); c.drawRect(0, 0, getWidth(), getHeight(), p);
         p.setShader(null);
@@ -1499,13 +1499,14 @@ class BatteryDashboard extends View {
     }
 
     private void drawHeader(Canvas c, float w, int primary, int muted, int border, int panel) {
-        rounded(c, 18, 18, 50, 50, 13, lime);
-        drawBolt(c, 33, 33, Color.rgb(26, 32, 17), 1.1f);
-        text(c, "Ampere", 57, 39, 17, primary, true);
+        rounded(c, 18, 18, 54, 54, 14, lime);
+        drawBolt(c, 36, 36, Color.rgb(26, 32, 17), 1.1f);
+        text(c, "Ampere", 62, 39, 17, primary, true);
         String buildLabel = w < 300f ? "v" + BuildConfig.VERSION_NAME : "LIVE-TELEMETRIE · v" + BuildConfig.VERSION_NAME;
-        text(c, fitText(buildLabel, w < 300f ? 74f : Math.max(100f, w - 235f), 7.5f, true), 57, 54, 7.5f, muted, true);
+        rounded(c, 62, 44, w < 300f ? 103 : 188, 62, 9, panel);
+        text(c, fitText(buildLabel, w < 300f ? 34f : 116f, 7.5f, true), 70, 56, 7.5f, lime, true);
         text(c, page == 0 ? "Überwachung  /  Übersicht" : "Überwachung  /  " + pageName(), 18, 80, 10, muted, false);
-        text(c, page == 0 ? "Übersicht" : pageName(), 18, 111, 28, primary, true);
+        text(c, page == 0 ? "Live-Übersicht" : pageName(), 18, 111, 28, primary, true);
         if (w < 300f) {
             // At the narrowest phone widths, two comfortable controls are
             // safer than three controls colliding with the brand label.
@@ -1534,21 +1535,25 @@ class BatteryDashboard extends View {
                 ? new String[]{"Start", "Laden", "Entl.", "Gesund.", "Verlauf"}
                 : new String[]{"Übersicht", "Laden", "Entladen", "Gesundheit", "Verlauf"};
         float cell = (w - 36) / 5f;
+        rounded(c, 18, 122, w - 18, 166, 14, panel);
+        stroke(c, border, 1);
+        rect.set(u(18), u(122), u(w - 18), u(166));
+        c.drawRoundRect(rect, u(14), u(14), p);
         for (int i = 0; i < labels.length; i++) {
             float x = 18 + i * cell;
             boolean active = page == i;
             boolean pressed = isPressed(10 + i);
             if (active || pressed) {
-                rounded(c, x, 126, x + cell - 5, 164, 10, pressed ? pressedFill(panel, true) : panel);
+                rounded(c, x + 4, 126, x + cell - 9, 162, 11, pressed ? pressedFill(panel, true) : (active ? lime : panel));
             }
-            int iconColor = active ? lime : muted;
+            int iconColor = active ? Color.rgb(23, 28, 16) : muted;
             if (compactNav) {
                 float centerX = x + (cell - 5) / 2f;
                 drawNavGlyph(c, i, centerX, 137, iconColor);
-                centeredText(c, labels[i], centerX, 156, 8.5f, active ? primary : muted, active);
+                centeredText(c, labels[i], centerX, 156, 8.5f, active ? Color.rgb(23, 28, 16) : muted, active);
             } else {
                 drawNavGlyph(c, i, x + 18, 145, iconColor);
-                text(c, fitText(labels[i], cell - 36, 9, active), x + 31, 148, 9, active ? primary : muted, active);
+                text(c, fitText(labels[i], cell - 36, 9, active), x + 31, 148, 9, active ? Color.rgb(23, 28, 16) : muted, active);
             }
         }
     }
@@ -1578,8 +1583,14 @@ class BatteryDashboard extends View {
         boolean compact = heroW < 410f;
         float heroH = compact ? 400f : 320f;
         frame(c, 18, top, 18 + heroW, top + heroH, panel, border, lime);
-        text(c, "AKKUSTAND", 36, top + 31, 10, muted, true);
-        text(c, "Live-Status", 36, top + 56, 17, primary, true);
+        text(c, "AKKUSTAND · AUTOMATIK", 36, top + 31, 10, muted, true);
+        text(c, "Aktueller Akkustand", 36, top + 56, 17, primary, true);
+        if (!compact) {
+            rounded(c, 18 + heroW - 142, top + 22, 18 + heroW - 36, top + 48, 13, raised);
+            fill(c, lime); c.drawCircle(u(18 + heroW - 128), u(top + 35), u(3), p);
+            text(c, "LIVE · GERÄT", 18 + heroW - 118, top + 39, 8, lime, true);
+            line(c, 36, top + 101, 18 + heroW - 36, top + 101, border, 1);
+        }
         rounded(c, 36, top + 67, 122, top + 89, 11, charging ? Color.argb(42, Color.red(lime), Color.green(lime), Color.blue(lime)) : Color.argb(35, Color.red(blue), Color.green(blue), Color.blue(blue)));
         fill(c, charging ? lime : blue); c.drawCircle(u(47), u(top + 78), u(3), p);
         text(c, charging ? "LÄDT JETZT" : "AKKUBETRIEB", 57, top + 82, 8, charging ? lime : blue, true);

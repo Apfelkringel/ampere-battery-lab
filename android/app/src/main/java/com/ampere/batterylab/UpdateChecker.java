@@ -17,6 +17,7 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.widget.Toast;
 
 import org.json.JSONObject;
@@ -36,6 +37,7 @@ import java.util.concurrent.Executors;
 
 /** Checks for optional APK updates. No battery or usage data is sent. */
 final class UpdateChecker {
+    private static final String TAG = "AmpereUpdate";
     private static final String PREFS = "ampere-update";
     private static final String UPDATE_CHANNEL_ID = "ampere-updates";
     private static final int UPDATE_NOTIFICATION_ID = 10;
@@ -77,7 +79,8 @@ final class UpdateChecker {
         if (now - prefs.getLong("lastBackgroundCheck", 0L) < CHECK_INTERVAL_MS) return;
         prefs.edit().putLong("lastBackgroundCheck", now).apply();
         EXECUTOR.execute(() -> {
-            UpdateInfo update = fetch(manifestUrl);
+            FetchResult result = fetch(manifestUrl);
+            UpdateInfo update = result.update;
             if (update == null) return;
             int notifiedVersion = prefs.getInt("notifiedVersionCode", 0);
             if (update.versionCode <= notifiedVersion) return;
@@ -96,22 +99,33 @@ final class UpdateChecker {
         prefs.edit().putLong("lastCheck", now).apply();
 
         WeakReference<Activity> activityRef = new WeakReference<>(activity);
+        if (force) Toast.makeText(activity, "Suche nach Aktualisierungen …", Toast.LENGTH_SHORT).show();
         EXECUTOR.execute(() -> {
-            UpdateInfo update = fetch(manifestUrl);
+            FetchResult result = fetch(manifestUrl);
+            UpdateInfo update = result.update;
             Activity target = activityRef.get();
             if (target == null || target.isFinishing()) return;
             target.runOnUiThread(() -> {
                 if (update != null) showUpdateDialog(target, update);
-                else if (force) Toast.makeText(target, "Keine neue Aktualisierung gefunden (oder der Update-Server ist nicht erreichbar).", Toast.LENGTH_LONG).show();
+                else if (force) showCheckResult(target, result.message);
             });
         });
     }
 
-    private static UpdateInfo fetch(String manifestUrl) {
+    private static void showCheckResult(Activity activity, String message) {
+        new AlertDialog.Builder(activity)
+                .setTitle("Update-Prüfung")
+                .setMessage(message)
+                .setPositiveButton("Erneut prüfen", (dialog, which) -> checkNow(activity))
+                .setNegativeButton("Schließen", null)
+                .show();
+    }
+
+    private static FetchResult fetch(String manifestUrl) {
         HttpURLConnection connection = null;
         try {
             URL url = new URL(withCacheBuster(manifestUrl));
-            if (!isAllowedManifestUrl(url)) return null;
+            if (!isAllowedManifestUrl(url)) return FetchResult.failure("Die konfigurierte Update-Adresse wurde aus Sicherheitsgründen abgelehnt.");
             connection = (HttpURLConnection) url.openConnection();
             connection.setConnectTimeout(7000);
             connection.setReadTimeout(7000);
@@ -120,16 +134,19 @@ final class UpdateChecker {
             connection.setRequestProperty("Cache-Control", "no-cache, no-store, max-age=0");
             connection.setRequestProperty("Pragma", "no-cache");
             connection.setInstanceFollowRedirects(false);
-            if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) return null;
+            int responseCode = connection.getResponseCode();
+            if (responseCode != HttpURLConnection.HTTP_OK) {
+                return FetchResult.failure("Der Update-Server antwortete mit HTTP " + responseCode + ". Prüfe die Internetverbindung und versuche es erneut.");
+            }
             long contentLength = connection.getContentLength();
-            if (contentLength > MAX_MANIFEST_BYTES) return null;
+            if (contentLength > MAX_MANIFEST_BYTES) return FetchResult.failure("Die Update-Datei ist ungewöhnlich groß und wurde aus Sicherheitsgründen abgelehnt.");
 
             ByteArrayOutputStream body = new ByteArrayOutputStream();
             try (InputStream stream = connection.getInputStream()) {
                 byte[] buffer = new byte[8192];
                 int count;
                 while ((count = stream.read(buffer)) != -1) {
-                    if (body.size() + count > MAX_MANIFEST_BYTES) return null;
+                    if (body.size() + count > MAX_MANIFEST_BYTES) return FetchResult.failure("Die Update-Datei überschreitet die erlaubte Größe.");
                     body.write(buffer, 0, count);
                 }
             }
@@ -141,12 +158,15 @@ final class UpdateChecker {
             String notes = json.optString("releaseNotes", "Neue Version verfügbar.");
             if (versionCode <= BuildConfig.VERSION_CODE || versionName.isEmpty() || versionName.length() > 64
                     || apkUrl.isEmpty() || apkUrl.length() > 512 || notes.length() > MAX_RELEASE_NOTES_CHARS
-                    || !sha256.matches("[0-9a-f]{64}")) return null;
+                    || !sha256.matches("[0-9a-f]{64}")) {
+                return FetchResult.failure("Der Server meldet keine neuere Version als " + BuildConfig.VERSION_NAME + ".");
+            }
             URL apk = new URL(apkUrl);
-            if (!isAllowedApkUrl(apk)) return null;
-            return new UpdateInfo(versionCode, versionName, apkUrl, sha256, notes);
-        } catch (Exception ignored) {
-            return null;
+            if (!isAllowedApkUrl(apk)) return FetchResult.failure("Die APK-Adresse wurde aus Sicherheitsgründen abgelehnt.");
+            return FetchResult.success(new UpdateInfo(versionCode, versionName, apkUrl, sha256, notes));
+        } catch (Exception error) {
+            Log.w(TAG, "Update-Prüfung fehlgeschlagen", error);
+            return FetchResult.failure("Die Update-Prüfung konnte nicht abgeschlossen werden (" + error.getClass().getSimpleName() + "). Prüfe Internetzugriff und Datum/Uhrzeit des Geräts.");
         } finally {
             if (connection != null) connection.disconnect();
         }
@@ -376,6 +396,24 @@ final class UpdateChecker {
             this.apkUrl = apkUrl;
             this.sha256 = sha256;
             this.notes = notes;
+        }
+    }
+
+    private static final class FetchResult {
+        final UpdateInfo update;
+        final String message;
+
+        private FetchResult(UpdateInfo update, String message) {
+            this.update = update;
+            this.message = message;
+        }
+
+        static FetchResult success(UpdateInfo update) {
+            return new FetchResult(update, "Update gefunden.");
+        }
+
+        static FetchResult failure(String message) {
+            return new FetchResult(null, message);
         }
     }
 }

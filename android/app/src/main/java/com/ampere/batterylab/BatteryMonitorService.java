@@ -489,10 +489,14 @@ public class BatteryMonitorService extends Service {
             chargerSource = "Battery";
             if (energy <= 0) energy = prefs.getInt("lastDischargeMah", 0);
         }
-        // Do not pollute History with a cable/status blip that produced no
-        // measurable level or energy change. The live state still changes,
-        // while a real session with either signal is retained.
-        if (change == 0 && energy <= 0) {
+        // A session is a percentage-based history item. Android can expose a
+        // stale charge counter while a cable/status blip is being confirmed;
+        // that must never create a misleading "0%" row. Preserve genuine
+        // charge energy in the aggregate, but keep the session list clean.
+        if (change == 0) {
+            if (previousCharging && energy > 0) {
+                prefs.edit().putInt("totalChargedMah", prefs.getInt("totalChargedMah", 0) + energy).apply();
+            }
             prefs.edit().putLong("monitorSessionStartedAt", now).putBoolean("monitorLastCharging", charging)
                     .putInt("monitorSessionStartLevel", level).putInt("monitorSessionStartCounterMah", counterMah).apply();
             return;
