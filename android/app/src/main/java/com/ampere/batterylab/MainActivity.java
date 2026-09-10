@@ -1502,7 +1502,8 @@ class BatteryDashboard extends View {
         rounded(c, 18, 18, 50, 50, 13, lime);
         drawBolt(c, 33, 33, Color.rgb(26, 32, 17), 1.1f);
         text(c, "Ampere", 57, 39, 17, primary, true);
-        text(c, "AKKU-TELEMETRIE", 57, 54, 8, muted, true);
+        String buildLabel = w < 300f ? "v" + BuildConfig.VERSION_NAME : "LIVE-TELEMETRIE · v" + BuildConfig.VERSION_NAME;
+        text(c, fitText(buildLabel, w < 300f ? 74f : Math.max(100f, w - 235f), 7.5f, true), 57, 54, 7.5f, muted, true);
         text(c, page == 0 ? "Überwachung  /  Übersicht" : "Überwachung  /  " + pageName(), 18, 80, 10, muted, false);
         text(c, page == 0 ? "Übersicht" : pageName(), 18, 111, 28, primary, true);
         if (w < 300f) {
