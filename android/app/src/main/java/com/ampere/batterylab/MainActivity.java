@@ -1711,8 +1711,12 @@ class BatteryDashboard extends View {
     }
 
     private void drawOverview(Canvas c, float w, float h, int panel, int raised, int border, int primary, int muted, int faint) {
-        if (viewportWidthDp >= 600f && viewportHeightDp > 0f && viewportHeightDp < 600f) {
-            drawOverviewLandscape(c, w, panel, raised, border, primary, muted, faint);
+        // Use the actual drawable height. The root window also includes the
+        // navigation area on some Android 16/17 configurations, so relying
+        // on its height can select the tall landscape composition and paint
+        // the bottom of the live card behind the gesture bar.
+        if (viewportWidthDp >= 600f && h > 0f && h < 600f) {
+            drawOverviewLandscape(c, w, h, panel, raised, border, primary, muted, faint);
             return;
         }
         float top = 182;
@@ -1815,9 +1819,9 @@ class BatteryDashboard extends View {
      * card wastes the horizontal space and hides the key metrics below the
      fold, so the live card and supporting metrics share the first viewport.
      */
-    private void drawOverviewLandscape(Canvas c, float w, int panel, int raised, int border,
+    private void drawOverviewLandscape(Canvas c, float w, float h, int panel, int raised, int border,
                                        int primary, int muted, int faint) {
-        if (viewportHeightDp < 390f) {
+        if (h < 390f) {
             drawOverviewLandscapeShort(c, w, panel, raised, border, primary, muted, faint);
             return;
         }

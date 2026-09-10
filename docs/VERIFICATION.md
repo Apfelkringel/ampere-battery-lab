@@ -5,7 +5,7 @@ Last verified: 2026-09-10 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.107` (`versionCode 107`)
+- Version: `0.108` (`versionCode 108`)
 - `minSdk 23`, `targetSdk 37`
 - Release APK SHA-256: `124886fb10e52920883c27d7730327e8c6e65d63031ee6bba89e43d0240ac797`
 - The same hash is published in the public update repository manifest.
@@ -107,8 +107,11 @@ wide overview separates the gauge from the status chip and status row.
 Release `0.107` gives header actions one shared 48-dp control surface with
 matching fill/outline bounds and centers the live badge as a single group.
 The five navigation items use equal cell insets, a fixed 24-dp icon slot and
-one shared label baseline on compact phones; the local debug build passed lint,
-build and the visual device matrix.
+one shared label baseline on compact phones.
+
+Release `0.108` selects the short landscape composition from the drawable
+window height, keeping the live card above the gesture/navigation area on
+Android 16/17 split-screen and landscape windows.
 
 The current public update path was also exercised from signed `0.90` to signed
 `0.91` on API 36. The app fetched the 0.91 manifest, showed the in-app dialog,
