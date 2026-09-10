@@ -5,9 +5,9 @@ Last verified: 2026-09-10 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.89` (`versionCode 89`)
+- Version: `0.90` (`versionCode 90`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `d8cf49d408389b58c287d8280a7af54bd3d6fa187bd4f2b0606f7c079ef930c1`
+- Release APK SHA-256: `71eb61ea8b70ee796c1ccce3c59eb732e3077e28eb9029da48b6490cb2c98651`
 - The same hash is published in the public update repository manifest.
 
 ## Runtime checks
@@ -24,12 +24,17 @@ package installer, and completed the update after the test emulator's unknown-
 sources permission was enabled. `firstInstallTime` remained unchanged and the
 monitor was restarted by `MY_PACKAGE_REPLACED` as a foreground service.
 
-Release `0.89` also compiles and passes lint locally after centered max-width
+Release `0.90` also compiles and passes lint locally after centered max-width
 content for wide screens, translated touch coordinates, responsive safe-edge
 text fitting, narrow-phone navigation, stacked small cards, compact hero spacing
-and the corrected health-card layout. Direct handling for Android
-power-connected and power-disconnected broadcasts remains active in both the
-monitor service and the visible activity.
+and the corrected health-card layout. Session tests on API 36 confirmed that a
+transient status sequence while the cable is connected creates no history item,
+while a real 50→60 % charge and 60→50 % discharge each create exactly one
+session; the charge source was recorded as `Netzteil`. Direct handling for
+Android power-connected and power-disconnected broadcasts remains active in
+both the monitor service and the visible activity. The update client adds
+cache-busting and verifies the release certificate before opening Android's
+installer.
 
 The API-37 system image and AVD are generated test assets stored under
 `tooling/` on the external SSD and are ignored by Git.
