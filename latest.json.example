@@ -1,7 +1,7 @@
 {
-  "versionCode": 126,
-  "versionName": "0.126",
+  "versionCode": 127,
+  "versionName": "0.127",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
   "sha256": "ab745566ef76f196fa66aa54e4c5d4ff9dd5ec8fb5e28572a79b6d52d84ab648",
-  "releaseNotes": "Akku-Kachel aktualisiert Live-Prozent und Status zuverlässig in den Android-Schnelleinstellungen."
+  "releaseNotes": "Kachelbindung wird nach Updates automatisch erneuert; Live-Prozent und Status bleiben erhalten."
 }
