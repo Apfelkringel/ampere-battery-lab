@@ -495,7 +495,8 @@ class BatteryDashboard extends View {
 
     private float overviewChartTop() {
         float width = getWidth() / density;
-        float heroWidth = Math.min(width - 36, 470);
+        float bodyWidth = contentWidth(width);
+        float heroWidth = Math.min(bodyWidth - 36, 470);
         float heroHeight = heroWidth < 410f ? 400f : 320f;
         return 182 + heroHeight + 14 + 234;
     }
@@ -1421,10 +1422,12 @@ class BatteryDashboard extends View {
             float cell = (w - 36) / 5f;
             return 10 + Math.max(0, Math.min(4, (int) ((x - 18) / cell)));
         }
-        if (page == 1 && y > 350 && y < 420) return 20; // charge target
-        if (page == 1 && y > 445 && y < 520) return 21; // alarm
-        if (page == 1 && y > 500 && y < 575) return 22; // overlay
-        if (page == 3 && y > 690 && y < 825) return 30; // benchmark
+        float bodyX = x - contentInset(w);
+        float bodyW = contentWidth(w);
+        if (page == 1 && y > 350 && y < 420 && bodyX > bodyW - 130) return 20; // charge target
+        if (page == 1 && y > 445 && y < 520 && bodyX > bodyW - 130) return 21; // alarm
+        if (page == 1 && y > 500 && y < 575 && bodyX > bodyW - 140) return 22; // overlay
+        if (page == 3 && y > 690 && y < 825 && bodyX > bodyW - 140) return 30; // benchmark
         if (page == 4 && y > historyExportTop() && y < historyExportTop() + 55) return 40;
         return 0;
     }
@@ -1441,6 +1444,9 @@ class BatteryDashboard extends View {
         }
         return suffix;
     }
+
+    private float contentWidth(float viewWidth) { return Math.min(viewWidth, 560f); }
+    private float contentInset(float viewWidth) { return Math.max(0f, (viewWidth - contentWidth(viewWidth)) / 2f); }
 
     @Override protected void onDraw(Canvas c) {
         super.onDraw(c);
@@ -1459,11 +1465,18 @@ class BatteryDashboard extends View {
         p.setShader(null);
 
         drawHeader(c, w, primary, muted, border, panel);
-        if (page == 0) drawOverview(c, w, h, panel, raised, border, primary, muted, faint);
-        else if (page == 1) drawChargingPage(c, w, h, panel, raised, border, primary, muted, faint);
-        else if (page == 2) drawDischargingPage(c, w, h, panel, raised, border, primary, muted, faint);
-        else if (page == 3) drawHealthPage(c, w, h, panel, raised, border, primary, muted, faint);
-        else drawHistoryPage(c, w, h, panel, raised, border, primary, muted, faint);
+        // Keep large-screen cards readable and visually anchored instead of
+        // stretching telemetry across a tablet or foldable display.
+        float bodyInset = contentInset(w);
+        float bodyWidth = contentWidth(w);
+        c.save();
+        c.translate(u(bodyInset), 0);
+        if (page == 0) drawOverview(c, bodyWidth, h, panel, raised, border, primary, muted, faint);
+        else if (page == 1) drawChargingPage(c, bodyWidth, h, panel, raised, border, primary, muted, faint);
+        else if (page == 2) drawDischargingPage(c, bodyWidth, h, panel, raised, border, primary, muted, faint);
+        else if (page == 3) drawHealthPage(c, bodyWidth, h, panel, raised, border, primary, muted, faint);
+        else drawHistoryPage(c, bodyWidth, h, panel, raised, border, primary, muted, faint);
+        c.restore();
     }
 
     private void drawHeader(Canvas c, float w, int primary, int muted, int border, int panel) {
@@ -2359,7 +2372,7 @@ class BatteryDashboard extends View {
             return true;
         }
         performClick();
-        float x = event.getX() / density, y = event.getY() / density;
+        float screenX = event.getX() / density, y = event.getY() / density;
         int releasedRegion = pressedRegion;
         pressedRegion = 0;
         invalidate();
@@ -2370,19 +2383,23 @@ class BatteryDashboard extends View {
         if (releasedRegion == 2 && y < 70) { light = !light; amoled = false; prefs.edit().putBoolean("lightTheme", light).putBoolean("amoledTheme", amoled).apply(); invalidate(); return true; }
         if (y >= 124 && y < 174) {
             float cell = (w - 36) / 5f;
-            page = Math.max(0, Math.min(4, (int) ((x - 18) / cell)));
+            page = Math.max(0, Math.min(4, (int) ((screenX - 18) / cell)));
             updateAccessibilitySummary();
             updateLayoutHeight();
             invalidate();
             return true;
         }
-        if (page == 0 && y > overviewChartTop() + 8 && y < overviewChartTop() + 60 && x > w - 140) {
+        // Page content is centered on wide displays; convert screen coordinates
+        // back into the same local coordinate system used by onDraw().
+        float x = screenX - contentInset(w);
+        float bodyW = contentWidth(w);
+        if (page == 0 && y > overviewChartTop() + 8 && y < overviewChartTop() + 60 && x > bodyW - 140) {
             historyDays = historyDays == 7 ? 30 : 7;
             prefs.edit().putInt("historyDays", historyDays).apply();
             invalidate();
             return true;
         }
-        if (page == 1 && y > 455 && y < 510 && x > w - 130) {
+        if (page == 1 && y > 455 && y < 510 && x > bodyW - 130) {
             chargeAlarm = !chargeAlarm;
             prefs.edit().putBoolean("chargeAlarm", chargeAlarm).apply();
             if (!chargeAlarm) {
@@ -2393,8 +2410,8 @@ class BatteryDashboard extends View {
             invalidate();
             return true;
         }
-        if (page == 1 && y > 365 && y < 410 && x >= 36 && x <= w - 36) {
-            chargeLimit = Math.max(50, Math.min(100, Math.round((x - 36) / (w - 72) * 100)));
+        if (page == 1 && y > 365 && y < 410 && x >= 36 && x <= bodyW - 36) {
+            chargeLimit = Math.max(50, Math.min(100, Math.round((x - 36) / (bodyW - 72) * 100)));
             prefs.edit().putInt("chargeLimit", chargeLimit).apply();
             if (level < chargeLimit) {
                 android.app.NotificationManager manager = (android.app.NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
@@ -2403,21 +2420,21 @@ class BatteryDashboard extends View {
             invalidate();
             return true;
         }
-        if (page == 1 && y > 500 && y < 560 && x > w - 140) {
+        if (page == 1 && y > 500 && y < 560 && x > bodyW - 140) {
             setOverlayEnabled(!overlayEnabled);
             return true;
         }
         int historyRows = Math.min(150, sessions.size());
-        if (page == 4 && y >= 342 && y < 342 + historyRows * 44f && x < w - 145 && !sessions.isEmpty()) {
+        if (page == 4 && y >= 342 && y < 342 + historyRows * 44f && x < bodyW - 145 && !sessions.isEmpty()) {
             int index = (int) ((y - 342) / 44);
             showSessionDetails(index);
             return true;
         }
-        if (page == 4 && y > historyExportTop() && y < historyExportTop() + 45 && x > w - 155) {
+        if (page == 4 && y > historyExportTop() && y < historyExportTop() + 45 && x > bodyW - 155) {
             exportHistory();
             return true;
         }
-        if (page == 3 && y > 700 && y < 815 && x > w - 140) {
+        if (page == 3 && y > 700 && y < 815 && x > bodyW - 140) {
             if (benchmarkActive) {
                 benchmarkActive = false;
                 prefs.edit().putBoolean("benchmarkActive", false)
