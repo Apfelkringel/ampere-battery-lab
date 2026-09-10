@@ -5,7 +5,7 @@ Last verified: 2026-09-10 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.113` (`versionCode 113`)
+- Version: `0.114` (`versionCode 114`)
 - `minSdk 23`, `targetSdk 37`
 - Release APK SHA-256: published by the signed `v0.113` release workflow and copied to the public update repository manifest.
 - The same hash is published in the public update repository manifest.
@@ -134,6 +134,10 @@ unavailability states.
 Release `0.113` makes the settings overlay close explicitly on outside-window
 touch events as well as through its visible close button. The signed release
 was rechecked on compact portrait and landscape windows after the change.
+
+Release `0.114` handles devices whose dialog root consumes outside-window
+touches by checking the visible dialog edge directly, so tapping the dimmed
+area closes settings consistently on compact Android windows.
 
 The current public update path was also exercised from signed `0.90` to signed
 `0.91` on API 36. The app fetched the 0.91 manifest, showed the in-app dialog,

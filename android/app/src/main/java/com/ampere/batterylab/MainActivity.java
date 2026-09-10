@@ -1317,6 +1317,14 @@ class BatteryDashboard extends View {
                     dialog.dismiss();
                     return true;
                 }
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    float edge = 16 * density;
+                    if (event.getX() < edge || event.getX() > view.getWidth() - edge
+                            || event.getY() < edge || event.getY() > view.getHeight() - edge) {
+                        dialog.dismiss();
+                        return true;
+                    }
+                }
                 return false;
             });
         });
