@@ -2,6 +2,6 @@
   "versionCode": 123,
   "versionName": "0.123",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "751b7d69295121e7716b2299ae2743f8382326c4fa9fcfdef853bed7bd76cc94",
+  "sha256": "c448bab3fd8fb1d8f2954eaff9a91f31bb0f901c83076b23a732cd933e54b704",
   "releaseNotes": "Neues Startbildschirm-Widget mit realem Akkustand, Ladestatus und verfügbaren Live-Messwerten."
 }
