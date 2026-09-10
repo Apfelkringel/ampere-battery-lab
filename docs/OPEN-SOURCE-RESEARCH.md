@@ -40,3 +40,8 @@ Projekts.
 Jeder automatische Treffer bleibt auf 500–30.000 mAh begrenzt und wird als
 Quelle angezeigt. Ein nicht verfügbarer Wert wird weder als `0 mAh` noch als
 Gesundheitsmessung dargestellt.
+
+Die Zykluszählung folgt demselben Prinzip: Androids gemeldeter Wert hat Vorrang,
+danach werden nur bekannte Batterie-/BMS-Treiberknoten mit einer festen
+Plausibilitätsgrenze gelesen. Fehlt beides, wird kein künstlicher Gesamtzähler
+angezeigt.

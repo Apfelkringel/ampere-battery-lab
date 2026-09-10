@@ -173,8 +173,12 @@ public class BatteryMonitorService extends Service {
         int temperature = battery.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0);
         int rawChargeCounter = batteryManager == null ? 0 : batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER);
         int chargeCounterMah = rawChargeCounter > 0 ? rawChargeCounter / 1000 : 0;
-        int systemCycleCount = battery.getIntExtra("android.os.extra.CYCLE_COUNT", -1);
-        if (systemCycleCount >= 0) prefs.edit().putInt("systemCycleCount", systemCycleCount).apply();
+        BatteryCycleCount.Reading cycleReading = BatteryCycleCount.read(battery);
+        int systemCycleCount = cycleReading == null ? -1 : cycleReading.cycles;
+        if (cycleReading != null) {
+            prefs.edit().putInt("systemCycleCount", cycleReading.cycles)
+                    .putString("systemCycleCountSource", cycleReading.source).apply();
+        }
         PowerManager power = (PowerManager) getSystemService(POWER_SERVICE);
         boolean interactive = power == null || power.isInteractive();
         long deepSleepDeltaMs = recordDeepSleepClock(prefs);

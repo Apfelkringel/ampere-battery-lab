@@ -1216,6 +1216,13 @@ class BatteryDashboard extends View {
         return reported >= 0 ? reported : prefs.getInt("chargeCycles", 0);
     }
 
+    private String chargeCyclesDisplay() {
+        int reported = prefs.getInt("systemCycleCount", -1);
+        if (reported >= 0) return String.valueOf(reported);
+        int locallyObserved = prefs.getInt("chargeCycles", 0);
+        return locallyObserved > 0 ? String.valueOf(locallyObserved) : "—";
+    }
+
     private String chargingEfficiency() {
         int charged = prefs.getInt("totalChargedMah", 0);
         int cycles = chargeCycles();
@@ -2271,7 +2278,7 @@ class BatteryDashboard extends View {
         text(c, "Ladeeffizienz", 36, y + 282, 10, muted, false);
         text(c, chargingEfficiency(), w - 75, y + 282, 10, blue, true);
         drawStat(c, 18, y + 316, (w - 48) / 2f, 105, "Spannung", voltageDisplay(), voltage > 0f ? "V" : "", blue, primary, muted, border, panel, "bolt");
-        drawStat(c, 30 + (w - 48) / 2f, y + 316, (w - 48) / 2f, 105, "Ladezyklen", String.valueOf(chargeCycles()), "", Color.rgb(180, 154, 255), primary, muted, border, panel, "grid");
+        drawStat(c, 30 + (w - 48) / 2f, y + 316, (w - 48) / 2f, 105, "Ladezyklen", chargeCyclesDisplay(), "", Color.rgb(180, 154, 255), primary, muted, border, panel, "grid");
         rounded(c, 18, y + 438, w - 18, y + 520, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 438), u(w - 18), u(y + 520)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "So entsteht die Schätzung", 36, y + 468, 10, muted, true);
         text(c, "Kapazität aus lokalen Lade-/Entlademessungen", 36, y + 493, 9, primary, false);
