@@ -164,6 +164,13 @@ tests for the shared charging-state and cycle-count validation rules.
 Release `0.120` caps displayed battery health and its chart at 100 %, so an
 optimistic benchmark can no longer render an impossible 110-% health value.
 
+Release `0.126` makes the Quick Settings tile consume live battery broadcasts
+while it is visible. Release `0.127` additionally requests a new TileService
+binding from `MY_PACKAGE_REPLACED`. On API 36, an existing tile survived signed
+updates `0.126` → `0.127` without removal/re-addition, reported live tile
+accessibility text (`100% · Laden · +900mA · 25.0°C`), and the app's
+`firstInstallTime` stayed unchanged.
+
 The current public update path was also exercised from signed `0.90` to signed
 `0.91` on API 36. The app fetched the 0.91 manifest, showed the in-app dialog,
 passed the cache-busted download and signature checks, completed Android's
