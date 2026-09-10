@@ -4,6 +4,7 @@ import android.os.BatteryManager;
 import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /** Pure rules shared by the visible dashboard and background monitor. */
@@ -20,5 +21,11 @@ public class BatteryRulesTest {
         assertTrue(BatteryCycleCount.isPlausible(100000));
         assertFalse(BatteryCycleCount.isPlausible(-1));
         assertFalse(BatteryCycleCount.isPlausible(100001));
+    }
+
+    @Test public void healthCannotExceedOneHundredPercent() {
+        assertEquals(85, BatteryHealth.percent(8500, 10000));
+        assertEquals(100, BatteryHealth.percent(12000, 10000));
+        assertEquals(0, BatteryHealth.percent(0, 10000));
     }
 }

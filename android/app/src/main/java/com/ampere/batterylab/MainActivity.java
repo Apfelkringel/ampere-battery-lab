@@ -729,10 +729,7 @@ class BatteryDashboard extends View {
         if (measured <= 0) return 0;
         int design = designCapacityMah();
         if (design <= 0) return 0;
-        // Health is a condition percentage, not a capacity-overage score.
-        // Measurement noise or a slightly optimistic benchmark must never
-        // produce a value above the physically meaningful 100% ceiling.
-        return Math.max(1, Math.min(100, Math.round(measured * 100f / design)));
+        return BatteryHealth.percent(measured, design);
     }
 
     private String healthDisplay() { return healthPercent() > 0 ? String.valueOf(healthPercent()) : "—"; }
