@@ -16,6 +16,8 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
 import android.graphics.Typeface;
+import android.graphics.LinearGradient;
+import android.graphics.Shader;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ScrollView;
@@ -441,9 +443,11 @@ class BatteryDashboard extends View {
     private float touchDownY;
     private float lastTouchY;
     private boolean touchDragged;
+    private int pressedRegion = 0;
     private final int lime = Color.rgb(199, 243, 107);
     private final int blue = Color.rgb(118, 184, 255);
     private final int amber = Color.rgb(242, 179, 106);
+    private final int violet = Color.rgb(180, 154, 255);
 
     BatteryDashboard(Context context) {
         super(context);
@@ -1369,8 +1373,58 @@ class BatteryDashboard extends View {
         type(size, color, bold);
         c.drawText(value, u(rightX) - p.measureText(value), u(y), p);
     }
-    private void rounded(Canvas c, float l, float t, float r, float b, float radius, int color) { fill(c, color); rect.set(u(l), u(t), u(r), u(b)); c.drawRoundRect(rect, u(radius), u(radius), p); }
+    private void rounded(Canvas c, float l, float t, float r, float b, float radius, int color) {
+        // One consistent surface language: large cards are softer than controls.
+        float surfaceRadius = radius >= 12f ? 16f : radius;
+        fill(c, color); rect.set(u(l), u(t), u(r), u(b)); c.drawRoundRect(rect, u(surfaceRadius), u(surfaceRadius), p);
+    }
     private void line(Canvas c, float x1, float y1, float x2, float y2, int color, float width) { stroke(c, color, width); c.drawLine(u(x1), u(y1), u(x2), u(y2), p); }
+
+    private void frame(Canvas c, float l, float t, float r, float b, int panel, int border, int accent) {
+        rounded(c, l, t, r, b, 16, panel);
+        stroke(c, border, 1);
+        rect.set(u(l), u(t), u(r), u(b));
+        c.drawRoundRect(rect, u(16), u(16), p);
+        // A quiet color rail makes the information hierarchy scannable without
+        // turning every card into a bright button.
+        rounded(c, l, t, Math.min(r, l + 4), b, 2, Color.argb(150, Color.red(accent), Color.green(accent), Color.blue(accent)));
+    }
+
+    private int pressedFill(int base, boolean pressed) {
+        if (!pressed) return base;
+        return Color.argb(light ? 34 : 46, Color.red(lime), Color.green(lime), Color.blue(lime));
+    }
+
+    private boolean isPressed(int region) { return pressedRegion == region; }
+
+    private int pressedRegionAt(float x, float y, float w) {
+        if (y < 70 && x > w - 190 && x < w - 140) return 1; // overflow
+        if (y < 70 && x > w - 145 && x < w - 96) return 2; // theme
+        if (y < 70 && x > w - 100) return 3; // live status
+        if (y >= 118 && y < 176 && x >= 18 && x <= w - 18) {
+            float cell = (w - 36) / 5f;
+            return 10 + Math.max(0, Math.min(4, (int) ((x - 18) / cell)));
+        }
+        if (page == 1 && y > 350 && y < 420) return 20; // charge target
+        if (page == 1 && y > 445 && y < 520) return 21; // alarm
+        if (page == 1 && y > 500 && y < 575) return 22; // overlay
+        if (page == 3 && y > 690 && y < 825) return 30; // benchmark
+        if (page == 4 && y > historyExportTop() && y < historyExportTop() + 55) return 40;
+        return 0;
+    }
+
+    private String fitText(String value, float maxWidthDp, float size, boolean bold) {
+        if (value == null) return "";
+        type(size, Color.WHITE, bold);
+        if (p.measureText(value) <= u(maxWidthDp)) return value;
+        String suffix = "…";
+        String result = value;
+        while (result.length() > 1) {
+            result = result.substring(0, result.length() - 1);
+            if (p.measureText(result + suffix) <= u(maxWidthDp)) return result + suffix;
+        }
+        return suffix;
+    }
 
     @Override protected void onDraw(Canvas c) {
         super.onDraw(c);
@@ -1383,7 +1437,10 @@ class BatteryDashboard extends View {
         int primary = light ? Color.rgb(23, 26, 29) : Color.rgb(242, 244, 239);
         int muted = light ? Color.rgb(105, 113, 105) : Color.rgb(138, 145, 157);
         int faint = light ? Color.rgb(154, 164, 155) : Color.rgb(102, 109, 121);
+        int bgTop = light ? Color.rgb(250, 252, 247) : (amoled ? Color.BLACK : Color.rgb(24, 28, 34));
+        p.setShader(new LinearGradient(0, 0, 0, u(Math.min(h, 520)), bgTop, bg, Shader.TileMode.CLAMP));
         fill(c, bg); c.drawRect(0, 0, getWidth(), getHeight(), p);
+        p.setShader(null);
 
         drawHeader(c, w, primary, muted, border, panel);
         if (page == 0) drawOverview(c, w, h, panel, raised, border, primary, muted, faint);
@@ -1394,17 +1451,18 @@ class BatteryDashboard extends View {
     }
 
     private void drawHeader(Canvas c, float w, int primary, int muted, int border, int panel) {
-        rounded(c, 18, 18, 48, 48, 11, lime);
+        rounded(c, 18, 18, 50, 50, 13, lime);
         drawBolt(c, 33, 33, Color.rgb(26, 32, 17), 1.1f);
         text(c, "Ampere", 57, 39, 17, primary, true);
-        text(c, page == 0 ? "Überwachung  /  Übersicht" : "Überwachung  /  " + pageName(), 18, 79, 10, muted, false);
-        text(c, page == 0 ? "Übersicht" : pageName(), 18, 111, 30, primary, true);
-        rounded(c, w - 91, 22, w - 19, 50, 16, panel);
+        text(c, "AKKU-TELEMETRIE", 57, 54, 8, muted, true);
+        text(c, page == 0 ? "Überwachung  /  Übersicht" : "Überwachung  /  " + pageName(), 18, 80, 10, muted, false);
+        text(c, page == 0 ? "Übersicht" : pageName(), 18, 111, 28, primary, true);
+        rounded(c, w - 91, 20, w - 19, 52, 17, isPressed(3) ? pressedFill(panel, true) : panel);
         stroke(c, border, 1); rect.set(u(w - 91), u(22), u(w - 19), u(50)); c.drawRoundRect(rect, u(16), u(16), p);
-        fill(c, lime); c.drawCircle(u(w - 75), u(36), u(4), p); text(c, "Live", w - 65, 40, 10, primary, true);
-        rounded(c, w - 138, 22, w - 101, 50, 8, panel); stroke(c, border, 1); rect.set(u(w - 138), u(22), u(w - 101), u(50)); c.drawRoundRect(rect, u(8), u(8), p);
+        fill(c, lime); c.drawCircle(u(w - 75), u(36), u(4), p); text(c, "LIVE", w - 65, 40, 9, primary, true);
+        rounded(c, w - 138, 20, w - 101, 52, 10, isPressed(2) ? pressedFill(panel, true) : panel); stroke(c, border, 1); rect.set(u(w - 138), u(22), u(w - 101), u(50)); c.drawRoundRect(rect, u(8), u(8), p);
         drawSun(c, w - 119, 36, muted);
-        rounded(c, w - 178, 22, w - 143, 50, 8, panel); stroke(c, border, 1); rect.set(u(w - 178), u(22), u(w - 143), u(50)); c.drawRoundRect(rect, u(8), u(8), p);
+        rounded(c, w - 178, 20, w - 143, 52, 10, isPressed(1) ? pressedFill(panel, true) : panel); stroke(c, border, 1); rect.set(u(w - 178), u(22), u(w - 143), u(50)); c.drawRoundRect(rect, u(8), u(8), p);
         fill(c, muted); c.drawCircle(u(w - 160), u(29), u(1.5f), p); c.drawCircle(u(w - 160), u(36), u(1.5f), p); c.drawCircle(u(w - 160), u(43), u(1.5f), p);
         drawNav(c, w, primary, muted, border, panel);
         line(c, 18, 166, w - 18, 166, border, 1);
@@ -1415,9 +1473,9 @@ class BatteryDashboard extends View {
         float cell = (w - 36) / 5f;
         for (int i = 0; i < labels.length; i++) {
             float x = 18 + i * cell;
-            if (page == i) {
-                rounded(c, x, 132, x + cell - 5, 157, 7, panel);
-                fill(c, lime); c.drawCircle(u(x + 9), u(144), u(3), p);
+            if (page == i || isPressed(10 + i)) {
+                rounded(c, x, 130, x + cell - 5, 159, 9, isPressed(10 + i) ? pressedFill(panel, true) : panel);
+                if (page == i) { fill(c, lime); c.drawCircle(u(x + 9), u(144), u(3), p); }
             }
             text(c, labels[i], x + 16, 148, 9, page == i ? primary : muted, page == i);
         }
@@ -1428,10 +1486,12 @@ class BatteryDashboard extends View {
         float heroW = Math.min(w - 36, 470);
         boolean compact = heroW < 410f;
         float heroH = compact ? 400f : 320f;
-        rounded(c, 18, top, 18 + heroW, top + heroH, 12, panel);
-        stroke(c, border, 1); rect.set(u(18), u(top), u(18 + heroW), u(top + heroH)); c.drawRoundRect(rect, u(12), u(12), p);
+        frame(c, 18, top, 18 + heroW, top + heroH, panel, border, lime);
         text(c, "AKKUSTAND", 36, top + 31, 10, muted, true);
         text(c, "Live-Status", 36, top + 56, 17, primary, true);
+        rounded(c, 36, top + 67, 122, top + 89, 11, charging ? Color.argb(42, Color.red(lime), Color.green(lime), Color.blue(lime)) : Color.argb(35, Color.red(blue), Color.green(blue), Color.blue(blue)));
+        fill(c, charging ? lime : blue); c.drawCircle(u(47), u(top + 78), u(3), p);
+        text(c, charging ? "LÄDT JETZT" : "AKKUBETRIEB", 57, top + 82, 8, charging ? lime : blue, true);
         int health = healthPercent();
         String powerText = currentMa > 0 ? String.format(Locale.US, "ca. %.1f W aktueller Verbrauch", currentMa * voltage / 1000f) : "Warte auf Strommessung";
         String detectionText = charging ? chargerTypeDisplay() + " · automatisch von Android erkannt" : powerText + " · automatisch von Android erkannt";
@@ -1484,7 +1544,7 @@ class BatteryDashboard extends View {
 
     private void drawChargingPage(Canvas c, float w, float h, int panel, int raised, int border, int primary, int muted, int faint) {
         float y = 182;
-        rounded(c, 18, y, w - 18, y + 366, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y), u(w - 18), u(y + 366)); c.drawRoundRect(rect, u(12), u(12), p);
+        frame(c, 18, y, w - 18, y + 366, panel, border, lime);
         text(c, "LADEVORGANG", 36, y + 31, 10, muted, true);
         text(c, charging ? "Ladevorgang aktiv" : "Letzter Ladevorgang", 36, y + 58, 18, primary, true);
         drawBolt(c, 53, y + 105, lime, 1);
@@ -1517,7 +1577,7 @@ class BatteryDashboard extends View {
         drawStat(c, 30 + (w - 48) / 2f, y + 380, (w - 48) / 2f, 105, "Akkugesundheit", healthDisplay(), healthPercent() > 0 ? "%" : "", lime, primary, muted, border, panel, "heart");
         boolean compact = w < 380f;
         float amountBottom = compact ? y + 700 : y + 645;
-        rounded(c, 18, y + 500, w - 18, amountBottom, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 500), u(w - 18), u(amountBottom)); c.drawRoundRect(rect, u(12), u(12), p);
+        frame(c, 18, y + 500, w - 18, amountBottom, panel, border, lime);
         text(c, "LADEMENGE", 36, y + 530, 10, muted, true);
         text(c, "Änderung", 36, y + 558, 8, faint, false);
         text(c, chargeChangeForDisplay(), 36, y + 580, 13, primary, true);
@@ -1542,7 +1602,7 @@ class BatteryDashboard extends View {
             text(c, chargeModeDetails(false), 285, y + 630, 10, blue, true);
         }
         float remainingTop = compact ? y + 720 : y + 665;
-        rounded(c, 18, remainingTop, w - 18, remainingTop + 105, 12, panel); stroke(c, border, 1); rect.set(u(18), u(remainingTop), u(w - 18), u(remainingTop + 105)); c.drawRoundRect(rect, u(12), u(12), p);
+        frame(c, 18, remainingTop, w - 18, remainingTop + 105, panel, border, violet);
         text(c, "VERBLEIBENDE NUTZUNGSZEIT", 36, remainingTop + 30, 10, muted, true);
         float useColumn = compact ? 36 : 36;
         float useColumnOn = compact ? 130 : 160;
@@ -1951,15 +2011,21 @@ class BatteryDashboard extends View {
     }
 
     private void drawStat(Canvas c, float x, float y, float width, float height, String label, String value, String unit, int accent, int primary, int muted, int border, int panel, String icon) {
-        rounded(c, x, y, x + width, y + height, 12, panel); stroke(c, border, 1); rect.set(u(x), u(y), u(x + width), u(y + height)); c.drawRoundRect(rect, u(12), u(12), p);
+        frame(c, x, y, x + width, y + height, panel, border, accent);
         rounded(c, x + 15, y + 16, x + 45, y + 46, 8, Color.argb(28, Color.red(accent), Color.green(accent), Color.blue(accent)));
         if (icon.equals("bolt")) drawBolt(c, x + 30, y + 31, accent, .7f); else if (icon.equals("temp")) drawThermometer(c, x + 30, y + 31, accent); else if (icon.equals("heart")) drawHeart(c, x + 30, y + 31, accent); else if (icon.equals("arrow")) drawArrow(c, x + 30, y + 31, accent); else if (icon.equals("grid")) drawGrid(c, x + 30, y + 31, accent); else drawClock(c, x + 30, y + 31, accent);
-        text(c, label, x + 58, y + 30, 10, muted, false);
-        text(c, value, x + 58, y + 62, 21, primary, true); if (!unit.isEmpty()) text(c, unit, x + 58 + p.measureText(value) / density + 4, y + 62, 10, muted, false);
+        text(c, fitText(label, width - 72, 10, false), x + 58, y + 30, 10, muted, false);
+        String fittedValue = fitText(value, width - 72, 21, true);
+        text(c, fittedValue, x + 58, y + 62, 21, primary, true);
+        if (!unit.isEmpty()) {
+            type(21, primary, true);
+            float valueWidth = p.measureText(fittedValue) / density;
+            text(c, unit, x + 58 + valueWidth + 4, y + 62, 10, muted, false);
+        }
     }
 
     private void drawChart(Canvas c, float x, float y, float width, float height, int panel, int border, int primary, int muted, int faint) {
-        rounded(c, x, y, x + width, y + height, 12, panel); stroke(c, border, 1); rect.set(u(x), u(y), u(x + width), u(y + height)); c.drawRoundRect(rect, u(12), u(12), p);
+        frame(c, x, y, x + width, y + height, panel, border, lime);
         text(c, historyDays == 30 ? "Akkustand · 30 Tage" : "Akkustand · 7 Tage", x + 18, y + 28, 15, primary, true);
         rounded(c, x + width - 100, y + 14, x + width - 62, y + 38, 6, historyDays == 7 ? lime : panel);
         rounded(c, x + width - 58, y + 14, x + width - 18, y + 38, 6, historyDays == 30 ? lime : panel);
@@ -1967,6 +2033,9 @@ class BatteryDashboard extends View {
         text(c, "30D", x + width - 51, y + 30, 8, historyDays == 30 ? Color.rgb(23, 28, 16) : muted, true);
         float chartX = x + 18, chartY = y + 51, chartW = width - 36, chartH = 94;
         for (int i = 0; i < 3; i++) line(c, chartX, chartY + i * 45, chartX + chartW, chartY + i * 45, border, 1);
+        rightText(c, "100%", x + width - 18, chartY + 9, 7, faint, false);
+        rightText(c, "50%", x + width - 18, chartY + 54, 7, faint, false);
+        rightText(c, "0%", x + width - 18, chartY + 99, 7, faint, false);
         ArrayList<LevelPoint> points = chartPoints();
         if (points.isEmpty()) {
             text(c, "Warte auf lokale Messwerte.", chartX, chartY + 52, 10, faint, false);
@@ -2020,10 +2089,7 @@ class BatteryDashboard extends View {
     private void drawTelemetryChart(Canvas c, float x, float y, float width, float height,
                                     int panel, int border, int primary, int muted, int faint,
                                     boolean chargingFilter) {
-        rounded(c, x, y, x + width, y + height, 12, panel);
-        stroke(c, border, 1);
-        rect.set(u(x), u(y), u(x + width), u(y + height));
-        c.drawRoundRect(rect, u(12), u(12), p);
+        frame(c, x, y, x + width, y + height, panel, border, chargingFilter ? lime : blue);
         text(c, chargingFilter ? "Ladestrom" : "Entladestrom", x + 18, y + 28, 15, primary, true);
         String saved = telemetryPrefs.getString("telemetrySamples", "");
         ArrayList<Integer> values = new ArrayList<>();
@@ -2044,6 +2110,8 @@ class BatteryDashboard extends View {
         int count = Math.min(48, values.size());
         float chartX = x + 18, chartY = y + 51, chartW = width - 36, chartH = 105;
         for (int i = 0; i < 3; i++) line(c, chartX, chartY + i * chartH / 2f, chartX + chartW, chartY + i * chartH / 2f, border, 1);
+        rightText(c, "mA", x + width - 18, chartY + 9, 7, faint, false);
+        rightText(c, "0", x + width - 18, chartY + chartH - 2, 7, faint, false);
         if (count == 0) {
             text(c, "Warte auf lokale Telemetrie.", chartX, chartY + 57, 10, faint, false);
             return;
@@ -2179,8 +2247,11 @@ class BatteryDashboard extends View {
     }
 
     private void drawGauge(Canvas c, float cx, float cy, float radius, int value, int primary, int faint) {
-        stroke(c, Color.rgb(43, 47, 56), 9); rect.set(u(cx - radius), u(cy - radius), u(cx + radius), u(cy + radius)); c.drawArc(rect, -90, 360, false, p);
-        stroke(c, lime, 9); c.drawArc(rect, -90, 360 * value / 100f, false, p);
+        int track = Color.argb(light ? 120 : 90, Color.red(faint), Color.green(faint), Color.blue(faint));
+        stroke(c, track, 10); rect.set(u(cx - radius), u(cy - radius), u(cx + radius), u(cy + radius)); c.drawArc(rect, -90, 360, false, p);
+        stroke(c, lime, 10); c.drawArc(rect, -90, 360 * Math.max(0, Math.min(100, value)) / 100f, false, p);
+        float angle = (float) Math.toRadians(-90 + 360 * Math.max(0, Math.min(100, value)) / 100f);
+        fill(c, lime); c.drawCircle(u(cx + (float) Math.cos(angle) * radius), u(cy + (float) Math.sin(angle) * radius), u(5), p);
     }
     private void drawBolt(Canvas c, float cx, float cy, int color, float width) { Path b = new Path(); b.moveTo(u(cx + 3), u(cy - 12)); b.lineTo(u(cx - 6), u(cy + 1)); b.lineTo(u(cx), u(cy + 1)); b.lineTo(u(cx - 3), u(cy + 12)); b.lineTo(u(cx + 7), u(cy - 2)); b.lineTo(u(cx + 1), u(cy - 2)); b.close(); fill(c, color); c.drawPath(b, p); }
     private void drawSun(Canvas c, float cx, float cy, int color) { stroke(c, color, 1.5f); c.drawCircle(u(cx), u(cy), u(4), p); for (int i=0; i<8; i++) { double a=i*Math.PI/4; line(c, cx+(float)Math.cos(a)*7, cy+(float)Math.sin(a)*7, cx+(float)Math.cos(a)*10, cy+(float)Math.sin(a)*10, color, 1.3f); } }
@@ -2195,12 +2266,19 @@ class BatteryDashboard extends View {
             touchDownY = event.getY();
             lastTouchY = touchDownY;
             touchDragged = false;
+            float w = getWidth() / density;
+            pressedRegion = pressedRegionAt(event.getX() / density, event.getY() / density, w);
+            invalidate();
             return true;
         }
         if (event.getAction() == MotionEvent.ACTION_MOVE) {
             float currentY = event.getY();
             float delta = lastTouchY - currentY;
-            if (Math.abs(currentY - touchDownY) > 8f * density) touchDragged = true;
+            if (Math.abs(currentY - touchDownY) > 8f * density) {
+                touchDragged = true;
+                pressedRegion = 0;
+                invalidate();
+            }
             if (touchDragged && getParent() != null) getParent().requestDisallowInterceptTouchEvent(true);
             if (touchDragged && getParent() instanceof ScrollView) {
                 ((ScrollView) getParent()).scrollBy(0, Math.round(delta));
@@ -2210,22 +2288,28 @@ class BatteryDashboard extends View {
         }
         if (event.getAction() == MotionEvent.ACTION_CANCEL) {
             touchDragged = false;
+            pressedRegion = 0;
+            invalidate();
             if (getParent() != null) getParent().requestDisallowInterceptTouchEvent(false);
             return true;
         }
         if (event.getAction() != MotionEvent.ACTION_UP) return true;
         if (touchDragged) {
             touchDragged = false;
+            pressedRegion = 0;
             if (getParent() != null) getParent().requestDisallowInterceptTouchEvent(false);
             return true;
         }
         performClick();
         float x = event.getX() / density, y = event.getY() / density;
+        int releasedRegion = pressedRegion;
+        pressedRegion = 0;
+        invalidate();
         if (System.currentTimeMillis() - lastTouch < 80) return true;
         lastTouch = System.currentTimeMillis();
         float w = getWidth() / density;
-        if (y < 60 && x > w - 180 && x < w - 143) { showSettings(); return true; }
-        if (y < 60 && x > w - 138) { light = !light; amoled = false; prefs.edit().putBoolean("lightTheme", light).putBoolean("amoledTheme", amoled).apply(); invalidate(); return true; }
+        if (releasedRegion == 1 && y < 70) { showSettings(); return true; }
+        if (releasedRegion == 2 && y < 70) { light = !light; amoled = false; prefs.edit().putBoolean("lightTheme", light).putBoolean("amoledTheme", amoled).apply(); invalidate(); return true; }
         if (y >= 124 && y < 174) {
             float cell = (w - 36) / 5f;
             page = Math.max(0, Math.min(4, (int) ((x - 18) / cell)));
