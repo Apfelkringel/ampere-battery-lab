@@ -5,9 +5,9 @@ Last verified: 2026-09-10 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.105` (`versionCode 105`)
+- Version: `0.106` (`versionCode 106`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `394585e9078c4b1d859ab50f1abbef6cc17078f174725e2a304adff9f9af35c7`
+- Release APK SHA-256: `pending signed v0.106 artifact`
 - The same hash is published in the public update repository manifest.
 
 ## Runtime checks
@@ -99,6 +99,10 @@ fixed icon/label spacing and the measured label as one shared layout block.
 Release `0.105` includes that navigation layout in the published signed
 artifact and scales the heart glyph to the same 24-dp icon language as the
 other navigation symbols.
+
+Release `0.106` uses the adaptive `600dp` window class for the overview,
+keeping phone layouts consistent across density and device variations. The
+wide overview separates the gauge from the status chip and status row.
 
 The current public update path was also exercised from signed `0.90` to signed
 `0.91` on API 36. The app fetched the 0.91 manifest, showed the in-app dialog,

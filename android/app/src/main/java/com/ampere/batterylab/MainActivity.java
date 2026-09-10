@@ -1692,7 +1692,10 @@ class BatteryDashboard extends View {
         }
         float top = 182;
         float heroW = Math.min(w - 36, 520);
-        boolean compact = heroW < 410f;
+        // Use the adaptive window class, not the content column width. A
+        // small difference in device density must not switch otherwise
+        // identical phones between two visibly different compositions.
+        boolean compact = viewportWidthDp > 0f ? viewportWidthDp < 600f : w < 600f;
         float heroH = compact ? 400f : 320f;
         frame(c, 18, top, 18 + heroW, top + heroH, panel, border, lime);
         text(c, "AKKUSTAND · AUTOMATIK", 36, top + 31, 10, muted, true);
@@ -1740,9 +1743,15 @@ class BatteryDashboard extends View {
             boundedRightText(c, liveCurrentDisplay(), currentLeft, statusRight,
                     top + 339 + compactStatusOffset, 9, charging ? lime : blue, false);
         } else {
-            drawGauge(c, 135, top + 170, 101, level, primary, faint);
-            text(c, level + "%", 91, top + 178, 52, primary, true);
-            text(c, charging ? "Laden" : "Akkubetrieb", 108, top + 204, 10, muted, false);
+            // Keep a clear vertical rhythm: the gauge ends before the
+            // details/status rows begin. The previous 101-dp circle touched
+            // the status chip on some densities.
+            float gaugeRadius = Math.min(84f, Math.max(78f, heroW * .16f));
+            float gaugeCx = 135f;
+            float gaugeCy = top + 178f;
+            drawGauge(c, gaugeCx, gaugeCy, gaugeRadius, level, primary, faint);
+            centeredText(c, level + "%", gaugeCx, top + 187, 46, primary, true);
+            centeredText(c, charging ? "Laden" : "Akkubetrieb", gaugeCx, top + 211, 10, muted, false);
             float detailRight = 18 + heroW - 42;
             boundedText(c, health == 0 ? "Nicht gemessen" : (health > 80 ? "Guter Zustand" : "Prüfung nötig"),
                     255, detailRight, top + 117, 17, primary, true);
@@ -1753,12 +1762,15 @@ class BatteryDashboard extends View {
             rounded(c, 255, top + 215, detailRight, top + 219, 3, border);
             if (health > 0) rounded(c, 255, top + 215, 255 + (detailRight - 255) * Math.min(1f, health / 100f), top + 219, 3, lime);
             boundedText(c, "Nennkapazität " + mahDisplay(designCapacityMah()), 255, detailRight, top + 236, 9, faint, false);
-            rounded(c, 36, top + 263, 18 + heroW - 36, top + 301, 8, raised);
-            drawBolt(c, 52, top + 282, lime, .8f);
-            text(c, charging ? "Laden erkannt" : "Akkubetrieb", 68, top + 278, 10, primary, true);
-            text(c, fitText(detectionText, Math.max(80f, heroW - 108f), 9, false), 68, top + 293, 9, muted, false);
-            boundedRightText(c, liveCurrentDisplay(), 18 + heroW - 125, 18 + heroW - 50,
-                    top + 285, 9, charging ? lime : blue, false);
+            float statusTop = top + 271f;
+            rounded(c, 36, statusTop, 18 + heroW - 36, statusTop + 38, 8, raised);
+            drawBolt(c, 52, statusTop + 19, lime, .8f);
+            text(c, charging ? "Laden erkannt" : "Akkubetrieb", 68, statusTop + 15, 10, primary, true);
+            float statusRight = 18 + heroW - 50;
+            float currentLeft = Math.max(68f, statusRight - 76f);
+            boundedText(c, detectionText, 68, currentLeft - 8f, statusTop + 30, 9, muted, false);
+            boundedRightText(c, liveCurrentDisplay(), currentLeft, statusRight,
+                    statusTop + 22, 9, charging ? lime : blue, false);
         }
 
         float cardsTop = top + heroH + 14;
