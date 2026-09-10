@@ -7,7 +7,7 @@ Last verified: 2026-09-10 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.96` (`versionCode 96`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: pending signed `v0.96` workflow artifact
+- Release APK SHA-256: `cbe5cc2abe3899d1492333a976a35408bf38439db71633c8d06ec48407171648`
 - The same hash is published in the public update repository manifest.
 
 ## Runtime checks
