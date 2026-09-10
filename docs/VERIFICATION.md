@@ -5,9 +5,9 @@ Last verified: 2026-09-10 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.104` (`versionCode 104`)
+- Version: `0.105` (`versionCode 105`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `da73ffcc346cd8ef845cefa573ba3b0abd90bed84e5f7b8aba449b0df68d219d`
+- Release APK SHA-256: `pending signed v0.105 artifact`
 - The same hash is published in the public update repository manifest.
 
 ## Runtime checks
@@ -95,6 +95,10 @@ wide and landscape layouts.
 
 Release `0.104` centers horizontal navigation using a standard 24-dp icon box,
 fixed icon/label spacing and the measured label as one shared layout block.
+
+Release `0.105` includes that navigation layout in the published signed
+artifact and scales the heart glyph to the same 24-dp icon language as the
+other navigation symbols.
 
 The current public update path was also exercised from signed `0.90` to signed
 `0.91` on API 36. The app fetched the 0.91 manifest, showed the in-app dialog,

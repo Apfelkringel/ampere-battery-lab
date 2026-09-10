@@ -1648,13 +1648,19 @@ class BatteryDashboard extends View {
                 drawNavGlyph(c, i, centerX, 137, iconColor);
                 centeredText(c, labels[i], centerX, 156, 8.5f, active ? Color.rgb(23, 28, 16) : muted, active);
             } else {
-                String fittedLabel = fitText(labels[i], Math.max(24f, cell - 52f), 9, active);
+                // Material's horizontal navigation layout centers one shared
+                // content block: a 24-dp icon box, fixed icon/label spacing,
+                // and the measured label. Centering the label independently
+                // makes items with different words look uneven.
+                final float iconBox = 24f;
+                final float iconLabelGap = 8f;
+                String fittedLabel = fitText(labels[i], Math.max(24f, cell - iconBox - iconLabelGap - 12f), 9, active);
                 type(9, active ? Color.rgb(23, 28, 16) : muted, active);
                 float labelWidth = p.measureText(fittedLabel) / density;
-                float groupWidth = 16f + 8f + labelWidth;
+                float groupWidth = iconBox + iconLabelGap + labelWidth;
                 float groupLeft = centerX - groupWidth / 2f;
-                drawNavGlyph(c, i, groupLeft + 8f, 145, iconColor);
-                boundedText(c, fittedLabel, groupLeft + 24f, x + cell - 8f, 148, 9,
+                drawNavGlyph(c, i, groupLeft + iconBox / 2f, 144, iconColor);
+                boundedText(c, fittedLabel, groupLeft + iconBox + iconLabelGap, x + cell - 8f, 148, 9,
                         active ? Color.rgb(23, 28, 16) : muted, active);
             }
         }
@@ -1663,7 +1669,7 @@ class BatteryDashboard extends View {
     private void drawNavGlyph(Canvas c, int index, float cx, float cy, int color) {
         if (index == 1) { drawBolt(c, cx, cy, color, .65f); return; }
         if (index == 2) { drawArrow(c, cx, cy, color); return; }
-        if (index == 3) { drawHeart(c, cx, cy, color); return; }
+        if (index == 3) { drawHeart(c, cx, cy, color, .75f); return; }
         stroke(c, color, 1.5f);
         if (index == 0) {
             c.drawCircle(u(cx), u(cy), u(8), p);
@@ -2628,7 +2634,15 @@ class BatteryDashboard extends View {
     }
     private void drawBolt(Canvas c, float cx, float cy, int color, float width) { Path b = new Path(); b.moveTo(u(cx + 3), u(cy - 12)); b.lineTo(u(cx - 6), u(cy + 1)); b.lineTo(u(cx), u(cy + 1)); b.lineTo(u(cx - 3), u(cy + 12)); b.lineTo(u(cx + 7), u(cy - 2)); b.lineTo(u(cx + 1), u(cy - 2)); b.close(); fill(c, color); c.drawPath(b, p); }
     private void drawSun(Canvas c, float cx, float cy, int color) { stroke(c, color, 1.5f); c.drawCircle(u(cx), u(cy), u(4), p); for (int i=0; i<8; i++) { double a=i*Math.PI/4; line(c, cx+(float)Math.cos(a)*7, cy+(float)Math.sin(a)*7, cx+(float)Math.cos(a)*10, cy+(float)Math.sin(a)*10, color, 1.3f); } }
-    private void drawHeart(Canvas c, float cx, float cy, int color) { Path path = new Path(); path.moveTo(u(cx),u(cy+8)); path.cubicTo(u(cx-16),u(cy-2),u(cx-9),u(cy-11),u(cx),u(cy-5)); path.cubicTo(u(cx+9),u(cy-11),u(cx+16),u(cy-2),u(cx),u(cy+8)); stroke(c,color,1.7f); c.drawPath(path,p); }
+    private void drawHeart(Canvas c, float cx, float cy, int color) { drawHeart(c, cx, cy, color, 1f); }
+    private void drawHeart(Canvas c, float cx, float cy, int color, float scale) {
+        Path path = new Path();
+        path.moveTo(u(cx), u(cy + 8f * scale));
+        path.cubicTo(u(cx - 16f * scale), u(cy - 2f * scale), u(cx - 9f * scale), u(cy - 11f * scale), u(cx), u(cy - 5f * scale));
+        path.cubicTo(u(cx + 9f * scale), u(cy - 11f * scale), u(cx + 16f * scale), u(cy - 2f * scale), u(cx), u(cy + 8f * scale));
+        stroke(c, color, 1.7f);
+        c.drawPath(path, p);
+    }
     private void drawThermometer(Canvas c, float cx, float cy, int color) { stroke(c,color,1.7f); c.drawRoundRect(new RectF(u(cx-3),u(cy-11),u(cx+3),u(cy+5)),u(3),u(3),p); c.drawCircle(u(cx),u(cy+7),u(5),p); line(c,cx,cy-7,cx,cy+6,color,1.7f); }
     private void drawClock(Canvas c, float cx, float cy, int color) { stroke(c,color,1.7f); c.drawCircle(u(cx),u(cy),u(9),p); line(c,cx,cy,cx,cy-5,color,1.7f); line(c,cx,cy,cx+4,cy+3,color,1.7f); }
     private void drawArrow(Canvas c, float cx, float cy, int color) { line(c,cx,cy-9,cx,cy+6,color,1.7f); line(c,cx-5,cy+1,cx,cy+6,color,1.7f); line(c,cx+5,cy+1,cx,cy+6,color,1.7f); }
