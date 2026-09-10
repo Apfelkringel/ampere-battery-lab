@@ -5,9 +5,9 @@ Last verified: 2026-09-10 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.98` (`versionCode 98`)
+- Version: `0.99` (`versionCode 99`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `28f3855457c4e3c8d0d0332c74d77751e2cc5e675bcfb61db2955431f87be644`
+- Release APK SHA-256: `TO_BE_FILLED_AFTER_SIGNED_BUILD`
 - The same hash is published in the public update repository manifest.
 
 ## Runtime checks
@@ -72,6 +72,10 @@ without unintended card or text overlap.
 Release `0.98` aligns the header touch hitboxes with the two-button header used
 below 390 dp. Settings and light/dark now respond at the exact visible button
 positions on compact phone windows.
+
+Release `0.99` synchronizes the light/dark system bars with the app theme,
+improves light-theme contrast, and enlarges the header controls to consistent
+48-dp touch surfaces while keeping their visual positions aligned.
 
 The current public update path was also exercised from signed `0.90` to signed
 `0.91` on API 36. The app fetched the 0.91 manifest, showed the in-app dialog,

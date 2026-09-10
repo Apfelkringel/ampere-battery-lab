@@ -117,6 +117,7 @@ public class MainActivity extends Activity {
         window.setNavigationBarColor(Color.rgb(11, 16, 17));
         window.getDecorView().setSystemUiVisibility(0);
         dashboard = new BatteryDashboard(this);
+        dashboard.applySystemBarTheme();
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
         if (Build.VERSION.SDK_INT >= 35) {
@@ -466,6 +467,19 @@ class BatteryDashboard extends View {
         telemetryPrefs = context.getSharedPreferences("ampere-telemetry", Context.MODE_PRIVATE);
         loadStoredData();
         updateAccessibilitySummary();
+    }
+
+    void applySystemBarTheme() {
+        Window window = ((Activity) getContext()).getWindow();
+        int surface = light ? Color.rgb(246, 248, 243) : (amoled ? Color.BLACK : Color.rgb(11, 16, 17));
+        window.setStatusBarColor(surface);
+        window.setNavigationBarColor(surface);
+        int flags = 0;
+        if (light) {
+            flags |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+            if (Build.VERSION.SDK_INT >= 26) flags |= View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+        }
+        window.getDecorView().setSystemUiVisibility(flags);
     }
 
     void reloadStoredData() {
@@ -1443,12 +1457,12 @@ class BatteryDashboard extends View {
         // header has two controls, so the three-control hitboxes must not be
         // used on common 320/360 dp phone windows.
         if (w < 390f) {
-            if (y < 70 && x > w - 105 && x < w - 60) return 1; // overflow
-            if (y < 70 && x > w - 60) return 2; // theme
+            if (y >= 8 && y < 70 && x > w - 116 && x < w - 68) return 1; // overflow
+            if (y >= 8 && y < 70 && x > w - 60 && x < w - 12) return 2; // theme
         }
-        if (y < 70 && x > w - 190 && x < w - 140) return 1; // overflow
-        if (y < 70 && x > w - 145 && x < w - 96) return 2; // theme
-        if (y < 70 && x > w - 100) return 3; // live status
+        if (y >= 8 && y < 70 && x > w - 184 && x < w - 136) return 1; // overflow
+        if (y >= 8 && y < 70 && x > w - 128 && x < w - 80) return 2; // theme
+        if (y >= 8 && y < 70 && x > w - 72 && x < w - 16) return 3; // live status
         if (y >= 118 && y < 176 && x >= 18 && x <= w - 18) {
             float cell = (w - 36) / 5f;
             return 10 + Math.max(0, Math.min(4, (int) ((x - 18) / cell)));
@@ -1494,14 +1508,14 @@ class BatteryDashboard extends View {
         viewportWidthDp = getRootView().getWidth() / density;
         viewportHeightDp = getRootView().getHeight() / density;
         layoutWidthDp = w;
-        int bg = light ? Color.rgb(243, 245, 239) : (amoled ? Color.BLACK : Color.rgb(11, 16, 17));
+        int bg = light ? Color.rgb(246, 248, 243) : (amoled ? Color.BLACK : Color.rgb(11, 16, 17));
         int panel = light ? Color.WHITE : (amoled ? Color.rgb(5, 5, 5) : Color.rgb(20, 28, 25));
-        int raised = light ? Color.rgb(238, 241, 233) : (amoled ? Color.rgb(12, 12, 12) : Color.rgb(28, 39, 33));
-        int border = light ? Color.rgb(223, 228, 217) : (amoled ? Color.rgb(36, 36, 36) : Color.rgb(49, 66, 55));
+        int raised = light ? Color.rgb(237, 242, 233) : (amoled ? Color.rgb(12, 12, 12) : Color.rgb(28, 39, 33));
+        int border = light ? Color.rgb(207, 218, 207) : (amoled ? Color.rgb(36, 36, 36) : Color.rgb(49, 66, 55));
         int primary = light ? Color.rgb(23, 26, 29) : Color.rgb(242, 244, 239);
-        int muted = light ? Color.rgb(105, 113, 105) : Color.rgb(138, 145, 157);
-        int faint = light ? Color.rgb(154, 164, 155) : Color.rgb(102, 109, 121);
-        int bgTop = light ? Color.rgb(250, 252, 247) : (amoled ? Color.BLACK : Color.rgb(20, 30, 25));
+        int muted = light ? Color.rgb(82, 95, 87) : Color.rgb(138, 145, 157);
+        int faint = light ? Color.rgb(103, 116, 106) : Color.rgb(102, 109, 121);
+        int bgTop = light ? Color.rgb(251, 252, 249) : (amoled ? Color.BLACK : Color.rgb(20, 30, 25));
         p.setShader(new LinearGradient(0, 0, 0, u(Math.min(h, 520)), bgTop, bg, Shader.TileMode.CLAMP));
         fill(c, bg); c.drawRect(0, 0, getWidth(), getHeight(), p);
         p.setShader(null);
@@ -1536,20 +1550,20 @@ class BatteryDashboard extends View {
         if (w < 390f) {
             // At the narrowest phone widths, two comfortable controls are
             // safer than three controls colliding with the brand label.
-            rounded(c, w - 56, 20, w - 20, 52, 10, isPressed(2) ? pressedFill(panel, true) : panel);
-            stroke(c, border, 1); rect.set(u(w - 56), u(22), u(w - 20), u(50)); c.drawRoundRect(rect, u(8), u(8), p);
-            drawSun(c, w - 38, 36, muted);
-            rounded(c, w - 98, 20, w - 62, 52, 10, isPressed(1) ? pressedFill(panel, true) : panel);
-            stroke(c, border, 1); rect.set(u(w - 98), u(22), u(w - 62), u(50)); c.drawRoundRect(rect, u(8), u(8), p);
-            fill(c, muted); c.drawCircle(u(w - 80), u(29), u(1.5f), p); c.drawCircle(u(w - 80), u(36), u(1.5f), p); c.drawCircle(u(w - 80), u(43), u(1.5f), p);
+            rounded(c, w - 60, 14, w - 12, 58, 12, isPressed(2) ? pressedFill(panel, true) : panel);
+            stroke(c, border, 1); rect.set(u(w - 60), u(16), u(w - 12), u(56)); c.drawRoundRect(rect, u(10), u(10), p);
+            drawSun(c, w - 36, 36, muted);
+            rounded(c, w - 116, 14, w - 68, 58, 12, isPressed(1) ? pressedFill(panel, true) : panel);
+            stroke(c, border, 1); rect.set(u(w - 116), u(16), u(w - 68), u(56)); c.drawRoundRect(rect, u(10), u(10), p);
+            fill(c, muted); c.drawCircle(u(w - 92), u(27), u(1.5f), p); c.drawCircle(u(w - 92), u(36), u(1.5f), p); c.drawCircle(u(w - 92), u(45), u(1.5f), p);
         } else {
-            rounded(c, w - 91, 20, w - 19, 52, 17, isPressed(3) ? pressedFill(panel, true) : panel);
-            stroke(c, border, 1); rect.set(u(w - 91), u(22), u(w - 19), u(50)); c.drawRoundRect(rect, u(16), u(16), p);
-            fill(c, lime); c.drawCircle(u(w - 75), u(36), u(4), p); text(c, "LIVE", w - 65, 40, 9, primary, true);
-            rounded(c, w - 138, 20, w - 101, 52, 10, isPressed(2) ? pressedFill(panel, true) : panel); stroke(c, border, 1); rect.set(u(w - 138), u(22), u(w - 101), u(50)); c.drawRoundRect(rect, u(8), u(8), p);
-            drawSun(c, w - 119, 36, muted);
-            rounded(c, w - 178, 20, w - 143, 52, 10, isPressed(1) ? pressedFill(panel, true) : panel); stroke(c, border, 1); rect.set(u(w - 178), u(22), u(w - 143), u(50)); c.drawRoundRect(rect, u(8), u(8), p);
-            fill(c, muted); c.drawCircle(u(w - 160), u(29), u(1.5f), p); c.drawCircle(u(w - 160), u(36), u(1.5f), p); c.drawCircle(u(w - 160), u(43), u(1.5f), p);
+            rounded(c, w - 72, 14, w - 16, 58, 20, isPressed(3) ? pressedFill(panel, true) : panel);
+            stroke(c, border, 1); rect.set(u(w - 72), u(16), u(w - 16), u(56)); c.drawRoundRect(rect, u(18), u(18), p);
+            fill(c, lime); c.drawCircle(u(w - 56), u(36), u(4), p); text(c, "LIVE", w - 46, 40, 9, primary, true);
+            rounded(c, w - 128, 14, w - 80, 58, 12, isPressed(2) ? pressedFill(panel, true) : panel); stroke(c, border, 1); rect.set(u(w - 128), u(16), u(w - 80), u(56)); c.drawRoundRect(rect, u(10), u(10), p);
+            drawSun(c, w - 104, 36, muted);
+            rounded(c, w - 184, 14, w - 136, 58, 12, isPressed(1) ? pressedFill(panel, true) : panel); stroke(c, border, 1); rect.set(u(w - 184), u(16), u(w - 136), u(56)); c.drawRoundRect(rect, u(10), u(10), p);
+            fill(c, muted); c.drawCircle(u(w - 160), u(27), u(1.5f), p); c.drawCircle(u(w - 160), u(36), u(1.5f), p); c.drawCircle(u(w - 160), u(45), u(1.5f), p);
         }
         drawNav(c, w, primary, muted, border, panel);
         line(c, 18, 174, w - 18, 174, border, 1);
@@ -2587,7 +2601,7 @@ class BatteryDashboard extends View {
         lastTouch = System.currentTimeMillis();
         float w = getWidth() / density;
         if (releasedRegion == 1 && y < 70) { showSettings(); return true; }
-        if (releasedRegion == 2 && y < 70) { light = !light; amoled = false; prefs.edit().putBoolean("lightTheme", light).putBoolean("amoledTheme", amoled).apply(); invalidate(); return true; }
+        if (releasedRegion == 2 && y < 70) { light = !light; amoled = false; prefs.edit().putBoolean("lightTheme", light).putBoolean("amoledTheme", amoled).apply(); applySystemBarTheme(); invalidate(); return true; }
         if (y >= 124 && y < 174) {
             float cell = (w - 36) / 5f;
             page = Math.max(0, Math.min(4, (int) ((screenX - 18) / cell)));
