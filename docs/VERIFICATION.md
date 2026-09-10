@@ -5,9 +5,9 @@ Last verified: 2026-09-10 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.103` (`versionCode 103`)
+- Version: `0.104` (`versionCode 104`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `e116c0a52168235f9c113cbc6f59665141fc414942ed3ff6a5bee2528785cc44`
+- Release APK SHA-256: `pending signed v0.104 artifact`
 - The same hash is published in the public update repository manifest.
 
 ## Runtime checks
@@ -92,6 +92,9 @@ insets and centers icon/label groups on wide layouts as well.
 Release `0.103` constrains dashboard labels, values and units to their owning
 cards and columns, preventing long text from crossing borders on narrow,
 wide and landscape layouts.
+
+Release `0.104` centers horizontal navigation using a standard 24-dp icon box,
+fixed icon/label spacing and the measured label as one shared layout block.
 
 The current public update path was also exercised from signed `0.90` to signed
 `0.91` on API 36. The app fetched the 0.91 manifest, showed the in-app dialog,
