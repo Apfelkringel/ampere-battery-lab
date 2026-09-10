@@ -20,8 +20,11 @@ charging state, blue for neutral telemetry and amber for warnings or wear.
 
 ## Interaction and accessibility
 
-- Drawn tabs have a 48 dp vertical touch target while preserving the visual tab
-  height.
+- Drawn tabs use a 48 dp vertical touch target, a fixed 24 dp icon slot and a
+  shared label baseline while preserving the visual tab height.
+- Header actions use the same 48 dp bounds, radius and outline geometry; the
+  live badge is centered as one icon/text group instead of positioning its
+  dot and label independently.
 - The dashboard exposes the current page, battery state, level and available
   tabs as an accessibility summary for screen readers.
 - Settings, backup/restore, export and text entry use native Android controls or

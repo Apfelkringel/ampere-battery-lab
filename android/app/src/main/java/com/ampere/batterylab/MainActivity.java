@@ -1480,6 +1480,21 @@ class BatteryDashboard extends View {
     }
     private void line(Canvas c, float x1, float y1, float x2, float y2, int color, float width) { stroke(c, color, width); c.drawLine(u(x1), u(y1), u(x2), u(y2), p); }
 
+    /**
+     * A control surface keeps fill and outline on the very same bounds.
+     * The old header drew a 44dp fill but inset its outline by 2dp, which made
+     * the corners look mismatched on different densities.
+     */
+    private void controlSurface(Canvas c, float l, float t, float r, float b,
+                                float radius, int fillColor, int borderColor) {
+        fill(c, fillColor);
+        rect.set(u(l), u(t), u(r), u(b));
+        c.drawRoundRect(rect, u(radius), u(radius), p);
+        stroke(c, borderColor, 1);
+        rect.set(u(l), u(t), u(r), u(b));
+        c.drawRoundRect(rect, u(radius), u(radius), p);
+    }
+
     private void frame(Canvas c, float l, float t, float r, float b, int panel, int border, int accent) {
         rounded(c, l, t, r, b, 16, panel);
         stroke(c, border, 1);
@@ -1601,26 +1616,35 @@ class BatteryDashboard extends View {
         text(c, fitText(buildLabel, w < 300f ? 34f : 116f, 7.5f, true), 70, 56, 7.5f, lime, true);
         text(c, page == 0 ? "Überwachung  /  Übersicht" : "Überwachung  /  " + pageName(), 18, 80, 10, muted, false);
         text(c, page == 0 ? "Live-Übersicht" : pageName(), 18, 111, 28, primary, true);
+        final float controlTop = 12f;
+        final float controlBottom = 60f;
         if (w < 390f) {
             // At the narrowest phone widths, two comfortable controls are
             // safer than three controls colliding with the brand label.
-            rounded(c, w - 60, 14, w - 12, 58, 12, isPressed(2) ? pressedFill(panel, true) : panel);
-            stroke(c, border, 1); rect.set(u(w - 60), u(16), u(w - 12), u(56)); c.drawRoundRect(rect, u(10), u(10), p);
+            controlSurface(c, w - 60, controlTop, w - 12, controlBottom, 14,
+                    isPressed(2) ? pressedFill(panel, true) : panel, border);
             drawSun(c, w - 36, 36, muted);
-            rounded(c, w - 116, 14, w - 68, 58, 12, isPressed(1) ? pressedFill(panel, true) : panel);
-            stroke(c, border, 1); rect.set(u(w - 116), u(16), u(w - 68), u(56)); c.drawRoundRect(rect, u(10), u(10), p);
+            controlSurface(c, w - 116, controlTop, w - 68, controlBottom, 14,
+                    isPressed(1) ? pressedFill(panel, true) : panel, border);
             fill(c, muted); c.drawCircle(u(w - 92), u(27), u(1.5f), p); c.drawCircle(u(w - 92), u(36), u(1.5f), p); c.drawCircle(u(w - 92), u(45), u(1.5f), p);
         } else {
-            rounded(c, w - 72, 14, w - 16, 58, 20, isPressed(3) ? pressedFill(panel, true) : panel);
-            stroke(c, border, 1); rect.set(u(w - 72), u(16), u(w - 16), u(56)); c.drawRoundRect(rect, u(18), u(18), p);
-            fill(c, lime); c.drawCircle(u(w - 56), u(36), u(4), p); text(c, "LIVE", w - 46, 40, 9, primary, true);
-            rounded(c, w - 128, 14, w - 80, 58, 12, isPressed(2) ? pressedFill(panel, true) : panel); stroke(c, border, 1); rect.set(u(w - 128), u(16), u(w - 80), u(56)); c.drawRoundRect(rect, u(10), u(10), p);
+            controlSurface(c, w - 72, controlTop, w - 16, controlBottom, 24,
+                    isPressed(3) ? pressedFill(panel, true) : panel, border);
+            type(9, primary, true);
+            float liveLabelWidth = p.measureText("LIVE") / density;
+            float liveGroupWidth = 8f + 7f + liveLabelWidth;
+            float liveLeft = w - 44f - liveGroupWidth / 2f;
+            fill(c, lime); c.drawCircle(u(liveLeft + 2f), u(36), u(4), p);
+            text(c, "LIVE", liveLeft + 12f, 40, 9, primary, true);
+            controlSurface(c, w - 128, controlTop, w - 80, controlBottom, 14,
+                    isPressed(2) ? pressedFill(panel, true) : panel, border);
             drawSun(c, w - 104, 36, muted);
-            rounded(c, w - 184, 14, w - 136, 58, 12, isPressed(1) ? pressedFill(panel, true) : panel); stroke(c, border, 1); rect.set(u(w - 184), u(16), u(w - 136), u(56)); c.drawRoundRect(rect, u(10), u(10), p);
+            controlSurface(c, w - 184, controlTop, w - 136, controlBottom, 14,
+                    isPressed(1) ? pressedFill(panel, true) : panel, border);
             fill(c, muted); c.drawCircle(u(w - 160), u(27), u(1.5f), p); c.drawCircle(u(w - 160), u(36), u(1.5f), p); c.drawCircle(u(w - 160), u(45), u(1.5f), p);
         }
         drawNav(c, w, primary, muted, border, panel);
-        line(c, 18, 174, w - 18, 174, border, 1);
+        line(c, 18, 176, w - 18, 176, border, 1);
     }
 
     private void drawNav(Canvas c, float w, int primary, int muted, int border, int panel) {
@@ -1629,24 +1653,25 @@ class BatteryDashboard extends View {
                 ? new String[]{"Start", "Laden", "Entl.", "Gesund.", "Verlauf"}
                 : new String[]{"Übersicht", "Laden", "Entladen", "Gesundheit", "Verlauf"};
         float cell = (w - 36) / 5f;
-        rounded(c, 18, 122, w - 18, 166, 14, panel);
-        stroke(c, border, 1);
-        rect.set(u(18), u(122), u(w - 18), u(166));
-        c.drawRoundRect(rect, u(14), u(14), p);
+        final float navTop = 120f;
+        final float navBottom = 168f;
+        controlSurface(c, 18, navTop, w - 18, navBottom, 16, panel, border);
         for (int i = 0; i < labels.length; i++) {
             float x = 18 + i * cell;
             float centerX = x + cell / 2f;
             boolean active = page == i;
             boolean pressed = isPressed(10 + i);
             if (active || pressed) {
-                // Keep equal 4-dp insets on both sides. The old right inset
-                // was 9 dp, shifting every tab's visual center to the left.
-                rounded(c, x + 4, 126, x + cell - 4, 162, 11, pressed ? pressedFill(panel, true) : (active ? lime : panel));
+                // Equal insets and a shared 40dp indicator keep every item
+                // centered, independent of label length or device width.
+                rounded(c, x + 4, 124, x + cell - 4, 164, 12, pressed ? pressedFill(panel, true) : (active ? lime : panel));
             }
             int iconColor = active ? Color.rgb(23, 28, 16) : muted;
             if (compactNav) {
-                drawNavGlyph(c, i, centerX, 137, iconColor);
-                centeredText(c, labels[i], centerX, 156, 8.5f, active ? Color.rgb(23, 28, 16) : muted, active);
+                // A fixed 24dp icon slot plus one shared label baseline is
+                // the same top-centered model used by Material NavigationBar.
+                drawNavGlyph(c, i, centerX, 136, iconColor);
+                centeredText(c, labels[i], centerX, 158, 8.5f, active ? Color.rgb(23, 28, 16) : muted, active);
             } else {
                 // Material's horizontal navigation layout centers one shared
                 // content block: a 24-dp icon box, fixed icon/label spacing,
