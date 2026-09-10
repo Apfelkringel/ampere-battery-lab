@@ -1,7 +1,7 @@
 {
-  "versionCode": 123,
-  "versionName": "0.123",
+  "versionCode": 124,
+  "versionName": "0.124",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
   "sha256": "c448bab3fd8fb1d8f2954eaff9a91f31bb0f901c83076b23a732cd933e54b704",
-  "releaseNotes": "Neues Startbildschirm-Widget mit realem Akkustand, Ladestatus und verfügbaren Live-Messwerten."
+  "releaseNotes": "Die erkannte Quelle der Android-Zykluszählung wird jetzt ebenfalls in Backups erhalten."
 }

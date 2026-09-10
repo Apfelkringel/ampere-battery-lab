@@ -89,7 +89,7 @@ public class MainActivity extends Activity {
             "sinceFullWakeups",
             "sinceFullLastCounterMah", "sinceFullLastLevel", "sinceFullMah", "sinceFullPercent",
             "sinceFullScreenOffMs", "sinceFullScreenOnMs", "sinceFullStartAt", "sinceFullStartLevel",
-            "systemCycleCount", "monitorLastCharging", "monitorSampleAt", "monitorSessionStartCounterMah",
+            "systemCycleCount", "systemCycleCountSource", "monitorLastCharging", "monitorSampleAt", "monitorSessionStartCounterMah",
             "monitorSessionStartLevel", "monitorSessionStartedAt", "monitoringMs", "screenOffDurationMin",
             "screenOnMs", "screenSampleAt"
     ));
