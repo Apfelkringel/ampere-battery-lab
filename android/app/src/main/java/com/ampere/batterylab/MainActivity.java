@@ -10,6 +10,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Configuration;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -1715,8 +1716,11 @@ class BatteryDashboard extends View {
         // navigation area on some Android 16/17 configurations, so relying
         // on its height can select the tall landscape composition and paint
         // the bottom of the live card behind the gesture bar.
-        if (viewportWidthDp >= 600f && h > 0f && h < 600f) {
-            drawOverviewLandscape(c, w, h, panel, raised, border, primary, muted, faint);
+        boolean landscapeWindow = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE
+                || (viewportWidthDp >= 600f && viewportHeightDp > 0f && viewportWidthDp > viewportHeightDp);
+        if (landscapeWindow && w >= 600f) {
+            float visibleHeight = viewportHeightDp > 0f ? viewportHeightDp : h;
+            drawOverviewLandscape(c, w, visibleHeight, panel, raised, border, primary, muted, faint);
             return;
         }
         float top = 182;
