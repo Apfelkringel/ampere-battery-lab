@@ -1,7 +1,7 @@
 {
-  "versionCode": 115,
-  "versionName": "0.115",
+  "versionCode": 117,
+  "versionName": "0.117",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "4fbaee470afcd403c4d9c404f9662783bcbff8f62f7e6babecebb021c290f787",
-  "releaseNotes": "Beispiel eines gültigen Update-Manifests; Hash und APK müssen bei jeder Veröffentlichung zusammenpassen."
+  "sha256": "b064aaf4fce138d703b30faf38a8047da9478867a0a7c4184e0d08b4ae7d7ed6",
+  "releaseNotes": "Robustere Kapazitätserkennung; fehlende Messwerte werden nicht mehr als erfundene 0-Werte angezeigt."
 }

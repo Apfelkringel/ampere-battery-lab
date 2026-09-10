@@ -5,9 +5,9 @@ Last verified: 2026-09-10 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.116` (`versionCode 116`)
+- Version: `0.117` (`versionCode 117`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `83a4db2e89b4dc33f773e1b1a2b35f8f12b2d9a407eaea9d63bfff9d13620ff1`
+- Release APK SHA-256: `b064aaf4fce138d703b30faf38a8047da9478867a0a7c4184e0d08b4ae7d7ed6`
 - The same hash is published in the public update repository manifest.
 
 ## Runtime checks
@@ -146,6 +146,13 @@ remain explicitly unavailable until a real value is detected or entered.
 Release `0.116` persists the visible activity's active-session start state after
 every battery read, so process restarts and backups do not lose the current
 charging/discharging start level, timestamp or charge-counter baseline.
+
+Release `0.117` expands nominal-capacity detection across battery/BMS driver
+nodes, energy/voltage pairs and the Android PowerProfile, while retaining the
+source label and strict 500–30,000 mAh bounds. Missing temperature, voltage and
+capacity values remain unavailable instead of being rendered as `0` values.
+The public APK was installed over `0.116` on API 36; `firstInstallTime` stayed
+unchanged and the launch/logcat check reported no fatal exception.
 
 The current public update path was also exercised from signed `0.90` to signed
 `0.91` on API 36. The app fetched the 0.91 manifest, showed the in-app dialog,
