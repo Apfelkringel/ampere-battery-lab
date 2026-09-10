@@ -5,9 +5,9 @@ Last verified: 2026-09-10 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.92` (`versionCode 92`)
+- Version: `0.93` (`versionCode 93`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `737621654177818338244452c1a8e099f839bb86646ee29f8120f8db3c9d298d`
+- Release APK SHA-256: `8db0dc12871f70ce237134aa64cf2d611afc38980a38c977dca65d346a119d61`
 - The same hash is published in the public update repository manifest.
 
 ## Runtime checks
@@ -34,13 +34,19 @@ installer, and completed the update. The installed package reported
 used during this test, so the installed artifact was the current public 0.90
 APK rather than a cached 0.89 response.
 
-Release `0.91` adds a history-load migration that removes legacy sessions only
-when both the level change and measured energy are zero; sessions with a real
-energy signal remain intact.
+Release `0.91` adds a history-load migration that removes legacy sessions with
+zero percentage change. Release `0.93` applies the same rule when writing new
+history entries, so a stale Android charge counter cannot create a misleading
+`0 %` row; genuine charge energy remains in the aggregate total.
 
 Release `0.92` adds a visible build label to the header. This makes it possible
 to verify on the device that the newly installed APK, rather than a same-number
 or stale-looking build, is running.
+
+Release `0.93` refreshes the native dashboard palette, active navigation state,
+live-status hierarchy and automatic-detection presentation. The local build
+passed Android lint and the release workflow passed signing, package, version,
+certificate and artifact checks.
 
 The current public update path was also exercised from signed `0.90` to signed
 `0.91` on API 36. The app fetched the 0.91 manifest, showed the in-app dialog,
