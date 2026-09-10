@@ -45,6 +45,7 @@ final class UpdateChecker {
     private static final String DOWNLOAD_ID = "downloadId";
     private static final String DOWNLOAD_SHA256 = "downloadSha256";
     private static final String DOWNLOAD_VERSION_CODE = "downloadVersionCode";
+    private static final String INSTALL_IN_PROGRESS = "installInProgress";
     private static final String EXPECTED_MANIFEST_PATH = "/repos/Apfelkringel/ampere-battery-lab-updates/contents/latest.json";
     private static final String EXPECTED_APK_PATH = "/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk";
     // Android's package installer enforces this signer too. Rechecking it here
@@ -55,6 +56,11 @@ final class UpdateChecker {
     private static final int MAX_RELEASE_NOTES_CHARS = 8 * 1024;
     private static final long MAX_APK_BYTES = 128L * 1024L * 1024L;
     private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor();
+    private static final Object OPERATION_LOCK = new Object();
+    private static boolean checkInProgress;
+    private static boolean downloadInProgress;
+    private static boolean downloadCompletionInProgress;
+    private static boolean installInProgress;
 
     private UpdateChecker() { }
 
@@ -70,6 +76,19 @@ final class UpdateChecker {
         return intent != null && ACTION_SHOW_UPDATE.equals(intent.getAction());
     }
 
+    /** Releases the installer guard when the app becomes visible again. */
+    static void onActivityResumed(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        if (!prefs.getBoolean(INSTALL_IN_PROGRESS, false)) return;
+        synchronized (OPERATION_LOCK) {
+            installInProgress = false;
+            downloadInProgress = false;
+            downloadCompletionInProgress = false;
+        }
+        clearDownloadState(prefs);
+        prefs.edit().remove(INSTALL_IN_PROGRESS).apply();
+    }
+
     /** Performs a throttled manifest-only check from the persistent monitor service. */
     static void checkInBackground(Context context) {
         String manifestUrl = BuildConfig.UPDATE_MANIFEST_URL;
@@ -78,15 +97,20 @@ final class UpdateChecker {
         SharedPreferences prefs = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         long now = System.currentTimeMillis();
         if (now - prefs.getLong("lastBackgroundCheck", 0L) < CHECK_INTERVAL_MS) return;
+        if (!tryStartCheck(app, false)) return;
         prefs.edit().putLong("lastBackgroundCheck", now).apply();
         EXECUTOR.execute(() -> {
-            FetchResult result = fetch(manifestUrl);
-            UpdateInfo update = result.update;
-            if (update == null) return;
-            int notifiedVersion = prefs.getInt("notifiedVersionCode", 0);
-            if (update.versionCode <= notifiedVersion) return;
-            notifyUpdateAvailable(app, update);
-            prefs.edit().putInt("notifiedVersionCode", update.versionCode).apply();
+            try {
+                FetchResult result = fetch(manifestUrl);
+                UpdateInfo update = result.update;
+                if (update == null) return;
+                int notifiedVersion = prefs.getInt("notifiedVersionCode", 0);
+                if (update.versionCode <= notifiedVersion) return;
+                notifyUpdateAvailable(app, update);
+                prefs.edit().putInt("notifiedVersionCode", update.versionCode).apply();
+            } finally {
+                finishCheck();
+            }
         });
     }
 
@@ -97,20 +121,45 @@ final class UpdateChecker {
         SharedPreferences prefs = activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         long now = System.currentTimeMillis();
         if (!force && now - prefs.getLong("lastCheck", 0L) < CHECK_INTERVAL_MS) return;
+        if (!tryStartCheck(activity, force)) return;
         prefs.edit().putLong("lastCheck", now).apply();
 
         WeakReference<Activity> activityRef = new WeakReference<>(activity);
         if (force) Toast.makeText(activity, "Suche nach Aktualisierungen …", Toast.LENGTH_SHORT).show();
         EXECUTOR.execute(() -> {
-            FetchResult result = fetch(manifestUrl);
-            UpdateInfo update = result.update;
-            Activity target = activityRef.get();
-            if (target == null || target.isFinishing()) return;
-            target.runOnUiThread(() -> {
-                if (update != null) showUpdateDialog(target, update);
-                else if (force) showCheckResult(target, result.message);
-            });
+            try {
+                FetchResult result = fetch(manifestUrl);
+                UpdateInfo update = result.update;
+                Activity target = activityRef.get();
+                if (target == null || target.isFinishing()) return;
+                target.runOnUiThread(() -> {
+                    if (update != null) showUpdateDialog(target, update);
+                    else if (force) showCheckResult(target, result.message);
+                });
+            } finally {
+                finishCheck();
+            }
         });
+    }
+
+    private static boolean tryStartCheck(Context context, boolean notify) {
+        synchronized (OPERATION_LOCK) {
+            if (checkInProgress || downloadInProgress || downloadCompletionInProgress || installInProgress
+                    || hasPendingUpdateWork(context)) {
+                if (notify) {
+                    Toast.makeText(context, "Ein anderer Update-Vorgang läuft bereits.", Toast.LENGTH_SHORT).show();
+                }
+                return false;
+            }
+            checkInProgress = true;
+            return true;
+        }
+    }
+
+    private static void finishCheck() {
+        synchronized (OPERATION_LOCK) {
+            checkInProgress = false;
+        }
     }
 
     private static void showCheckResult(Activity activity, String message) {
@@ -236,6 +285,7 @@ final class UpdateChecker {
             Toast.makeText(activity, "Download ist auf diesem Gerät nicht verfügbar.", Toast.LENGTH_LONG).show();
             return;
         }
+        if (!tryStartDownload(activity)) return;
         try {
             DownloadManager.Request request = new DownloadManager.Request(Uri.parse(withCacheBuster(update.apkUrl)));
             request.setTitle("Ampere-Update " + update.versionName);
@@ -256,7 +306,21 @@ final class UpdateChecker {
                     .apply();
             Toast.makeText(activity, "Update wird heruntergeladen …", Toast.LENGTH_LONG).show();
         } catch (Exception error) {
+            clearDownloadState(activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE));
+            finishDownload();
             Toast.makeText(activity, "Update konnte nicht gestartet werden.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private static boolean tryStartDownload(Context context) {
+        synchronized (OPERATION_LOCK) {
+            if (checkInProgress || downloadInProgress || downloadCompletionInProgress || installInProgress
+                    || hasPendingUpdateWork(context)) {
+                Toast.makeText(context, "Ein anderer Update-Vorgang läuft bereits.", Toast.LENGTH_SHORT).show();
+                return false;
+            }
+            downloadInProgress = true;
+            return true;
         }
     }
 
@@ -272,8 +336,18 @@ final class UpdateChecker {
         long received = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L);
         if (expected < 0L || expected != received) return;
 
+        synchronized (OPERATION_LOCK) {
+            if (installInProgress || downloadCompletionInProgress) return;
+            downloadInProgress = true;
+            downloadCompletionInProgress = true;
+        }
+
         DownloadManager manager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
-        if (manager == null) return;
+        if (manager == null) {
+            clearDownloadState(prefs);
+            finishDownload();
+            return;
+        }
         DownloadManager.Query query = new DownloadManager.Query().setFilterById(received);
         android.database.Cursor cursor = manager.query(query);
         boolean successful = false;
@@ -291,17 +365,21 @@ final class UpdateChecker {
         }
         if (!successful) {
             clearDownloadState(prefs);
+            finishDownload();
             Toast.makeText(context, "Update-Download fehlgeschlagen.", Toast.LENGTH_LONG).show();
             return;
         }
         if (totalSize > MAX_APK_BYTES) {
             manager.remove(received);
             clearDownloadState(prefs);
+            finishDownload();
             Toast.makeText(context, "Update verworfen: Datei ist zu groß.", Toast.LENGTH_LONG).show();
             return;
         }
         Uri apkUri = manager.getUriForDownloadedFile(received);
         if (apkUri == null) {
+            clearDownloadState(prefs);
+            finishDownload();
             Toast.makeText(context, "Update-Datei konnte nicht geöffnet werden.", Toast.LENGTH_LONG).show();
             return;
         }
@@ -313,16 +391,23 @@ final class UpdateChecker {
                 if (!verified) {
                     manager.remove(received);
                     clearDownloadState(prefs);
+                    finishDownload();
                     Toast.makeText(context, "Update verworfen: Hash, Version oder Release-Signatur ungültig.", Toast.LENGTH_LONG).show();
                     return;
                 }
-                clearDownloadState(prefs);
+                synchronized (OPERATION_LOCK) {
+                    installInProgress = true;
+                }
+                prefs.edit().putBoolean(INSTALL_IN_PROGRESS, true).apply();
                 Intent install = new Intent(Intent.ACTION_VIEW).setDataAndType(apkUri, "application/vnd.android.package-archive");
                 install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 install.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 try {
                     context.startActivity(install);
                 } catch (Exception ignored) {
+                    prefs.edit().remove(INSTALL_IN_PROGRESS).apply();
+                    clearDownloadState(prefs);
+                    finishDownload();
                     Toast.makeText(context, "Bitte die heruntergeladene APK aus den Dateien öffnen.", Toast.LENGTH_LONG).show();
                 }
             });
@@ -331,6 +416,40 @@ final class UpdateChecker {
 
     private static void clearDownloadState(SharedPreferences prefs) {
         prefs.edit().remove(DOWNLOAD_ID).remove(DOWNLOAD_SHA256).remove(DOWNLOAD_VERSION_CODE).apply();
+    }
+
+    private static void finishDownload() {
+        synchronized (OPERATION_LOCK) {
+            downloadInProgress = false;
+            downloadCompletionInProgress = false;
+        }
+    }
+
+    /** Returns true while a persisted DownloadManager or installer operation is unfinished. */
+    private static boolean hasPendingUpdateWork(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        if (prefs.getBoolean(INSTALL_IN_PROGRESS, false)) return true;
+        long id = prefs.getLong(DOWNLOAD_ID, -1L);
+        if (id < 0L) return false;
+        DownloadManager manager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
+        if (manager == null) return true;
+        android.database.Cursor cursor = manager.query(new DownloadManager.Query().setFilterById(id));
+        if (cursor == null) return true;
+        try {
+            if (!cursor.moveToFirst()) {
+                clearDownloadState(prefs);
+                return false;
+            }
+            int status = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS));
+            if (status == DownloadManager.STATUS_PENDING || status == DownloadManager.STATUS_RUNNING
+                    || status == DownloadManager.STATUS_PAUSED || status == DownloadManager.STATUS_SUCCESSFUL) {
+                return true;
+            }
+            clearDownloadState(prefs);
+            return false;
+        } finally {
+            cursor.close();
+        }
     }
 
     private static boolean verifyDownloadedApk(Context context, Uri uri, String expectedSha256, int expectedVersionCode) {

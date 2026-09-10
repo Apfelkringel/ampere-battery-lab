@@ -20,8 +20,11 @@ import android.graphics.LinearGradient;
 import android.graphics.Shader;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.Gravity;
 import android.widget.ScrollView;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.text.InputType;
 import android.content.SharedPreferences;
@@ -148,6 +151,7 @@ public class MainActivity extends Activity {
     @Override protected void onResume() {
         super.onResume();
         if (dashboard == null) return;
+        UpdateChecker.onActivityResumed(this);
         startMonitorService();
         dashboard.startSavedOverlay();
         if (UpdateChecker.isUpdateIntent(getIntent())) {
@@ -1237,7 +1241,29 @@ class BatteryDashboard extends View {
 
     private void showSettings() {
         String[] options = {"Dunkles Design", "AMOLED-Schwarz", "Helles Design", "Benachrichtigungen", "Overlay-Berechtigung", "Daten & Datenschutz", "Sicherung & Wiederherstellung", "Hintergrundüberwachung", "Datenerfassung", "Nach Updates suchen", "Kurzanleitung", "Gesundheitsbasis zurücksetzen", "Lokale Daten löschen"};
-        new AlertDialog.Builder(getContext()).setTitle("Einstellungen").setItems(options, (dialog, which) -> {
+        LinearLayout titleBar = new LinearLayout(getContext());
+        titleBar.setOrientation(LinearLayout.HORIZONTAL);
+        titleBar.setGravity(Gravity.CENTER_VERTICAL);
+        int titlePadding = Math.round(20 * density);
+        titleBar.setPadding(titlePadding, Math.round(8 * density), Math.round(8 * density), Math.round(4 * density));
+
+        TextView title = new TextView(getContext());
+        title.setText("Einstellungen");
+        title.setTextSize(20);
+        title.setTextColor(light ? Color.rgb(25, 32, 28) : Color.WHITE);
+        title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        titleBar.addView(title, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+
+        TextView close = new TextView(getContext());
+        close.setText("×");
+        close.setTextSize(30);
+        close.setGravity(Gravity.CENTER);
+        close.setTextColor(light ? Color.rgb(25, 32, 28) : Color.WHITE);
+        close.setContentDescription("Einstellungen schließen");
+        int closeSize = Math.round(48 * density);
+        titleBar.addView(close, new LinearLayout.LayoutParams(closeSize, closeSize));
+
+        AlertDialog dialog = new AlertDialog.Builder(getContext()).setCustomTitle(titleBar).setItems(options, (itemDialog, which) -> {
             if (which == 0) { light = false; amoled = false; }
             else if (which == 1) { light = false; amoled = true; }
             else if (which == 2) { light = true; amoled = false; }
@@ -1266,8 +1292,13 @@ class BatteryDashboard extends View {
                 confirmDeleteData();
             }
             prefs.edit().putBoolean("lightTheme", light).putBoolean("amoledTheme", amoled).apply();
+            applySystemBarTheme();
             invalidate();
-        }).show();
+        }).create();
+        close.setOnClickListener(view -> dialog.dismiss());
+        dialog.setCanceledOnTouchOutside(true);
+        dialog.setCancelable(true);
+        dialog.show();
     }
 
     private void showDataCollection() {

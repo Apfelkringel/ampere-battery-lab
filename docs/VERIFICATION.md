@@ -5,7 +5,7 @@ Last verified: 2026-09-10 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.99` (`versionCode 99`)
+- Version: `1.00` (`versionCode 100`)
 - `minSdk 23`, `targetSdk 37`
 - Release APK SHA-256: `df57c490b3962c950e2cce20a5bbfa3f8221f4b70b422d6f8857b3740cd45253`
 - The same hash is published in the public update repository manifest.
@@ -76,6 +76,12 @@ positions on compact phone windows.
 Release `0.99` synchronizes the light/dark system bars with the app theme,
 improves light-theme contrast, and enlarges the header controls to consistent
 48-dp touch surfaces while keeping their visual positions aligned.
+
+Release `1.00` lets the settings dialog close by tapping outside it or using
+the visible close button. Update checks, APK downloads and installer launches
+now share an in-process lock and a persisted DownloadManager/installer guard,
+so repeated taps and background/manual overlap cannot start parallel update
+operations.
 
 The current public update path was also exercised from signed `0.90` to signed
 `0.91` on API 36. The app fetched the 0.91 manifest, showed the in-app dialog,
