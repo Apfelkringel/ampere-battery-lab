@@ -1439,7 +1439,10 @@ class BatteryDashboard extends View {
     private boolean isPressed(int region) { return pressedRegion == region; }
 
     private int pressedRegionAt(float x, float y, float w) {
-        if (w < 300f) {
+        // Keep the touch map in lockstep with drawHeader(): below 390 dp the
+        // header has two controls, so the three-control hitboxes must not be
+        // used on common 320/360 dp phone windows.
+        if (w < 390f) {
             if (y < 70 && x > w - 105 && x < w - 60) return 1; // overflow
             if (y < 70 && x > w - 60) return 2; // theme
         }
