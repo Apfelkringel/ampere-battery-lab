@@ -5,7 +5,7 @@ Last verified: 2026-09-10 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.101` (`versionCode 101`)
+- Version: `0.102` (`versionCode 102`)
 - `minSdk 23`, `targetSdk 37`
 - Release APK SHA-256: `8be55732c022f20cc0ae434c984d6b1df2c784362698666117af1f7a6a660264`
 - The same hash is published in the public update repository manifest.
@@ -85,6 +85,9 @@ operations.
 
 Release `0.101` clips the colored card rails to the same rounded shape as their
 cards and keeps the live mA value inside the status surface on compact layouts.
+
+Release `0.102` centers every navigation button on its cell with symmetric
+insets and centers icon/label groups on wide layouts as well.
 
 The current public update path was also exercised from signed `0.90` to signed
 `0.91` on API 36. The app fetched the 0.91 manifest, showed the in-app dialog,

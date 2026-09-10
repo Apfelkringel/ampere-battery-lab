@@ -1621,19 +1621,26 @@ class BatteryDashboard extends View {
         c.drawRoundRect(rect, u(14), u(14), p);
         for (int i = 0; i < labels.length; i++) {
             float x = 18 + i * cell;
+            float centerX = x + cell / 2f;
             boolean active = page == i;
             boolean pressed = isPressed(10 + i);
             if (active || pressed) {
-                rounded(c, x + 4, 126, x + cell - 9, 162, 11, pressed ? pressedFill(panel, true) : (active ? lime : panel));
+                // Keep equal 4-dp insets on both sides. The old right inset
+                // was 9 dp, shifting every tab's visual center to the left.
+                rounded(c, x + 4, 126, x + cell - 4, 162, 11, pressed ? pressedFill(panel, true) : (active ? lime : panel));
             }
             int iconColor = active ? Color.rgb(23, 28, 16) : muted;
             if (compactNav) {
-                float centerX = x + (cell - 5) / 2f;
                 drawNavGlyph(c, i, centerX, 137, iconColor);
                 centeredText(c, labels[i], centerX, 156, 8.5f, active ? Color.rgb(23, 28, 16) : muted, active);
             } else {
-                drawNavGlyph(c, i, x + 18, 145, iconColor);
-                text(c, fitText(labels[i], cell - 36, 9, active), x + 31, 148, 9, active ? Color.rgb(23, 28, 16) : muted, active);
+                String fittedLabel = fitText(labels[i], Math.max(24f, cell - 52f), 9, active);
+                type(9, active ? Color.rgb(23, 28, 16) : muted, active);
+                float labelWidth = p.measureText(fittedLabel) / density;
+                float groupWidth = 16f + 8f + labelWidth;
+                float groupLeft = centerX - groupWidth / 2f;
+                drawNavGlyph(c, i, groupLeft + 8f, 145, iconColor);
+                text(c, fittedLabel, groupLeft + 24f, 148, 9, active ? Color.rgb(23, 28, 16) : muted, active);
             }
         }
     }
