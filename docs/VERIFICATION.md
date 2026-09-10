@@ -5,9 +5,9 @@ Last verified: 2026-09-10 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.95` (`versionCode 95`)
+- Version: `0.96` (`versionCode 96`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `383674ff7eadbf38e8bdea12662cf508afc0700188e6da467d3ac9ce1c270409`
+- Release APK SHA-256: pending signed `v0.96` workflow artifact
 - The same hash is published in the public update repository manifest.
 
 ## Runtime checks
@@ -57,6 +57,11 @@ Release `0.95` measures text against the active centered content column, clips
 the body to that column, adapts header controls below 390 dp, includes display
 cutout insets, and uses a wider but bounded hero surface. The start page was
 rendered on API 36 at 240×640, 320×640, 411×800, 700×1000 and 800×411.
+
+Release `0.96` adds a dedicated wide-landscape composition for windows with at
+least 600 dp width and less than 600 dp height. The live card and four key
+metrics share the first viewport; the remaining chart stays in the same scroll
+flow below them.
 
 The current public update path was also exercised from signed `0.90` to signed
 `0.91` on API 36. The app fetched the 0.91 manifest, showed the in-app dialog,

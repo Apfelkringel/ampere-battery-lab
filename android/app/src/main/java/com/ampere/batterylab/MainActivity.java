@@ -449,6 +449,8 @@ class BatteryDashboard extends View {
     // width here prevents generic text helpers from measuring against the
     // physical display and overflowing cards on tablets/foldables.
     private float layoutWidthDp;
+    private float viewportWidthDp;
+    private float viewportHeightDp;
     private final int lime = Color.rgb(199, 243, 107);
     private final int blue = Color.rgb(118, 184, 255);
     private final int amber = Color.rgb(242, 179, 106);
@@ -501,6 +503,7 @@ class BatteryDashboard extends View {
     private float overviewChartTop() {
         float width = getWidth() / density;
         float bodyWidth = contentWidth(width);
+        if (viewportWidthDp >= 600f && viewportHeightDp > 0f && viewportHeightDp < 600f) return 182 + 218;
         float heroWidth = Math.min(bodyWidth - 36, 520);
         float heroHeight = heroWidth < 410f ? 400f : 320f;
         return 182 + heroHeight + 14 + 234;
@@ -1469,13 +1472,23 @@ class BatteryDashboard extends View {
         return suffix;
     }
 
-    private float contentWidth(float viewWidth) { return Math.min(viewWidth, 560f); }
+    private float contentWidth(float viewWidth) {
+        // The dashboard has a dedicated landscape composition for wide,
+        // short windows. Give that composition enough horizontal room while
+        // retaining a readable max width everywhere else.
+        if (page == 0 && viewportWidthDp >= 600f && viewportHeightDp > 0f && viewportHeightDp < 600f) {
+            return Math.min(Math.max(0f, viewWidth - 48f), 960f);
+        }
+        return Math.min(viewWidth, 560f);
+    }
     private float contentInset(float viewWidth) { return Math.max(0f, (viewWidth - contentWidth(viewWidth)) / 2f); }
 
     @Override protected void onDraw(Canvas c) {
         super.onDraw(c);
         float w = getWidth() / density;
         float h = getHeight() / density;
+        viewportWidthDp = getRootView().getWidth() / density;
+        viewportHeightDp = getRootView().getHeight() / density;
         layoutWidthDp = w;
         int bg = light ? Color.rgb(243, 245, 239) : (amoled ? Color.BLACK : Color.rgb(11, 16, 17));
         int panel = light ? Color.WHITE : (amoled ? Color.rgb(5, 5, 5) : Color.rgb(20, 28, 25));
@@ -1587,6 +1600,10 @@ class BatteryDashboard extends View {
     }
 
     private void drawOverview(Canvas c, float w, float h, int panel, int raised, int border, int primary, int muted, int faint) {
+        if (viewportWidthDp >= 600f && viewportHeightDp > 0f && viewportHeightDp < 600f) {
+            drawOverviewLandscape(c, w, panel, raised, border, primary, muted, faint);
+            return;
+        }
         float top = 182;
         float heroW = Math.min(w - 36, 520);
         boolean compact = heroW < 410f;
@@ -1657,6 +1674,66 @@ class BatteryDashboard extends View {
 
         float lowerTop = cardsTop + 234;
         drawChart(c, 18, lowerTop, w - 36, 360, panel, border, primary, muted, faint);
+    }
+
+    /**
+     * Landscape composition for wide but short windows. A single tall hero
+     * card wastes the horizontal space and hides the key metrics below the
+     fold, so the live card and supporting metrics share the first viewport.
+     */
+    private void drawOverviewLandscape(Canvas c, float w, int panel, int raised, int border,
+                                       int primary, int muted, int faint) {
+        float top = 182f;
+        float gap = 16f;
+        float available = Math.max(300f, w - 36f - gap);
+        float heroW = Math.max(300f, Math.min(500f, available * .58f));
+        float metricsX = 18f + heroW + gap;
+        float metricsW = Math.max(150f, w - metricsX - 18f);
+        float heroRight = 18f + heroW;
+        float heroBottom = top + 180f;
+        frame(c, 18, top, heroRight, heroBottom, panel, border, lime);
+        text(c, "AKKUSTAND · AUTOMATIK", 36, top + 31, 10, muted, true);
+        text(c, "Aktueller Akkustand", 36, top + 56, 17, primary, true);
+        rounded(c, 36, top + 67, 132, top + 89, 11,
+                charging ? Color.argb(42, Color.red(lime), Color.green(lime), Color.blue(lime))
+                        : Color.argb(35, Color.red(blue), Color.green(blue), Color.blue(blue)));
+        fill(c, charging ? lime : blue);
+        c.drawCircle(u(47), u(top + 78), u(3), p);
+        text(c, charging ? "LÄDT JETZT" : "AKKUBETRIEB", 57, top + 82, 8, charging ? lime : blue, true);
+
+        float gaugeRadius = Math.min(54f, Math.max(48f, heroW * .18f));
+        float gaugeCx = 36f + gaugeRadius + 8f;
+        float gaugeCy = top + 112f;
+        drawGauge(c, gaugeCx, gaugeCy, gaugeRadius, level, primary, faint);
+        centeredText(c, level + "%", gaugeCx, gaugeCy + 8, gaugeRadius < 52f ? 25f : 28f, primary, true);
+        centeredText(c, charging ? "Laden" : "Akku", gaugeCx, gaugeCy + 29, 7, muted, false);
+
+        float detailX = Math.max(160f, heroW * .52f);
+        int health = healthPercent();
+        text(c, fitText(health == 0 ? "Nicht gemessen" : (health > 80 ? "Guter Zustand" : "Prüfung nötig"),
+                Math.max(82f, heroW - detailX - 18f), 13, true), detailX, top + 91, 13, primary, true);
+        text(c, "Akkugesundheit", detailX, top + 108, 7, muted, false);
+        text(c, "Volle Kapazität", detailX, top + 130, 7, muted, false);
+        text(c, health > 0 ? mahDisplay(estimatedCapacityMah()) : "—", detailX, top + 146, 11, primary, true);
+        text(c, "Nennwert " + mahDisplay(designCapacityMah()), detailX, top + 160, 7, faint, false);
+
+        rounded(c, 36, top + 164, heroRight - 18, top + 176, 5, raised);
+        drawBolt(c, 46, top + 170, lime, .5f);
+        text(c, charging ? "Laden erkannt" : "Akkubetrieb", 57, top + 172, 7, primary, true);
+        rightText(c, liveCurrentDisplay(), heroRight - 26, top + 172, 7, charging ? lime : blue, false);
+
+        float metricGap = 10f;
+        float metricW = (metricsW - metricGap) / 2f;
+        drawStat(c, metricsX, top, metricW, 98, "Gesundheit", healthDisplay(), health > 0 ? "%" : "", lime,
+                primary, muted, border, panel, "heart");
+        drawStat(c, metricsX + metricW + metricGap, top, metricW, 98, "Temperatur", temperatureDisplay(), temperature > 0f ? "°C" : "", amber,
+                primary, muted, border, panel, "temp");
+        drawStat(c, metricsX, top + 106, metricW, 98, "Spannung", voltageDisplay(), voltage > 0f ? "V" : "", blue,
+                primary, muted, border, panel, "bolt");
+        drawStat(c, metricsX + metricW + metricGap, top + 106, metricW, 98, "Screenzeit", screenOnTime(), "", violet,
+                primary, muted, border, panel, "clock");
+
+        drawChart(c, 18, top + 218, w - 36, 360, panel, border, primary, muted, faint);
     }
 
     private void drawChargingPage(Canvas c, float w, float h, int panel, int raised, int border, int primary, int muted, int faint) {
