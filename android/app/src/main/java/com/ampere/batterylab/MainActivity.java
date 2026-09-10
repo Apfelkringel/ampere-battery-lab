@@ -123,7 +123,7 @@ public class MainActivity extends Activity {
             window.setDecorFitsSystemWindows(false);
             scroll.setOnApplyWindowInsetsListener((view, insets) -> {
                 android.graphics.Insets bars = insets.getInsets(WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout());
-                view.setPadding(view.getPaddingLeft(), bars.top, view.getPaddingRight(), bars.bottom);
+                view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
                 return insets;
             });
         }
@@ -503,6 +503,7 @@ class BatteryDashboard extends View {
     private float overviewChartTop() {
         float width = getWidth() / density;
         float bodyWidth = contentWidth(width);
+        if (viewportWidthDp >= 600f && viewportHeightDp > 0f && viewportHeightDp < 390f) return 174 + 218;
         if (viewportWidthDp >= 600f && viewportHeightDp > 0f && viewportHeightDp < 600f) return 182 + 218;
         float heroWidth = Math.min(bodyWidth - 36, 520);
         float heroHeight = heroWidth < 410f ? 400f : 320f;
@@ -1683,6 +1684,10 @@ class BatteryDashboard extends View {
      */
     private void drawOverviewLandscape(Canvas c, float w, int panel, int raised, int border,
                                        int primary, int muted, int faint) {
+        if (viewportHeightDp < 390f) {
+            drawOverviewLandscapeShort(c, w, panel, raised, border, primary, muted, faint);
+            return;
+        }
         float top = 182f;
         float gap = 16f;
         float available = Math.max(300f, w - 36f - gap);
@@ -1721,6 +1726,60 @@ class BatteryDashboard extends View {
         drawBolt(c, 46, top + 170, lime, .5f);
         text(c, charging ? "Laden erkannt" : "Akkubetrieb", 57, top + 172, 7, primary, true);
         rightText(c, liveCurrentDisplay(), heroRight - 26, top + 172, 7, charging ? lime : blue, false);
+
+        float metricGap = 10f;
+        float metricW = (metricsW - metricGap) / 2f;
+        drawStat(c, metricsX, top, metricW, 98, "Gesundheit", healthDisplay(), health > 0 ? "%" : "", lime,
+                primary, muted, border, panel, "heart");
+        drawStat(c, metricsX + metricW + metricGap, top, metricW, 98, "Temperatur", temperatureDisplay(), temperature > 0f ? "°C" : "", amber,
+                primary, muted, border, panel, "temp");
+        drawStat(c, metricsX, top + 106, metricW, 98, "Spannung", voltageDisplay(), voltage > 0f ? "V" : "", blue,
+                primary, muted, border, panel, "bolt");
+        drawStat(c, metricsX + metricW + metricGap, top + 106, metricW, 98, "Screenzeit", screenOnTime(), "", violet,
+                primary, muted, border, panel, "clock");
+
+        drawChart(c, 18, top + 218, w - 36, 360, panel, border, primary, muted, faint);
+    }
+
+    /**
+     * Compact landscape composition for short split-screen and small tablet
+     * windows. The live card remains complete; the metric cards continue below
+     * in the ScrollView instead of being painted underneath system navigation.
+     */
+    private void drawOverviewLandscapeShort(Canvas c, float w, int panel, int raised, int border,
+                                            int primary, int muted, int faint) {
+        float top = 174f;
+        float gap = 14f;
+        float available = Math.max(300f, w - 36f - gap);
+        float heroW = Math.max(300f, Math.min(500f, available * .58f));
+        float metricsX = 18f + heroW + gap;
+        float metricsW = Math.max(150f, w - metricsX - 18f);
+        float heroRight = 18f + heroW;
+        float heroBottom = top + 132f;
+        frame(c, 18, top, heroRight, heroBottom, panel, border, lime);
+        text(c, "AKKUSTAND · AUTOMATIK", 34, top + 23, 8, muted, true);
+        text(c, fitText("Aktueller Akkustand", heroW - 32, 15, true), 34, top + 46, 15, primary, true);
+        rounded(c, 34, top + 52, 122, top + 72, 10,
+                charging ? Color.argb(42, Color.red(lime), Color.green(lime), Color.blue(lime))
+                        : Color.argb(35, Color.red(blue), Color.green(blue), Color.blue(blue)));
+        fill(c, charging ? lime : blue);
+        c.drawCircle(u(44), u(top + 62), u(2.5f), p);
+        text(c, charging ? "LÄDT JETZT" : "AKKUBETRIEB", 53, top + 65, 7, charging ? lime : blue, true);
+
+        float gaugeRadius = Math.min(40f, Math.max(36f, heroW * .13f));
+        float gaugeCx = 34f + gaugeRadius + 5f;
+        float gaugeCy = top + 94f;
+        drawGauge(c, gaugeCx, gaugeCy, gaugeRadius, level, primary, faint);
+        centeredText(c, level + "%", gaugeCx, gaugeCy + 6, 22, primary, true);
+        centeredText(c, charging ? "Laden" : "Akku", gaugeCx, gaugeCy + 22, 6, muted, false);
+
+        int health = healthPercent();
+        float detailX = Math.max(142f, heroW * .50f);
+        float detailW = Math.max(90f, heroW - detailX - 20f);
+        text(c, fitText(health == 0 ? "Nicht gemessen" : (health > 80 ? "Guter Zustand" : "Prüfung nötig"), detailW, 12, true), detailX, top + 76, 12, primary, true);
+        text(c, "Akkugesundheit", detailX, top + 90, 6.5f, muted, false);
+        text(c, "Volle Kapazität", detailX, top + 105, 6.5f, muted, false);
+        text(c, health > 0 ? mahDisplay(estimatedCapacityMah()) : "—", detailX, top + 119, 9, primary, true);
 
         float metricGap = 10f;
         float metricW = (metricsW - metricGap) / 2f;

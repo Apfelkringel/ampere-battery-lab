@@ -5,9 +5,9 @@ Last verified: 2026-09-10 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.96` (`versionCode 96`)
+- Version: `0.97` (`versionCode 97`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `cbe5cc2abe3899d1492333a976a35408bf38439db71633c8d06ec48407171648`
+- Release APK SHA-256: `TO_BE_FILLED_AFTER_SIGNED_BUILD`
 - The same hash is published in the public update repository manifest.
 
 ## Runtime checks
@@ -62,6 +62,12 @@ Release `0.96` adds a dedicated wide-landscape composition for windows with at
 least 600 dp width and less than 600 dp height. The live card and four key
 metrics share the first viewport; the remaining chart stays in the same scroll
 flow below them.
+
+Release `0.97` adds a shorter-landscape composition for split-screen and small
+tablet windows, keeping the live card inside the visible safe area. Insets now
+reserve left and right cutout space as well as the system top and bottom bars.
+The API-36 emulator was checked at 640×360, 600×411, 800×411 and 446×800
+without unintended card or text overlap.
 
 The current public update path was also exercised from signed `0.90` to signed
 `0.91` on API 36. The app fetched the 0.91 manifest, showed the in-app dialog,
