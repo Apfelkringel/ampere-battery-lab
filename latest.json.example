@@ -2,6 +2,6 @@
   "versionCode": 119,
   "versionName": "0.119",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "PLACEHOLDER_AFTER_SIGNED_BUILD",
+  "sha256": "222482126a7a0fb1a45fc6de4dab3839f0603a5d266b7df4ebcecf111a23f742",
   "releaseNotes": "Robustere OEM-Zykluspfade und automatisierte Tests für Ladeerkennung und plausible Zykluswerte."
 }

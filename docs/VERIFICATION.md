@@ -5,9 +5,9 @@ Last verified: 2026-09-10 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.118` (`versionCode 118`)
+- Version: `0.119` (`versionCode 119`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `755dc74418060fd6eb7faaa1c70806ea5aa83555580661665cc2410b92d51444`
+- Release APK SHA-256: `222482126a7a0fb1a45fc6de4dab3839f0603a5d266b7df4ebcecf111a23f742`
 - The same hash is published in the public update repository manifest.
 
 ## Runtime checks
@@ -157,6 +157,9 @@ unchanged and the launch/logcat check reported no fatal exception.
 Release `0.118` adds a bounded fallback hierarchy for Android-/BMS-reported
 battery cycle counts. If neither source exists, the UI keeps the value
 unavailable instead of displaying a misleading zero.
+
+Release `0.119` scans additional OEM power-supply nodes and adds automated
+tests for the shared charging-state and cycle-count validation rules.
 
 The current public update path was also exercised from signed `0.90` to signed
 `0.91` on API 36. The app fetched the 0.91 manifest, showed the in-app dialog,
