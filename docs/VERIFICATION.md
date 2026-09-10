@@ -5,18 +5,18 @@ Last verified: 2026-09-10 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.85` (`versionCode 85`)
+- Version: `0.86` (`versionCode 86`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `fbe0d4b707fe5b6ea4c43ff27a1b7cdd92ffa352c96621d9ec716e7c1961face`
+- Release APK SHA-256: `684c412be1e4b066297535dbcdab50b1f08d9e60efec9c26a468d23742260cb6`
 - The same hash is published in the public update repository manifest.
 
 ## Runtime checks
 
 | Runtime | Result |
 | --- | --- |
-| Android 14 / API 34 | Fresh signed `0.85` install, compact German UI check, light/dark theme check, all five tabs, app launch and foreground monitor passed; no fatal exception occurred. |
-| Android 16 / API 36 | Fresh signed `0.85` install, app launch and foreground monitor passed. The installed package reported `versionCode 85`, `targetSdk 37`; no fatal exception occurred. |
-| Android 17 / API 37 | Fresh signed `0.85` install, app launch and foreground monitor passed. The installed package reported `versionCode 85`, `targetSdk 37`; no fatal exception occurred. |
+| Android 14 / API 34 | Fresh signed `0.85` install, compact German UI check, light/dark theme check, all five tabs, app launch and foreground monitor passed; no fatal exception occurred. The `0.86` visual pass was additionally checked on the same compact layout with the debug-equivalent build. |
+| Android 16 / API 36 | Signed `0.86` install, compact redesigned overview/charging UI, light theme, app launch and foreground monitor passed. The installed package reported `versionCode 86`, `targetSdk 37`; no fatal exception occurred. |
+| Android 17 / API 37 | Fresh signed `0.85` install, app launch and foreground monitor passed. The `0.86` release uses the same Android 14+ Canvas surface and passed local lint/build; no API-37-specific code path changed. |
 
 On API 37, an installed signed `0.79` instance fetched the public manifest,
 displayed the in-app `0.80` update dialog, downloaded the APK, reached Android's
@@ -24,9 +24,9 @@ package installer, and completed the update after the test emulator's unknown-
 sources permission was enabled. `firstInstallTime` remained unchanged and the
 monitor was restarted by `MY_PACKAGE_REPLACED` as a foreground service.
 
-Release `0.85` also compiles and passes lint locally after the German UI
-localization, German date/time formats, compact translated labels, right-aligned
-long values and the corrected health-card text overlap. Direct handling for Android
+Release `0.86` also compiles and passes lint locally after the complete visual
+redesign, consistent card surfaces, chart scales, compact translated labels,
+right-aligned long values and pressed-state feedback. Direct handling for Android
 power-connected and power-disconnected broadcasts remains active in both the
 monitor service and the visible activity.
 
