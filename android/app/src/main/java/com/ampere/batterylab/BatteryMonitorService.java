@@ -120,7 +120,7 @@ public class BatteryMonitorService extends Service {
             android.content.SharedPreferences prefs = getSharedPreferences("ampere-data", MODE_PRIVATE);
             int capacity = prefs.getInt("benchmarkCapacityMah", 0);
             int design = BatteryCapacity.designCapacityMah(this);
-            int health = capacity > 0 && design > 0 ? Math.round(capacity * 100f / design) : 0;
+            int health = BatteryHealth.percent(capacity, design);
             details += "\n" + (isCharging ? "Laden erkannt" : "Bildschirm- und Hintergrundverbrauch lokal erfasst")
                     + (health > 0 ? " · Gesundheit " + health + "%" : "")
                     + (capacity > 0 ? " · Schätzung " + capacity + " mAh" : "");
