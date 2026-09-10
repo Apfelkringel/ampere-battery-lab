@@ -45,6 +45,7 @@ final class UpdateChecker {
     private static final String DOWNLOAD_ID = "downloadId";
     private static final String DOWNLOAD_SHA256 = "downloadSha256";
     private static final String DOWNLOAD_VERSION_CODE = "downloadVersionCode";
+    private static final String EXPECTED_MANIFEST_PATH = "/repos/Apfelkringel/ampere-battery-lab-updates/contents/latest.json";
     private static final String EXPECTED_APK_PATH = "/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk";
     // Android's package installer enforces this signer too. Rechecking it here
     // rejects a changed public-repository artifact before showing the installer.
@@ -131,6 +132,7 @@ final class UpdateChecker {
             connection.setReadTimeout(7000);
             connection.setRequestMethod("GET");
             connection.setUseCaches(false);
+            connection.setRequestProperty("Accept", "application/vnd.github.raw+json");
             connection.setRequestProperty("Cache-Control", "no-cache, no-store, max-age=0");
             connection.setRequestProperty("Pragma", "no-cache");
             connection.setInstanceFollowRedirects(false);
@@ -173,8 +175,8 @@ final class UpdateChecker {
     }
 
     private static boolean isAllowedManifestUrl(URL url) {
-        return isAllowedUpdateUrl(url)
-                && "/Apfelkringel/ampere-battery-lab-updates/main/latest.json".equals(url.getPath());
+        return "api.github.com".equalsIgnoreCase(url.getHost())
+                && EXPECTED_MANIFEST_PATH.equals(url.getPath());
     }
 
     private static String withCacheBuster(String url) {

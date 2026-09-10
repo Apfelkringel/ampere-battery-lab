@@ -5,9 +5,9 @@ Last verified: 2026-09-10 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.93` (`versionCode 93`)
+- Version: `0.94` (`versionCode 94`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `8db0dc12871f70ce237134aa64cf2d611afc38980a38c977dca65d346a119d61`
+- Release APK SHA-256: pending signed `v0.94` workflow artifact
 - The same hash is published in the public update repository manifest.
 
 ## Runtime checks
@@ -47,6 +47,11 @@ Release `0.93` refreshes the native dashboard palette, active navigation state,
 live-status hierarchy and automatic-detection presentation. The local build
 passed Android lint and the release workflow passed signing, package, version,
 certificate and artifact checks.
+
+Release `0.94` moves manifest lookup to the pinned GitHub Contents API path with
+an explicit raw-content media type. This avoids depending on the staleable
+`raw/main` manifest CDN while retaining the same fixed repository and APK
+signature checks.
 
 The current public update path was also exercised from signed `0.90` to signed
 `0.91` on API 36. The app fetched the 0.91 manifest, showed the in-app dialog,
