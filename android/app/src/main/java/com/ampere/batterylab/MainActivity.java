@@ -1529,8 +1529,10 @@ class BatteryDashboard extends View {
         if (compact) {
             float centerX = 18 + heroW / 2f;
             float gaugeOffset = heroW < 230f ? 22f : 0f;
-            drawGauge(c, centerX, top + 153 + gaugeOffset, 80, level, primary, faint);
-            centeredText(c, level + "%", centerX, top + 168 + gaugeOffset, 44, primary, true);
+            float gaugeRadius = Math.min(80f, Math.max(52f, heroW / 2f - 10f));
+            float gaugeTextSize = gaugeRadius < 64f ? 32f : 44f;
+            drawGauge(c, centerX, top + 153 + gaugeOffset, gaugeRadius, level, primary, faint);
+            centeredText(c, level + "%", centerX, top + 168 + gaugeOffset, gaugeTextSize, primary, true);
             centeredText(c, charging ? "Laden" : "Akkubetrieb", centerX, top + 207 + gaugeOffset, 9, muted, false);
             float compactDetailsOffset = heroW < 230f ? 20f : 0f;
             text(c, "Akkugesundheit", 36, top + 258 + compactDetailsOffset, 9, muted, false);
