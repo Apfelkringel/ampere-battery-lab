@@ -5,9 +5,9 @@ Last verified: 2026-09-10 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.90` (`versionCode 90`)
+- Version: `0.91` (`versionCode 91`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `71eb61ea8b70ee796c1ccce3c59eb732e3077e28eb9029da48b6490cb2c98651`
+- Release APK SHA-256: `f94c6117b5426c6371365317e3e3c29f2a9789e4801477bd71e73f18a4a0c9ac`
 - The same hash is published in the public update repository manifest.
 
 ## Runtime checks
@@ -15,7 +15,7 @@ Last verified: 2026-09-10 (Europe/Berlin)
 | Runtime | Result |
 | --- | --- |
 | Android 14 / API 34 | Fresh signed `0.85` install, compact German UI check, light/dark theme check, all five tabs, app launch and foreground monitor passed; no fatal exception occurred. The `0.87` responsive pass was additionally checked at 240 dp and 320 dp with the debug-equivalent build. |
-| Android 16 / API 36 | Signed `0.90` artifact verified and compact 240/320/411-dp layouts plus a 700×1000 wide layout checked on the API-36 emulator; overview, charging, health, history and the wide-layout charge slider passed. App launch and foreground monitor passed. The release reports `versionCode 90`, `targetSdk 37`; no fatal exception occurred. |
+| Android 16 / API 36 | Signed `0.91` artifact verified and compact 240/320/411-dp layouts plus a 700×1000 wide layout checked on the API-36 emulator; overview, charging, health, history and the wide-layout charge slider passed. App launch and foreground monitor passed. The release reports `versionCode 91`, `targetSdk 37`; no fatal exception occurred. |
 | Android 17 / API 37 | Fresh signed `0.85` install, app launch and foreground monitor passed. The `0.87` release uses the same Android 14+ Canvas surface and passed local lint/build; no API-37-specific code path changed. |
 
 On API 37, an installed signed `0.79` instance fetched the public manifest,
@@ -33,6 +33,10 @@ installer, and completed the update. The installed package reported
 `MY_PACKAGE_REPLACED` restarted the monitor. The cache-busting request was
 used during this test, so the installed artifact was the current public 0.90
 APK rather than a cached 0.89 response.
+
+Release `0.91` adds a history-load migration that removes legacy sessions only
+when both the level change and measured energy are zero; sessions with a real
+energy signal remain intact.
 
 Release `0.90` also compiles and passes lint locally after centered max-width
 content for wide screens, translated touch coordinates, responsive safe-edge
