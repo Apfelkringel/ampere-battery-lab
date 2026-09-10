@@ -37,6 +37,7 @@ import android.app.usage.UsageStatsManager;
 import android.provider.Settings;
 import android.net.Uri;
 import android.view.Window;
+import android.view.WindowManager;
 import android.view.WindowInsets;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -1307,6 +1308,18 @@ class BatteryDashboard extends View {
         close.setOnClickListener(view -> dialog.dismiss());
         dialog.setCanceledOnTouchOutside(true);
         dialog.setCancelable(true);
+        dialog.setOnShowListener(shown -> {
+            Window window = dialog.getWindow();
+            if (window == null) return;
+            window.addFlags(WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH);
+            window.getDecorView().setOnTouchListener((view, event) -> {
+                if (event.getAction() == MotionEvent.ACTION_OUTSIDE) {
+                    dialog.dismiss();
+                    return true;
+                }
+                return false;
+            });
+        });
         dialog.show();
     }
 

@@ -5,9 +5,9 @@ Last verified: 2026-09-10 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.111` (`versionCode 111`)
+- Version: `0.113` (`versionCode 113`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `fdd33016668e66ae8a4c011105dbfe0ae1eca1823fbc2a716ebda4fd95ceb9da`
+- Release APK SHA-256: published by the signed `v0.113` release workflow and copied to the public update repository manifest.
 - The same hash is published in the public update repository manifest.
 
 ## Runtime checks
@@ -125,6 +125,15 @@ Release `0.111` replaces the separate floating header action boxes with one
 shared action rail and removes the redundant divider below the main navigation.
 The action cells keep independent 48-dp touch regions while sharing one visual
 container.
+
+Release `0.112` keeps narrow charging values inside their owning columns,
+rejects zero-change and wrong-direction sessions, and replaces web-prototype
+demo values and placeholder pages with live browser battery data or explicit
+unavailability states.
+
+Release `0.113` makes the settings overlay close explicitly on outside-window
+touch events as well as through its visible close button. The signed release
+was rechecked on compact portrait and landscape windows after the change.
 
 The current public update path was also exercised from signed `0.90` to signed
 `0.91` on API 36. The app fetched the 0.91 manifest, showed the in-app dialog,
