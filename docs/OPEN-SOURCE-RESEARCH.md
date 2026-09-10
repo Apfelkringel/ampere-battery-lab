@@ -45,3 +45,6 @@ Die Zykluszählung folgt demselben Prinzip: Androids gemeldeter Wert hat Vorrang
 danach werden nur bekannte Batterie-/BMS-Treiberknoten mit einer festen
 Plausibilitätsgrenze gelesen. Fehlt beides, wird kein künstlicher Gesamtzähler
 angezeigt.
+
+Die gemeinsam verwendeten Regeln sind in `BatteryRulesTest` gegen Androids
+Status-/Netzquellenregel und gegen ungültige Zyklusgrenzen abgesichert.

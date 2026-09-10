@@ -63,7 +63,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 
 ```sh
 cd android
-gradle lintDebug assembleDebug
+gradle lintDebug testDebugUnitTest assembleDebug
 ```
 
 Ein Release-Build verwendet niemals einen Fallback- oder Debug-Schlüssel. Dafür müssen

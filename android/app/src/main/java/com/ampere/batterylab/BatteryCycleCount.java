@@ -4,6 +4,7 @@ import android.content.Intent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.util.Arrays;
 
 /** Reads a reported battery cycle count without inventing one when unavailable. */
 final class BatteryCycleCount {
@@ -45,10 +46,35 @@ final class BatteryCycleCount {
             int value = readInt(new File(path));
             if (valid(value)) return new Reading(value, "Batterie-Treiber");
         }
+        Reading scanned = scanPowerSupplyNodes();
+        if (scanned != null) return scanned;
         return null;
     }
 
-    private static boolean valid(int value) { return value >= 0 && value <= MAX_CYCLES; }
+    static boolean isPlausible(int value) { return value >= 0 && value <= MAX_CYCLES; }
+
+    private static boolean valid(int value) { return isPlausible(value); }
+
+    private static Reading scanPowerSupplyNodes() {
+        File root = new File("/sys/class/power_supply");
+        File[] supplies = root.listFiles();
+        if (supplies == null) return null;
+        Arrays.sort(supplies, (left, right) -> Boolean.compare(!isBatteryNode(left), !isBatteryNode(right)));
+        String[] names = {"cycle_count", "battery_cycle_count", "battery_cycle", "charge_cycles"};
+        for (File supply : supplies) {
+            if (!supply.isDirectory()) continue;
+            for (String name : names) {
+                int value = readInt(new File(supply, name));
+                if (valid(value)) return new Reading(value, "Batterie-Treiber");
+            }
+        }
+        return null;
+    }
+
+    private static boolean isBatteryNode(File supply) {
+        String name = supply.getName().toLowerCase(java.util.Locale.US);
+        return name.contains("battery") || name.contains("bms") || name.contains("maxfg") || name.contains("max170");
+    }
 
     private static int readInt(File file) {
         try {
