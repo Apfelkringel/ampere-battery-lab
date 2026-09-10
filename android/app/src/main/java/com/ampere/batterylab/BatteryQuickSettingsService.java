@@ -3,6 +3,7 @@ package com.ampere.batterylab;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -17,10 +18,52 @@ import java.util.Locale;
 @TargetApi(Build.VERSION_CODES.N)
 public class BatteryQuickSettingsService extends TileService {
     private static final int REQUEST_CODE = 7024;
+    private boolean batteryReceiverRegistered;
+
+    private final BroadcastReceiver batteryReceiver = new BroadcastReceiver() {
+        @Override public void onReceive(Context context, Intent intent) {
+            refreshTile(intent);
+        }
+    };
 
     @Override public void onStartListening() {
         super.onStartListening();
-        refreshTile();
+        Intent sticky = registerBatteryReceiver();
+        refreshTile(sticky);
+    }
+
+    private Intent registerBatteryReceiver() {
+        if (batteryReceiverRegistered) return null;
+        IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        Intent sticky;
+        if (Build.VERSION.SDK_INT >= 33) {
+            sticky = registerReceiver(batteryReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            sticky = registerReceiver(batteryReceiver, filter);
+        }
+        batteryReceiverRegistered = true;
+        return sticky;
+    }
+
+    private void unregisterBatteryReceiver() {
+        if (!batteryReceiverRegistered) return;
+        try { unregisterReceiver(batteryReceiver); } catch (IllegalArgumentException ignored) { }
+        batteryReceiverRegistered = false;
+    }
+
+    @Override public void onStopListening() {
+        unregisterBatteryReceiver();
+        super.onStopListening();
+    }
+
+    @Override public void onTileRemoved() {
+        unregisterBatteryReceiver();
+        super.onTileRemoved();
+    }
+
+    @Override public void onDestroy() {
+        unregisterBatteryReceiver();
+        super.onDestroy();
     }
 
     @SuppressLint("StartActivityAndCollapseDeprecated")
@@ -49,10 +92,9 @@ public class BatteryQuickSettingsService extends TileService {
         }
     }
 
-    private void refreshTile() {
+    private void refreshTile(Intent battery) {
         Tile tile = getQsTile();
         if (tile == null) return;
-        Intent battery = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         int rawLevel = battery == null ? -1 : battery.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
         int scale = battery == null ? 100 : battery.getIntExtra(BatteryManager.EXTRA_SCALE, 100);
         int level = rawLevel >= 0 && scale > 0
@@ -65,15 +107,28 @@ public class BatteryQuickSettingsService extends TileService {
         int voltage = battery == null ? 0 : battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0);
         int current = readCurrentMa();
 
-        tile.setLabel(level >= 0 ? level + "% Akku" : "Ampere");
-        tile.setState(level >= 0 ? Tile.STATE_ACTIVE : Tile.STATE_UNAVAILABLE);
-        if (Build.VERSION.SDK_INT >= 29) tile.setSubtitle(subtitle(status, charging, current, temp, voltage));
+        // Keep the title stable so SystemUI does not cache a stale dynamic
+        // label. Put the live value in the subtitle, like established battery
+        // tiles do; this also keeps the tile readable in compact layouts.
+        tile.setLabel("Ampere");
+        tile.setState(level >= 0 ? Tile.STATE_INACTIVE : Tile.STATE_UNAVAILABLE);
+        if (Build.VERSION.SDK_INT >= 29) tile.setSubtitle(level >= 0
+                ? shortSubtitle(level, status, charging, current, temp)
+                : "Akku nicht verfügbar");
         if (Build.VERSION.SDK_INT >= 30) {
             tile.setContentDescription(level >= 0
                     ? "Akkustand " + level + " Prozent, " + subtitle(status, charging, current, temp, voltage)
                     : "Akkustand nicht verfügbar");
         }
         tile.updateTile();
+    }
+
+    private static String shortSubtitle(int level, int status, boolean charging, int currentMa, int temperatureTenths) {
+        StringBuilder result = new StringBuilder().append(level).append("% · ")
+                .append(charging ? "Laden" : status == BatteryManager.BATTERY_STATUS_UNKNOWN ? "Status unbekannt" : "Akkubetrieb");
+        if (currentMa > 0) result.append(" · ").append(charging ? "+" : "−").append(formatCurrent(currentMa));
+        if (temperatureTenths > 0) result.append(" · ").append(String.format(Locale.US, "%.1f°C", temperatureTenths / 10f));
+        return result.toString();
     }
 
     private int readCurrentMa() {
