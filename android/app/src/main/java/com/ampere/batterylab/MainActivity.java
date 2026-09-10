@@ -1528,12 +1528,12 @@ class BatteryDashboard extends View {
         // header has two controls, so the three-control hitboxes must not be
         // used on common 320/360 dp phone windows.
         if (w < 390f) {
-            if (y >= 8 && y < 70 && x > w - 116 && x < w - 68) return 1; // overflow
-            if (y >= 8 && y < 70 && x > w - 60 && x < w - 12) return 2; // theme
+            if (y >= 8 && y < 70 && x > w - 116 && x < w - 64) return 1; // overflow
+            if (y >= 8 && y < 70 && x >= w - 64 && x < w - 12) return 2; // theme
         }
-        if (y >= 8 && y < 70 && x > w - 184 && x < w - 136) return 1; // overflow
-        if (y >= 8 && y < 70 && x > w - 128 && x < w - 80) return 2; // theme
-        if (y >= 8 && y < 70 && x > w - 72 && x < w - 16) return 3; // live status
+        if (y >= 8 && y < 70 && x > w - 184 && x < w - 128) return 1; // overflow
+        if (y >= 8 && y < 70 && x >= w - 128 && x < w - 72) return 2; // theme
+        if (y >= 8 && y < 70 && x >= w - 72 && x < w - 16) return 3; // live status
         if (y >= 118 && y < 176 && x >= 18 && x <= w - 18) {
             float cell = (w - 36) / 5f;
             return 10 + Math.max(0, Math.min(4, (int) ((x - 18) / cell)));
@@ -1623,32 +1623,38 @@ class BatteryDashboard extends View {
         final float controlTop = 12f;
         final float controlBottom = 60f;
         if (w < 390f) {
-            // At the narrowest phone widths, two comfortable controls are
-            // safer than three controls colliding with the brand label.
-            controlSurface(c, w - 60, controlTop, w - 12, controlBottom, 14,
-                    isPressed(2) ? pressedFill(panel, true) : panel, border);
-            drawSun(c, w - 36, 36, muted);
-            controlSurface(c, w - 116, controlTop, w - 68, controlBottom, 14,
-                    isPressed(1) ? pressedFill(panel, true) : panel, border);
-            fill(c, muted); c.drawCircle(u(w - 92), u(27), u(1.5f), p); c.drawCircle(u(w - 92), u(36), u(1.5f), p); c.drawCircle(u(w - 92), u(45), u(1.5f), p);
+            // One action rail gives both controls the same visual ownership;
+            // each half remains a separate 48dp touch target.
+            controlSurface(c, w - 116, controlTop, w - 12, controlBottom, 24, panel, border);
+            if (isPressed(1)) rounded(c, w - 114, controlTop + 2, w - 66, controlBottom - 2, 22, pressedFill(panel, true));
+            if (isPressed(2)) rounded(c, w - 62, controlTop + 2, w - 14, controlBottom - 2, 22, pressedFill(panel, true));
+            drawHeaderOverflow(c, w - 90, muted);
+            drawSun(c, w - 38, 36, muted);
         } else {
-            controlSurface(c, w - 72, controlTop, w - 16, controlBottom, 24,
-                    isPressed(3) ? pressedFill(panel, true) : panel, border);
+            // The toolbar actions share one capsule instead of three
+            // mismatched floating boxes. This keeps their baselines and
+            // corner geometry identical on every density.
+            controlSurface(c, w - 184, controlTop, w - 16, controlBottom, 24, panel, border);
+            if (isPressed(1)) rounded(c, w - 182, controlTop + 2, w - 134, controlBottom - 2, 22, pressedFill(panel, true));
+            if (isPressed(2)) rounded(c, w - 126, controlTop + 2, w - 78, controlBottom - 2, 22, pressedFill(panel, true));
+            if (isPressed(3)) rounded(c, w - 70, controlTop + 2, w - 18, controlBottom - 2, 22, pressedFill(panel, true));
+            drawHeaderOverflow(c, w - 156, muted);
+            drawSun(c, w - 100, 36, muted);
             type(9, primary, true);
             float liveLabelWidth = p.measureText("LIVE") / density;
             float liveGroupWidth = 8f + 7f + liveLabelWidth;
             float liveLeft = w - 44f - liveGroupWidth / 2f;
             fill(c, lime); c.drawCircle(u(liveLeft + 2f), u(36), u(4), p);
             text(c, "LIVE", liveLeft + 12f, 40, 9, primary, true);
-            controlSurface(c, w - 128, controlTop, w - 80, controlBottom, 14,
-                    isPressed(2) ? pressedFill(panel, true) : panel, border);
-            drawSun(c, w - 104, 36, muted);
-            controlSurface(c, w - 184, controlTop, w - 136, controlBottom, 14,
-                    isPressed(1) ? pressedFill(panel, true) : panel, border);
-            fill(c, muted); c.drawCircle(u(w - 160), u(27), u(1.5f), p); c.drawCircle(u(w - 160), u(36), u(1.5f), p); c.drawCircle(u(w - 160), u(45), u(1.5f), p);
         }
         drawNav(c, w, primary, muted, border, panel);
-        line(c, 18, 176, w - 18, 176, border, 1);
+    }
+
+    private void drawHeaderOverflow(Canvas c, float cx, int color) {
+        fill(c, color);
+        c.drawCircle(u(cx), u(27), u(1.5f), p);
+        c.drawCircle(u(cx), u(36), u(1.5f), p);
+        c.drawCircle(u(cx), u(45), u(1.5f), p);
     }
 
     private void drawNav(Canvas c, float w, int primary, int muted, int border, int panel) {

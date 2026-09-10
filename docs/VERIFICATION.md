@@ -5,7 +5,7 @@ Last verified: 2026-09-10 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.110` (`versionCode 110`)
+- Version: `0.111` (`versionCode 111`)
 - `minSdk 23`, `targetSdk 37`
 - Release APK SHA-256: `f10e756dfb8b958dbbafff4892a1d81dc94a684ac602896c4d110c5b7aa37c53`
 - The same hash is published in the public update repository manifest.
@@ -120,6 +120,11 @@ height rather than the height available above system navigation.
 Release `0.110` reads the visible display frame for responsive breakpoints,
 so the landscape layout remains correct when a scrollable dashboard is hosted
 inside a resized Android 16/17 window.
+
+Release `0.111` replaces the separate floating header action boxes with one
+shared action rail and removes the redundant divider below the main navigation.
+The action cells keep independent 48-dp touch regions while sharing one visual
+container.
 
 The current public update path was also exercised from signed `0.90` to signed
 `0.91` on API 36. The app fetched the 0.91 manifest, showed the in-app dialog,
