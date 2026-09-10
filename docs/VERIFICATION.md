@@ -5,7 +5,7 @@ Last verified: 2026-09-10 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.100` (`versionCode 100`)
+- Version: `0.101` (`versionCode 101`)
 - `minSdk 23`, `targetSdk 37`
 - Release APK SHA-256: `6f94cf6779b25a5b888a5f6663ffce4de57cadebefb27a077389813c6bf070d1`
 - The same hash is published in the public update repository manifest.
@@ -82,6 +82,9 @@ the visible close button. Update checks, APK downloads and installer launches
 now share an in-process lock and a persisted DownloadManager/installer guard,
 so repeated taps and background/manual overlap cannot start parallel update
 operations.
+
+Release `0.101` clips the colored card rails to the same rounded shape as their
+cards and keeps the live mA value inside the status surface on compact layouts.
 
 The current public update path was also exercised from signed `0.90` to signed
 `0.91` on API 36. The app fetched the 0.91 manifest, showed the in-app dialog,

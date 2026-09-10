@@ -1473,7 +1473,16 @@ class BatteryDashboard extends View {
         c.drawRoundRect(rect, u(16), u(16), p);
         // A quiet color rail makes the information hierarchy scannable without
         // turning every card into a bright button.
-        rounded(c, l, t, Math.min(r, l + 4), b, 2, Color.argb(150, Color.red(accent), Color.green(accent), Color.blue(accent)));
+        // Clip it to the card shape: a separate narrow rounded rectangle has
+        // square-looking ends wherever the card itself has a large corner.
+        rect.set(u(l), u(t), u(r), u(b));
+        Path cardClip = new Path();
+        cardClip.addRoundRect(rect, u(16), u(16), Path.Direction.CW);
+        c.save();
+        c.clipPath(cardClip);
+        fill(c, Color.argb(150, Color.red(accent), Color.green(accent), Color.blue(accent)));
+        c.drawRect(u(l), u(t), u(Math.min(r, l + 6)), u(b), p);
+        c.restore();
     }
 
     private int pressedFill(int base, boolean pressed) {
@@ -1694,7 +1703,7 @@ class BatteryDashboard extends View {
             String compactDetection = charging ? (heroW < 230f ? chargerTypeDisplay() : chargerTypeDisplay() + " · automatisch")
                     : (heroW < 230f ? "Automatisch erkannt" : "Akku automatisch erkannt");
             text(c, fitText(compactDetection, Math.max(60f, heroW - 112f), 8, false), 68, top + 350 + compactStatusOffset, 8, muted, false);
-            rightText(c, liveCurrentDisplay(), 18 + heroW - 14, top + 339 + compactStatusOffset, 9, charging ? lime : blue, false);
+            rightText(c, liveCurrentDisplay(), 18 + heroW - 50, top + 339 + compactStatusOffset, 9, charging ? lime : blue, false);
         } else {
             drawGauge(c, 135, top + 170, 101, level, primary, faint);
             text(c, level + "%", 91, top + 178, 52, primary, true);
@@ -1710,7 +1719,7 @@ class BatteryDashboard extends View {
             drawBolt(c, 52, top + 282, lime, .8f);
             text(c, charging ? "Laden erkannt" : "Akkubetrieb", 68, top + 278, 10, primary, true);
             text(c, fitText(detectionText, Math.max(80f, heroW - 108f), 9, false), 68, top + 293, 9, muted, false);
-            rightText(c, liveCurrentDisplay(), 18 + heroW - 14, top + 285, 9, charging ? lime : blue, false);
+            rightText(c, liveCurrentDisplay(), 18 + heroW - 50, top + 285, 9, charging ? lime : blue, false);
         }
 
         float cardsTop = top + heroH + 14;
