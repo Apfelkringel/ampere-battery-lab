@@ -605,6 +605,7 @@ class BatteryDashboard extends View {
         reloadLiveCollections();
         updateAccessibilitySummary();
         invalidate();
+        BatteryWidgetProvider.updateAll(getContext());
     }
 
     private void reloadLiveCollections() {

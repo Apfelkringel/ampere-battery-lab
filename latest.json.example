@@ -1,7 +1,7 @@
 {
-  "versionCode": 122,
-  "versionName": "0.122",
+  "versionCode": 123,
+  "versionName": "0.123",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
   "sha256": "751b7d69295121e7716b2299ae2743f8382326c4fa9fcfdef853bed7bd76cc94",
-  "releaseNotes": "Auch die Hintergrundbenachrichtigung verwendet jetzt dieselbe geprüfte 100-%-Grenze für Akkugesundheit."
+  "releaseNotes": "Neues Startbildschirm-Widget mit realem Akkustand, Ladestatus und verfügbaren Live-Messwerten."
 }
