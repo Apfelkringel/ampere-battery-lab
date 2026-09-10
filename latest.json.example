@@ -1,7 +1,7 @@
 {
-  "versionCode": 75,
-  "versionName": "0.75",
+  "versionCode": 115,
+  "versionName": "0.115",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "5aa7fa0dbfcded019148acb6087215592ff086515723a83c338f3f6588a924be",
-  "releaseNotes": "Neue Versionen werden jetzt auch vom Hintergrundmonitor angekündigt."
+  "sha256": "4fbaee470afcd403c4d9c404f9662783bcbff8f62f7e6babecebb021c290f787",
+  "releaseNotes": "Beispiel eines gültigen Update-Manifests; Hash und APK müssen bei jeder Veröffentlichung zusammenpassen."
 }
