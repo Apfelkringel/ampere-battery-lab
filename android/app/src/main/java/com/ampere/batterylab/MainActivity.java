@@ -722,7 +722,9 @@ class BatteryDashboard extends View {
         }
         if (measured <= 0) measured = prefs.getInt("benchmarkCapacityMah", 0);
         if (measured <= 0) return 0;
-        return Math.max(1, Math.min(110, Math.round(measured * 100f / designCapacityMah())));
+        int design = designCapacityMah();
+        if (design <= 0) return 0;
+        return Math.max(1, Math.min(110, Math.round(measured * 100f / design)));
     }
 
     private String healthDisplay() { return healthPercent() > 0 ? String.valueOf(healthPercent()) : "—"; }
@@ -754,7 +756,7 @@ class BatteryDashboard extends View {
         if (BatteryCapacity.hasManualOverride(getContext())) return "Manuell festgelegt";
         return BatteryCapacity.hasAutomaticValue()
                 ? "Automatisch von Android erkannt"
-                : "Standardwert 4.500 mAh · manuell genauer";
+                : "Nicht verfügbar · Nennkapazität manuell festlegen";
     }
 
     private int estimatedCapacityMah() { return Math.round(designCapacityMah() * healthPercent() / 100f); }
@@ -1207,8 +1209,9 @@ class BatteryDashboard extends View {
     private String chargingEfficiency() {
         int charged = prefs.getInt("totalChargedMah", 0);
         int cycles = chargeCycles();
-        if (charged <= 0 || cycles <= 0) return "—";
-        return String.format(Locale.US, "%.0f%%", charged * 100f / (designCapacityMah() * cycles));
+        int design = designCapacityMah();
+        if (charged <= 0 || cycles <= 0 || design <= 0) return "—";
+        return String.format(Locale.US, "%.0f%%", charged * 100f / (design * cycles));
     }
 
     private String lastChargeEquivalentCycles() {
@@ -2241,10 +2244,11 @@ class BatteryDashboard extends View {
         rounded(c, 18, y, w - 18, y + 300, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y), u(w - 18), u(y + 300)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "AKKUGESUNDHEIT", 36, y + 31, 10, muted, true);
         int health = healthPercent();
+        int design = designCapacityMah();
         text(c, health == 0 ? "Nicht gemessen" : (health > 80 ? "Guter Zustand" : "Prüfung nötig"), 36, y + 62, 23, primary, true);
         text(c, "Geschätzte Kapazität", 36, y + 102, 10, muted, false);
         text(c, health > 0 ? mahDisplay(estimatedCapacityMah()) : "—", 36, y + 132, 28, lime, true);
-        text(c, "von " + mahDisplay(designCapacityMah()) + " Nennkapazität", 36, y + 153, 10, muted, false);
+        text(c, design > 0 ? "von " + mahDisplay(design) + " Nennkapazität" : "Nennkapazität nicht verfügbar", 36, y + 153, 10, muted, false);
         rounded(c, 36, y + 181, w - 36, y + 187, 3, border);
         if (health > 0) rounded(c, 36, y + 181, 36 + (w - 72) * health / 100f, y + 187, 3, lime);
         String healthStatus = health > 0 ? health + "% Kapazität" : (w < 340f ? "Benchmark starten" : "Benchmark für Kapazität starten");
@@ -2275,14 +2279,16 @@ class BatteryDashboard extends View {
         text(c, mahDisplay(designCapacityMah()), w - 112, y + 667, 10, lime, true);
         rounded(c, 18, y + 710, w - 18, y + 850, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 710), u(w - 18), u(y + 850)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "Kapazitätsmessungen", 36, y + 740, 12, primary, true);
-        if (healthSamples.size() < 2) {
+        if (design <= 0) {
+            text(c, "Nennkapazität festlegen, um den Trend zu normieren.", 36, y + 781, 9, muted, false);
+        } else if (healthSamples.size() < 2) {
             text(c, "Schließe weitere Ladevorgänge für den Trend ab.", 36, y + 781, 9, muted, false);
         } else {
             float chartX = 36, chartY = y + 758, chartW = w - 72, chartH = 58;
             line(c, chartX, chartY + chartH, chartX + chartW, chartY + chartH, border, 1);
             Path trend = new Path();
             for (int i = 0; i < healthSamples.size(); i++) {
-                float normalized = Math.max(0f, Math.min(1.1f, healthSamples.get(i) / (float) designCapacityMah()));
+                float normalized = Math.max(0f, Math.min(1.1f, healthSamples.get(i) / (float) design));
                 float px = chartX + chartW * i / Math.max(1, healthSamples.size() - 1);
                 float py = chartY + chartH - normalized * chartH / 1.1f;
                 if (i == 0) trend.moveTo(u(px), u(py)); else trend.lineTo(u(px), u(py));

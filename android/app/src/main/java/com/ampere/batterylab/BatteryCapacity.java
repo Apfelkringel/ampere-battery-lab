@@ -6,9 +6,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 
-/** Local battery design-capacity lookup with a user override and safe fallback. */
+/** Local battery design-capacity lookup with an explicit unavailable state. */
 final class BatteryCapacity {
-    private static final int FALLBACK_MAH = 4500;
     private static final int MIN_MAH = 500;
     private static final int MAX_MAH = 30000;
     private static int cachedDetectedMah = -1;
@@ -20,7 +19,7 @@ final class BatteryCapacity {
         int override = prefs.getInt("designCapacityMah", 0);
         if (valid(override)) return override;
         int detected = automaticCapacityMah();
-        return valid(detected) ? detected : FALLBACK_MAH;
+        return valid(detected) ? detected : 0;
     }
 
     static boolean hasManualOverride(Context context) {

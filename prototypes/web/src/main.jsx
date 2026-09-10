@@ -12,6 +12,15 @@ const navItems = [
 const SESSION_STORAGE_KEY = 'ampere-browser-sessions'
 const HISTORY_STORAGE_KEY = 'ampere-browser-history'
 
+function csvCell(value) {
+  return `"${String(value ?? '').replaceAll('"', '""')}"`
+}
+
+function formatElapsed(ms) {
+  const minutes = Math.max(1, Math.round(ms / 60000))
+  return minutes < 60 ? `${minutes} min` : `${Math.floor(minutes / 60)} h ${minutes % 60} min`
+}
+
 function Icon({ name, size = 18 }) {
   const common = { width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true }
   const paths = {
@@ -57,16 +66,17 @@ function Stat({ icon, label, value, unit, tone }) {
 function HistoryChart({ range }) {
   const history = range === '7d' ? loadHistory().slice(-12) : loadHistory()
   const points = history.length > 1
-    ? history.map((value, index) => `${8 + index * (572 / Math.max(1, history.length - 1))},${126 - Math.max(0, Math.min(100, value)) * 1.1}`).join(' ')
-    : ''
-  if (!points) return <div className="chart-empty">Battery history will appear here after this browser records more than one reading.</div>
+    ? history.map((value, index) => `${8 + index * (572 / Math.max(1, history.length - 1))},${126 - Math.max(0, Math.min(100, value)) * 1.1}`)
+    : []
+  if (points.length === 0) return <div className="chart-empty">Battery history will appear here after this browser records more than one reading.</div>
+  const lastPoint = points.at(-1).split(',')
   return <div className="chart-wrap">
     <svg className="history-chart" viewBox="0 0 610 126" preserveAspectRatio="none" role="img" aria-label={`${range === '7d' ? '7 day' : '30 day'} battery level history`}>
       <defs><linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#c7f36b" stopOpacity=".22"/><stop offset="1" stopColor="#c7f36b" stopOpacity="0"/></linearGradient></defs>
       <path className="chart-grid" d="M0 20H610M0 57H610M0 94H610" />
-      <path className="chart-area" d={`M${points.split(' ').map((p) => p).join(' L')} L580 126 L8 126 Z`} />
-      <polyline className="chart-line" points={points} />
-      <circle className="chart-dot" cx="580" cy="12" r="4" />
+      <path className="chart-area" d={`M${points.join(' L')} L${lastPoint[0]} 126 L8 126 Z`} />
+      <polyline className="chart-line" points={points.join(' ')} />
+      <circle className="chart-dot" cx={lastPoint[0]} cy={lastPoint[1]} r="4" />
     </svg>
     <div className="chart-labels"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
   </div>
@@ -106,7 +116,7 @@ function LiveDetailPage({ page, level, charging, supported, refresh, sessions, o
   </section>
 
   return <section className="detail-layout">
-    <div className="panel detail-note"><div className="eyebrow">Activity</div><h2>Recorded sessions</h2><p>Sessions are created from real charging-state changes while this browser is open.</p><div className="session-list">{sessions.length === 0 ? <div className="empty-state">No completed sessions recorded on this browser yet.</div> : sessions.map((row) => <button className="session-row" key={row.id} onClick={() => onSelectSession(row)}><div className={`session-icon ${row.accent}`}><Icon name={row.type === 'Charge' ? 'bolt' : 'arrow'} size={15} /></div><div className="session-main"><strong>{row.type}</strong><span>{row.date}</span></div><div className={`session-change ${row.accent}`}>{row.value}</div><div className="session-duration">{row.duration}</div><Icon name="chevron" size={15} /></button>)}</div><button className="primary-button" onClick={() => { const csv = ['date,type,change,duration', ...sessions.map((row) => `${row.date},${row.type},${row.value},${row.duration}`)].join('\\n'); const blob = new Blob([csv], { type: 'text/csv' }); const url = URL.createObjectURL(blob); const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'ampere-sessions.csv'; anchor.click(); URL.revokeObjectURL(url) }}>Export sessions <Icon name="download" size={15} /></button></div>
+    <div className="panel detail-note"><div className="eyebrow">Activity</div><h2>Recorded sessions</h2><p>Sessions are created from real charging-state changes while this browser is open.</p><div className="session-list">{sessions.length === 0 ? <div className="empty-state">No completed sessions recorded on this browser yet.</div> : sessions.map((row) => <button className="session-row" key={row.id} onClick={() => onSelectSession(row)}><div className={`session-icon ${row.accent}`}><Icon name={row.type === 'Charge' ? 'bolt' : 'arrow'} size={15} /></div><div className="session-main"><strong>{row.type}</strong><span>{row.date}</span></div><div className={`session-change ${row.accent}`}>{row.value}</div><div className="session-duration">{row.duration}</div><Icon name="chevron" size={15} /></button>)}</div><button className="primary-button" onClick={() => { const csv = [ ['date', 'type', 'change', 'duration'].map(csvCell).join(','), ...sessions.map((row) => [row.date, row.type, row.value, row.duration].map(csvCell).join(',')) ].join('\\n'); const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' }); const url = URL.createObjectURL(blob); const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'ampere-sessions.csv'; anchor.click(); anchor.remove(); window.setTimeout(() => URL.revokeObjectURL(url), 0) }}>Export sessions <Icon name="download" size={15} /></button></div>
   </section>
 }
 
@@ -115,6 +125,7 @@ function App() {
   const [level, setLevel] = useState(null)
   const [charging, setCharging] = useState(false)
   const [supported, setSupported] = useState(false)
+  const [lastUpdatedAt, setLastUpdatedAt] = useState(null)
   const [sessions, setSessions] = useState(loadSessions)
   const previousBattery = useRef(null)
   const batteryCleanup = useRef(() => {})
@@ -127,7 +138,7 @@ function App() {
     const requestId = ++batteryRequest.current
     batteryCleanup.current()
     batteryCleanup.current = () => {}
-    if (!navigator.getBattery) { setSupported(false); setLevel(null); return }
+    if (!navigator.getBattery) { setSupported(false); setLevel(null); setCharging(false); setLastUpdatedAt(null); return }
     navigator.getBattery().then((battery) => {
       if (requestId !== batteryRequest.current) return
       const update = () => {
@@ -136,6 +147,7 @@ function App() {
         setSupported(true)
         setLevel(nextLevel)
         setCharging(battery.charging)
+        setLastUpdatedAt(Date.now())
         const history = loadHistory()
         if (history.at(-1) !== nextLevel) window.localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify([...history, nextLevel].slice(-180)))
       }
@@ -144,12 +156,14 @@ function App() {
         const previous = previousBattery.current
         if (previous && previous.charging !== battery.charging) {
           const change = Math.round((battery.level - previous.level) * 100)
-          if (change !== 0) {
-            const row = { id: `${Date.now()}-${battery.charging}`, date: new Date().toLocaleString(), type: battery.charging ? 'Charge' : 'Discharge', value: `${change > 0 ? '+' : ''}${change}%`, duration: 'Live', accent: battery.charging ? 'lime' : 'blue' }
+          const type = previous.charging ? 'Charge' : 'Discharge'
+          const validDirection = previous.charging ? change > 0 : change < 0
+          if (validDirection) {
+            const row = { id: `${Date.now()}-${battery.charging}`, date: new Date().toLocaleString(), type, value: `${change > 0 ? '+' : ''}${change}%`, duration: formatElapsed(Date.now() - previous.at), accent: type === 'Charge' ? 'lime' : 'blue' }
             setSessions((current) => { const next = [row, ...current].slice(0, 150); window.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(next)); return next })
           }
         }
-        previousBattery.current = { charging: battery.charging, level: battery.level }
+        previousBattery.current = { charging: battery.charging, level: battery.level, at: Date.now() }
         update()
       }
       battery.addEventListener('chargingchange', handleTransition)
@@ -158,11 +172,11 @@ function App() {
         battery.removeEventListener('chargingchange', handleTransition)
         battery.removeEventListener('levelchange', update)
       }
-      previousBattery.current = { charging: battery.charging, level: battery.level }
+      previousBattery.current = { charging: battery.charging, level: battery.level, at: Date.now() }
       const history = loadHistory()
       const currentLevel = Math.round(battery.level * 100)
       if (history.at(-1) !== currentLevel) window.localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify([...history, currentLevel].slice(-180)))
-    }).catch(() => { setSupported(false); setLevel(null) })
+    }).catch(() => { setSupported(false); setLevel(null); setCharging(false); setLastUpdatedAt(null) })
   }
 
   useEffect(() => {
@@ -181,14 +195,15 @@ function App() {
   const healthText = level == null ? 'Health not available' : 'Health measurement requires Android data'
 
   const exportData = () => {
-    const csv = ['date,type,change,duration', ...sessions.map((row) => `${row.date},${row.type},${row.value},${row.duration}`)].join('\n')
+    const csv = [ ['date', 'type', 'change', 'duration'].map(csvCell).join(','), ...sessions.map((row) => [row.date, row.type, row.value, row.duration].map(csvCell).join(',')) ].join('\n')
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
     const anchor = document.createElement('a')
     anchor.href = url
     anchor.download = 'ampere-sessions.csv'
     anchor.click()
-    URL.revokeObjectURL(url)
+    anchor.remove()
+    window.setTimeout(() => URL.revokeObjectURL(url), 0)
     setNotice('Session data exported as CSV.')
   }
 
@@ -202,18 +217,18 @@ function App() {
       </nav>
       <div className="sidebar-bottom">
         <button className="nav-item" onClick={() => setNotice('Settings are saved locally on this device.')}><Icon name="settings" size={17} /><span>Settings</span></button>
-        <div className="device-chip"><div className="device-avatar">P</div><div><strong>Pixel 8</strong><span>Android device</span></div><Icon name="chevron" size={15} /></div>
+        <div className="device-chip"><div className="device-avatar"><Icon name="grid" size={13} /></div><div><strong>Browser device</strong><span>Battery Status API</span></div><Icon name="chevron" size={15} /></div>
         <div className="free-note">Free forever <span>•</span> Local data only</div>
       </div>
     </aside>
 
     <main className="main-content">
-      <header className="topbar"><div><div className="breadcrumb">Monitor <span>/</span> {pageTitle}</div><h1>{pageTitle}</h1></div><div className="top-actions"><div className="live-status"><span className="pulse-dot" /> {supported ? 'Live' : 'Local'}</div><button className="icon-button" aria-label="Toggle theme" onClick={() => setTheme((value) => value === 'dark' ? 'light' : 'dark')}><Icon name={theme === 'dark' ? 'sun' : 'moon'} size={18} /></button><button className="profile-button" aria-label="Open local settings" onClick={() => setNotice('All browser data stays in local storage on this device.')}>AK</button></div></header>
+      <header className="topbar"><div><div className="breadcrumb">Monitor <span>/</span> {pageTitle}</div><h1>{pageTitle}</h1></div><div className="top-actions"><div className="live-status"><span className="pulse-dot" /> {supported ? 'Live' : 'No signal'}</div><button className="icon-button" aria-label="Toggle theme" onClick={() => setTheme((value) => value === 'dark' ? 'light' : 'dark')}><Icon name={theme === 'dark' ? 'sun' : 'moon'} size={18} /></button><button className="icon-button" aria-label="Show local storage info" onClick={() => setNotice('All browser data stays in local storage on this device.')}><Icon name="settings" size={18} /></button></div></header>
 
       {activePage === 'overview' ? <>
         <section className="overview-grid">
           <div className="panel hero-panel">
-            <div className="panel-heading"><div><div className="eyebrow">Battery level</div><h2>Live status</h2></div><div className="updated"><span className="state-dot" /> Updated just now</div></div>
+            <div className="panel-heading"><div><div className="eyebrow">Battery level</div><h2>Live status</h2></div><div className="updated"><span className="state-dot" /> {lastUpdatedAt ? `Updated ${new Date(lastUpdatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}` : 'Not updated'}</div></div>
             <div className="gauge-row"><BatteryGauge level={level} charging={charging} /><div className="hero-copy"><div className="condition">{healthText}</div><p>{supported ? 'Live readings are supplied by the browser device API.' : 'This browser does not expose a battery status signal.'}</p><div className="capacity-line"><span>Estimated full capacity</span><strong>Not available</strong></div><div className="capacity-bar"><span style={{ width: supported ? `${displayLevel}%` : '0%' }} /></div><div className="capacity-meta"><span>Design capacity is not exposed here</span><span>{level == null ? '—' : `${level}%`}</span></div></div></div>
             <div className="charging-strip"><div className="strip-icon"><Icon name="bolt" size={16} /></div><div className="strip-copy"><strong>{charging ? 'Charging detected' : 'Running on battery'}</strong><span>{supported ? 'Updated from the browser battery signal' : 'Battery signal unavailable'}</span></div><div className="strip-value">{level == null ? '—' : `${level}%`}</div><button className="primary-button compact-action" onClick={() => { readBattery(); setNotice('Battery status refreshed.') }}>Refresh <Icon name="check" size={14} /></button></div>
           </div>

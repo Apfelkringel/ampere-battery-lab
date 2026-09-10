@@ -5,7 +5,7 @@ Last verified: 2026-09-10 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.114` (`versionCode 114`)
+- Version: `0.115` (`versionCode 115`)
 - `minSdk 23`, `targetSdk 37`
 - Release APK SHA-256: `fd401c517faf6792afd24b29407ece9657dd295b6721c6e41ae20e5f8442e4c8`
 - The same hash is published in the public update repository manifest.
@@ -139,6 +139,10 @@ Release `0.114` handles devices whose dialog root consumes outside-window
 touches by checking the visible dialog edge directly, so tapping the dimmed
 area closes settings consistently on compact Android windows.
 
+Release `0.115` removes the arbitrary 4,500-mAh design-capacity fallback. When
+Android cannot expose the factory value, capacity-dependent calculations now
+remain explicitly unavailable until a real value is detected or entered.
+
 The current public update path was also exercised from signed `0.90` to signed
 `0.91` on API 36. The app fetched the 0.91 manifest, showed the in-app dialog,
 passed the cache-busted download and signature checks, completed Android's
@@ -177,6 +181,8 @@ uninstall/reinstall.
 
 Battery current, charge counter, design capacity and cycle count are exposed by
 Android and/or the device vendor. A device can legitimately return unavailable
-values; the app displays that state and uses documented local fallbacks. App
-drain attribution is an estimate based on foreground usage and local battery
-telemetry, not a privileged replacement for Android's internal battery stats.
+values; the app displays that state and does not invent a device capacity.
+Capacity-dependent projections remain unavailable until Android exposes a value
+or the user enters the factory capacity. App drain attribution is an estimate
+based on foreground usage and local battery telemetry, not a privileged
+replacement for Android's internal battery stats.
