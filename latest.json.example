@@ -1,7 +1,7 @@
 {
-  "versionCode": 117,
-  "versionName": "0.117",
+  "versionCode": 118,
+  "versionName": "0.118",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
-  "sha256": "b064aaf4fce138d703b30faf38a8047da9478867a0a7c4184e0d08b4ae7d7ed6",
-  "releaseNotes": "Robustere Kapazitätserkennung; fehlende Messwerte werden nicht mehr als erfundene 0-Werte angezeigt."
+  "sha256": "755dc74418060fd6eb7faaa1c70806ea5aa83555580661665cc2410b92d51444",
+  "releaseNotes": "System-Ladezyklen werden zusätzlich aus unterstützten Batterie-/BMS-Treibern gelesen; unbekannte Werte erscheinen nicht als 0."
 }

@@ -5,9 +5,9 @@ Last verified: 2026-09-10 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.117` (`versionCode 117`)
+- Version: `0.118` (`versionCode 118`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `b064aaf4fce138d703b30faf38a8047da9478867a0a7c4184e0d08b4ae7d7ed6`
+- Release APK SHA-256: `755dc74418060fd6eb7faaa1c70806ea5aa83555580661665cc2410b92d51444`
 - The same hash is published in the public update repository manifest.
 
 ## Runtime checks
@@ -153,6 +153,10 @@ source label and strict 500–30,000 mAh bounds. Missing temperature, voltage an
 capacity values remain unavailable instead of being rendered as `0` values.
 The public APK was installed over `0.116` on API 36; `firstInstallTime` stayed
 unchanged and the launch/logcat check reported no fatal exception.
+
+Release `0.118` adds a bounded fallback hierarchy for Android-/BMS-reported
+battery cycle counts. If neither source exists, the UI keeps the value
+unavailable instead of displaying a misleading zero.
 
 The current public update path was also exercised from signed `0.90` to signed
 `0.91` on API 36. The app fetched the 0.91 manifest, showed the in-app dialog,
