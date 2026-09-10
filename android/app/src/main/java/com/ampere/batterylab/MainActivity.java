@@ -729,7 +729,10 @@ class BatteryDashboard extends View {
         if (measured <= 0) return 0;
         int design = designCapacityMah();
         if (design <= 0) return 0;
-        return Math.max(1, Math.min(110, Math.round(measured * 100f / design)));
+        // Health is a condition percentage, not a capacity-overage score.
+        // Measurement noise or a slightly optimistic benchmark must never
+        // produce a value above the physically meaningful 100% ceiling.
+        return Math.max(1, Math.min(100, Math.round(measured * 100f / design)));
     }
 
     private String healthDisplay() { return healthPercent() > 0 ? String.valueOf(healthPercent()) : "—"; }
@@ -2305,7 +2308,7 @@ class BatteryDashboard extends View {
             line(c, chartX, chartY + chartH, chartX + chartW, chartY + chartH, border, 1);
             Path trend = new Path();
             for (int i = 0; i < healthSamples.size(); i++) {
-                float normalized = Math.max(0f, Math.min(1.1f, healthSamples.get(i) / (float) design));
+                float normalized = Math.max(0f, Math.min(1f, healthSamples.get(i) / (float) design));
                 float px = chartX + chartW * i / Math.max(1, healthSamples.size() - 1);
                 float py = chartY + chartH - normalized * chartH / 1.1f;
                 if (i == 0) trend.moveTo(u(px), u(py)); else trend.lineTo(u(px), u(py));

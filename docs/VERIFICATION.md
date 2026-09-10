@@ -5,9 +5,9 @@ Last verified: 2026-09-10 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.119` (`versionCode 119`)
+- Version: `0.120` (`versionCode 120`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `222482126a7a0fb1a45fc6de4dab3839f0603a5d266b7df4ebcecf111a23f742`
+- Release APK SHA-256: `PENDING_SIGNED_BUILD_HASH`
 - The same hash is published in the public update repository manifest.
 
 ## Runtime checks
@@ -160,6 +160,9 @@ unavailable instead of displaying a misleading zero.
 
 Release `0.119` scans additional OEM power-supply nodes and adds automated
 tests for the shared charging-state and cycle-count validation rules.
+
+Release `0.120` caps displayed battery health and its chart at 100 %, so an
+optimistic benchmark can no longer render an impossible 110-% health value.
 
 The current public update path was also exercised from signed `0.90` to signed
 `0.91` on API 36. The app fetched the 0.91 manifest, showed the in-app dialog,
