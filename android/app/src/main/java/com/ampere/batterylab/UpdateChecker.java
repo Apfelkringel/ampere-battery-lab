@@ -10,6 +10,8 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
@@ -20,6 +22,8 @@ import android.widget.Toast;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.lang.ref.WeakReference;
@@ -38,6 +42,11 @@ final class UpdateChecker {
     private static final String ACTION_SHOW_UPDATE = "com.ampere.batterylab.SHOW_UPDATE";
     private static final String DOWNLOAD_ID = "downloadId";
     private static final String DOWNLOAD_SHA256 = "downloadSha256";
+    private static final String DOWNLOAD_VERSION_CODE = "downloadVersionCode";
+    private static final String EXPECTED_APK_PATH = "/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk";
+    // Android's package installer enforces this signer too. Rechecking it here
+    // rejects a changed public-repository artifact before showing the installer.
+    private static final String EXPECTED_RELEASE_CERT_SHA256 = "301bed44b5cc342485b485b24baeea404dbdb216e6e3e134ad2ebd6b28d1dce3";
     private static final long CHECK_INTERVAL_MS = 12L * 60L * 60L * 1000L;
     private static final int MAX_MANIFEST_BYTES = 128 * 1024;
     private static final int MAX_RELEASE_NOTES_CHARS = 8 * 1024;
@@ -101,13 +110,15 @@ final class UpdateChecker {
     private static UpdateInfo fetch(String manifestUrl) {
         HttpURLConnection connection = null;
         try {
-            URL url = new URL(manifestUrl);
-            if (!isAllowedUpdateUrl(url)) return null;
+            URL url = new URL(withCacheBuster(manifestUrl));
+            if (!isAllowedManifestUrl(url)) return null;
             connection = (HttpURLConnection) url.openConnection();
             connection.setConnectTimeout(7000);
             connection.setReadTimeout(7000);
             connection.setRequestMethod("GET");
             connection.setUseCaches(false);
+            connection.setRequestProperty("Cache-Control", "no-cache, no-store, max-age=0");
+            connection.setRequestProperty("Pragma", "no-cache");
             connection.setInstanceFollowRedirects(false);
             if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) return null;
             long contentLength = connection.getContentLength();
@@ -132,7 +143,7 @@ final class UpdateChecker {
                     || apkUrl.isEmpty() || apkUrl.length() > 512 || notes.length() > MAX_RELEASE_NOTES_CHARS
                     || !sha256.matches("[0-9a-f]{64}")) return null;
             URL apk = new URL(apkUrl);
-            if (!isAllowedUpdateUrl(apk)) return null;
+            if (!isAllowedApkUrl(apk)) return null;
             return new UpdateInfo(versionCode, versionName, apkUrl, sha256, notes);
         } catch (Exception ignored) {
             return null;
@@ -141,12 +152,26 @@ final class UpdateChecker {
         }
     }
 
+    private static boolean isAllowedManifestUrl(URL url) {
+        return isAllowedUpdateUrl(url)
+                && "/Apfelkringel/ampere-battery-lab-updates/main/latest.json".equals(url.getPath());
+    }
+
+    private static String withCacheBuster(String url) {
+        String separator = url.contains("?") ? "&" : "?";
+        return url + separator + "clientVersion=" + BuildConfig.VERSION_CODE
+                + "&t=" + System.currentTimeMillis();
+    }
+
+    private static boolean isAllowedApkUrl(URL url) {
+        return isAllowedUpdateUrl(url) && EXPECTED_APK_PATH.equals(url.getPath());
+    }
+
     private static boolean isAllowedUpdateUrl(URL url) {
         return "https".equalsIgnoreCase(url.getProtocol())
                 && url.getPort() == -1
                 && url.getUserInfo() == null
-                && "raw.githubusercontent.com".equalsIgnoreCase(url.getHost())
-                && url.getPath().startsWith("/Apfelkringel/ampere-battery-lab-updates/");
+                && "raw.githubusercontent.com".equalsIgnoreCase(url.getHost());
     }
 
     private static void showUpdateDialog(Activity activity, UpdateInfo update) {
@@ -155,7 +180,7 @@ final class UpdateChecker {
         if (manager != null) manager.cancel(UPDATE_NOTIFICATION_ID);
         new AlertDialog.Builder(activity)
                 .setTitle("Update verfügbar · " + update.versionName)
-                .setMessage(update.notes + "\n\nDie APK wird kostenlos heruntergeladen. Android fragt anschließend noch einmal nach deiner Bestätigung.")
+                .setMessage(update.notes + "\n\nDie kostenlose APK wird vor der Installation auf Hash, Paketname, Version und Release-Signatur geprüft. Android fragt anschließend noch einmal nach deiner Bestätigung.")
                 .setNegativeButton("Später", null)
                 .setPositiveButton("Herunterladen", (dialog, which) -> download(activity, update))
                 .show();
@@ -190,19 +215,22 @@ final class UpdateChecker {
             return;
         }
         try {
-            DownloadManager.Request request = new DownloadManager.Request(Uri.parse(update.apkUrl));
+            DownloadManager.Request request = new DownloadManager.Request(Uri.parse(withCacheBuster(update.apkUrl)));
             request.setTitle("Ampere-Update " + update.versionName);
             request.setDescription("Kostenloses Update wird heruntergeladen");
             request.setMimeType("application/vnd.android.package-archive");
             request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
             request.setAllowedOverMetered(true);
             request.setAllowedOverRoaming(false);
+            request.addRequestHeader("Cache-Control", "no-cache, no-store, max-age=0");
+            request.addRequestHeader("Pragma", "no-cache");
             request.setDestinationInExternalFilesDir(activity, Environment.DIRECTORY_DOWNLOADS, "ampere-update-" + update.versionCode + ".apk");
 
             long id = manager.enqueue(request);
             activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
                     .putLong(DOWNLOAD_ID, id)
                     .putString(DOWNLOAD_SHA256, update.sha256)
+                    .putInt(DOWNLOAD_VERSION_CODE, update.versionCode)
                     .apply();
             Toast.makeText(activity, "Update wird heruntergeladen …", Toast.LENGTH_LONG).show();
         } catch (Exception error) {
@@ -240,13 +268,13 @@ final class UpdateChecker {
             }
         }
         if (!successful) {
-            prefs.edit().remove(DOWNLOAD_ID).remove(DOWNLOAD_SHA256).apply();
+            clearDownloadState(prefs);
             Toast.makeText(context, "Update-Download fehlgeschlagen.", Toast.LENGTH_LONG).show();
             return;
         }
         if (totalSize > MAX_APK_BYTES) {
             manager.remove(received);
-            prefs.edit().remove(DOWNLOAD_ID).remove(DOWNLOAD_SHA256).apply();
+            clearDownloadState(prefs);
             Toast.makeText(context, "Update verworfen: Datei ist zu groß.", Toast.LENGTH_LONG).show();
             return;
         }
@@ -256,16 +284,17 @@ final class UpdateChecker {
             return;
         }
         String expectedSha256 = prefs.getString(DOWNLOAD_SHA256, "");
+        int expectedVersionCode = prefs.getInt(DOWNLOAD_VERSION_CODE, -1);
         EXECUTOR.execute(() -> {
-            boolean verified = verifySha256(context, apkUri, expectedSha256);
+            boolean verified = verifyDownloadedApk(context, apkUri, expectedSha256, expectedVersionCode);
             new Handler(Looper.getMainLooper()).post(() -> {
                 if (!verified) {
                     manager.remove(received);
-                    prefs.edit().remove(DOWNLOAD_ID).remove(DOWNLOAD_SHA256).apply();
-                    Toast.makeText(context, "Update verworfen: Integritätsprüfung fehlgeschlagen.", Toast.LENGTH_LONG).show();
+                    clearDownloadState(prefs);
+                    Toast.makeText(context, "Update verworfen: Hash, Version oder Release-Signatur ungültig.", Toast.LENGTH_LONG).show();
                     return;
                 }
-                prefs.edit().remove(DOWNLOAD_ID).remove(DOWNLOAD_SHA256).apply();
+                clearDownloadState(prefs);
                 Intent install = new Intent(Intent.ACTION_VIEW).setDataAndType(apkUri, "application/vnd.android.package-archive");
                 install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 install.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -278,25 +307,60 @@ final class UpdateChecker {
         });
     }
 
-    private static boolean verifySha256(Context context, Uri uri, String expected) {
-        if (expected == null || !expected.matches("[0-9a-fA-F]{64}")) return false;
+    private static void clearDownloadState(SharedPreferences prefs) {
+        prefs.edit().remove(DOWNLOAD_ID).remove(DOWNLOAD_SHA256).remove(DOWNLOAD_VERSION_CODE).apply();
+    }
+
+    private static boolean verifyDownloadedApk(Context context, Uri uri, String expectedSha256, int expectedVersionCode) {
+        if (expectedVersionCode <= BuildConfig.VERSION_CODE
+                || expectedSha256 == null || !expectedSha256.matches("[0-9a-fA-F]{64}")) return false;
+        File temporaryApk = null;
         try (InputStream stream = context.getContentResolver().openInputStream(uri)) {
             if (stream == null) return false;
+            temporaryApk = File.createTempFile("ampere-update-", ".apk", context.getCacheDir());
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] buffer = new byte[8192];
-            int count;
-            long total = 0L;
-            while ((count = stream.read(buffer)) != -1) {
-                total += count;
-                if (total > MAX_APK_BYTES) return false;
-                digest.update(buffer, 0, count);
+            try (FileOutputStream output = new FileOutputStream(temporaryApk)) {
+                byte[] buffer = new byte[8192];
+                int count;
+                long total = 0L;
+                while ((count = stream.read(buffer)) != -1) {
+                    total += count;
+                    if (total > MAX_APK_BYTES) return false;
+                    digest.update(buffer, 0, count);
+                    output.write(buffer, 0, count);
+                }
             }
-            StringBuilder result = new StringBuilder(64);
-            for (byte value : digest.digest()) result.append(String.format(Locale.US, "%02x", value));
-            return result.toString().equalsIgnoreCase(expected);
+            if (!toHex(digest.digest()).equalsIgnoreCase(expectedSha256)) return false;
+
+            int flags = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+                    ? PackageManager.GET_SIGNING_CERTIFICATES : PackageManager.GET_SIGNATURES;
+            PackageInfo info = context.getPackageManager().getPackageArchiveInfo(temporaryApk.getAbsolutePath(), flags);
+            if (info == null || !BuildConfig.APPLICATION_ID.equals(info.packageName)) return false;
+            long archiveVersion = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+                    ? info.getLongVersionCode() : info.versionCode;
+            if (archiveVersion != expectedVersionCode) return false;
+
+            android.content.pm.Signature[] signatures;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                if (info.signingInfo == null || info.signingInfo.hasMultipleSigners()) return false;
+                signatures = info.signingInfo.getApkContentsSigners();
+            } else {
+                signatures = info.signatures;
+            }
+            if (signatures == null || signatures.length != 1) return false;
+            MessageDigest certDigest = MessageDigest.getInstance("SHA-256");
+            return EXPECTED_RELEASE_CERT_SHA256.equalsIgnoreCase(toHex(certDigest.digest(signatures[0].toByteArray())));
         } catch (Exception ignored) {
             return false;
+        } finally {
+            if (temporaryApk != null) temporaryApk.delete();
         }
+    }
+
+    private static String toHex(byte[] bytes) {
+        StringBuilder result = new StringBuilder(bytes.length * 2);
+        for (byte value : bytes) result.append(String.format(Locale.US, "%02x", value));
+        return result.toString();
     }
 
     private static final class UpdateInfo {

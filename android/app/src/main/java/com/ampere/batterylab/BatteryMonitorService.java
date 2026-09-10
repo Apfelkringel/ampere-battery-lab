@@ -32,15 +32,19 @@ import java.util.Locale;
 public class BatteryMonitorService extends Service {
     private static final String CHANNEL_ID = "ampere-monitor";
     private static final String ALARM_CHANNEL_ID = "ampere-charge-alarm";
+    private static final long CHARGING_STATE_CONFIRMATION_MS = 2500L;
     private final Handler handler = new Handler(Looper.getMainLooper());
+    private boolean transitionCheckScheduled;
+    private Boolean powerConnectedHint;
     private final BroadcastReceiver batteryReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
             String action = intent == null ? null : intent.getAction();
             if (Intent.ACTION_POWER_CONNECTED.equals(action)
                     || Intent.ACTION_POWER_DISCONNECTED.equals(action)) {
-                // Power broadcasts are not battery-status intents. Read the
-                // current sticky battery state so a session boundary and the
-                // charge alarm are recorded immediately when a cable changes.
+                // Power broadcasts are authoritative for the physical cable
+                // edge. Keep that hint for the following battery snapshots so
+                // a stale/intermediate EXTRA_STATUS cannot flip the session.
+                powerConnectedHint = Intent.ACTION_POWER_CONNECTED.equals(action);
                 recordSample();
             } else {
                 recordSample(intent);
@@ -144,8 +148,17 @@ public class BatteryMonitorService extends Service {
         long now = System.currentTimeMillis();
         int status = battery.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN);
         int plugged = battery.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0);
-        boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING
-                || (status == BatteryManager.BATTERY_STATUS_FULL && plugged != 0);
+        boolean detectedCharging = powerConnectedHint != null
+                ? powerConnectedHint : BatteryState.isCharging(status, plugged);
+        Boolean stableCharging;
+        if (powerConnectedHint != null) {
+            prefs.edit().remove("pendingChargingState").remove("pendingChargingSince").apply();
+            stableCharging = detectedCharging;
+        } else {
+            stableCharging = stabilizeChargingState(prefs, detectedCharging, now);
+        }
+        if (stableCharging == null) return;
+        boolean isCharging = stableCharging;
         BatteryManager batteryManager = (BatteryManager) getSystemService(BATTERY_SERVICE);
         int microamps = batteryManager == null ? 0 : batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW);
         if (microamps == Integer.MIN_VALUE || microamps == 0) {
@@ -202,6 +215,43 @@ public class BatteryMonitorService extends Service {
         for (int i = 0; i < longPoints.size(); i++) { if (i > 0) longOutput.append(','); longOutput.append(longPoints.get(i)); }
         prefs.edit().putString("history", output.toString()).putString("historyLong", longOutput.toString()).putLong("lastSample", now).apply();
         updateUsageCounters(prefs, value, now);
+    }
+
+    /**
+     * Battery and power broadcasts can arrive as a short sequence of
+     * contradictory snapshots while a cable is inserted or removed. Keep the
+     * previous state until the new state survives a small confirmation window;
+     * the delayed read makes this work even when Android sends only one event.
+     */
+    private Boolean stabilizeChargingState(android.content.SharedPreferences prefs, boolean detectedCharging, long now) {
+        boolean stableCharging = prefs.getBoolean("monitorLastCharging", detectedCharging);
+        boolean hasPending = prefs.contains("pendingChargingState");
+        if (detectedCharging == stableCharging) {
+            if (hasPending) prefs.edit().remove("pendingChargingState").remove("pendingChargingSince").apply();
+            return stableCharging;
+        }
+        boolean pendingCharging = hasPending && prefs.getBoolean("pendingChargingState", detectedCharging);
+        long pendingSince = prefs.getLong("pendingChargingSince", 0L);
+        if (!hasPending || pendingCharging != detectedCharging) {
+            prefs.edit().putBoolean("pendingChargingState", detectedCharging).putLong("pendingChargingSince", now).apply();
+            scheduleTransitionCheck();
+            return null;
+        }
+        if (now - pendingSince < CHARGING_STATE_CONFIRMATION_MS) {
+            scheduleTransitionCheck();
+            return null;
+        }
+        prefs.edit().remove("pendingChargingState").remove("pendingChargingSince").apply();
+        return detectedCharging;
+    }
+
+    private void scheduleTransitionCheck() {
+        if (transitionCheckScheduled) return;
+        transitionCheckScheduled = true;
+        handler.postDelayed(() -> {
+            transitionCheckScheduled = false;
+            recordSample();
+        }, CHARGING_STATE_CONFIRMATION_MS);
     }
 
     /** Counts screen wake events as a transparent, device-independent wakeup proxy. */
@@ -409,74 +459,78 @@ public class BatteryMonitorService extends Service {
         if (previousCharging == charging) return;
         long minutes = Math.max(1L, (now - startedAt) / 60000L);
         int change = level - startLevel;
-        if (change != 0 || (previousCharging && (counterMah > 0 && startCounter > 0
-                ? counterMah > startCounter
-                : prefs.getInt("lastChargeScreenOnMah", 0) + prefs.getInt("lastChargeScreenOffMah", 0) > 0))) {
-            int energy = counterMah > 0 && startCounter > 0 ? (previousCharging ? Math.max(0, counterMah - startCounter) : Math.max(0, startCounter - counterMah)) : 0;
-            // The state transition is authoritative: a charging interval is
-            // still a charge session even when the percentage estimate moves
-            // by one point in the opposite direction.
-            String type = previousCharging ? "Charge" : "Discharge";
-            int screenOnValue;
-            int screenOffValue;
-            long screenOnMs;
-            long screenOffMs;
-            long deepSleepMs;
-            String chargerSource;
-            if (previousCharging) {
-                screenOnValue = prefs.getInt("lastChargeScreenOnMah", 0);
-                screenOffValue = prefs.getInt("lastChargeScreenOffMah", 0);
-                screenOnMs = prefs.getLong("lastChargeScreenOnMs", 0L);
-                screenOffMs = prefs.getLong("lastChargeScreenOffMs", 0L);
-                deepSleepMs = 0L;
-                chargerSource = chargerLabel(prefs.getInt("lastChargePlugged", prefs.getInt("chargePlugged", 0)));
-                if (energy <= 0) energy = screenOnValue + screenOffValue;
-            } else {
-                float onPercent = prefs.getFloat("lastDischargeScreenOnPercent", 0f);
-                float offPercent = prefs.getFloat("lastDischargeScreenOffPercent", 0f);
-                screenOnValue = Math.round(onPercent * 10f);
-                screenOffValue = Math.round(offPercent * 10f);
-                screenOnMs = prefs.getLong("lastDischargeScreenOnMs", 0L);
-                screenOffMs = prefs.getLong("lastDischargeScreenOffMs", 0L);
-                deepSleepMs = prefs.getLong("lastDischargeDeepSleepMs", 0L);
-                chargerSource = "Battery";
-                if (energy <= 0) energy = prefs.getInt("lastDischargeMah", 0);
-            }
-            String date = new SimpleDateFormat("dd.MM. HH:mm", Locale.GERMANY).format(new Date(now));
-            int designCapacity = BatteryCapacity.designCapacityMah(this);
-            float cycleEquivalent = energy > 0 && designCapacity > 0 ? energy / (float) designCapacity : Math.abs(change) / 100f;
-            int screenWakeups = previousCharging ? 0 : prefs.getInt("lastDischargeWakeups", prefs.getInt("dischargeWakeups", 0));
-            String entry = type + "," + (change > 0 ? "+" : "") + change + "%," + duration(minutes) + "," + date + "," + startLevel + "," + level + "," + energy + "," + String.format(Locale.US, "%.2f", cycleEquivalent)
-                    + "," + screenOnValue + "," + screenOffValue + "," + (screenOnMs / 60000L) + "," + (screenOffMs / 60000L)
-                    + "," + (deepSleepMs / 60000L) + "," + chargerSource + "," + startedAt + "," + now + "," + screenWakeups;
-            String saved = prefs.getString("sessions", "");
-            ArrayList<String> sessions = new ArrayList<>();
-            if (!saved.isEmpty()) for (String session : saved.split("\\|")) if (!session.isEmpty()) sessions.add(session);
-            sessions.add(0, entry);
-            while (sessions.size() > 150) sessions.remove(sessions.size() - 1);
-            StringBuilder output = new StringBuilder();
-            for (String session : sessions) { if (output.length() > 0) output.append('|'); output.append(session); }
-            android.content.SharedPreferences.Editor editor = prefs.edit().putString("sessions", output.toString());
-            if (previousCharging && energy > 0) editor.putInt("totalChargedMah", prefs.getInt("totalChargedMah", 0) + energy);
-            if (previousCharging) {
-                String healthReason;
-                if (change < 5) healthReason = "Zu geringe Akkustandänderung (mindestens 5 % nötig)";
-                else if (energy <= 0) healthReason = "Energiezähler/Strom nicht verfügbar";
-                else healthReason = "Wird in den nächsten Gesundheitsdurchschnitt einbezogen";
-                editor.putInt("lastChargeStartLevel", startLevel)
-                        .putInt("lastChargeEndLevel", level)
-                        .putInt("lastChargeEnergyMah", energy)
-                        .putLong("lastChargeDurationMin", minutes)
-                        .putLong("lastChargeStartAt", startedAt)
-                        .putLong("lastChargeEndAt", now)
-                        .putString("lastChargeHealthReason", healthReason);
-            }
-            editor.apply();
-            if (previousCharging && change >= 5 && energy > 0) {
-                int estimatedCapacity = Math.round(energy * 100f / change);
-                if (estimatedCapacity >= 500 && estimatedCapacity <= 20000) {
-                    recordHealthSample(prefs, estimatedCapacity);
-                }
+        int energy = counterMah > 0 && startCounter > 0 ? (previousCharging ? Math.max(0, counterMah - startCounter) : Math.max(0, startCounter - counterMah)) : 0;
+        // The state transition is authoritative: a charging interval is still
+        // a charge session even when the percentage estimate moves by one point
+        // in the opposite direction.
+        String type = previousCharging ? "Charge" : "Discharge";
+        int screenOnValue;
+        int screenOffValue;
+        long screenOnMs;
+        long screenOffMs;
+        long deepSleepMs;
+        String chargerSource;
+        if (previousCharging) {
+            screenOnValue = prefs.getInt("lastChargeScreenOnMah", 0);
+            screenOffValue = prefs.getInt("lastChargeScreenOffMah", 0);
+            screenOnMs = prefs.getLong("lastChargeScreenOnMs", 0L);
+            screenOffMs = prefs.getLong("lastChargeScreenOffMs", 0L);
+            deepSleepMs = 0L;
+            chargerSource = chargerLabel(prefs.getInt("lastChargePlugged", prefs.getInt("chargePlugged", 0)));
+            if (energy <= 0) energy = screenOnValue + screenOffValue;
+        } else {
+            float onPercent = prefs.getFloat("lastDischargeScreenOnPercent", 0f);
+            float offPercent = prefs.getFloat("lastDischargeScreenOffPercent", 0f);
+            screenOnValue = Math.round(onPercent * 10f);
+            screenOffValue = Math.round(offPercent * 10f);
+            screenOnMs = prefs.getLong("lastDischargeScreenOnMs", 0L);
+            screenOffMs = prefs.getLong("lastDischargeScreenOffMs", 0L);
+            deepSleepMs = prefs.getLong("lastDischargeDeepSleepMs", 0L);
+            chargerSource = "Battery";
+            if (energy <= 0) energy = prefs.getInt("lastDischargeMah", 0);
+        }
+        // Do not pollute History with a cable/status blip that produced no
+        // measurable level or energy change. The live state still changes,
+        // while a real session with either signal is retained.
+        if (change == 0 && energy <= 0) {
+            prefs.edit().putLong("monitorSessionStartedAt", now).putBoolean("monitorLastCharging", charging)
+                    .putInt("monitorSessionStartLevel", level).putInt("monitorSessionStartCounterMah", counterMah).apply();
+            return;
+        }
+        String date = new SimpleDateFormat("dd.MM. HH:mm", Locale.GERMANY).format(new Date(now));
+        int designCapacity = BatteryCapacity.designCapacityMah(this);
+        float cycleEquivalent = energy > 0 && designCapacity > 0 ? energy / (float) designCapacity : Math.abs(change) / 100f;
+        int screenWakeups = previousCharging ? 0 : prefs.getInt("lastDischargeWakeups", prefs.getInt("dischargeWakeups", 0));
+        String entry = type + "," + (change > 0 ? "+" : "") + change + "%," + duration(minutes) + "," + date + "," + startLevel + "," + level + "," + energy + "," + String.format(Locale.US, "%.2f", cycleEquivalent)
+                + "," + screenOnValue + "," + screenOffValue + "," + (screenOnMs / 60000L) + "," + (screenOffMs / 60000L)
+                + "," + (deepSleepMs / 60000L) + "," + chargerSource + "," + startedAt + "," + now + "," + screenWakeups;
+        String saved = prefs.getString("sessions", "");
+        ArrayList<String> sessions = new ArrayList<>();
+        if (!saved.isEmpty()) for (String session : saved.split("\\|")) if (!session.isEmpty()) sessions.add(session);
+        sessions.add(0, entry);
+        while (sessions.size() > 150) sessions.remove(sessions.size() - 1);
+        StringBuilder output = new StringBuilder();
+        for (String session : sessions) { if (output.length() > 0) output.append('|'); output.append(session); }
+        android.content.SharedPreferences.Editor editor = prefs.edit().putString("sessions", output.toString());
+        if (previousCharging && energy > 0) editor.putInt("totalChargedMah", prefs.getInt("totalChargedMah", 0) + energy);
+        if (previousCharging) {
+            String healthReason;
+            if (change < 5) healthReason = "Zu geringe Akkustandänderung (mindestens 5 % nötig)";
+            else if (energy <= 0) healthReason = "Energiezähler/Strom nicht verfügbar";
+            else healthReason = "Wird in den nächsten Gesundheitsdurchschnitt einbezogen";
+            editor.putInt("lastChargeStartLevel", startLevel)
+                    .putInt("lastChargeEndLevel", level)
+                    .putInt("lastChargeEnergyMah", energy)
+                    .putLong("lastChargeDurationMin", minutes)
+                    .putLong("lastChargeStartAt", startedAt)
+                    .putLong("lastChargeEndAt", now)
+                    .putString("lastChargeHealthReason", healthReason);
+        }
+        editor.apply();
+        if (previousCharging && change >= 5 && energy > 0) {
+            int estimatedCapacity = Math.round(energy * 100f / change);
+            if (estimatedCapacity >= 500 && estimatedCapacity <= 20000) {
+                recordHealthSample(prefs, estimatedCapacity);
             }
         }
         prefs.edit().putLong("monitorSessionStartedAt", now).putBoolean("monitorLastCharging", charging)
@@ -638,6 +692,9 @@ public class BatteryMonitorService extends Service {
             return;
         }
         if (!charging) return;
+        if (plugged != 0 && plugged != prefs.getInt("chargePlugged", 0)) {
+            prefs.edit().putInt("chargePlugged", plugged).apply();
+        }
         int previousCounter = prefs.getInt("chargeLastCounterMah", counterMah);
         long lastAt = prefs.getLong("chargeLastAt", now);
         long elapsed = Math.max(0L, now - lastAt);
@@ -661,7 +718,7 @@ public class BatteryMonitorService extends Service {
             if (interactive) onPercent += delta; else offPercent += delta;
         }
         prefs.edit().putInt("chargeLastCounterMah", counterMah).putLong("chargeLastAt", now)
-                .putInt("chargePlugged", prefs.getInt("chargePlugged", plugged))
+                .putInt("chargePlugged", plugged != 0 ? plugged : prefs.getInt("chargePlugged", 0))
                 .putLong("chargeScreenOnMs", onMs).putLong("chargeScreenOffMs", offMs)
                 .putInt("chargeScreenOnMah", onMah).putInt("chargeScreenOffMah", offMah)
                 .putFloat("chargeScreenOnPercent", onPercent).putFloat("chargeScreenOffPercent", offPercent)

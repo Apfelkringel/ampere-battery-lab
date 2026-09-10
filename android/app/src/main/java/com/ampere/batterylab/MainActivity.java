@@ -528,8 +528,7 @@ class BatteryDashboard extends View {
         int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN);
         int pluggedSource = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0);
         if (rawLevel >= 0 && scale > 0) level = Math.max(0, Math.min(100, Math.round(rawLevel * 100f / scale)));
-        boolean newCharging = status == BatteryManager.BATTERY_STATUS_CHARGING
-                || (status == BatteryManager.BATTERY_STATUS_FULL && pluggedSource != 0);
+        boolean newCharging = BatteryState.isCharging(status, pluggedSource);
         if (sessionStartedAt == 0L) {
             lastCharging = newCharging;
             sessionStartedAt = System.currentTimeMillis();
@@ -1505,23 +1504,50 @@ class BatteryDashboard extends View {
             fill(c, muted); c.drawCircle(u(w - 160), u(29), u(1.5f), p); c.drawCircle(u(w - 160), u(36), u(1.5f), p); c.drawCircle(u(w - 160), u(43), u(1.5f), p);
         }
         drawNav(c, w, primary, muted, border, panel);
-        line(c, 18, 166, w - 18, 166, border, 1);
+        line(c, 18, 174, w - 18, 174, border, 1);
     }
 
     private void drawNav(Canvas c, float w, int primary, int muted, int border, int panel) {
-        boolean compactNav = w < 360f;
+        boolean compactNav = w < 480f;
         String[] labels = compactNav
                 ? new String[]{"Start", "Laden", "Entl.", "Gesund.", "Verlauf"}
                 : new String[]{"Übersicht", "Laden", "Entladen", "Gesundheit", "Verlauf"};
         float cell = (w - 36) / 5f;
         for (int i = 0; i < labels.length; i++) {
             float x = 18 + i * cell;
-            if (page == i || isPressed(10 + i)) {
-                rounded(c, x, 130, x + cell - 5, 159, 9, isPressed(10 + i) ? pressedFill(panel, true) : panel);
-                if (page == i && !compactNav) { fill(c, lime); c.drawCircle(u(x + 9), u(144), u(3), p); }
+            boolean active = page == i;
+            boolean pressed = isPressed(10 + i);
+            if (active || pressed) {
+                rounded(c, x, 126, x + cell - 5, 164, 10, pressed ? pressedFill(panel, true) : panel);
             }
-            if (compactNav) centeredText(c, labels[i], x + (cell - 5) / 2f, 148, 8.5f, page == i ? primary : muted, page == i);
-            else text(c, labels[i], x + 16, 148, 9, page == i ? primary : muted, page == i);
+            int iconColor = active ? lime : muted;
+            if (compactNav) {
+                float centerX = x + (cell - 5) / 2f;
+                drawNavGlyph(c, i, centerX, 137, iconColor);
+                centeredText(c, labels[i], centerX, 156, 8.5f, active ? primary : muted, active);
+            } else {
+                drawNavGlyph(c, i, x + 18, 145, iconColor);
+                text(c, fitText(labels[i], cell - 36, 9, active), x + 31, 148, 9, active ? primary : muted, active);
+            }
+        }
+    }
+
+    private void drawNavGlyph(Canvas c, int index, float cx, float cy, int color) {
+        if (index == 1) { drawBolt(c, cx, cy, color, .65f); return; }
+        if (index == 2) { drawArrow(c, cx, cy, color); return; }
+        if (index == 3) { drawHeart(c, cx, cy, color); return; }
+        stroke(c, color, 1.5f);
+        if (index == 0) {
+            c.drawCircle(u(cx), u(cy), u(8), p);
+            line(c, cx, cy, cx, cy - 5, color, 1.5f);
+            line(c, cx, cy, cx + 4, cy + 3, color, 1.5f);
+        } else {
+            Path chart = new Path();
+            chart.moveTo(u(cx - 8), u(cy + 5));
+            chart.lineTo(u(cx - 3), u(cy - 1));
+            chart.lineTo(u(cx + 1), u(cy + 2));
+            chart.lineTo(u(cx + 8), u(cy - 6));
+            c.drawPath(chart, p);
         }
     }
 
