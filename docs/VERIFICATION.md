@@ -38,6 +38,12 @@ Release `0.91` adds a history-load migration that removes legacy sessions only
 when both the level change and measured energy are zero; sessions with a real
 energy signal remain intact.
 
+The current public update path was also exercised from signed `0.90` to signed
+`0.91` on API 36. The app fetched the 0.91 manifest, showed the in-app dialog,
+passed the cache-busted download and signature checks, completed Android's
+installer flow, and reported `versionCode 91` afterward; `firstInstallTime`
+remained unchanged.
+
 Release `0.90` also compiles and passes lint locally after centered max-width
 content for wide screens, translated touch coordinates, responsive safe-edge
 text fitting, narrow-phone navigation, stacked small cards, compact hero spacing
