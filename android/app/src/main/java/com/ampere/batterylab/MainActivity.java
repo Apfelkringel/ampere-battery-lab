@@ -1445,6 +1445,13 @@ class BatteryDashboard extends View {
         type(size, color, bold);
         c.drawText(fitted, u(safeX), u(y), p);
     }
+    private void boundedText(Canvas c, String value, float leftX, float rightX, float y, float size, int color, boolean bold) {
+        float left = Math.max(8f, leftX);
+        float right = Math.max(left + 1f, rightX);
+        String fitted = fitText(value, right - left, size, bold);
+        type(size, color, bold);
+        c.drawText(fitted, u(left), u(y), p);
+    }
     private void centeredText(Canvas c, String value, float centerX, float y, float size, int color, boolean bold) {
         float viewWidth = layoutWidthDp > 0f ? layoutWidthDp : getWidth() / density;
         float halfWidth = Math.max(1f, Math.min(centerX - 8f, viewWidth - centerX - 8f));
@@ -1458,6 +1465,13 @@ class BatteryDashboard extends View {
         String fitted = fitText(value, Math.max(1f, safeRight - 8f), size, bold);
         type(size, color, bold);
         c.drawText(fitted, u(safeRight) - p.measureText(fitted), u(y), p);
+    }
+    private void boundedRightText(Canvas c, String value, float leftX, float rightX, float y, float size, int color, boolean bold) {
+        float right = Math.max(8f, rightX);
+        float left = Math.max(0f, Math.min(leftX, right - 1f));
+        String fitted = fitText(value, Math.max(1f, right - left), size, bold);
+        type(size, color, bold);
+        c.drawText(fitted, u(right) - p.measureText(fitted), u(y), p);
     }
     private void rounded(Canvas c, float l, float t, float r, float b, float radius, int color) {
         // One consistent surface language: large cards are softer than controls.
@@ -1640,7 +1654,8 @@ class BatteryDashboard extends View {
                 float groupWidth = 16f + 8f + labelWidth;
                 float groupLeft = centerX - groupWidth / 2f;
                 drawNavGlyph(c, i, groupLeft + 8f, 145, iconColor);
-                text(c, fittedLabel, groupLeft + 24f, 148, 9, active ? Color.rgb(23, 28, 16) : muted, active);
+                boundedText(c, fittedLabel, groupLeft + 24f, x + cell - 8f, 148, 9,
+                        active ? Color.rgb(23, 28, 16) : muted, active);
             }
         }
     }
@@ -1700,33 +1715,44 @@ class BatteryDashboard extends View {
             text(c, "Akkugesundheit", 36, top + 258 + compactDetailsOffset, 9, muted, false);
             text(c, health == 0 ? "Nicht gemessen" : health + "%", 36, top + 280 + compactDetailsOffset, 14, primary, true);
             float capacityX = 18 + heroW * .57f;
-            text(c, heroW < 230f ? "Kapazität" : "Geschätzte Kapazität", capacityX, top + 258 + compactDetailsOffset, 9, muted, false);
-            text(c, health > 0 ? mahDisplay(estimatedCapacityMah()) : "—", capacityX, top + 280 + compactDetailsOffset, 12, primary, true);
-            text(c, "Nennwert " + mahDisplay(designCapacityMah()), capacityX, top + 297 + compactDetailsOffset, 8, faint, false);
+            float compactDetailsRight = 18 + heroW - 42;
+            boundedText(c, heroW < 230f ? "Kapazität" : "Geschätzte Kapazität", capacityX, compactDetailsRight,
+                    top + 258 + compactDetailsOffset, 9, muted, false);
+            boundedText(c, health > 0 ? mahDisplay(estimatedCapacityMah()) : "—", capacityX, compactDetailsRight,
+                    top + 280 + compactDetailsOffset, 12, primary, true);
+            boundedText(c, "Nennwert " + mahDisplay(designCapacityMah()), capacityX, compactDetailsRight,
+                    top + 297 + compactDetailsOffset, 8, faint, false);
             float compactStatusOffset = heroW < 230f ? 20f : 0f;
             rounded(c, 36, top + 315 + compactStatusOffset, 18 + heroW - 36, top + 369 + compactStatusOffset, 8, raised);
             drawBolt(c, 52, top + 333 + compactStatusOffset, lime, .8f);
             text(c, charging ? "Laden erkannt" : "Akkubetrieb", 68, top + 332 + compactStatusOffset, 10, primary, true);
             String compactDetection = charging ? (heroW < 230f ? chargerTypeDisplay() : chargerTypeDisplay() + " · automatisch")
                     : (heroW < 230f ? "Automatisch erkannt" : "Akku automatisch erkannt");
-            text(c, fitText(compactDetection, Math.max(60f, heroW - 112f), 8, false), 68, top + 350 + compactStatusOffset, 8, muted, false);
-            rightText(c, liveCurrentDisplay(), 18 + heroW - 50, top + 339 + compactStatusOffset, 9, charging ? lime : blue, false);
+            float statusRight = 18 + heroW - 50;
+            float currentLeft = Math.max(68f, statusRight - 76f);
+            boundedText(c, compactDetection, 68, currentLeft - 8f, top + 350 + compactStatusOffset, 8, muted, false);
+            boundedRightText(c, liveCurrentDisplay(), currentLeft, statusRight,
+                    top + 339 + compactStatusOffset, 9, charging ? lime : blue, false);
         } else {
             drawGauge(c, 135, top + 170, 101, level, primary, faint);
             text(c, level + "%", 91, top + 178, 52, primary, true);
             text(c, charging ? "Laden" : "Akkubetrieb", 108, top + 204, 10, muted, false);
-            text(c, health == 0 ? "Nicht gemessen" : (health > 80 ? "Guter Zustand" : "Prüfung nötig"), 255, top + 117, 17, primary, true);
-            text(c, health == 0 ? "Benchmark starten" : (health > 80 ? "Im gesunden Bereich" : "Unter Erwartung"), 255, top + 141, 10, muted, false);
-            text(c, "Volle Kapazität", 255, top + 181, 10, muted, false);
-            text(c, health > 0 ? mahDisplay(estimatedCapacityMah()) : "—", 255, top + 201, 12, primary, true);
-            rounded(c, 255, top + 215, 18 + heroW - 28, top + 219, 3, border);
-            if (health > 0) rounded(c, 255, top + 215, 255 + (heroW - 46) * Math.min(1f, health / 100f), top + 219, 3, lime);
-            text(c, "Nennkapazität " + mahDisplay(designCapacityMah()), 255, top + 236, 9, faint, false);
+            float detailRight = 18 + heroW - 42;
+            boundedText(c, health == 0 ? "Nicht gemessen" : (health > 80 ? "Guter Zustand" : "Prüfung nötig"),
+                    255, detailRight, top + 117, 17, primary, true);
+            boundedText(c, health == 0 ? "Benchmark starten" : (health > 80 ? "Im gesunden Bereich" : "Unter Erwartung"),
+                    255, detailRight, top + 141, 10, muted, false);
+            boundedText(c, "Volle Kapazität", 255, detailRight, top + 181, 10, muted, false);
+            boundedText(c, health > 0 ? mahDisplay(estimatedCapacityMah()) : "—", 255, detailRight, top + 201, 12, primary, true);
+            rounded(c, 255, top + 215, detailRight, top + 219, 3, border);
+            if (health > 0) rounded(c, 255, top + 215, 255 + (detailRight - 255) * Math.min(1f, health / 100f), top + 219, 3, lime);
+            boundedText(c, "Nennkapazität " + mahDisplay(designCapacityMah()), 255, detailRight, top + 236, 9, faint, false);
             rounded(c, 36, top + 263, 18 + heroW - 36, top + 301, 8, raised);
             drawBolt(c, 52, top + 282, lime, .8f);
             text(c, charging ? "Laden erkannt" : "Akkubetrieb", 68, top + 278, 10, primary, true);
             text(c, fitText(detectionText, Math.max(80f, heroW - 108f), 9, false), 68, top + 293, 9, muted, false);
-            rightText(c, liveCurrentDisplay(), 18 + heroW - 50, top + 285, 9, charging ? lime : blue, false);
+            boundedRightText(c, liveCurrentDisplay(), 18 + heroW - 125, 18 + heroW - 50,
+                    top + 285, 9, charging ? lime : blue, false);
         }
 
         float cardsTop = top + heroH + 14;
@@ -1779,17 +1805,18 @@ class BatteryDashboard extends View {
 
         float detailX = Math.max(160f, heroW * .52f);
         int health = healthPercent();
-        text(c, fitText(health == 0 ? "Nicht gemessen" : (health > 80 ? "Guter Zustand" : "Prüfung nötig"),
-                Math.max(82f, heroW - detailX - 18f), 13, true), detailX, top + 91, 13, primary, true);
-        text(c, "Akkugesundheit", detailX, top + 108, 7, muted, false);
-        text(c, "Volle Kapazität", detailX, top + 130, 7, muted, false);
-        text(c, health > 0 ? mahDisplay(estimatedCapacityMah()) : "—", detailX, top + 146, 11, primary, true);
-        text(c, "Nennwert " + mahDisplay(designCapacityMah()), detailX, top + 160, 7, faint, false);
+        float detailRight = heroRight - 18f;
+        boundedText(c, health == 0 ? "Nicht gemessen" : (health > 80 ? "Guter Zustand" : "Prüfung nötig"),
+                detailX, detailRight, top + 91, 13, primary, true);
+        boundedText(c, "Akkugesundheit", detailX, detailRight, top + 108, 7, muted, false);
+        boundedText(c, "Volle Kapazität", detailX, detailRight, top + 130, 7, muted, false);
+        boundedText(c, health > 0 ? mahDisplay(estimatedCapacityMah()) : "—", detailX, detailRight, top + 146, 11, primary, true);
+        boundedText(c, "Nennwert " + mahDisplay(designCapacityMah()), detailX, detailRight, top + 160, 7, faint, false);
 
         rounded(c, 36, top + 164, heroRight - 18, top + 176, 5, raised);
         drawBolt(c, 46, top + 170, lime, .5f);
         text(c, charging ? "Laden erkannt" : "Akkubetrieb", 57, top + 172, 7, primary, true);
-        rightText(c, liveCurrentDisplay(), heroRight - 26, top + 172, 7, charging ? lime : blue, false);
+        boundedRightText(c, liveCurrentDisplay(), heroRight - 86, heroRight - 26, top + 172, 7, charging ? lime : blue, false);
 
         float metricGap = 10f;
         float metricW = (metricsW - metricGap) / 2f;
@@ -1840,10 +1867,12 @@ class BatteryDashboard extends View {
         int health = healthPercent();
         float detailX = Math.max(142f, heroW * .50f);
         float detailW = Math.max(90f, heroW - detailX - 20f);
-        text(c, fitText(health == 0 ? "Nicht gemessen" : (health > 80 ? "Guter Zustand" : "Prüfung nötig"), detailW, 12, true), detailX, top + 76, 12, primary, true);
-        text(c, "Akkugesundheit", detailX, top + 90, 6.5f, muted, false);
-        text(c, "Volle Kapazität", detailX, top + 105, 6.5f, muted, false);
-        text(c, health > 0 ? mahDisplay(estimatedCapacityMah()) : "—", detailX, top + 119, 9, primary, true);
+        float detailRight = heroRight - 16f;
+        boundedText(c, health == 0 ? "Nicht gemessen" : (health > 80 ? "Guter Zustand" : "Prüfung nötig"),
+                detailX, detailRight, top + 76, 12, primary, true);
+        boundedText(c, "Akkugesundheit", detailX, detailRight, top + 90, 6.5f, muted, false);
+        boundedText(c, "Volle Kapazität", detailX, detailRight, top + 105, 6.5f, muted, false);
+        boundedText(c, health > 0 ? mahDisplay(estimatedCapacityMah()) : "—", detailX, detailRight, top + 119, 9, primary, true);
 
         float metricGap = 10f;
         float metricW = (metricsW - metricGap) / 2f;
@@ -2342,24 +2371,29 @@ class BatteryDashboard extends View {
                     .replace("Akkutemperatur", "Temperatur")
                     .replace("Bildschirmzeit", "Screenzeit")
                     .replace("Geladene Energie", "Energie");
-            text(c, compactLabel, x + 10, y + 58, 9, muted, false);
-            String compactValue = fitText(value, width - 20, 17, true);
-            text(c, compactValue, x + 10, y + 86, 17, primary, true);
+            boundedText(c, compactLabel, x + 10, x + width - 10, y + 58, 9, muted, false);
+            type(9, muted, false);
+            float compactUnitWidth = unit.isEmpty() ? 0f : p.measureText(unit) / density + 4f;
+            String compactValue = fitText(value, Math.max(20f, width - 20f - compactUnitWidth), 17, true);
+            boundedText(c, compactValue, x + 10, x + width - 10 - compactUnitWidth, y + 86, 17, primary, true);
             if (!unit.isEmpty()) {
                 type(17, primary, true);
-                text(c, unit, x + 10 + p.measureText(compactValue) / density + 3, y + 86, 9, muted, false);
+                boundedText(c, unit, x + 10 + p.measureText(compactValue) / density + 3,
+                        x + width - 8, y + 86, 9, muted, false);
             }
             return;
         }
         rounded(c, x + 15, y + 16, x + 45, y + 46, 8, Color.argb(28, Color.red(accent), Color.green(accent), Color.blue(accent)));
         if (icon.equals("bolt")) drawBolt(c, x + 30, y + 31, accent, .7f); else if (icon.equals("temp")) drawThermometer(c, x + 30, y + 31, accent); else if (icon.equals("heart")) drawHeart(c, x + 30, y + 31, accent); else if (icon.equals("arrow")) drawArrow(c, x + 30, y + 31, accent); else if (icon.equals("grid")) drawGrid(c, x + 30, y + 31, accent); else drawClock(c, x + 30, y + 31, accent);
-        text(c, fitText(label, width - 72, 10, false), x + 58, y + 30, 10, muted, false);
-        String fittedValue = fitText(value, width - 72, 21, true);
-        text(c, fittedValue, x + 58, y + 62, 21, primary, true);
+        boundedText(c, label, x + 58, x + width - 12, y + 30, 10, muted, false);
+        type(10, muted, false);
+        float unitWidth = unit.isEmpty() ? 0f : p.measureText(unit) / density + 4f;
+        String fittedValue = fitText(value, Math.max(24f, width - 72f - unitWidth), 21, true);
+        boundedText(c, fittedValue, x + 58, x + width - 12 - unitWidth, y + 62, 21, primary, true);
         if (!unit.isEmpty()) {
             type(21, primary, true);
             float valueWidth = p.measureText(fittedValue) / density;
-            text(c, unit, x + 58 + valueWidth + 4, y + 62, 10, muted, false);
+            boundedText(c, unit, x + 58 + valueWidth + 4, x + width - 8, y + 62, 10, muted, false);
         }
     }
 
