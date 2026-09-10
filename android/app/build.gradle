@@ -14,7 +14,7 @@ android {
         minSdk 23
         targetSdk 37
         versionCode 100
-        versionName "1.00"
+        versionName "0.100"
     }
 
     buildFeatures {
