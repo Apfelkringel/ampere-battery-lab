@@ -1002,9 +1002,40 @@ class BatteryDashboard extends View {
         if (calculationCapacityMah() <= 0) return "—";
         float rate = mixedDischargeRate();
         if (rate > 0f) return formatDuration(Math.max(1, Math.round(level * 60f / rate)));
+        String systemPrediction = systemDischargePrediction();
+        if (!"—".equals(systemPrediction)) return systemPrediction;
         if (currentMa < 50) return "—";
         int availableMah = Math.round(calculationCapacityMah() * level / 100f);
         return formatDuration(Math.max(1, Math.round(availableMah * 60f / currentMa)));
+    }
+
+    /**
+     * Uses Android's own discharge model only when local history cannot provide
+     * a personalized estimate. The system may return null or an unbounded
+     * value, both of which are treated as unavailable instead of displayed as
+     * false precision.
+     */
+    private String systemDischargePrediction() {
+        if (charging || Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return "—";
+        PowerManager power = (PowerManager) getContext().getSystemService(Context.POWER_SERVICE);
+        if (power == null) return "—";
+        try {
+            java.time.Duration prediction = power.getBatteryDischargePrediction();
+            if (prediction == null) return "—";
+            long minutes = prediction.toMinutes();
+            if (minutes < 1L || minutes > 7L * 24L * 60L) return "—";
+            return formatDuration(minutes);
+        } catch (RuntimeException ignored) {
+            return "—";
+        }
+    }
+
+    private String runtimeEstimateSource() {
+        if (charging) return "Basierend auf letzter Entladephase";
+        if (mixedDischargeRate() > 0f) return "Basierend auf lokaler 7-Tage-Nutzung";
+        if (!"—".equals(systemDischargePrediction())) return "Android-Systemschätzung";
+        if (currentMa >= 50 && calculationCapacityMah() > 0) return "Momentanschätzung";
+        return "Keine ausreichenden Daten";
     }
 
     private String drainRate() {
@@ -2101,7 +2132,7 @@ class BatteryDashboard extends View {
         text(c, dischargeRuntime(true), useColumnOn, remainingTop + 80, compact ? 10 : 12, blue, true);
         text(c, "Aus", useColumnOff, remainingTop + 58, 8, faint, false);
         text(c, dischargeRuntime(false), useColumnOff, remainingTop + 80, compact ? 10 : 12, blue, true);
-        text(c, "Basierend auf lokaler Nutzung", 36, remainingTop + 98, 8, faint, false);
+        text(c, runtimeEstimateSource(), 36, remainingTop + 98, 8, faint, false);
         float capacityTop = remainingTop + 125;
         rounded(c, 18, capacityTop, w - 18, capacityTop + 85, 12, panel); stroke(c, border, 1); rect.set(u(18), u(capacityTop), u(w - 18), u(capacityTop + 85)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "KAPAZITÄTSSCHÄTZUNG", 36, capacityTop + 30, 10, muted, true);

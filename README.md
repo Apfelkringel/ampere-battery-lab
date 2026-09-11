@@ -48,6 +48,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - lokale Telemetrie behält ebenfalls ungefähr 30 Tage bei jeder Messfrequenz (5/15/30/60 Minuten)
 - Ladezeit-Prognosen nutzen lokale 7-Tage-Laderaten, wenn Android keinen Systemwert liefert
 - verbleibende Nutzungszeit wird als gemischt, Bildschirm-an und Bildschirm-aus ausgewiesen
+- verbleibende Nutzungszeit nutzt zuerst lokale 7-Tage-Daten und kann auf Android 12+ zusätzlich die geprüfte Systemprognose verwenden; die Quelle wird sichtbar benannt
 - separate Ladegeschwindigkeitswerte für Bildschirm-an und Bildschirm-aus in mA und %/h
 - Health-Baseline kann nach einem Akkutausch zurückgesetzt werden, ohne History oder Telemetrie zu löschen
 - Ungültige alte Gesundheitsmessungen werden beim Laden automatisch aus Graph und lokaler Messliste bereinigt

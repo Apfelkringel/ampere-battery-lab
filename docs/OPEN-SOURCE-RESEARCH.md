@@ -74,6 +74,12 @@ in `BatteryHealth.percent(...)` eingespeist. Ein Systemwert wie `Hoch` oder
 Gesundheitszahl dargestellt werden. Die Intent-Auswertung und die Trennung
 zwischen beiden Bedeutungen sind in `BatteryRulesTest` regressionsgesichert.
 
+Für die Laufzeitprognose bleibt der persönliche lokale 7-Tage-Verlauf die
+erste Wahl. Wenn dafür noch keine ausreichenden Daten vorliegen, verwendet
+Ampere auf Android 12+ als Fallback `PowerManager.getBatteryDischargePrediction()`
+und verwirft `null`, unrealistische Werte sowie Laufzeiten außerhalb von sieben
+Tagen. Die Oberfläche nennt dann ausdrücklich die verwendete Quelle.
+
 Für die optionale App-Nutzungsansicht verwendet Ampere bevorzugt Androids
 `UsageStatsManager.queryEvents()`. Aggregierte `queryUsageStats()`-Tageswerte
 können laut Android-Dokumentation über den angefragten Zeitraum hinausreichen;
