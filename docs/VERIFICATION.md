@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.194` (`versionCode 194`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: wird nach dem signierten CI-Artefakt ergänzt
+- Release APK SHA-256: `3d035ef3a7972583d8649770befc0772097af633b8176b874c638095a8784a3d`
 
 Release `0.194` additionally reopens foreground and background sampling after
 a wall-clock rollback. The next sample becomes the new cadence baseline while
