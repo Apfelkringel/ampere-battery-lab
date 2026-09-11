@@ -5,10 +5,14 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.175` (`versionCode 175`)
+- Version: `0.176` (`versionCode 176`)
 - `minSdk 23`, `targetSdk 37`
 - Release APK SHA-256: `4913342114b755d2d88a8f46286006077cb5f524bbded7b4bb055357c47b713c`
 - The same hash is published in the public update repository manifest.
+
+Release `0.176` additionally rejects invalid EFC values in extended session
+rows, keeping `NaN`, infinity, negative and oversized values out of the
+wear chart while preserving older valid four-field rows.
 
 Release `0.175` additionally rejects corrupt persisted EFC fractions; only a
 finite remainder in `[0, 1)` is accepted, so corrupt values cannot create

@@ -74,6 +74,10 @@ Berechnung strikt auf endliche Werte in `[0, 1)` geprüft; damit können
 beschädigte Preferences keinen künstlichen Zykluszähler oder eine sichtbare
 `NaN`-Anzeige erzeugen.
 
+Auch erweiterte Sitzungszeilen validieren ihren EFC-Wert vor der Aufnahme in
+die lokale Historie. Das verhindert, dass von `Float.parseFloat` akzeptierte
+Sonderwerte wie `NaN` oder `Infinity` die Verschleißgrafik skalieren.
+
 Die Android-16/17-Kapazitätsstufe wird in `BatteryCapacityLevel` bewusst nicht
 in `BatteryHealth.percent(...)` eingespeist. Ein Systemwert wie `Hoch` oder
 `Voll` kann damit niemals versehentlich als `110 %` oder als andere

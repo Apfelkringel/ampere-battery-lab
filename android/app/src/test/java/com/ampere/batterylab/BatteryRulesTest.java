@@ -120,6 +120,14 @@ public class BatteryRulesTest {
         assertFalse(BatterySessionRules.isValid("Charge,-3%,1 Min.,11.09. 12:00"));
         assertFalse(BatterySessionRules.isValid("Charge,+110%,1 Min.,11.09. 12:00"));
         assertFalse(BatterySessionRules.isValid("Discharge,-101%,1 Min.,11.09. 12:00"));
+        assertFalse(BatterySessionRules.isValid("Charge,+12%,18 Min.,11.09. 12:00,50,62,800,NaN"));
+        assertFalse(BatterySessionRules.isValid("Charge,+12%,18 Min.,11.09. 12:00,50,62,800,Infinity"));
+        assertFalse(BatterySessionRules.isValid("Charge,+12%,18 Min.,11.09. 12:00,50,62,800,-0.10"));
+        assertTrue(BatterySessionRules.isValid("Charge,+12%,18 Min.,11.09. 12:00,50,62,800,0.12"));
+        assertTrue(BatterySessionRules.isValidEquivalentCycles("3.0"));
+        assertFalse(BatterySessionRules.isValidEquivalentCycles("3.01"));
+        assertFalse(BatterySessionRules.isValidEquivalentCycles("NaN"));
+        assertFalse(BatterySessionRules.isValidEquivalentCycles("Infinity"));
         assertFalse(BatterySessionRules.isValid("not-a-session"));
     }
 

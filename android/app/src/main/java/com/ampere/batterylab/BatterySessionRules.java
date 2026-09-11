@@ -28,7 +28,20 @@ final class BatterySessionRules {
         try {
             int change = Integer.parseInt(parts[1].replace("%", "").replace("+", "").trim());
             if (change < -100 || change > 100) return false;
+            // Extended rows contain an EFC value used by the health chart.
+            // Float.parseFloat accepts NaN and Infinity, so explicitly reject
+            // both and keep impossible chart scales out of the UI.
+            if (parts.length >= 8 && !isValidEquivalentCycles(parts[7])) return false;
             return "Charge".equals(type) ? change > 0 : change < 0;
+        } catch (NumberFormatException ignored) {
+            return false;
+        }
+    }
+
+    static boolean isValidEquivalentCycles(String value) {
+        try {
+            float parsed = Float.parseFloat(value == null ? "" : value.trim());
+            return Float.isFinite(parsed) && parsed >= 0f && parsed <= 3f;
         } catch (NumberFormatException ignored) {
             return false;
         }
