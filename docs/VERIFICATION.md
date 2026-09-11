@@ -5,11 +5,14 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.156` (`versionCode 156`)
+- Version: `0.157` (`versionCode 157`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `wird nach CI-Signatur eingetragen`
+- Release APK SHA-256: `1fa92438562faf6978b571abf82812e1884e574552a65f5bb4122eb420379c28`
 - The same hash is published in the public update repository manifest.
 
+Release `0.157` additionally validates Android current-property sentinels and
+implausible spikes consistently across the dashboard, service, widget, overlay
+and Quick-Settings tile.
 Release `0.156` additionally keeps the temperature threshold choices visible
 in the Android settings dialog.
 Release `0.155` additionally adds a configurable temperature warning with
