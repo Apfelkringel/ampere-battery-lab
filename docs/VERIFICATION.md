@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.154` (`versionCode 154`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `wird nach CI-Signatur eingetragen`
+- Release APK SHA-256: `06e622d4e31bbef4db3d8a8982b6eb304e7efe94b5cdc385886715cbc4673dfa`
 - The same hash is published in the public update repository manifest.
 
 Release `0.154` additionally keeps the compact charging power label readable
