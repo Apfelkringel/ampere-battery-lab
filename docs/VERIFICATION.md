@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.208` (`versionCode 208`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: wird nach dem signierten CI-Artefakt ergänzt
+- Release APK SHA-256: `165fe0815727a79b8dd245df64b74fcf21728fce532a160e8023b6702ec92754`
 
 Release `0.208` additionally refreshes one shared validated health snapshot
 after stored-data reloads, live samples, restores and design-capacity changes.
