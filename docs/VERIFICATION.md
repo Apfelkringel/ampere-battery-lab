@@ -4,6 +4,11 @@ Last verified: 2026-09-11 (Europe/Berlin)
 
 ## Current development change
 
+Version `0.280` additionally gives the charging header a dedicated compact
+layout below 270 dp. The current value keeps a measured text lane and a
+separate gutter before the time column, so a real value such as `900 mA` is
+not rendered as a clipped `90…` on narrow phones.
+
 Version `0.279` additionally removes the single-sample current scale
 heuristic. Android current properties and battery power-supply nodes are
 converted from their documented microampere representation and validated for

@@ -2664,10 +2664,14 @@ class BatteryDashboard extends View {
         // divider. Give the left and right metrics explicit bounds and move the
         // environmental line below the divider in the compact composition.
         boolean narrowHeader = w < 390f;
-        float dividerX = narrowHeader ? w * .58f : w * .54f;
-        float rightColumn = narrowHeader ? w * .62f : w * .6f;
+        boolean ultraCompactHeader = w < 270f;
+        // At 240 dp a 27-dp value inside the old 58/42 split was clipped to
+        // "90…". Give the current value a measured 71-dp lane and keep a
+        // deliberate 15-dp gutter before the time column.
+        float dividerX = ultraCompactHeader ? w * .65f : (narrowHeader ? w * .58f : w * .54f);
+        float rightColumn = ultraCompactHeader ? w * .68f : (narrowHeader ? w * .62f : w * .6f);
         boundedText(c, charging && currentMa > 0 ? currentMa + " mA" : "—", 77, dividerX - 8,
-                y + 112, narrowHeader ? 27 : 31, primary, true);
+                y + 112, ultraCompactHeader ? 19 : (narrowHeader ? 27 : 31), primary, true);
         boundedText(c, charging ? liveCurrentSubLabel(narrowHeader) : (currentMa > 0 ? liveCurrentSubLabel(narrowHeader) : "getrennt · Verlaufsdaten"), 78, dividerX - 8,
                 y + 132, 9, muted, false);
         line(c, dividerX, y + 86, dividerX, y + (narrowHeader ? 145 : 156), border, 1);

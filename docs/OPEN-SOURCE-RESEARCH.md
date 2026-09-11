@@ -2,6 +2,14 @@
 
 Stand: 11. September 2026
 
+Die Button- und Textflächen wurden anschließend auf 240 dp gegen die
+Material-Button-Geometrie und den eigenen Canvas-Hit-Test geprüft. Dabei wurde
+im Lade-Header ein echter Überlauf gefunden: Der Stromwert hatte dieselbe
+Schriftgröße wie auf breiteren Geräten, aber keine eigene Mindestbreite. In
+`0.280` erhält die schmale Variante deshalb eine explizite Messwertspur und
+einen Abstand zur Zeitspalte; die Touch-Geometrie und die größere Variante
+bleiben unverändert.
+
 Die Strommessung wurde nochmals gegen ABattery, FusionHUD und die Android-
 `BatteryManager`-Dokumentation geprüft. `CURRENT_NOW` und `CURRENT_AVERAGE`
 werden dort als Rohwerte in Mikroampere behandelt und nur gegen Sentinelwerte,
