@@ -51,4 +51,10 @@ public class BatteryRulesTest {
         assertEquals(6600L, BatteryCapacity.normalizeCapacity(6600L));
         assertEquals(100L, BatteryCapacity.normalizeCapacity(100L));
     }
+
+    @Test public void localCycleFallbackIgnoresLevelDropsWhileCharging() {
+        assertEquals(8f, BatteryCycleAccumulator.addDischargePercent(0f, 80, 72, false), 0.001f);
+        assertEquals(0f, BatteryCycleAccumulator.addDischargePercent(0f, 80, 72, true), 0.001f);
+        assertEquals(1, BatteryCycleAccumulator.completedCycles(108f));
+    }
 }

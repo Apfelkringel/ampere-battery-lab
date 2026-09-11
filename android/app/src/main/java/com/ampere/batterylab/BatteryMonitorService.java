@@ -228,7 +228,7 @@ public class BatteryMonitorService extends Service {
         StringBuilder longOutput = new StringBuilder();
         for (int i = 0; i < longPoints.size(); i++) { if (i > 0) longOutput.append(','); longOutput.append(longPoints.get(i)); }
         prefs.edit().putString("history", output.toString()).putString("historyLong", longOutput.toString()).putLong("lastSample", now).apply();
-        updateUsageCounters(prefs, value, now);
+        updateUsageCounters(prefs, value, isCharging, now);
     }
 
     /**
@@ -400,15 +400,17 @@ public class BatteryMonitorService extends Service {
         } catch (Exception ignored) { }
     }
 
-    private void updateUsageCounters(android.content.SharedPreferences prefs, int level, long now) {
+    private void updateUsageCounters(android.content.SharedPreferences prefs, int level, boolean charging, long now) {
         int previousLevel = prefs.getInt("cycleLastLevel", -1);
         float dischargePercent = prefs.getFloat("dischargePercent", 0f);
         int cycles = prefs.getInt("chargeCycles", 0);
-        if (previousLevel >= 0 && level < previousLevel) dischargePercent += previousLevel - level;
-        while (dischargePercent >= 100f) {
-            cycles++;
-            dischargePercent -= 100f;
-        }
+        // Do not interpret an OEM recalibration or a brief counter reversal
+        // while plugged in as battery wear. The last level is still persisted
+        // below so the next real discharge starts from the current value.
+        dischargePercent = BatteryCycleAccumulator.addDischargePercent(dischargePercent, previousLevel, level, charging);
+        int completedCycles = BatteryCycleAccumulator.completedCycles(dischargePercent);
+        cycles += completedCycles;
+        dischargePercent -= completedCycles * 100f;
         PowerManager power = (PowerManager) getSystemService(POWER_SERVICE);
         boolean interactive = power == null || power.isInteractive();
         long lastMonitorSample = prefs.getLong("monitorSampleAt", now);

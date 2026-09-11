@@ -5,11 +5,14 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.132` (`versionCode 132`)
+- Version: `0.133` (`versionCode 133`)
 - `minSdk 23`, `targetSdk 37`
 - Release APK SHA-256: `4097a9e05425895b62fea9ce5f280e8d8eeae2c6026bd6201bee8b86f32a6233`
 - The same hash is published in the public update repository manifest.
 
+Release `0.133` ignores level reversals while charging when calculating the
+local full-cycle fallback, preventing OEM recalibration from creating false
+cycles. It retains the `0.132` validated OEM full-charge-capacity fallback.
 Release `0.132` uses a validated OEM full-charge-capacity fallback for health
 estimates and normalizes both µAh and mAh battery-driver units. It retains the
 `0.131` cache-safe GitHub Contents API download.
