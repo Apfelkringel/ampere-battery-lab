@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.218` (`versionCode 218`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `pending CI artifact`
+- Release APK SHA-256: `168cbe286e2bc6b1b76cdb45842a1710c3e06c5c98bb6d23a0c4a0348f028b6f`
 
 Release `0.218` additionally selects a dedicated one-row widget layout for
 very low-height portrait or landscape placements. Compact and standard layouts
