@@ -58,6 +58,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - Android 16/17: optionales qualitatives Kapazitätsniveau wird getrennt von Akkustand und Akkugesundheit angezeigt
 - Android 14+: optionales Ladeprofil (z. B. akkuschonend, adaptiv, zu heiß/zu kalt) wird getrennt vom Kabelstatus angezeigt
 - optionale Ladegerät-Maximalleistung wird aus Androids Strom-/Spannungspaar berechnet und ausdrücklich vom aktuellen Akkustrom getrennt angezeigt
+- momentane Akku-Leistung wird aus geprüftem Akkustrom und Akkuspannung berechnet und ausdrücklich von der Netzteil-Maximalleistung getrennt angezeigt
 - responsive Kompaktansichten für schmale und breite Displays, zentrierter Inhaltsbereich auf Tablets/Foldables, 48-dp-Touch-Zonen und Screenreader-Zusammenfassung; Details in `docs/UI-UX.md`
 - Live-Overlay mit Akkustrom, CPU-Kernauslastung, Top-App und best-effort Prozessauslastung der Top-App
 - kein Konto und kein Upload an einen Ampere-Server; Android-Backup kann Verlauf, Einstellungen und lokale Telemetrie über den vom Gerät gewählten Backup-Transport sichern, wobei Cloud-Backups ohne Verschlüsselungsmöglichkeit ausgeschlossen werden; der sichtbare Export/Backup bleibt zusätzlich verfügbar

@@ -757,6 +757,17 @@ class BatteryDashboard extends View {
         return (charging ? "+" : "−") + currentMa + " mA";
     }
 
+    private String livePowerDisplay() {
+        int power = BatteryPower.milliWatts(currentMa, Math.round(voltage * 1000f));
+        return BatteryPower.label(power);
+    }
+
+    private String liveCurrentSubLabel() {
+        String power = livePowerDisplay();
+        return "—".equals(power) ? (charging ? "Ladestrom live" : "Entladestrom live")
+                : (charging ? "Ladestrom live · " : "Entladestrom live · ") + power + " Akku";
+    }
+
     private String chargerTypeDisplay() {
         if (!charging) return "Nicht verbunden";
         String source;
@@ -2074,7 +2085,7 @@ class BatteryDashboard extends View {
         float rightColumn = narrowHeader ? w * .62f : w * .6f;
         boundedText(c, charging && currentMa > 0 ? currentMa + " mA" : "—", 77, dividerX - 8,
                 y + 112, narrowHeader ? 27 : 31, primary, true);
-        boundedText(c, charging ? "Ladestrom live" : "getrennt · Verlaufsdaten", 78, dividerX - 8,
+        boundedText(c, charging ? liveCurrentSubLabel() : (currentMa > 0 ? liveCurrentSubLabel() : "getrennt · Verlaufsdaten"), 78, dividerX - 8,
                 y + 132, 9, muted, false);
         line(c, dividerX, y + 86, dividerX, y + (narrowHeader ? 145 : 156), border, 1);
         text(c, charging ? (chargeLimit >= 100 ? "Zeit bis voll" : "Zeit bis Ziel") : "Letzte Ladung", rightColumn, y + 96, 10, muted, false);

@@ -104,6 +104,15 @@ public class BatteryRulesTest {
         assertEquals("Max. 7,5 W", BatteryChargerCapability.label(7500));
     }
 
+    @Test public void batteryPowerUsesValidatedCurrentAndVoltage() {
+        assertEquals(4500, BatteryPower.milliWatts(900, 5000));
+        assertEquals(4500, BatteryPower.milliWatts(-900, 5000));
+        assertEquals(0, BatteryPower.milliWatts(0, 5000));
+        assertEquals(0, BatteryPower.milliWatts(900, 0));
+        assertEquals(0, BatteryPower.milliWatts(Integer.MIN_VALUE, 5000));
+        assertEquals("≈ 4,5 W", BatteryPower.label(4500));
+    }
+
     @Test public void capacityUnitsNormalizeWithoutInventingAValue() {
         assertEquals(6600L, BatteryCapacity.normalizeCapacity(6600000L));
         assertEquals(6600L, BatteryCapacity.normalizeCapacity(6600L));

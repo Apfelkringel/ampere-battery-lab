@@ -92,6 +92,12 @@ Strom-mal-Spannung-Prinzip in Milliwatt umgerechnet. Ampere zeigt das Ergebnis
 nur mit engen Spannungs-, Strom- und Leistungsgrenzen als „Max. … W“; der
 aktuelle Batteriefluss bleibt davon unabhängig.
 
+Für die zusätzliche Live-Leistung orientiert sich Ampere an dem in offenen
+Batteriemonitoren üblichen, transparenten Modell `P = I × U`: Androids
+gemessener Akkustrom wird mit der Akkuspannung multipliziert. Die Implementierung
+prüft Einheiten und Grenzen, zeigt die Größe als Akku-Seitenleistung mit `≈` an
+und behauptet damit ausdrücklich keine Leistung an der Steckdose.
+
 Für die optionale App-Nutzungsansicht verwendet Ampere bevorzugt Androids
 `UsageStatsManager.queryEvents()`. Aggregierte `queryUsageStats()`-Tageswerte
 können laut Android-Dokumentation über den angefragten Zeitraum hinausreichen;
