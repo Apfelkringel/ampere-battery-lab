@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.220` (`versionCode 220`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `pending CI artifact`
+- Release APK SHA-256: `ab82dbc44973de2056740ebb3ab173ce3e8e33b97bc936eac49e68a64dfc2af2`
 
 Release `0.220` additionally keeps health provenance atomic: invalid readings
 cannot retain an old source label, and Samsung ASOC is named explicitly in
