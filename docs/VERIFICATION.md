@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.141` (`versionCode 141`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `pending — wird nach dem signierten CI-Build ergänzt`
+- Release APK SHA-256: `bd59083bfbba5c78e2edd388f8f2ccf49efdc07c6cc6db59ef2c380a403e5d2e`
 - The same hash is published in the public update repository manifest.
 
 Release `0.141` bases landscape selection on the visible ScrollView viewport,
