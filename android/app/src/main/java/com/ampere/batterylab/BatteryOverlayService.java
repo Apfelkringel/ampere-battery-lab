@@ -126,7 +126,7 @@ public class BatteryOverlayService extends Service {
         String levelText = level >= 0 ? level + "%" : "—";
         String voltageText = voltage > 0 ? String.format(Locale.US, "%.2f V", voltage / 1000f) : "— V";
         String temperatureText = temperature > 0 ? String.format(Locale.US, "%.1f°C", temperature / 10f) : "—°C";
-        overlay.setText("⚡ " + levelText + "   " + currentText + "\n" + voltageText + "   " + temperatureText + "   CPU-Kerne " + coreCpu + "%\nTop-App: " + topLabel + " · Prozess " + processText);
+        overlay.setText(BatteryOverlayText.header(levelText, currentText) + "\n" + voltageText + "   " + temperatureText + "   CPU-Kerne " + coreCpu + "%\nTop-App: " + topLabel + " · Prozess " + processText);
     }
 
     private int readCpuPercent() {

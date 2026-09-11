@@ -140,6 +140,11 @@ public class BatteryRulesTest {
                 BatteryHeaderLayout.actionAt(379f, 72f, 411f));
     }
 
+    @Test public void overlayHeaderUsesStableTextInsteadOfAPlatformGlyph() {
+        assertEquals("Akku 88%   +900 mA",
+                BatteryOverlayText.header("88%", "+900 mA"));
+    }
+
     @Test public void finalHealthGateNeverReturnsAnImpossiblePercentage() {
         for (int value : new int[]{-100, 0, 101, 110, 1000, Integer.MAX_VALUE}) {
             assertEquals(0, BatteryHealth.displayPercent(value));

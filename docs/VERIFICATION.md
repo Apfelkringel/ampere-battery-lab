@@ -5,9 +5,13 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.212` (`versionCode 212`)
+- Version: `0.213` (`versionCode 213`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `87c2423973fccdcdcaa1d06b4cf6583b03ce83a25904068ad68654f524611392`
+- Release APK SHA-256: wird nach dem signierten CI-Build ergänzt.
+
+Release `0.213` additionally removes the platform-dependent emoji from the
+optional live overlay. Its first line now uses stable text and measurements so
+font metrics cannot change the overlay geometry across Android devices.
 
 Release `0.212` additionally makes the visible LIVE control functional: it
 refreshes the current Android battery broadcast immediately and keeps the
