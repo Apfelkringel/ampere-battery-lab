@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.206` (`versionCode 206`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `da958d7eb8e73f9bd5f6d023538c1b846c578ec3c80a19d183417fcfe2181291`
+- Release APK SHA-256: `ed3f8b855e9e180899b35bacf5331c290ef23ce2f1f150b050447bdeb7cc3b03`
 
 Release `0.207` additionally resolves health percentage and its derived
 capacity through one validated source snapshot. An invalid system SoH such as
