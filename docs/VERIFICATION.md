@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.175` (`versionCode 175`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `e83c3e51e1790b515144fd29e86a4629e4be7b0ddcf170a19a9921a94db1daf9`
+- Release APK SHA-256: `4913342114b755d2d88a8f46286006077cb5f524bbded7b4bb055357c47b713c`
 - The same hash is published in the public update repository manifest.
 
 Release `0.175` additionally rejects corrupt persisted EFC fractions; only a
