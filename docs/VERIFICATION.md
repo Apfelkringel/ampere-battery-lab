@@ -5,9 +5,13 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.202` (`versionCode 202`)
+- Version: `0.203` (`versionCode 203`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `bc96a1e992f22bf62fc4e99cc81a1e4eb207a21d0ceee26351c154344f9c479d`
+- Release APK SHA-256: wird nach dem signierten CI-Artefakt ergänzt
+
+Release `0.203` additionally checks the documented read-only OPlus/ColorOS
+`battery_fcc` and `battery_soh` paths after the standard power-supply
+hierarchy. Missing, inaccessible or implausible OEM values remain unavailable.
 
 Release `0.202` additionally treats a Linux power-supply `cycle_count` of
 zero as unavailable while preserving zero as a valid Android-reported count.

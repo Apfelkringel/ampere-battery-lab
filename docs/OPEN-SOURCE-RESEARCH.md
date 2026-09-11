@@ -18,6 +18,10 @@ Apache-2.0- und MIT-Projekten verwendet; GPL-Code wurde nicht übernommen.
 - [PlusPlusBattery](https://github.com/dijia1124/PlusPlusBattery), MIT:
   optionale OEM-/Sysfs-Pfade als Ergänzung, aber nur mit strengen Einheiten-
   und Plausibilitätsgrenzen.
+- Die gleiche [PlusPlusBattery-OPlus-Unterstützung](https://github.com/dijia1124/PlusPlusBattery)
+  dokumentiert `battery_fcc` und `battery_soh` unter dem OPlus-Ladecontroller.
+  Ampere übernimmt nur die Pfad-Idee und eigene read-only Leser mit
+  500–30.000-mAh- beziehungsweise 1–100-%-Grenzen, keinen Quellcode.
 - [RTMON](https://github.com/n1th1n-19/RTMON), MIT: klassisches Android-
   `RemoteViews`-Widget mit systemnahen Messwerten und sparsamer Aktualisierung;
   als Architektur- und Resize-Referenz geprüft.
@@ -59,6 +63,13 @@ folgen lokale Benchmark- und Lademessungen; die separat gelesene `Full Charge
 Capacity` vom Batterie-/BMS-Treiber bleibt der letzte Fallback. Keine Quelle
 wird als eine andere umetikettiert und jede Kapazität bleibt auf
 500–30.000 mAh begrenzt.
+
+Wenn Standard-Power-Supply-Knoten auf einem OPlus-Gerät fehlen, prüft
+`BatteryCapacity` danach die read-only Pfade
+`/sys/class/oplus_chg/battery/battery_fcc` beziehungsweise
+`battery_soh`. Die Daten werden nur bei plausibler Einheit und innerhalb der
+fachlichen Prozentgrenze verwendet; Androids Dateirechte können den Pfad
+verbergen, ohne dass die App dafür Root anfordert.
 
 Die Android-15-Quelle führt `BATTERY_PROPERTY_STATE_OF_HEALTH` als
 feature-flagged BatteryManager-Eigenschaft. Deshalb setzt Ampere keine starre

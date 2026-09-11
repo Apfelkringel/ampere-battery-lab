@@ -180,6 +180,8 @@ final class BatteryCapacity {
                 }
             }
         } catch (Exception ignored) { }
+        Reading oplus = readVendorFullChargeCapacity();
+        if (oplus != null) return oplus;
         return new Reading(0, "Nicht verfügbar");
     }
 
@@ -200,6 +202,12 @@ final class BatteryCapacity {
                 }
             }
         } catch (Exception ignored) { }
+        // OnePlus/Oppo/Realme devices often expose their learned FCC/SoH in
+        // the vendor charger tree instead of /sys/class/power_supply. The
+        // files are read-only; if the OEM path is hidden by Android, the
+        // result remains unavailable rather than being guessed.
+        PercentReading oplus = readVendorStateOfHealth();
+        if (oplus != null) return oplus;
         return new PercentReading(0, "Nicht verfügbar");
     }
 
@@ -252,6 +260,35 @@ final class BatteryCapacity {
             if (raw <= 0) continue;
             long mah = normalizeCapacity(raw);
             if (validLong(mah)) return new Reading((int) mah, "Batterie-Treiber (Full Charge)");
+        }
+        return null;
+    }
+
+    private static Reading readVendorFullChargeCapacity() {
+        String[] paths = {
+                "/sys/class/oplus_chg/battery/battery_fcc",
+                "/sys/class/oplus_chg/battery/full_charge_capacity"
+        };
+        for (String path : paths) {
+            long raw = readLong(new File(path));
+            long mah = normalizeCapacity(raw);
+            if (validLong(mah)) {
+                return new Reading((int) mah, "OPlus/ColorOS-Batterietreiber (FCC)");
+            }
+        }
+        return null;
+    }
+
+    private static PercentReading readVendorStateOfHealth() {
+        String[] paths = {
+                "/sys/class/oplus_chg/battery/battery_soh",
+                "/sys/class/oplus_chg/battery/state_of_health"
+        };
+        for (String path : paths) {
+            int percent = normalizeStateOfHealth(readLong(new File(path)));
+            if (percent > 0) {
+                return new PercentReading(percent, "OPlus/ColorOS-Batterietreiber (SoH)");
+            }
         }
         return null;
     }
