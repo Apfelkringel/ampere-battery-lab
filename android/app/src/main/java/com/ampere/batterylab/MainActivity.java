@@ -2005,9 +2005,12 @@ class BatteryDashboard extends View {
         // The live state is shown once in the dedicated status row below.
         // A second chip here competed for the same vertical lane as the
         // gauge on wide landscape cards and could be painted underneath it.
-        float gaugeRadius = Math.min(54f, Math.max(48f, heroW * .18f));
+        // Keep the ring below the heading and above the dedicated bottom
+        // status row. The previous 54-dp ring began on the heading baseline
+        // in wide landscape cards, which made the two groups visually merge.
+        float gaugeRadius = Math.min(42f, Math.max(38f, heroW * .14f));
         float gaugeCx = 36f + gaugeRadius + 8f;
-        float gaugeCy = top + 112f;
+        float gaugeCy = top + 122f;
         drawGauge(c, gaugeCx, gaugeCy, gaugeRadius, level, primary, faint);
         centeredText(c, level + "%", gaugeCx, gaugeCy + 8, gaugeRadius < 52f ? 25f : 28f, primary, true);
         centeredText(c, charging ? "Laden" : "Akku", gaugeCx, gaugeCy + 29, 7, muted, false);

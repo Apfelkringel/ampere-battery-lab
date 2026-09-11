@@ -5,10 +5,13 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.165` (`versionCode 165`)
+- Version: `0.166` (`versionCode 166`)
 - `minSdk 23`, `targetSdk 37`
 - Release APK SHA-256: `bd2ddd98fb8e0a7aafb69c76315dbc2399066d6521f18d6889bb85a66d039d6d`
 - The same hash is published in the public update repository manifest.
+
+Release `0.166` additionally keeps the wide-landscape gauge below the heading
+and above the status row with explicit spacing.
 
 Release `0.165` additionally keeps wide-landscape gauge and status elements in
 separate geometry lanes so the status cannot be painted underneath the ring.

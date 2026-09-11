@@ -27,7 +27,7 @@ charging state, blue for neutral telemetry and amber for warnings or wear.
   dot and label independently.
 - Landscape overview cards reserve separate lanes for the gauge and the live
   status row; redundant status chips are omitted when they would compete for
-  the same geometry.
+  the same geometry, and the gauge has an explicit gap below the heading.
 - The dashboard exposes the current page, battery state, level and available
   tabs as an accessibility summary for screen readers.
 - Settings, backup/restore, export and text entry use native Android controls or
