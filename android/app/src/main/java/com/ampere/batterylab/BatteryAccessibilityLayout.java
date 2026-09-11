@@ -6,16 +6,18 @@ final class BatteryAccessibilityLayout {
     static final int OVERVIEW_30D = 51;
     static final int CHARGE_ALARM = 52;
     static final int CHARGE_OVERLAY = 53;
-    static final int HEALTH_BENCHMARK = 54;
-    static final int HEALTH_CAPACITY = 55;
-    static final int DISCHARGE_USAGE = 56;
-    static final int HISTORY_EXPORT = 57;
+    static final int CHARGE_LIMIT = 54;
+    static final int HEALTH_BENCHMARK = 55;
+    static final int HEALTH_CAPACITY = 56;
+    static final int DISCHARGE_USAGE = 57;
+    static final int HISTORY_EXPORT = 58;
 
     private BatteryAccessibilityLayout() { }
 
     static boolean isVisible(int virtualViewId, int page) {
         if (page == 0) return virtualViewId == OVERVIEW_7D || virtualViewId == OVERVIEW_30D;
-        if (page == 1) return virtualViewId == CHARGE_ALARM || virtualViewId == CHARGE_OVERLAY;
+        if (page == 1) return virtualViewId == CHARGE_ALARM || virtualViewId == CHARGE_OVERLAY
+                || virtualViewId == CHARGE_LIMIT;
         if (page == 2) return virtualViewId == DISCHARGE_USAGE;
         if (page == 3) return virtualViewId == HEALTH_BENCHMARK || virtualViewId == HEALTH_CAPACITY;
         if (page == 4) return virtualViewId == HISTORY_EXPORT;
@@ -25,7 +27,7 @@ final class BatteryAccessibilityLayout {
     static int[] pageControlsFor(int page) {
         switch (page) {
             case 0: return new int[]{OVERVIEW_7D, OVERVIEW_30D};
-            case 1: return new int[]{CHARGE_ALARM, CHARGE_OVERLAY};
+            case 1: return new int[]{CHARGE_ALARM, CHARGE_OVERLAY, CHARGE_LIMIT};
             case 2: return new int[]{DISCHARGE_USAGE};
             case 3: return new int[]{HEALTH_BENCHMARK, HEALTH_CAPACITY};
             case 4: return new int[]{HISTORY_EXPORT};
@@ -35,17 +37,28 @@ final class BatteryAccessibilityLayout {
 
     static String label(int virtualViewId, boolean historyDays30, boolean chargeAlarm,
                         boolean overlayEnabled, boolean benchmarkActive) {
+        return label(virtualViewId, historyDays30, chargeAlarm, overlayEnabled,
+                benchmarkActive, BatteryChargeLimit.DEFAULT);
+    }
+
+    static String label(int virtualViewId, boolean historyDays30, boolean chargeAlarm,
+                        boolean overlayEnabled, boolean benchmarkActive, int chargeLimit) {
         switch (virtualViewId) {
             case OVERVIEW_7D: return "7 Tage" + (historyDays30 ? " (ausgewählt)" : "");
             case OVERVIEW_30D: return "30 Tage" + (historyDays30 ? "" : " (ausgewählt)");
             case CHARGE_ALARM: return "Ladealarm: " + (chargeAlarm ? "Aktiv" : "Aus");
             case CHARGE_OVERLAY: return "Live-Anzeige: " + (overlayEnabled ? "Aktiv" : "Aus");
+            case CHARGE_LIMIT: return "Ladeziel: " + normalizeChargeLimit(chargeLimit) + " Prozent";
             case HEALTH_BENCHMARK: return benchmarkActive ? "Benchmark stoppen" : "Benchmark starten";
             case HEALTH_CAPACITY: return "Nennkapazität bearbeiten";
             case DISCHARGE_USAGE: return "Vordergrundverbrauch öffnen";
             case HISTORY_EXPORT: return "CSV exportieren";
             default: return "";
         }
+    }
+
+    static int normalizeChargeLimit(int value) {
+        return Math.max(50, Math.min(100, value));
     }
 
     /** Returns left, top, right, bottom in dashboard dp coordinates. */
@@ -79,6 +92,12 @@ final class BatteryAccessibilityLayout {
                 top = 500f;
                 right = bodyInset + bodyWidth - 30f;
                 bottom = 545f;
+                break;
+            case CHARGE_LIMIT:
+                left = bodyInset + 36f;
+                top = 368f;
+                right = bodyInset + bodyWidth - 36f;
+                bottom = 410f;
                 break;
             case HEALTH_BENCHMARK:
                 left = bodyInset + bodyWidth - 145f;

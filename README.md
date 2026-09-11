@@ -32,6 +32,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - Der Research-Export überspringt beschädigte Altzeilen einzeln, statt wegen eines einzigen ungültigen Wertes komplett abzubrechen
 - Die gezeichneten Header-Aktionen und fünf Navigationstabs werden zusätzlich als einzelne Android-Bedienelemente mit echten Bildschirmgrenzen für TalkBack und Touch-Exploration bereitgestellt
 - Seiteninteraktionen wie 7/30-Tage-Auswahl, Ladealarm, Live-Anzeige, Benchmark, Nennkapazität, Nutzungsdetails und CSV-Export sind ebenfalls als echte TalkBack-Controls verfügbar; Schalter melden ihren aktuellen Zustand
+- Das Ladeziel ist zusätzlich ein standardkonformer 50–100-%-Regler für TalkBack und andere Accessibility-Services; Änderungen verwenden dieselbe sichere Ladealarm-Logik wie Touch-Eingaben
 - CSV- und Research-Export verwenden dieselbe Telemetrievalidierung; beschädigte oder physikalisch widersprüchliche Altzeilen werden in beiden Formaten ausgelassen
 - einstellbare lokale Messfrequenz (5/15/30/60 Minuten) für Hintergrundmonitor und Verlauf
 - Kapazitätsschätzung und manueller Health-Benchmark

@@ -5,9 +5,15 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.224` (`versionCode 224`)
+- Version: `0.225` (`versionCode 225`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `c12b56b6b8275c83e27e5901bafbe6ca59e30db00e86e8b37df02c5eda748c5c`
+- Release APK SHA-256: wird nach dem signierten CI-Artefakt ergänzt
+
+Release `0.225` additionally exposes the charging target as an Android
+Accessibility `SeekBar` with the safe 50–100 percent range. TalkBack and
+other services can set the value through `ACTION_SET_PROGRESS`; the normal
+touch slider and the accessibility action share the same persistence and
+alarm-cancellation path.
 
 Release `0.224` additionally exposes the visible page controls through the
 same virtual accessibility tree as the header: chart range, charging toggles,

@@ -29,6 +29,8 @@ public class BatteryRulesTest {
         assertTrue(BatteryAccessibilityLayout.isVisible(
                 BatteryAccessibilityLayout.CHARGE_ALARM, 1));
         assertTrue(BatteryAccessibilityLayout.isVisible(
+                BatteryAccessibilityLayout.CHARGE_LIMIT, 1));
+        assertTrue(BatteryAccessibilityLayout.isVisible(
                 BatteryAccessibilityLayout.CHARGE_OVERLAY, 1));
         assertTrue(BatteryAccessibilityLayout.isVisible(
                 BatteryAccessibilityLayout.HEALTH_BENCHMARK, 3));
@@ -60,10 +62,19 @@ public class BatteryRulesTest {
                 BatteryAccessibilityLayout.OVERVIEW_30D, true, true, false, false));
         assertEquals("Ladealarm: Aus", BatteryAccessibilityLayout.label(
                 BatteryAccessibilityLayout.CHARGE_ALARM, false, false, false, false));
+        assertEquals("Ladeziel: 80 Prozent", BatteryAccessibilityLayout.label(
+                BatteryAccessibilityLayout.CHARGE_LIMIT, false, true, false, false, 80));
         assertEquals("Live-Anzeige: Aktiv", BatteryAccessibilityLayout.label(
                 BatteryAccessibilityLayout.CHARGE_OVERLAY, false, true, true, false));
         assertEquals("Benchmark stoppen", BatteryAccessibilityLayout.label(
                 BatteryAccessibilityLayout.HEALTH_BENCHMARK, false, true, false, true));
+    }
+
+    @Test public void accessibilityChargeLimitUsesTheSameSafeRangeAsTheUi() {
+        assertEquals(50, BatteryAccessibilityLayout.normalizeChargeLimit(1));
+        assertEquals(80, BatteryAccessibilityLayout.normalizeChargeLimit(80));
+        assertEquals(100, BatteryAccessibilityLayout.normalizeChargeLimit(100));
+        assertEquals(100, BatteryAccessibilityLayout.normalizeChargeLimit(150));
     }
 
     @Test public void uiUsesRecentStabilizedMonitorState() {

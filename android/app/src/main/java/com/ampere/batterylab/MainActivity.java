@@ -3121,7 +3121,7 @@ class BatteryDashboard extends View {
         if (virtualViewId == BatteryHeaderLayout.LIVE_REFRESH) return "Live-Daten aktualisieren";
         if (BatteryAccessibilityLayout.isVisible(virtualViewId, page)) {
             return BatteryAccessibilityLayout.label(virtualViewId, historyDays == 30,
-                    chargeAlarm, overlayEnabled, benchmarkActive);
+                    chargeAlarm, overlayEnabled, benchmarkActive, chargeLimit);
         }
         String[] labels = getWidth() / density < 480f
                 ? new String[]{"Start", "Laden", "Entladen", "Gesundheit", "Verlauf"}
@@ -3230,6 +3230,23 @@ class BatteryDashboard extends View {
         }
     }
 
+    private void setChargeLimitFromAccessibility(int requested) {
+        chargeLimit = BatteryAccessibilityLayout.normalizeChargeLimit(requested);
+        prefs.edit().putInt("chargeLimit", chargeLimit).apply();
+        if (level < chargeLimit) {
+            android.app.NotificationManager manager = (android.app.NotificationManager)
+                    getContext().getSystemService(Context.NOTIFICATION_SERVICE);
+            if (manager != null) manager.cancel(8);
+        }
+        updateAccessibilitySummary();
+        invalidate();
+    }
+
+    private void bringVirtualViewIntoView(int virtualViewId) {
+        if (!BatteryAccessibilityLayout.isVisible(virtualViewId, page)) return;
+        requestRectangleOnScreen(virtualViewBounds(virtualViewId), true);
+    }
+
     private final class DashboardAccessibilityNodeProvider extends AccessibilityNodeProvider {
         @Override public AccessibilityNodeInfo createAccessibilityNodeInfo(int virtualViewId) {
             if (virtualViewId == HOST_VIEW_ID) {
@@ -3253,7 +3270,9 @@ class BatteryDashboard extends View {
             node.setPackageName(getContext().getPackageName());
             boolean toggle = virtualViewId == BatteryAccessibilityLayout.CHARGE_ALARM
                     || virtualViewId == BatteryAccessibilityLayout.CHARGE_OVERLAY;
-            node.setClassName(toggle ? "android.widget.Switch" : "android.widget.Button");
+            boolean chargeSlider = virtualViewId == BatteryAccessibilityLayout.CHARGE_LIMIT;
+            node.setClassName(toggle ? "android.widget.Switch"
+                    : (chargeSlider ? "android.widget.SeekBar" : "android.widget.Button"));
             node.setText(label);
             node.setContentDescription(label);
             node.setParent(BatteryDashboard.this);
@@ -3279,7 +3298,17 @@ class BatteryDashboard extends View {
                 node.setChecked(virtualViewId == BatteryAccessibilityLayout.CHARGE_ALARM
                         ? chargeAlarm : overlayEnabled);
             }
-            node.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK);
+            if (chargeSlider) {
+                node.setFocusable(true);
+                node.setRangeInfo(AccessibilityNodeInfo.RangeInfo.obtain(
+                        AccessibilityNodeInfo.RangeInfo.RANGE_TYPE_INT, 50f, 100f, chargeLimit));
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    node.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SET_PROGRESS);
+                }
+                node.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SHOW_ON_SCREEN);
+            } else {
+                node.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK);
+            }
             node.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_ACCESSIBILITY_FOCUS);
             node.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLEAR_ACCESSIBILITY_FOCUS);
             node.setAccessibilityFocused(accessibilityFocusedVirtualView == virtualViewId);
@@ -3289,6 +3318,7 @@ class BatteryDashboard extends View {
         @Override public boolean performAction(int virtualViewId, int action, Bundle arguments) {
             if (!isVisibleVirtualView(virtualViewId)) return false;
             if (action == AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS) {
+                bringVirtualViewIntoView(virtualViewId);
                 accessibilityFocusedVirtualView = virtualViewId;
                 sendVirtualAccessibilityEvent(virtualViewId, AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUSED);
                 return true;
@@ -3298,6 +3328,23 @@ class BatteryDashboard extends View {
                     accessibilityFocusedVirtualView = HOST_VIEW_ID;
                     sendVirtualAccessibilityEvent(virtualViewId, AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUS_CLEARED);
                 }
+                return true;
+            }
+            if (action == AccessibilityNodeInfo.AccessibilityAction.ACTION_SHOW_ON_SCREEN.getId()) {
+                bringVirtualViewIntoView(virtualViewId);
+                return true;
+            }
+            if (virtualViewId == BatteryAccessibilityLayout.CHARGE_LIMIT
+                    && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
+                    && action == AccessibilityNodeInfo.AccessibilityAction.ACTION_SET_PROGRESS.getId()) {
+                if (arguments == null || !arguments.containsKey(
+                        AccessibilityNodeInfo.ACTION_ARGUMENT_PROGRESS_VALUE)) return false;
+                bringVirtualViewIntoView(virtualViewId);
+                float requested = arguments.getFloat(
+                        AccessibilityNodeInfo.ACTION_ARGUMENT_PROGRESS_VALUE, chargeLimit);
+                if (!Float.isFinite(requested)) return false;
+                setChargeLimitFromAccessibility(Math.round(requested));
+                sendVirtualAccessibilityEvent(virtualViewId, AccessibilityEvent.TYPE_VIEW_SELECTED);
                 return true;
             }
             if (action != AccessibilityNodeInfo.ACTION_CLICK) return false;
@@ -3482,13 +3529,8 @@ class BatteryDashboard extends View {
             return true;
         }
         if (page == 1 && y > 365 && y < 410 && x >= 36 && x <= bodyW - 36) {
-            chargeLimit = Math.max(50, Math.min(100, Math.round((x - 36) / (bodyW - 72) * 100)));
-            prefs.edit().putInt("chargeLimit", chargeLimit).apply();
-            if (level < chargeLimit) {
-                android.app.NotificationManager manager = (android.app.NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
-                if (manager != null) manager.cancel(8);
-            }
-            invalidate();
+            setChargeLimitFromAccessibility(
+                    Math.round((x - 36) / (bodyW - 72) * 100));
             return true;
         }
         if (page == 1 && y > 500 && y < 560 && x > bodyW - 140) {
