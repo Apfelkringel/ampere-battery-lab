@@ -5,11 +5,13 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.134` (`versionCode 134`)
+- Version: `0.135` (`versionCode 135`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `f35a7a16d6d4b9406e8453445d3de58de12e8e1f5b571392fa4a426c832b49bf`
+- Release APK SHA-256: `7efff4392cecc34cf46d2d9ddd6585054ec1dc9e935fc19e42110576327b4dca`
 - The same hash is published in the public update repository manifest.
 
+Release `0.135` prefers exact foreground/background usage events for app-drain
+analysis; aggregated daily usage is retained as a compatibility fallback.
 Release `0.134` adds a conservative local equivalent-full-cycle estimate from
 Android's persistent charge counter for devices without a system/BMS cycle
 counter. Only stable counter increases while charging count; resets and
