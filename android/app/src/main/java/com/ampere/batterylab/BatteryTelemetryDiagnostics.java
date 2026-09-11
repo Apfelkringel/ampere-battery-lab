@@ -82,7 +82,7 @@ final class BatteryTelemetryDiagnostics {
         return new Summary(rows.size(), dischargeSamples, minTemperatureTenths,
                 averageTemperatureTenths, maxTemperatureTenths,
                 minDischargeVoltageMv, minDischargeVoltageLevel, peakDischargeMa,
-                largestGapMs, samplingGap);
+                largestGapMs, samplingGap, BatteryPowerStats.analyzeRows(rows));
     }
 
     static final class Summary {
@@ -96,11 +96,12 @@ final class BatteryTelemetryDiagnostics {
         final int peakDischargeMa;
         final long largestGapMs;
         final boolean samplingGap;
+        final BatteryPowerStats.Summary powerStats;
 
         Summary(int sampleCount, int dischargeSamples, int minTemperatureTenths,
                 int averageTemperatureTenths, int maxTemperatureTenths,
                 int minDischargeVoltageMv, int minDischargeVoltageLevel, int peakDischargeMa,
-                long largestGapMs, boolean samplingGap) {
+                long largestGapMs, boolean samplingGap, BatteryPowerStats.Summary powerStats) {
             this.sampleCount = sampleCount;
             this.dischargeSamples = dischargeSamples;
             this.minTemperatureTenths = minTemperatureTenths;
@@ -111,6 +112,7 @@ final class BatteryTelemetryDiagnostics {
             this.peakDischargeMa = peakDischargeMa;
             this.largestGapMs = largestGapMs;
             this.samplingGap = samplingGap;
+            this.powerStats = powerStats;
         }
 
         boolean hasHighTemperature() {

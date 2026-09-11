@@ -33,6 +33,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - strukturierter Research-Export als JSON mit Messreihen, Sitzungen, Zyklus-Historie, „Seit Ladung“-Anker und Geräte-/Android-Kontext nach ausdrücklicher Nutzeraktion
 - der Research-Export enthält zusätzlich eine reproduzierbare Telemetrie-Diagnose mit Messwertanzahl, Spitzenstrom, Minimalspannung, Maximaltemperatur und erkannten Sampling-Lücken
 - Androids optionaler `BATTERY_PROPERTY_ENERGY_COUNTER` wird als verbleibende Restenergie in nWh/Wh angezeigt und getrennt vom Ladungszähler in den Research-Export geschrieben; nicht unterstützte oder unplausible Gerätewerte bleiben „Nicht verfügbar"
+- Die lokale Telemetrie leitet zusätzlich reproduzierbare Akku-Leistung in mW aus validiertem Strom und Spannung ab, getrennt für Laden und Entladen; Min/Ø/Max erscheinen in Diagnose und Research-Export, CSV ergänzt `battery_power_mw`
 - ein lokaler Diagnosebericht kann als lesbare TXT-Datei exportiert werden und erklärt Warnungen, Sampling-Lücken und die bewusst geräteagnostische Spannungsbewertung
 - die Gesundheitsansicht und der Research-Export zeigen die vom Android-Broadcast gelieferte Akkuchemie nur nach strenger Textvalidierung, ohne geschützte Hidden-API-Daten zu erfinden
 - die Verlaufseite zeigt dieselbe geräteagnostische Messdiagnose; für Spannung wird keine feste 2S-Pack-Grenze auf 1S-Smartphones übertragen und laufende Entladungen werden nicht fälschlich als „Early Cutoff“ markiert

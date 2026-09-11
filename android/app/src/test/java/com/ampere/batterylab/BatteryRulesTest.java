@@ -6,6 +6,7 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Arrays;
+import java.util.ArrayList;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
@@ -13,6 +14,20 @@ import static org.junit.Assert.assertTrue;
 
 /** Pure rules shared by the visible dashboard and background monitor. */
 public class BatteryRulesTest {
+    @Test public void powerStatsDeriveSeparateChargingAndDischargingRanges() {
+        ArrayList<String> rows = new ArrayList<>(Arrays.asList(
+                "1000,50,1,1000,25.0,4.0,2000,1,,10,1",
+                "2000,51,1,1250,25.0,4.0,2050,1,,10,1",
+                "3000,49,0,-500,25.0,4.0,2000,0,,10,0"));
+        BatteryPowerStats.Summary summary = BatteryPowerStats.analyzeRows(rows);
+        assertEquals(4000, summary.charging.minimumMw);
+        assertEquals(4500, summary.charging.averageMw);
+        assertEquals(5000, summary.charging.maximumMw);
+        assertEquals(1, summary.discharging.sampleCount);
+        assertEquals(2000, summary.discharging.averageMw);
+        assertEquals(0, BatteryPowerStats.milliWatts(new String[]{"0", "0", "0", "-1", "0", "0"}));
+    }
+
     @Test public void remainingEnergyUsesAndroidNanoWattHourUnitAndRejectsSentinels() {
         assertEquals(2_500_000_000L, BatteryEnergy.normalizeNanoWattHours(2_500_000_000L));
         assertEquals(2.5d, BatteryEnergy.wattHours(2_500_000_000L), 0.0001d);

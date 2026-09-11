@@ -70,15 +70,15 @@ final class BatteryAccessibilityLayout {
         float bottom;
         switch (virtualViewId) {
             case OVERVIEW_7D:
-                left = bodyInset + bodyWidth - 100f;
-                top = overviewChartTop + 14f;
-                right = bodyInset + bodyWidth - 62f;
+                left = bodyInset + bodyWidth - 104f;
+                top = overviewChartTop + 10f;
+                right = bodyInset + bodyWidth - 56f;
                 bottom = overviewChartTop + 42f;
                 break;
             case OVERVIEW_30D:
-                left = bodyInset + bodyWidth - 58f;
-                top = overviewChartTop + 14f;
-                right = bodyInset + bodyWidth - 18f;
+                left = bodyInset + bodyWidth - 52f;
+                top = overviewChartTop + 10f;
+                right = bodyInset + bodyWidth - 12f;
                 bottom = overviewChartTop + 42f;
                 break;
             case CHARGE_ALARM:
@@ -89,9 +89,9 @@ final class BatteryAccessibilityLayout {
                 break;
             case CHARGE_OVERLAY:
                 left = bodyInset + bodyWidth - 145f;
-                top = 500f;
+                top = 508f;
                 right = bodyInset + bodyWidth - 30f;
-                bottom = 545f;
+                bottom = 552f;
                 break;
             case CHARGE_LIMIT:
                 left = bodyInset + 36f;
@@ -101,9 +101,9 @@ final class BatteryAccessibilityLayout {
                 break;
             case HEALTH_BENCHMARK:
                 left = bodyInset + bodyWidth - 145f;
-                top = 730f;
+                top = 738f;
                 right = bodyInset + bodyWidth - 30f;
-                bottom = 800f;
+                bottom = 786f;
                 break;
             case HEALTH_CAPACITY:
                 left = bodyInset + 18f;

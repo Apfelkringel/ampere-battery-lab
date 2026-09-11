@@ -4,6 +4,12 @@ Last verified: 2026-09-11 (Europe/Berlin)
 
 ## Current development change
 
+Version `0.261` additionally derives battery-side power from the existing
+validated current and voltage telemetry. Charging and discharging ranges are
+kept separate, and minimum/average/maximum values are included in the
+diagnostic Research JSON and as a derived `battery_power_mw` CSV column.
+The old 11-column stored telemetry format remains untouched, so restored data
+from older releases stays readable.
 Version `0.260` additionally reads Android's optional
 `BATTERY_PROPERTY_ENERGY_COUNTER` as remaining battery energy in nWh and Wh.
 The value is validated against a conservative physical range, displayed in the

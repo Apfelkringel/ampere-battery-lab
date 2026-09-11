@@ -589,3 +589,24 @@ Lizenz aus den GPL-Referenzprojekten; nicht verfügbare Werte bleiben `—`.
 Die Schnelleinstellung ist ebenfalls eine reine Informationskachel: Sie ändert
 keine Systemeinstellung und öffnet beim Tippen nur Ampere. Für Android 14 und
 höher verwendet sie den vorgeschriebenen `PendingIntent`-Startpfad.
+
+Die neue Leistungsstatistik wurde auf Implementierungsebene mit ABatterys
+[`BatteryDataSource`](https://github.com/abanana84/abattery/blob/main/app/src/main/java/com/abanana/abattery/data/battery/BatteryDataSource.kt)
+und der dokumentierten Watt-Anzeige von
+[CapacityInfo](https://github.com/Ph03niX-X/CapacityInfo) verglichen: Beide
+leiten die Akku-Seitenleistung aus Strom und Spannung ab, statt sie als
+Steckdosenleistung auszugeben. Ampere verwendet dafür weiterhin den eigenen
+validierten `BatteryPower`-Adapter und berechnet daraus jetzt zusätzlich
+getrennte Laden-/Entladen-Min/Ø/Max-Werte. Diese Werte werden erst aus den
+bereits gespeicherten 11-Spalten-Telemetrierows abgeleitet; dadurch bleibt die
+Legacy-Telemetrie kompatibel und es entsteht keine zweite persistierte
+Wahrheit. Der CSV-Export ergänzt nur die abgeleitete `battery_power_mw`-Spalte.
+
+Die Button-Oberfläche wurde anschließend auf Androids 320-dp-Emulator geprüft.
+Navigation, Header-Aktionen, Toggle-Zeilen, Benchmark-CTA und CSV-Aktion
+verwenden nun einen gemeinsamen `smoothButton`-Adapter mit konsistentem
+Radius, Outline, aktivem Ton und Press-State. Die sichtbaren Press-Flächen und
+die Accessibility-Bounds teilen dieselben Maße; die Compact-Gesundheitszeile
+trennt Temperaturstatistik und Vollzyklen in zwei Label-/Wertzeilen, damit
+keine Textkollision entsteht. OLED-, Dark- und Light-Varianten bleiben tonal
+getrennt, während aktive Zustände zusätzlich textlich erkennbar sind.

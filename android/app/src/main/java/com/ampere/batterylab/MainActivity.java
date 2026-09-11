@@ -507,6 +507,7 @@ public class MainActivity extends Activity {
                 row.put("foregroundPackage", parts[8]);
                 row.put("systemCycleCount", Integer.parseInt(parts[9]));
                 row.put("plugged", Integer.parseInt(parts[10]));
+                row.put("batteryPowerMw", BatteryPowerStats.milliWatts(parts));
                 telemetryRows.put(row);
             }
             root.put("telemetry", telemetryRows);
@@ -521,6 +522,14 @@ public class MainActivity extends Activity {
             diagnosticJson.put("minDischargeVoltageV", diagnostics.minDischargeVoltageMv / 1000.0);
             diagnosticJson.put("minDischargeVoltageLevelPercent", diagnostics.minDischargeVoltageLevel);
             diagnosticJson.put("peakDischargeMa", diagnostics.peakDischargeMa);
+            diagnosticJson.put("chargingPowerMinMw", diagnostics.powerStats.charging.minimumMw);
+            diagnosticJson.put("chargingPowerAverageMw", diagnostics.powerStats.charging.averageMw);
+            diagnosticJson.put("chargingPowerMaxMw", diagnostics.powerStats.charging.maximumMw);
+            diagnosticJson.put("chargingPowerSamples", diagnostics.powerStats.charging.sampleCount);
+            diagnosticJson.put("dischargingPowerMinMw", diagnostics.powerStats.discharging.minimumMw);
+            diagnosticJson.put("dischargingPowerAverageMw", diagnostics.powerStats.discharging.averageMw);
+            diagnosticJson.put("dischargingPowerMaxMw", diagnostics.powerStats.discharging.maximumMw);
+            diagnosticJson.put("dischargingPowerSamples", diagnostics.powerStats.discharging.sampleCount);
             diagnosticJson.put("largestGapMs", diagnostics.largestGapMs);
             diagnosticJson.put("samplingGapDetected", diagnostics.samplingGap);
             diagnosticJson.put("highTemperatureDetected", diagnostics.hasHighTemperature());
@@ -672,7 +681,7 @@ class BatteryDashboard extends View {
         int rowCount = Math.min(150, sessions.size());
         float listBottom = 182 + 160 + rowCount * 44f;
         float panelBottom = Math.max(182 + 610, listBottom + 250);
-        return panelBottom - 48;
+        return panelBottom - 58;
     }
 
     private float overviewChartTop() {
@@ -2063,6 +2072,47 @@ class BatteryDashboard extends View {
         c.drawRoundRect(rect, u(radius), u(radius), p);
     }
 
+    /**
+     * Shared button treatment: a quiet tonal surface, a single crisp outline,
+     * and one accent state. Keeping this primitive shared prevents the old
+     * mix of outlined capsules, flat rectangles and undersized CTAs from
+     * drifting apart across pages.
+     */
+    private void smoothButton(Canvas c, float l, float t, float r, float b,
+                              float radius, int baseColor, int borderColor, int accentColor,
+                              boolean selected, boolean pressed) {
+        int fillColor = selected ? accentColor : baseColor;
+        if (pressed) {
+            if (selected) {
+                fillColor = Color.rgb(
+                        Math.max(0, Color.red(accentColor) - 24),
+                        Math.max(0, Color.green(accentColor) - 24),
+                        Math.max(0, Color.blue(accentColor) - 24));
+            } else {
+                fillColor = pressedFill(baseColor, true);
+            }
+        }
+        rounded(c, l, t, r, b, radius, fillColor);
+        stroke(c, selected ? accentColor : borderColor, pressed ? 1.4f : 1f);
+        rect.set(u(l), u(t), u(r), u(b));
+        c.drawRoundRect(rect, u(radius), u(radius), p);
+    }
+
+    private void drawToggleButton(Canvas c, float l, float t, float r, float b,
+                                  String label, String status, boolean enabled,
+                                  boolean pressed, int primary, int muted, int raised, int border) {
+        smoothButton(c, l, t, r, b, 12, raised, border, lime, false, pressed);
+        text(c, label, l + 14, t + (b - t) / 2f + 4f, 10, primary, true);
+        rightText(c, status, r - 56, t + (b - t) / 2f + 4f, 9, enabled ? lime : muted, false);
+        float switchLeft = r - 48f;
+        float switchTop = t + (b - t - 24f) / 2f;
+        rounded(c, switchLeft, switchTop, r - 12f, switchTop + 24f, 12,
+                enabled ? Color.rgb(87, 108, 48) : border);
+        fill(c, enabled ? lime : muted);
+        c.drawCircle(u(enabled ? r - 24f : switchLeft + 12f),
+                u(switchTop + 12f), u(8f), p);
+    }
+
     private void frame(Canvas c, float l, float t, float r, float b, int panel, int border, int accent) {
         rounded(c, l, t, r, b, 16, panel);
         stroke(c, border, 1);
@@ -2097,6 +2147,12 @@ class BatteryDashboard extends View {
         if (y >= 118 && y < 176 && x >= 18 && x <= w - 18) {
             float cell = (w - 36) / 5f;
             return 10 + Math.max(0, Math.min(4, (int) ((x - 18) / cell)));
+        }
+        if (page == 0 && y >= overviewChartTop() + 8f && y < overviewChartTop() + 60f
+                && x >= contentInset(w) + contentWidth(w) - 112f) {
+            float bodyX = x - contentInset(w);
+            return bodyX < contentWidth(w) - 56f ? BatteryAccessibilityLayout.OVERVIEW_7D
+                    : BatteryAccessibilityLayout.OVERVIEW_30D;
         }
         float bodyX = x - contentInset(w);
         float bodyW = contentWidth(w);
@@ -2195,22 +2251,17 @@ class BatteryDashboard extends View {
             // Keep the actions as two independent 48-dp controls. A shared
             // capsule visually merged unrelated actions and made their
             // outlines look misaligned on narrow phones.
-            controlSurface(c, w - 116, controlTop, w - 68, controlBottom, 16, panel, border);
-            controlSurface(c, w - 60, controlTop, w - 12, controlBottom, 16, panel, border);
-            if (isPressed(1)) rounded(c, w - 114, controlTop + 2, w - 70, controlBottom - 2, 14, pressedFill(panel, true));
-            if (isPressed(2)) rounded(c, w - 58, controlTop + 2, w - 14, controlBottom - 2, 14, pressedFill(panel, true));
+            smoothButton(c, w - 116, controlTop, w - 68, controlBottom, 16, panel, border, lime, false, isPressed(1));
+            smoothButton(c, w - 60, controlTop, w - 12, controlBottom, 16, panel, border, lime, false, isPressed(2));
             drawHeaderOverflow(c, w - 90, muted);
             drawSun(c, w - 38, 36, muted);
         } else {
             // Three equal controls use the same measured cell and gap as the
             // narrow layout. Each icon and the LIVE label are centered inside
             // its own surface, never across a neighboring button.
-            controlSurface(c, w - 176, controlTop, w - 128, controlBottom, 16, panel, border);
-            controlSurface(c, w - 120, controlTop, w - 72, controlBottom, 16, panel, border);
-            controlSurface(c, w - 64, controlTop, w - 16, controlBottom, 16, panel, border);
-            if (isPressed(1)) rounded(c, w - 174, controlTop + 2, w - 130, controlBottom - 2, 14, pressedFill(panel, true));
-            if (isPressed(2)) rounded(c, w - 118, controlTop + 2, w - 74, controlBottom - 2, 14, pressedFill(panel, true));
-            if (isPressed(3)) rounded(c, w - 62, controlTop + 2, w - 18, controlBottom - 2, 14, pressedFill(panel, true));
+            smoothButton(c, w - 176, controlTop, w - 128, controlBottom, 16, panel, border, lime, false, isPressed(1));
+            smoothButton(c, w - 120, controlTop, w - 72, controlBottom, 16, panel, border, lime, false, isPressed(2));
+            smoothButton(c, w - 64, controlTop, w - 16, controlBottom, 16, panel, border, lime, false, isPressed(3));
             drawHeaderOverflow(c, w - 152, muted);
             drawSun(c, w - 96, 36, muted);
             type(9, primary, true);
@@ -2238,7 +2289,7 @@ class BatteryDashboard extends View {
         float cell = (w - 36) / 5f;
         final float navTop = 120f;
         final float navBottom = 168f;
-        controlSurface(c, 18, navTop, w - 18, navBottom, 16, panel, border);
+        smoothButton(c, 18, navTop, w - 18, navBottom, 16, panel, border, lime, false, false);
         for (int i = 0; i < labels.length; i++) {
             float x = 18 + i * cell;
             float centerX = x + cell / 2f;
@@ -2247,7 +2298,8 @@ class BatteryDashboard extends View {
             if (active || pressed) {
                 // Equal insets and a shared 40dp indicator keep every item
                 // centered, independent of label length or device width.
-                rounded(c, x + 4, 124, x + cell - 4, 164, 12, pressed ? pressedFill(panel, true) : (active ? lime : panel));
+                smoothButton(c, x + 4, 124, x + cell - 4, 164, 12,
+                        panel, border, lime, active && !pressed, pressed);
             }
             int iconColor = active ? Color.rgb(23, 28, 16) : muted;
             if (compactNav) {
@@ -2575,16 +2627,12 @@ class BatteryDashboard extends View {
         rounded(c, 36, y + 205, 36 + (w - 72) * chargeLimit / 100f, y + 209, 3, lime);
         text(c, "Belastung bis zum Ziel", 36, y + 258, 9, muted, false);
         text(c, wearImpactToTarget(), w - 126, y + 258, 9, amber, true);
-        rounded(c, 36, y + 287, w - 36, y + 317, 7, raised);
-        text(c, "Ladealarm", 50, y + 306, 10, primary, true);
-        text(c, chargeAlarm ? "Aktiv" : "Aus", w - 106, y + 306, 9, chargeAlarm ? lime : muted, false);
-        rounded(c, w - 70, y + 295, w - 40, y + 311, 9, chargeAlarm ? Color.rgb(87, 108, 48) : border);
-        rounded(c, chargeAlarm ? w - 55 : w - 68, y + 297, chargeAlarm ? w - 42 : w - 55, y + 309, 6, chargeAlarm ? lime : muted);
-        rounded(c, 36, y + 325, w - 36, y + 355, 7, raised);
-        text(c, "Live-Anzeige", 50, y + 344, 10, primary, true);
-        text(c, overlayEnabled ? "Aktiv" : "Aus", w - 106, y + 344, 9, overlayEnabled ? lime : muted, false);
-        rounded(c, w - 70, y + 333, w - 40, y + 349, 9, overlayEnabled ? Color.rgb(87, 108, 48) : border);
-        rounded(c, overlayEnabled ? w - 55 : w - 68, y + 335, overlayEnabled ? w - 42 : w - 55, y + 347, 6, overlayEnabled ? lime : muted);
+        drawToggleButton(c, 36, y + 280, w - 36, y + 320, "Ladealarm",
+                chargeAlarm ? "Aktiv" : "Aus", chargeAlarm, isPressed(21),
+                primary, muted, raised, border);
+        drawToggleButton(c, 36, y + 326, w - 36, y + 366, "Live-Anzeige",
+                overlayEnabled ? "Aktiv" : "Aus", overlayEnabled, isPressed(22),
+                primary, muted, raised, border);
         int energyAdded = chargeEnergyForDisplay();
         drawStat(c, 18, y + 380, (w - 48) / 2f, 105, "Geladene Energie", energyAdded > 0 ? "+" + energyAdded : "—", "mAh", lime, primary, muted, border, panel, "bolt");
         drawStat(c, 30 + (w - 48) / 2f, y + 380, (w - 48) / 2f, 105, "Akkugesundheit", healthDisplay(), healthPercent() > 0 ? "%" : "", lime, primary, muted, border, panel, "heart");
@@ -2919,10 +2967,17 @@ class BatteryDashboard extends View {
         if (!technology.isEmpty()) platformLabel += " · " + technology;
         boundedRightText(c, platformLabel, w * .50f, w - 36, y + 257, 10,
                 BatteryPlatformHealth.isAvailable(platformHealth) ? lime : faint, true);
-        text(c, "Telemetrie T min/Ø/max", 36, y + 282, 9, muted, false);
-        rightText(c, telemetryTemperatureDisplay(), w * .48f, y + 282, 9, amber, true);
-        text(c, "Vollzyklen (EFC)", w * .55f, y + 282, 9, muted, false);
-        rightText(c, totalEquivalentCycles(), w - 36, y + 282, 9, blue, true);
+        if (w < 390f) {
+            text(c, "T min/Ø/max", 36, y + 275, 8, muted, false);
+            rightText(c, telemetryTemperatureDisplay(), w - 36, y + 275, 8, amber, true);
+            text(c, "Vollzyklen (EFC)", 36, y + 292, 8, muted, false);
+            rightText(c, totalEquivalentCycles(), w - 36, y + 292, 8, blue, true);
+        } else {
+            text(c, "Telemetrie T min/Ø/max", 36, y + 282, 9, muted, false);
+            rightText(c, telemetryTemperatureDisplay(), w * .48f, y + 282, 9, amber, true);
+            text(c, "Vollzyklen (EFC)", w * .55f, y + 282, 9, muted, false);
+            rightText(c, totalEquivalentCycles(), w - 36, y + 282, 9, blue, true);
+        }
         drawStat(c, 18, y + 316, (w - 48) / 2f, 105, "Spannung", voltageDisplay(), voltage > 0f ? "V" : "", blue, primary, muted, border, panel, "bolt");
         drawStat(c, 30 + (w - 48) / 2f, y + 316, (w - 48) / 2f, 105, "Ladezyklen", chargeCyclesDisplay(), "", Color.rgb(180, 154, 255), primary, muted, border, panel, "grid");
         rounded(c, 18, y + 438, w - 18, y + 520, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 438), u(w - 18), u(y + 520)); c.drawRoundRect(rect, u(12), u(12), p);
@@ -2937,8 +2992,11 @@ class BatteryDashboard extends View {
         rounded(c, 18, y + 548, w - 18, y + 615, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 548), u(w - 18), u(y + 615)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, benchmarkActive ? "Benchmark läuft" : "Manueller Benchmark", 36, y + 575, 11, primary, true);
         text(c, benchmarkActive ? "Zum Abschluss über 95 % laden" : "Für beste Ergebnisse unter 25 % starten", 36, y + 595, 9, muted, false);
-        rounded(c, w - 102, y + 566, w - 38, y + 596, 7, benchmarkActive ? Color.rgb(87, 108, 48) : lime);
-        text(c, benchmarkActive ? "Aktiv" : "Start", w - 88, y + 585, 9, benchmarkActive ? lime : Color.rgb(23, 28, 16), true);
+        smoothButton(c, w - 132, y + 558, w - 36, y + 602, 14,
+                benchmarkActive ? raised : lime, border, lime,
+                !benchmarkActive, isPressed(30));
+        centeredText(c, benchmarkActive ? "Aktiv" : "Start", w - 84, y + 586, 10,
+                benchmarkActive ? lime : Color.rgb(23, 28, 16), true);
         rounded(c, 18, y + 630, w - 18, y + 697, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 630), u(w - 18), u(y + 697)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "Nennkapazität", 36, y + 659, 11, primary, true);
             text(c, designCapacitySource(), 36, y + 680, 9, muted, false);
@@ -3074,8 +3132,11 @@ class BatteryDashboard extends View {
                 diagnosticsColor(diagnostics), false);
         text(c, "Akkumesswerte bleiben auf diesem Gerät.", 36, summaryY + 143, 9, primary, true);
         text(c, "Export nur auf deine Auswahl; kein Konto/Abonnement.", 36, summaryY + 165, 8, muted, false);
-        rounded(c, w - 136, panelBottom - 48, w - 36, panelBottom - 14, 8, lime);
-        text(c, "CSV exportieren", w - 119, panelBottom - 26, 9, Color.rgb(23, 28, 16), true);
+        float exportTop = historyExportTop();
+        smoothButton(c, w - 156, exportTop, w - 36, exportTop + 44, 14,
+                lime, lime, lime, true, isPressed(40));
+        drawArrow(c, w - 140, exportTop + 22, Color.rgb(23, 28, 16));
+        text(c, "CSV exportieren", w - 127, exportTop + 27, 9, Color.rgb(23, 28, 16), true);
     }
 
     private BatteryTelemetryDiagnostics.Summary telemetryDiagnostics() {
@@ -3101,6 +3162,18 @@ class BatteryDashboard extends View {
         if (summary.hasVoltageData()) {
             result.append(" · min ").append(String.format(Locale.GERMANY, "%.2fV",
                     summary.minDischargeVoltageMv / 1000f));
+        }
+        if (summary.powerStats.hasData()) {
+            result.append(" · P ");
+            if (summary.powerStats.charging.isAvailable()) {
+                result.append("L ").append(String.format(Locale.GERMANY, "%.1fW",
+                        summary.powerStats.charging.averageMw / 1000f));
+            }
+            if (summary.powerStats.discharging.isAvailable()) {
+                if (summary.powerStats.charging.isAvailable()) result.append(" / ");
+                result.append("E ").append(String.format(Locale.GERMANY, "%.1fW",
+                        summary.powerStats.discharging.averageMw / 1000f));
+            }
         }
         if (summary.hasHighTemperature()) result.append(" · Wärme prüfen");
         if (summary.samplingGap) result.append(" · Datenlücke");
@@ -3134,10 +3207,13 @@ class BatteryDashboard extends View {
         for (BatteryCycleHistory.Point point : cycleHistory) {
             appendCsvRow(csv, new String[]{point.date, String.format(Locale.US, "%.3f", point.cycles), point.source});
         }
-        csv.append("\ntelemetry_timestamp_ms,level_percent,charging,current_ma,temperature_c,voltage_v,charge_counter_mah,screen_on,foreground_package,system_cycle_count,plugged\n");
+        csv.append("\ntelemetry_timestamp_ms,level_percent,charging,current_ma,temperature_c,voltage_v,charge_counter_mah,screen_on,foreground_package,system_cycle_count,plugged,battery_power_mw\n");
         String telemetry = telemetryPrefs.getString("telemetrySamples", "");
         for (String row : BatteryExportRules.validTelemetryRows(telemetry)) {
-            appendCsvRow(csv, row.split(",", -1));
+            String[] parts = row.split(",", -1);
+            String[] exportParts = Arrays.copyOf(parts, parts.length + 1);
+            exportParts[parts.length] = String.valueOf(BatteryPowerStats.milliWatts(parts));
+            appendCsvRow(csv, exportParts);
         }
         return csv.toString();
     }
@@ -3262,10 +3338,14 @@ class BatteryDashboard extends View {
     private void drawChart(Canvas c, float x, float y, float width, float height, int panel, int border, int primary, int muted, int faint) {
         frame(c, x, y, x + width, y + height, panel, border, lime);
         text(c, historyDays == 30 ? "Akkustand · 30 Tage" : "Akkustand · 7 Tage", x + 18, y + 28, 15, primary, true);
-        rounded(c, x + width - 100, y + 14, x + width - 62, y + 38, 6, historyDays == 7 ? lime : panel);
-        rounded(c, x + width - 58, y + 14, x + width - 18, y + 38, 6, historyDays == 30 ? lime : panel);
-        text(c, "7D", x + width - 90, y + 30, 8, historyDays == 7 ? Color.rgb(23, 28, 16) : muted, true);
-        text(c, "30D", x + width - 51, y + 30, 8, historyDays == 30 ? Color.rgb(23, 28, 16) : muted, true);
+        smoothButton(c, x + width - 104, y + 10, x + width - 56, y + 42, 11,
+                panel, border, lime, historyDays == 7,
+                isPressed(BatteryAccessibilityLayout.OVERVIEW_7D));
+        smoothButton(c, x + width - 52, y + 10, x + width - 12, y + 42, 11,
+                panel, border, lime, historyDays == 30,
+                isPressed(BatteryAccessibilityLayout.OVERVIEW_30D));
+        centeredText(c, "7D", x + width - 80, y + 30, 8, historyDays == 7 ? Color.rgb(23, 28, 16) : muted, true);
+        centeredText(c, "30D", x + width - 32, y + 30, 8, historyDays == 30 ? Color.rgb(23, 28, 16) : muted, true);
         float chartX = x + 18, chartY = y + 51, chartW = width - 36, chartH = 94;
         for (int i = 0; i < 3; i++) line(c, chartX, chartY + i * 45, chartX + chartW, chartY + i * 45, border, 1);
         rightText(c, "100%", x + width - 18, chartY + 9, 7, faint, false);
