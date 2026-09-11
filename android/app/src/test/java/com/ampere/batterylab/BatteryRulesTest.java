@@ -45,4 +45,10 @@ public class BatteryRulesTest {
         assertEquals("Sehr gut", BatteryPlatformHealth.label(9));
         assertEquals("Nicht verfügbar", BatteryPlatformHealth.label(BatteryManager.BATTERY_HEALTH_UNKNOWN));
     }
+
+    @Test public void capacityUnitsNormalizeWithoutInventingAValue() {
+        assertEquals(6600L, BatteryCapacity.normalizeCapacity(6600000L));
+        assertEquals(6600L, BatteryCapacity.normalizeCapacity(6600L));
+        assertEquals(100L, BatteryCapacity.normalizeCapacity(100L));
+    }
 }

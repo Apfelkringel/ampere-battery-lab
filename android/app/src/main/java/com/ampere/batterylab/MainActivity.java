@@ -712,6 +712,12 @@ class BatteryDashboard extends View {
     }
 
     private int healthPercent() {
+        int measured = healthMeasurementMah();
+        int design = designCapacityMah();
+        return BatteryHealth.percent(measured, design);
+    }
+
+    private int healthMeasurementMah() {
         int measured = 0;
         if (!healthSamples.isEmpty()) {
             int count = Math.min(5, healthSamples.size());
@@ -720,10 +726,8 @@ class BatteryDashboard extends View {
             measured = Math.round(total / (float) count);
         }
         if (measured <= 0) measured = prefs.getInt("benchmarkCapacityMah", 0);
-        if (measured <= 0) return 0;
-        int design = designCapacityMah();
-        if (design <= 0) return 0;
-        return BatteryHealth.percent(measured, design);
+        if (measured <= 0) measured = BatteryCapacity.fullChargeCapacityMah(getContext());
+        return measured;
     }
 
     private String healthDisplay() { return healthPercent() > 0 ? String.valueOf(healthPercent()) : "—"; }
@@ -763,7 +767,19 @@ class BatteryDashboard extends View {
                 : "Nicht verfügbar · Nennkapazität manuell festlegen";
     }
 
-    private int estimatedCapacityMah() { return Math.round(designCapacityMah() * healthPercent() / 100f); }
+    private int estimatedCapacityMah() {
+        int measured = healthMeasurementMah();
+        int design = designCapacityMah();
+        if (measured <= 0) return 0;
+        return design > 0 ? Math.min(measured, design) : measured;
+    }
+
+    private String healthMeasurementSource() {
+        if (!healthSamples.isEmpty()) return "lokalen Lademessungen";
+        if (prefs.getInt("benchmarkCapacityMah", 0) > 0) return "manuellem Benchmark";
+        if (BatteryCapacity.fullChargeCapacityMah(getContext()) > 0) return BatteryCapacity.fullChargeCapacitySource(getContext());
+        return "keiner Messung";
+    }
 
     /**
      * Capacity used for time/rate calculations. A measured health estimate is
@@ -2270,7 +2286,7 @@ class BatteryDashboard extends View {
         drawStat(c, 30 + (w - 48) / 2f, y + 316, (w - 48) / 2f, 105, "Ladezyklen", chargeCyclesDisplay(), "", Color.rgb(180, 154, 255), primary, muted, border, panel, "grid");
         rounded(c, 18, y + 438, w - 18, y + 520, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 438), u(w - 18), u(y + 520)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "So entsteht die Schätzung", 36, y + 468, 10, muted, true);
-        text(c, "Kapazität aus lokalen Lade-/Entlademessungen", 36, y + 493, 9, primary, false);
+        boundedText(c, "Kapazität aus " + healthMeasurementSource(), 36, w * .53f, y + 493, 9, primary, false);
         text(c, "Messungen · letzter Ladevorgang " + lastChargeEquivalentCycles(), 36, y + 510, 9, primary, false);
         rightText(c, "Gesamt geladen: " + (totalChargedMah() > 0 ? totalChargedMah() + " mAh" : "—"), w - 30, y + 493, 8, blue, true);
         rightText(c, "Äquivalente Zyklen: " + totalEquivalentCycles(), w - 30, y + 512, 8, blue, true);

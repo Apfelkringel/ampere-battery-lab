@@ -5,11 +5,14 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.131` (`versionCode 131`)
+- Version: `0.132` (`versionCode 132`)
 - `minSdk 23`, `targetSdk 37`
 - Release APK SHA-256: `d4336a87ec77501a47daffc7ff6454a74f1459586a904ad9419075529cebea98`
 - The same hash is published in the public update repository manifest.
 
+Release `0.132` uses a validated OEM full-charge-capacity fallback for health
+estimates and normalizes both µAh and mAh battery-driver units. It retains the
+`0.131` cache-safe GitHub Contents API download.
 Release `0.131` downloads the APK through the pinned GitHub Contents API as
 raw bytes, avoiding a stale raw-CDN artifact after a manifest update. It keeps
 the `0.130` measurable EFC label instead of the misleading "Ladeeffizienz"

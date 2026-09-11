@@ -18,6 +18,7 @@ final class BatteryCapacity {
     private static final int MIN_MAH = 500;
     private static final int MAX_MAH = 30000;
     private static volatile Reading cachedReading;
+    private static volatile Reading cachedFullChargeReading;
 
     private BatteryCapacity() { }
 
@@ -53,6 +54,17 @@ final class BatteryCapacity {
 
     static String automaticSource(Context context) {
         Reading reading = automaticReading(context);
+        return reading.isAvailable() ? reading.source : "Nicht verfügbar";
+    }
+
+    /** Current full-charge capacity reported by an OEM battery driver, if exposed. */
+    static int fullChargeCapacityMah(Context context) {
+        Reading reading = automaticFullChargeReading();
+        return reading.isAvailable() ? reading.mah : 0;
+    }
+
+    static String fullChargeCapacitySource(Context context) {
+        Reading reading = automaticFullChargeReading();
         return reading.isAvailable() ? reading.source : "Nicht verfügbar";
     }
 
@@ -94,6 +106,35 @@ final class BatteryCapacity {
         return new Reading(0, "Nicht verfügbar");
     }
 
+    private static Reading automaticFullChargeReading() {
+        Reading cached = cachedFullChargeReading;
+        if (cached != null) return cached;
+        synchronized (BatteryCapacity.class) {
+            if (cachedFullChargeReading == null) cachedFullChargeReading = detectFullCharge();
+            return cachedFullChargeReading;
+        }
+    }
+
+    private static Reading detectFullCharge() {
+        try {
+            File root = new File("/sys/class/power_supply");
+            File[] supplies = root.listFiles();
+            if (supplies != null) {
+                java.util.Arrays.sort(supplies, (left, right) -> {
+                    boolean leftBattery = isBatteryNode(left);
+                    boolean rightBattery = isBatteryNode(right);
+                    return Boolean.compare(!leftBattery, !rightBattery);
+                });
+                for (File supply : supplies) {
+                    if (!supply.isDirectory()) continue;
+                    Reading reading = readFullChargeCapacity(supply);
+                    if (reading != null) return reading;
+                }
+            }
+        } catch (Exception ignored) { }
+        return new Reading(0, "Nicht verfügbar");
+    }
+
     private static boolean isBatteryNode(File supply) {
         String name = supply.getName().toLowerCase(Locale.US);
         return name.contains("battery") || name.contains("bms") || name.contains("maxfg") || name.contains("max170");
@@ -107,11 +148,24 @@ final class BatteryCapacity {
         for (String name : names) {
             long raw = readLong(new File(supply, name));
             if (raw <= 0) continue;
-            // Linux power_supply charge nodes are normally µAh. Generic OEM
-            // nodes may use mAh, so only convert values outside the valid mAh range.
-            long mah = name.contains("charge") || name.endsWith("_uah")
-                    ? raw / 1000L : normalizeCapacity(raw);
+            // Linux power_supply nodes are normally µAh, while some OEM nodes
+            // already expose mAh. Normalize by magnitude so both forms work.
+            long mah = normalizeCapacity(raw);
             if (validLong(mah)) return new Reading((int) mah, "Batterie-Treiber");
+        }
+        return null;
+    }
+
+    private static Reading readFullChargeCapacity(File supply) {
+        String[] names = {
+                "charge_full", "charge_full_uah", "full_charge_capacity",
+                "full_capacity", "battery_full_capacity"
+        };
+        for (String name : names) {
+            long raw = readLong(new File(supply, name));
+            if (raw <= 0) continue;
+            long mah = normalizeCapacity(raw);
+            if (validLong(mah)) return new Reading((int) mah, "Batterie-Treiber (Full Charge)");
         }
         return null;
     }
@@ -140,7 +194,7 @@ final class BatteryCapacity {
         }
     }
 
-    private static long normalizeCapacity(long raw) {
+    static long normalizeCapacity(long raw) {
         return raw > 100000L ? raw / 1000L : raw;
     }
 
