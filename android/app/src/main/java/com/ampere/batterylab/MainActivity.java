@@ -611,10 +611,10 @@ class BatteryDashboard extends View {
     private final int lime = Color.rgb(199, 243, 107);
     private final int blue = Color.rgb(118, 184, 255);
     private final int amber = Color.rgb(242, 179, 106);
-    // Screen time is secondary context, not a competing alert. A quiet
+    // Secondary telemetry is context, not a competing alert. A quiet
     // eucalyptus tone keeps it in the app's green-neutral material language
     // instead of introducing a generic purple dashboard accent.
-    private final int screenTimeTone = Color.rgb(159, 181, 171);
+    private final int secondaryTone = Color.rgb(159, 181, 171);
 
     BatteryDashboard(Context context) {
         super(context);
@@ -2525,7 +2525,7 @@ class BatteryDashboard extends View {
         drawStat(c, 18, cardsTop, cardW, 105, "Akkugesundheit", healthDisplay(), health > 0 ? "%" : "", lime, primary, muted, border, panel, "heart");
         drawStat(c, 18 + cardW + cardGap, cardsTop, cardW, 105, "Akkutemperatur", temperatureDisplay(), temperature > 0f ? "°C" : "", amber, primary, muted, border, panel, "temp");
         drawStat(c, 18, cardsTop + 117, cardW, 105, "Spannung", voltageDisplay(), voltage > 0f ? "V" : "", blue, primary, muted, border, panel, "bolt");
-        drawStat(c, 18 + cardW + cardGap, cardsTop + 117, cardW, 105, "Bildschirmzeit", screenOnTimeCard(), "", screenTimeTone, primary, muted, border, panel, "clock");
+        drawStat(c, 18 + cardW + cardGap, cardsTop + 117, cardW, 105, "Bildschirmzeit", screenOnTimeCard(), "", secondaryTone, primary, muted, border, panel, "clock");
 
         float lowerTop = cardsTop + 234;
         drawChart(c, 18, lowerTop, w - 36, 360, panel, border, primary, muted, faint);
@@ -2592,7 +2592,7 @@ class BatteryDashboard extends View {
                 primary, muted, border, panel, "temp");
         drawStat(c, metricsX, top + 106, metricW, 98, "Spannung", voltageDisplay(), voltage > 0f ? "V" : "", blue,
                 primary, muted, border, panel, "bolt");
-        drawStat(c, metricsX + metricW + metricGap, top + 106, metricW, 98, "Screenzeit", screenOnTimeCard(), "", screenTimeTone,
+        drawStat(c, metricsX + metricW + metricGap, top + 106, metricW, 98, "Screenzeit", screenOnTimeCard(), "", secondaryTone,
                 primary, muted, border, panel, "clock");
 
         drawChart(c, 18, top + 218, w - 36, 360, panel, border, primary, muted, faint);
@@ -2648,7 +2648,7 @@ class BatteryDashboard extends View {
                 primary, muted, border, panel, "temp");
         drawStat(c, metricsX, top + 106, metricW, 98, "Spannung", voltageDisplay(), voltage > 0f ? "V" : "", blue,
                 primary, muted, border, panel, "bolt");
-        drawStat(c, metricsX + metricW + metricGap, top + 106, metricW, 98, "Screenzeit", screenOnTimeCard(), "", screenTimeTone,
+        drawStat(c, metricsX + metricW + metricGap, top + 106, metricW, 98, "Screenzeit", screenOnTimeCard(), "", secondaryTone,
                 primary, muted, border, panel, "clock");
 
         drawChart(c, 18, top + 218, w - 36, 360, panel, border, primary, muted, faint);
@@ -2728,7 +2728,7 @@ class BatteryDashboard extends View {
             text(c, chargeModeDetails(false), 285, y + 630, 10, blue, true);
         }
         float remainingTop = compact ? y + 720 : y + 665;
-        frame(c, 18, remainingTop, w - 18, remainingTop + 105, panel, border, screenTimeTone);
+        frame(c, 18, remainingTop, w - 18, remainingTop + 105, panel, border, secondaryTone);
         text(c, "VERBLEIBENDE NUTZUNGSZEIT", 36, remainingTop + 30, 10, muted, true);
         float useColumn = compact ? 36 : 36;
         float useColumnOn = compact ? 36 + (w - 72) / 3f : 160;
@@ -2792,7 +2792,7 @@ class BatteryDashboard extends View {
         text(c, "Bildschirm an / aus", w - 112, y + 262, 8, faint, false);
         text(c, "Ladestrom live", 36, y + 280, 9, muted, false);
         text(c, !charging && currentMa > 0 ? "−" + currentMa + " mA" : "—", w - 95, y + 280, 10, blue, true);
-        drawStat(c, 18, y + 316, (w - 48) / 2f, 105, "Bildschirmzeit", dischargeDurationCompact(true), "", Color.rgb(180, 154, 255), primary, muted, border, panel, "clock");
+        drawStat(c, 18, y + 316, (w - 48) / 2f, 105, "Bildschirmzeit", dischargeDurationCompact(true), "", secondaryTone, primary, muted, border, panel, "clock");
         drawStat(c, 30 + (w - 48) / 2f, y + 316, (w - 48) / 2f, 105, "Verbrauch", dischargeMah() > 0 ? String.valueOf(dischargeMah()) : "—", "mAh", blue, primary, muted, border, panel, "arrow");
         rounded(c, 18, y + 438, w - 18, y + 536, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 438), u(w - 18), u(y + 536)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "Nutzungsübersicht", 36, y + 468, 10, muted, true);
@@ -3075,7 +3075,7 @@ class BatteryDashboard extends View {
             rightText(c, totalEquivalentCycles(), w - 36, y + 282, 9, blue, true);
         }
         drawStat(c, 18, y + 316, (w - 48) / 2f, 105, "Spannung", voltageDisplay(), voltage > 0f ? "V" : "", blue, primary, muted, border, panel, "bolt");
-        drawStat(c, 30 + (w - 48) / 2f, y + 316, (w - 48) / 2f, 105, "Ladezyklen", chargeCyclesDisplay(), "", Color.rgb(180, 154, 255), primary, muted, border, panel, "grid");
+        drawStat(c, 30 + (w - 48) / 2f, y + 316, (w - 48) / 2f, 105, "Ladezyklen", chargeCyclesDisplay(), "", secondaryTone, primary, muted, border, panel, "grid");
         rounded(c, 18, y + 438, w - 18, y + 520, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 438), u(w - 18), u(y + 520)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "So entsteht die Schätzung", 36, y + 468, 10, muted, true);
         boundedText(c, "Kapazität aus " + healthMeasurementSource(), 36, w * .53f, y + 493, 9, primary, false);
@@ -3220,7 +3220,7 @@ class BatteryDashboard extends View {
         text(c, String.valueOf(longHistory.size()), w - 75, summaryY + 13, 11, lime, true);
         text(c, "Zeitraum: bis zu 30 lokale Tage", 36, summaryY + 39, 9, faint, false);
         text(c, "Tiefschlaf", 36, summaryY + 69, 10, muted, false);
-        text(c, deepSleepTime(), w - 75, summaryY + 69, 11, Color.rgb(180, 154, 255), true);
+        text(c, deepSleepTime(), w - 75, summaryY + 69, 11, secondaryTone, true);
         boundedText(c, "Sitzungen: " + sessionCount("Charge") + " Laden · " + sessionCount("Discharge") + " Entladen",
                 36, w - 36, summaryY + 99, 9, primary, true);
         boundedText(c, "Energie: " + sessionEnergyDisplay("Charge", "+") + " / " + sessionEnergyDisplay("Discharge", "-"),

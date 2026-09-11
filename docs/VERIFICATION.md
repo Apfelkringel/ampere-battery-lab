@@ -4,7 +4,9 @@ Last verified: 2026-09-11 (Europe/Berlin)
 
 ## Current development change
 
-Version `0.276` additionally removes the isolated purple screen-time accent
+Version `0.277` additionally removes the last isolated purple hardcodes from
+secondary telemetry surfaces and uses one restrained eucalyptus tone throughout
+the dashboard. Version `0.276` additionally removes the isolated purple screen-time accent
 from the dashboard and uses a restrained eucalyptus tone that belongs to the
 existing green-neutral visual system. Version `0.275` additionally keeps the charge-baseline anchor powered when
 Version `0.275` additionally keeps the charge-baseline anchor powered when
