@@ -2900,6 +2900,12 @@ class BatteryDashboard extends View {
         Map<String, Integer> directMah = telemetryAppMahByPackage(start, end);
         int directTotalMah = 0;
         for (Integer value : directMah.values()) directTotalMah += Math.max(0, value);
+        int directAssignedMah = Math.min(Math.max(0, totalEnergy), directTotalMah);
+        long fallbackForegroundMs = 0L;
+        for (AppUsageRow usage : rows) {
+            Integer value = directMah.get(usage.packageName);
+            if (value == null || value <= 0) fallbackForegroundMs += usage.foregroundMs;
+        }
         int row = 0;
         for (AppUsageRow usage : rows) {
             String app = usage.packageName;
@@ -2908,9 +2914,12 @@ class BatteryDashboard extends View {
             float infoWidth = Math.max(70f, Math.min(130f, (w - 72f) / 2f));
             float appWidth = Math.max(72f, w - 72f - infoWidth - 8f);
             text(c, fitText(app, appWidth, 10, true), 36, y + row * 27, 10, primary, true);
-            int appMah = BatteryAppAttribution.estimateMah(
-                    directMah.containsKey(usage.packageName) ? directMah.get(usage.packageName) : 0,
-                    directTotalMah, totalEnergy, usage.foregroundMs, totalForegroundMs);
+            Integer directValue = directMah.get(usage.packageName);
+            int appMah = directValue != null && directValue > 0
+                    ? BatteryAppAttribution.estimateMah(directValue, directTotalMah, totalEnergy,
+                    usage.foregroundMs, totalForegroundMs)
+                    : BatteryAppAttribution.estimateFallbackMah(totalEnergy, directAssignedMah,
+                    usage.foregroundMs, fallbackForegroundMs);
             rightText(c, fitText(minutes + " Min. · " + (appMah > 0 ? "~" + appMah : "—") + " mAh gesch.", infoWidth, 8, false), w - 36, y + row * 27, 8, muted, false);
             line(c, 36, y + row * 27 + 9, w - 36, y + row * 27 + 9, Color.rgb(43, 47, 56), 1);
             if (++row == 3) break;
@@ -2937,6 +2946,12 @@ class BatteryDashboard extends View {
         Map<String, Integer> directMah = telemetryAppMahByPackage(start, end);
         int directTotalMah = 0;
         for (Integer value : directMah.values()) directTotalMah += Math.max(0, value);
+        int directAssignedMah = Math.min(Math.max(0, totalEnergy), directTotalMah);
+        long fallbackForegroundMs = 0L;
+        for (AppUsageRow usage : rows) {
+            Integer value = directMah.get(usage.packageName);
+            if (value == null || value <= 0) fallbackForegroundMs += usage.foregroundMs;
+        }
         StringBuilder details = new StringBuilder("Vordergrundzeit seit Beginn des aktuellen Entladevorgangs.\n"
                 + "mAh sind zeit-/telemetriebasierte Schätzungen, keine echten Android-Pro-App-Messungen.\n\n");
         int row = 0;
@@ -2944,9 +2959,12 @@ class BatteryDashboard extends View {
             String app = usage.packageName;
             try { app = getContext().getPackageManager().getApplicationLabel(getContext().getPackageManager().getApplicationInfo(usage.packageName, 0)).toString(); } catch (Exception ignored) { }
             long minutes = usage.foregroundMs / 60000L;
-            int appMah = BatteryAppAttribution.estimateMah(
-                    directMah.containsKey(usage.packageName) ? directMah.get(usage.packageName) : 0,
-                    directTotalMah, totalEnergy, usage.foregroundMs, totalForegroundMs);
+            Integer directValue = directMah.get(usage.packageName);
+            int appMah = directValue != null && directValue > 0
+                    ? BatteryAppAttribution.estimateMah(directValue, directTotalMah, totalEnergy,
+                    usage.foregroundMs, totalForegroundMs)
+                    : BatteryAppAttribution.estimateFallbackMah(totalEnergy, directAssignedMah,
+                    usage.foregroundMs, fallbackForegroundMs);
             details.append(app).append("\n").append(minutes).append(" Min. · ")
                     .append(appMah > 0 ? "~" + appMah + " mAh geschätzt" : "mAh nicht verfügbar")
                     .append("\n\n");

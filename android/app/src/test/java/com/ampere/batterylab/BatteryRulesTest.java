@@ -219,6 +219,8 @@ public class BatteryRulesTest {
         assertEquals(0, BatteryAppAttribution.estimateMah(400, 1000, 0, 0L, 0L));
         assertEquals(0, BatteryAppAttribution.estimateMah(-400, 1000, 800, 0L, 0L));
         assertEquals(300, BatteryAppAttribution.estimateMah(0, 0, 1200, 15L, 60L));
+        assertEquals(0, BatteryAppAttribution.estimateFallbackMah(1200, 1200, 15L, 60L));
+        assertEquals(150, BatteryAppAttribution.estimateFallbackMah(1200, 600, 15L, 60L));
         assertEquals(0, BatteryAppAttribution.estimateMah(0, 0, 0, 15L, 60L));
         assertEquals(500, BatteryAppAttribution.sampleMah(1000, 2L * 60L * 60L * 1000L, 30L * 60L * 1000L));
         assertEquals(0, BatteryAppAttribution.sampleMah(1000, 0L, 30L * 60L * 1000L));

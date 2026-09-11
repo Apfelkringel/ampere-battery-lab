@@ -4,7 +4,10 @@ Last verified: 2026-09-11 (Europe/Berlin)
 
 ## Current development change
 
-Version `0.266` additionally preserves Android activity class names across the
+Version `0.267` additionally reserves already attributed direct app drain
+before distributing the remaining observed energy to apps without a direct
+telemetry sample, so displayed app estimates cannot add up beyond the observed
+discharge. Version `0.266` additionally preserves Android activity class names across the
 legacy `MOVE_TO_BACKGROUND`/modern `ACTIVITY_PAUSED` event-number collision, so
 in-app activity switches are not closed early. Version `0.265` additionally keeps app-drain attribution bounded when no
 observed discharge exists, avoids replacing short exact usage sessions with an

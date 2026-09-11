@@ -10,6 +10,12 @@ zugeschrieben. Ohne beobachtete Entladeenergie bleibt die App-Schätzung
 bewusst nicht verfügbar. Diese Änderungen sind eigene Regeln mit
 Regressionstests; Referenzcode wurde nicht übernommen.
 
+Direkt gemessene App-Anteile reservieren außerdem zuerst ihren proportional
+begrenzten Anteil der beobachteten Entladung; nur der verbleibende Rest wird
+zeitbasiert an Apps ohne direkten Telemetriepunkt verteilt. Dadurch kann die
+Summe der angezeigten Schätzungen nicht mehr über die beobachtete Entladung
+hinaus anwachsen.
+
 Beim Activity-Wechsel wurde außerdem die Event-Kollision von Androids altem
 `MOVE_TO_BACKGROUND` und `ACTIVITY_PAUSED` berücksichtigt: Der Klassenname
 bleibt erhalten, wenn Android ihn liefert, sodass ein Wechsel innerhalb einer
