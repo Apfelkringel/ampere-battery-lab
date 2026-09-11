@@ -13,6 +13,8 @@ Last verified: 2026-09-11 (Europe/Berlin)
 Release `0.149` additionally reads Android 16+'s qualitative capacity-level
 signal separately from state-of-health, and exposes it only when the system
 provides it.
+Release `0.151` additionally displays Android's optional charging profile
+signal separately from cable detection and session direction.
 The next runtime-estimate change keeps local seven-day history first and uses
 Android's bounded discharge prediction only as a labeled fallback.
 Release `0.148` additionally resolves noisy charging/discharging level

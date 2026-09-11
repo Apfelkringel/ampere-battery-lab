@@ -80,6 +80,12 @@ Ampere auf Android 12+ als Fallback `PowerManager.getBatteryDischargePrediction(
 und verwirft `null`, unrealistische Werte sowie Laufzeiten außerhalb von sieben
 Tagen. Die Oberfläche nennt dann ausdrücklich die verwendete Quelle.
 
+Zusätzlich wird Androids `EXTRA_CHARGING_STATUS` ab API 34 als reines
+Ladeprofil gelesen. Die AOSP-Definition unterscheidet Normalbetrieb, zu kalte/
+zu heiße Ladebedingungen sowie Akku-schonende und adaptive Profile. Dieser
+Wert beeinflusst weder die Kabelerkennung noch die Sitzungsrichtung; er wird
+nur angezeigt, wenn er gültig vorhanden ist.
+
 Für die optionale App-Nutzungsansicht verwendet Ampere bevorzugt Androids
 `UsageStatsManager.queryEvents()`. Aggregierte `queryUsageStats()`-Tageswerte
 können laut Android-Dokumentation über den angefragten Zeitraum hinausreichen;

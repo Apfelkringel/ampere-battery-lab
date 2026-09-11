@@ -113,11 +113,11 @@ public class BatteryMonitorService extends Service {
     }
 
     private Notification notification() {
-        return statusNotification(-1, false, 0, 0, 0, BatteryManager.BATTERY_HEALTH_UNKNOWN, -1);
+        return statusNotification(-1, false, 0, 0, 0, BatteryManager.BATTERY_HEALTH_UNKNOWN, -1, 0);
     }
 
     private Notification statusNotification(int value, boolean isCharging, int currentMa, int temperatureTenths,
-                                            int voltageMv, int platformHealth, int capacityLevel) {
+                                            int voltageMv, int platformHealth, int capacityLevel, int chargingStatus) {
         Intent launch = new Intent(this, MainActivity.class);
         PendingIntent pending = PendingIntent.getActivity(this, 0, launch, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? new Notification.Builder(this, CHANNEL_ID) : new Notification.Builder(this);
@@ -136,6 +136,8 @@ public class BatteryMonitorService extends Service {
                     + " · Android-Zustand " + BatteryPlatformHealth.label(platformHealth)
                     + (BatteryCapacityLevel.isAvailable(capacityLevel)
                     ? " · Kapazitätsniveau " + BatteryCapacityLevel.label(capacityLevel) : "")
+                    + (isCharging && BatteryChargingState.isSpecial(chargingStatus)
+                    ? " · Ladeprofil " + BatteryChargingState.label(chargingStatus) : "")
                     + (health > 0 ? " · Gesundheit " + health + "%" : "")
                     + (capacity > 0 ? " · Schätzung " + capacity + " mAh" : "");
         }
@@ -202,7 +204,8 @@ public class BatteryMonitorService extends Service {
         if (notificationManager != null) notificationManager.notify(7, statusNotification(value, isCharging, signedCurrentMa, temperature,
                 battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0),
                 battery.getIntExtra(BatteryManager.EXTRA_HEALTH, BatteryManager.BATTERY_HEALTH_UNKNOWN),
-                BatteryCapacityLevel.fromIntent(battery)));
+                BatteryCapacityLevel.fromIntent(battery),
+                BatteryChargingState.fromIntent(battery)));
         BatteryWidgetProvider.updateAll(this);
         BatteryQuickSettingsService.requestRefresh(this);
         updateSinceFullStats(prefs, value, isCharging, chargeCounterMah, currentMa, now, interactive, deepSleepDeltaMs);

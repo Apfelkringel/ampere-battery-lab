@@ -87,6 +87,15 @@ public class BatteryRulesTest {
         assertEquals(-1, BatteryCapacityLevel.normalize(6));
     }
 
+    @Test public void chargingProfileIsSeparateFromCableDetection() {
+        assertEquals(5, BatteryChargingState.normalize(5));
+        assertEquals(0, BatteryChargingState.normalize(6));
+        assertTrue(BatteryChargingState.isSpecial(4));
+        assertFalse(BatteryChargingState.isSpecial(1));
+        assertEquals("Akkuschonend", BatteryChargingState.label(4));
+        assertEquals("Nicht verfügbar", BatteryChargingState.label(0));
+    }
+
     @Test public void capacityUnitsNormalizeWithoutInventingAValue() {
         assertEquals(6600L, BatteryCapacity.normalizeCapacity(6600000L));
         assertEquals(6600L, BatteryCapacity.normalizeCapacity(6600L));

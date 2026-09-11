@@ -435,6 +435,7 @@ class BatteryDashboard extends View {
     private float voltage = 0f;
     private int platformHealth = BatteryManager.BATTERY_HEALTH_UNKNOWN;
     private int capacityLevel = -1;
+    private int chargingStatus = 0;
     private int currentMa = 0;
     private int signedCurrentMa = 0;
     private int chargeCounterMah = 0;
@@ -592,6 +593,7 @@ class BatteryDashboard extends View {
         temperature = temp > 0 ? temp / 10f : 0f;
         platformHealth = intent.getIntExtra(BatteryManager.EXTRA_HEALTH, BatteryManager.BATTERY_HEALTH_UNKNOWN);
         capacityLevel = BatteryCapacityLevel.fromIntent(intent);
+        chargingStatus = BatteryChargingState.fromIntent(intent);
         int mv = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1);
         voltage = mv > 0 ? mv / 1000f : 0f;
         BatteryManager manager = (BatteryManager) getContext().getSystemService(Context.BATTERY_SERVICE);
@@ -755,10 +757,13 @@ class BatteryDashboard extends View {
 
     private String chargerTypeDisplay() {
         if (!charging) return "Nicht verbunden";
-        if (plugged == BatteryManager.BATTERY_PLUGGED_AC) return "Netzteil";
-        if (plugged == BatteryManager.BATTERY_PLUGGED_USB) return "USB";
-        if (plugged == BatteryManager.BATTERY_PLUGGED_WIRELESS) return "Kabellos";
-        return "Externe Stromquelle";
+        String source;
+        if (plugged == BatteryManager.BATTERY_PLUGGED_AC) source = "Netzteil";
+        else if (plugged == BatteryManager.BATTERY_PLUGGED_USB) source = "USB";
+        else if (plugged == BatteryManager.BATTERY_PLUGGED_WIRELESS) source = "Kabellos";
+        else source = "Externe Stromquelle";
+        return BatteryChargingState.isSpecial(chargingStatus)
+                ? source + " · " + BatteryChargingState.label(chargingStatus) : source;
     }
 
     private int designCapacityMah() { return BatteryCapacity.designCapacityMah(getContext()); }
@@ -2847,8 +2852,11 @@ class BatteryDashboard extends View {
         String state = charging ? "Laden erkannt" : "Akkubetrieb";
         String capacity = BatteryCapacityLevel.isAvailable(capacityLevel)
                 ? " Kapazitätsniveau " + BatteryCapacityLevel.label(capacityLevel) + "." : "";
+        String chargingProfile = charging && BatteryChargingState.isSpecial(chargingStatus)
+                ? " Ladeprofil " + BatteryChargingState.label(chargingStatus) + "." : "";
         setContentDescription(pageName() + ". " + state + ". Akkustand " + level + " Prozent. "
                 + "Android-Zustand " + BatteryPlatformHealth.label(platformHealth) + "." + capacity
+                + chargingProfile
                 + " Tabs: Übersicht, Laden, Entladen, Gesundheit, Verlauf. Aktiver Tab: " + pageName() + ".");
     }
 
