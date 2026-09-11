@@ -7,8 +7,8 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.158` (`versionCode 158`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: wird nach dem signierten Build ergänzt
-- The same hash will be published in the public update repository manifest.
+- Release APK SHA-256: `6da9d32f3e8f7da9b741ed3ce8f55759927fd146ed8d09aac25a6fde9edc0bdf`
+- The same hash is published in the public update repository manifest.
 
 Release `0.158` additionally rejects impossible Android state-of-health
 values above 100% instead of silently converting them to 100%; local health
