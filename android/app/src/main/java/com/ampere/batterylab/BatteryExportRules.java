@@ -22,8 +22,14 @@ final class BatteryExportRules {
                     || chargeCounter < 0 || chargeCounter > 30_000
                     || systemCycles < -1 || systemCycles > 100_000
                     || plugged < 0 || plugged > 32) return false;
-            return ("0".equals(parts[2]) || "1".equals(parts[2]))
-                    && ("0".equals(parts[7]) || "1".equals(parts[7]));
+            if (!("0".equals(parts[2]) || "1".equals(parts[2]))) return false;
+            if (!("0".equals(parts[7]) || "1".equals(parts[7]))) return false;
+            // The monitor stores charging current as positive and discharge
+            // current as negative. Keep contradictory legacy rows out of
+            // exports instead of presenting a reversed measurement as fact.
+            if (current != 0 && (("1".equals(parts[2]) && current < 0)
+                    || ("0".equals(parts[2]) && current > 0))) return false;
+            return true;
         } catch (NumberFormatException ignored) {
             return false;
         }

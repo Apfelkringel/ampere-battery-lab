@@ -5,10 +5,13 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.178` (`versionCode 178`)
+- Version: `0.179` (`versionCode 179`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `2ea119b08e64b7dfc6e37d70f13b1c8149919a87bb5a94aa3acf829aa9ad0801`
+- Release APK SHA-256: `wird nach dem signierten CI-Build ergänzt`
 - The same hash is published in the public update repository manifest.
+
+Release `0.179` additionally rejects telemetry rows whose current direction
+contradicts the stored charging flag before CSV/JSON export.
 
 Release `0.178` additionally validates the written duration format and the
 ordering of extended session timestamps before they reach details, exports or

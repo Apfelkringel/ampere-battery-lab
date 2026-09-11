@@ -98,6 +98,11 @@ Reihenfolge von Start-/Endzeitpunkt geprüft. Das folgt dem Session-Modell
 offener Akku-Tracker: unvollständige oder zeitlich rückwärts laufende Abschnitte
 werden nicht als reale Nutzung ausgegeben.
 
+Auch Telemetrie-Exporte prüfen die physikalische Richtung des gespeicherten
+Stroms: Laden muss positiv, Entladen negativ sein. Widersprüchliche Altzeilen
+werden einzeln ausgelassen, damit ein CSV-/JSON-Export keine umgekehrte
+Messung als reale Akkuaufnahme ausgibt.
+
 Für die Laufzeitprognose bleibt der persönliche lokale 7-Tage-Verlauf die
 erste Wahl. Wenn dafür noch keine ausreichenden Daten vorliegen, verwendet
 Ampere auf Android 12+ als Fallback `PowerManager.getBatteryDischargePrediction()`

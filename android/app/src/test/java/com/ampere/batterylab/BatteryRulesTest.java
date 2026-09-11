@@ -104,6 +104,13 @@ public class BatteryRulesTest {
         assertEquals(null, BatteryExportRules.nonNegativeInt("broken"));
     }
 
+    @Test public void telemetryExportRejectsContradictoryCurrentDirection() {
+        String[] charging = {"1700000000000", "46", "1", "-900", "25.0", "4.20", "6600", "0", "", "12", "2"};
+        String[] discharging = {"1700000000000", "46", "0", "900", "25.0", "4.20", "6600", "0", "", "12", "0"};
+        assertFalse(BatteryExportRules.isValidTelemetry(charging));
+        assertFalse(BatteryExportRules.isValidTelemetry(discharging));
+    }
+
     @Test public void chargeCounterRejectsSentinelsAndUnknownUnits() {
         assertEquals(6600000L, BatteryChargeCounter.normalizeMicroampereHours(6600000L));
         assertEquals(6600, BatteryChargeCounter.toMilliampereHours(6600000L));
