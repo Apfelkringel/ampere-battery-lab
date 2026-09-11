@@ -135,6 +135,8 @@ werden, weil Verfügbarkeit und Aufbewahrung des Android-Backups vom Gerät und 
 Beim Restore und bei der Migration werden Telemetriezeilen sofort mit derselben
 Plausibilitätsprüfung wie Live-Auswertungen bereinigt; unmögliche Gesundheitswerte wie
 `110 %` werden verworfen und nicht angezeigt.
+Im breiten Querformat erhält die Live-Karte außerdem einen eigenen unteren Innenabstand,
+damit Statuszeile und farbige Kontur nicht optisch ineinanderlaufen.
 
 GitHub Actions kann die Release-APK bei einem `v*`-Tag reproduzierbar bauen. Die privaten
 Schlüssel liegen ausschließlich in `AMPERE_ROTATED_KEYSTORE_BASE64` und

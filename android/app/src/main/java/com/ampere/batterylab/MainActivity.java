@@ -2068,7 +2068,10 @@ class BatteryDashboard extends View {
         float metricsX = 18f + heroW + gap;
         float metricsW = Math.max(150f, w - metricsX - 18f);
         float heroRight = 18f + heroW;
-        float heroBottom = top + 180f;
+        // Keep the bottom status row clear of the rounded outline. On wide
+        // landscape cards the bolt glyph needs a little more breathing room
+        // than the text-only metrics above it.
+        float heroBottom = top + 192f;
         frame(c, 18, top, heroRight, heroBottom, panel, border, lime);
         text(c, "AKKUSTAND · AUTOMATIK", 36, top + 31, 10, muted, true);
         text(c, "Aktueller Akkustand", 36, top + 56, 17, primary, true);
