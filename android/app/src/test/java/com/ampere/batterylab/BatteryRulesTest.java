@@ -46,6 +46,9 @@ public class BatteryRulesTest {
         assertEquals(0, BatteryHealth.reportedPercentValue(1000));
         assertEquals(0, BatteryHealth.reportedPercentValue(-1));
         assertEquals(6600, BatteryHealth.averageRecentSamples("6600,6600,6600,12000"));
+        assertEquals(5940, BatteryHealth.capacityFromReportedPercent(90, 6600));
+        assertEquals(0, BatteryHealth.capacityFromReportedPercent(110, 6600));
+        assertEquals(0, BatteryHealth.capacityFromReportedPercent(90, 0));
     }
 
     @Test public void persistedPercentagesRejectInvalidPhaseValues() {

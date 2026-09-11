@@ -38,6 +38,14 @@ final class BatteryHealth {
         return value >= 1 && value <= 100 ? value : 0;
     }
 
+    /** Converts a valid system SoH percentage to capacity without accepting impossible input. */
+    static int capacityFromReportedPercent(int reportedPercent, int designMah) {
+        int reported = reportedPercentValue(reportedPercent);
+        if (reported == 0 || !isPlausibleCapacity(designMah)) return 0;
+        int capacity = Math.round(designMah * reported / 100f);
+        return isPlausibleCapacity(capacity) ? capacity : 0;
+    }
+
     static int reportedStateOfHealth(Context context) {
         if (Build.VERSION.SDK_INT < 36) return 0;
         try {
@@ -107,10 +115,11 @@ final class BatteryHealth {
     }
 
     static int estimatedCapacityMah(Context context, SharedPreferences prefs, int designMah) {
+        int reported = reportedStateOfHealth(context);
+        int systemCapacity = capacityFromReportedPercent(reported, designMah);
+        if (systemCapacity > 0) return systemCapacity;
         int measured = measurementMah(context, prefs);
         if (isPlausibleCapacity(measured)) return designMah > 0 ? Math.min(measured, designMah) : measured;
-        int reported = reportedStateOfHealth(context);
-        return reported > 0 && isPlausibleCapacity(designMah)
-                ? Math.round(designMah * reported / 100f) : 0;
+        return 0;
     }
 }
