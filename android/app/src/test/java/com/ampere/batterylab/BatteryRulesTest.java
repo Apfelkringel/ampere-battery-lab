@@ -24,6 +24,14 @@ public class BatteryRulesTest {
         assertTrue(BatteryState.resolveUiCharging(true, false, false));
     }
 
+    @Test public void powerBroadcastHintExpiresAfterSynchronizationWindow() {
+        assertTrue(BatteryState.isPowerHintFresh(true, 0, 2500));
+        assertTrue(BatteryState.isPowerHintFresh(true, 0, 5000));
+        assertFalse(BatteryState.isPowerHintFresh(true, 0, 5001));
+        assertFalse(BatteryState.isPowerHintFresh(false, 0, 2500));
+        assertFalse(BatteryState.isPowerHintFresh(true, 3000, 2500));
+    }
+
     @Test public void cycleCountRejectsMissingAndImplausibleValues() {
         assertTrue(BatteryCycleCount.isPlausible(0));
         assertTrue(BatteryCycleCount.isPlausible(100000));

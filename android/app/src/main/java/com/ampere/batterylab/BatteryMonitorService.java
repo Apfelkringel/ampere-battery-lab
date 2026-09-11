@@ -37,6 +37,7 @@ public class BatteryMonitorService extends Service {
     private HandlerThread monitorThread;
     private boolean transitionCheckScheduled;
     private Boolean powerConnectedHint;
+    private long powerConnectedHintAt;
     private final BroadcastReceiver batteryReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
             if (handler == null) return;
@@ -46,8 +47,10 @@ public class BatteryMonitorService extends Service {
                         || Intent.ACTION_POWER_DISCONNECTED.equals(action)) {
                     // Power broadcasts are authoritative for the physical cable
                     // edge. Keep that hint for the following battery snapshots so
-                    // a stale/intermediate EXTRA_STATUS cannot flip the session.
+                    // A stale/intermediate EXTRA_STATUS cannot flip the session;
+                    // the hint expires after the short synchronization window.
                     powerConnectedHint = Intent.ACTION_POWER_CONNECTED.equals(action);
+                    powerConnectedHintAt = SystemClock.elapsedRealtime();
                     recordSample();
                 } else {
                     recordSample(intent);
@@ -171,10 +174,16 @@ public class BatteryMonitorService extends Service {
         long now = System.currentTimeMillis();
         int status = battery.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN);
         int plugged = battery.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0);
-        boolean detectedCharging = powerConnectedHint != null
+        boolean freshPowerHint = BatteryState.isPowerHintFresh(
+                powerConnectedHint != null, powerConnectedHintAt, SystemClock.elapsedRealtime());
+        if (!freshPowerHint) {
+            powerConnectedHint = null;
+            powerConnectedHintAt = 0L;
+        }
+        boolean detectedCharging = freshPowerHint && powerConnectedHint != null
                 ? powerConnectedHint : BatteryState.isCharging(status, plugged);
         Boolean stableCharging;
-        if (powerConnectedHint != null) {
+        if (freshPowerHint && powerConnectedHint != null) {
             prefs.edit().remove("pendingChargingState").remove("pendingChargingSince").apply();
             stableCharging = detectedCharging;
         } else {

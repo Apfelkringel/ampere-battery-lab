@@ -117,6 +117,11 @@ Full-Charge-Kapazität umetikettiert; das folgt der vorsichtigen FCC-Aufzeichnun
 von [PlusPlusBattery](https://github.com/dijia1124/PlusPlusBattery). Der manuelle
 Benchmark bleibt der ausdrücklich gestartete Weg für eine vollständige Messung.
 
+Für die Sitzungsrichtung bleibt ein `POWER_CONNECTED`-/`POWER_DISCONNECTED`-
+Event nur als kurzer Synchronisationshinweis aktiv. Nach fünf Sekunden fällt
+Ampere auf den aktuellen `ACTION_BATTERY_CHANGED`-Status zurück; so wird ein
+verlorenes Kabel-Event nicht zu einem dauerhaft falschen Ladezustand.
+
 Für die Laufzeitprognose bleibt der persönliche lokale 7-Tage-Verlauf die
 erste Wahl. Wenn dafür noch keine ausreichenden Daten vorliegen, verwendet
 Ampere auf Android 12+ als Fallback `PowerManager.getBatteryDischargePrediction()`
