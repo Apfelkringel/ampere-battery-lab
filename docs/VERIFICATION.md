@@ -4,6 +4,9 @@ Last verified: 2026-09-11 (Europe/Berlin)
 
 ## Current development change
 
+Version `0.276` additionally removes the isolated purple screen-time accent
+from the dashboard and uses a restrained eucalyptus tone that belongs to the
+existing green-neutral visual system. Version `0.275` additionally keeps the charge-baseline anchor powered when
 Version `0.275` additionally keeps the charge-baseline anchor powered when
 an OEM omits `EXTRA_PLUGGED` but the resolved battery state is charging/full;
 this prevents a valid charging session from being treated as an unplug point.

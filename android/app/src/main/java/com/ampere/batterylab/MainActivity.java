@@ -611,7 +611,10 @@ class BatteryDashboard extends View {
     private final int lime = Color.rgb(199, 243, 107);
     private final int blue = Color.rgb(118, 184, 255);
     private final int amber = Color.rgb(242, 179, 106);
-    private final int violet = Color.rgb(180, 154, 255);
+    // Screen time is secondary context, not a competing alert. A quiet
+    // eucalyptus tone keeps it in the app's green-neutral material language
+    // instead of introducing a generic purple dashboard accent.
+    private final int screenTimeTone = Color.rgb(159, 181, 171);
 
     BatteryDashboard(Context context) {
         super(context);
@@ -2522,7 +2525,7 @@ class BatteryDashboard extends View {
         drawStat(c, 18, cardsTop, cardW, 105, "Akkugesundheit", healthDisplay(), health > 0 ? "%" : "", lime, primary, muted, border, panel, "heart");
         drawStat(c, 18 + cardW + cardGap, cardsTop, cardW, 105, "Akkutemperatur", temperatureDisplay(), temperature > 0f ? "°C" : "", amber, primary, muted, border, panel, "temp");
         drawStat(c, 18, cardsTop + 117, cardW, 105, "Spannung", voltageDisplay(), voltage > 0f ? "V" : "", blue, primary, muted, border, panel, "bolt");
-        drawStat(c, 18 + cardW + cardGap, cardsTop + 117, cardW, 105, "Bildschirmzeit", screenOnTimeCard(), "", Color.rgb(180, 154, 255), primary, muted, border, panel, "clock");
+        drawStat(c, 18 + cardW + cardGap, cardsTop + 117, cardW, 105, "Bildschirmzeit", screenOnTimeCard(), "", screenTimeTone, primary, muted, border, panel, "clock");
 
         float lowerTop = cardsTop + 234;
         drawChart(c, 18, lowerTop, w - 36, 360, panel, border, primary, muted, faint);
@@ -2589,7 +2592,7 @@ class BatteryDashboard extends View {
                 primary, muted, border, panel, "temp");
         drawStat(c, metricsX, top + 106, metricW, 98, "Spannung", voltageDisplay(), voltage > 0f ? "V" : "", blue,
                 primary, muted, border, panel, "bolt");
-        drawStat(c, metricsX + metricW + metricGap, top + 106, metricW, 98, "Screenzeit", screenOnTimeCard(), "", violet,
+        drawStat(c, metricsX + metricW + metricGap, top + 106, metricW, 98, "Screenzeit", screenOnTimeCard(), "", screenTimeTone,
                 primary, muted, border, panel, "clock");
 
         drawChart(c, 18, top + 218, w - 36, 360, panel, border, primary, muted, faint);
@@ -2645,7 +2648,7 @@ class BatteryDashboard extends View {
                 primary, muted, border, panel, "temp");
         drawStat(c, metricsX, top + 106, metricW, 98, "Spannung", voltageDisplay(), voltage > 0f ? "V" : "", blue,
                 primary, muted, border, panel, "bolt");
-        drawStat(c, metricsX + metricW + metricGap, top + 106, metricW, 98, "Screenzeit", screenOnTimeCard(), "", violet,
+        drawStat(c, metricsX + metricW + metricGap, top + 106, metricW, 98, "Screenzeit", screenOnTimeCard(), "", screenTimeTone,
                 primary, muted, border, panel, "clock");
 
         drawChart(c, 18, top + 218, w - 36, 360, panel, border, primary, muted, faint);
@@ -2725,7 +2728,7 @@ class BatteryDashboard extends View {
             text(c, chargeModeDetails(false), 285, y + 630, 10, blue, true);
         }
         float remainingTop = compact ? y + 720 : y + 665;
-        frame(c, 18, remainingTop, w - 18, remainingTop + 105, panel, border, violet);
+        frame(c, 18, remainingTop, w - 18, remainingTop + 105, panel, border, screenTimeTone);
         text(c, "VERBLEIBENDE NUTZUNGSZEIT", 36, remainingTop + 30, 10, muted, true);
         float useColumn = compact ? 36 : 36;
         float useColumnOn = compact ? 36 + (w - 72) / 3f : 160;
