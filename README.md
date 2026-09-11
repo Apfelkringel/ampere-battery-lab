@@ -50,6 +50,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - verbleibende Nutzungszeit wird als gemischt, Bildschirm-an und Bildschirm-aus ausgewiesen
 - separate Ladegeschwindigkeitswerte für Bildschirm-an und Bildschirm-aus in mA und %/h
 - Health-Baseline kann nach einem Akkutausch zurückgesetzt werden, ohne History oder Telemetrie zu löschen
+- Ungültige alte Gesundheitsmessungen werden beim Laden automatisch aus Graph und lokaler Messliste bereinigt
 - Backup-Dialog zeigt den letzten automatischen Backup-Anstoß; Baseline-Änderungen melden Android sofort eine Datenänderung
 - adaptive Darstellung ohne erzwungenes Hochformat für aktuelle Android-16/17-Geräte
 - responsive Kompaktansichten für schmale und breite Displays, zentrierter Inhaltsbereich auf Tablets/Foldables, 48-dp-Touch-Zonen und Screenreader-Zusammenfassung; Details in `docs/UI-UX.md`

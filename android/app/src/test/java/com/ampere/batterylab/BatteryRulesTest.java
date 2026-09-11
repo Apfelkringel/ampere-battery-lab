@@ -70,6 +70,9 @@ public class BatteryRulesTest {
         assertTrue(BatteryCapacity.isCacheFresh(1000L, 1001L));
         assertFalse(BatteryCapacity.isCacheFresh(1000L, 901001L));
         assertFalse(BatteryCapacity.isCacheFresh(0L, 1001L));
+        assertEquals("6600,7000", BatteryHealth.serializeSamples(
+                BatteryHealth.parseSamples("0,6600,110,-2,7000,broken")));
+        assertEquals(6600, BatteryHealth.averageRecentSamples("0,6600,110,-2,broken"));
     }
 
     @Test public void localCycleFallbackIgnoresLevelDropsWhileCharging() {

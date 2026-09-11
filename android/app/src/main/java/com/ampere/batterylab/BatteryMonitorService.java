@@ -603,14 +603,12 @@ public class BatteryMonitorService extends Service {
         long sessionStartedAt = prefs.getLong("monitorSessionStartedAt", 0L);
         if (prefs.getLong("healthSampleSessionAt", -1L) == sessionStartedAt) return;
         String saved = prefs.getString("healthSamples", "");
-        ArrayList<Integer> samples = new ArrayList<>();
-        if (!saved.isEmpty()) for (String value : saved.split(",")) try { samples.add(Integer.parseInt(value)); } catch (NumberFormatException ignored) { }
+        ArrayList<Integer> samples = BatteryHealth.parseSamples(saved);
         if (!samples.isEmpty() && samples.get(samples.size() - 1) == capacityMah) return;
         samples.add(capacityMah);
         while (samples.size() > 150) samples.remove(0);
-        StringBuilder output = new StringBuilder();
-        for (Integer sample : samples) { if (output.length() > 0) output.append(','); output.append(sample); }
-        prefs.edit().putString("healthSamples", output.toString()).putLong("healthSampleSessionAt", sessionStartedAt).apply();
+        prefs.edit().putString("healthSamples", BatteryHealth.serializeSamples(samples))
+                .putLong("healthSampleSessionAt", sessionStartedAt).apply();
     }
 
     /**

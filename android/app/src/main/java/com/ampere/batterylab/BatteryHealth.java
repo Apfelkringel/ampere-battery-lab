@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.BatteryManager;
 import android.os.Build;
+import java.util.ArrayList;
+import java.util.List;
 
 /** Converts a measured capacity into a bounded battery-health percentage. */
 final class BatteryHealth {
@@ -62,20 +64,38 @@ final class BatteryHealth {
     }
 
     static int averageRecentSamples(String serialized) {
-        if (serialized == null || serialized.trim().isEmpty()) return 0;
-        String[] values = serialized.split(",", -1);
-        int count = Math.min(5, values.length);
+        ArrayList<Integer> samples = parseSamples(serialized);
+        int count = Math.min(5, samples.size());
         long total = 0L;
-        int valid = 0;
-        for (int i = values.length - count; i < values.length; i++) {
+        for (int i = samples.size() - count; i < samples.size(); i++) {
+            total += samples.get(i);
+        }
+        return count > 0 ? Math.round(total / (float) count) : 0;
+    }
+
+    /** Parses only plausible capacity samples and bounds legacy history size. */
+    static ArrayList<Integer> parseSamples(String serialized) {
+        ArrayList<Integer> samples = new ArrayList<>();
+        if (serialized == null || serialized.trim().isEmpty()) return samples;
+        for (String value : serialized.split(",", -1)) {
             try {
-                int sample = Integer.parseInt(values[i].trim());
-                if (!isPlausibleCapacity(sample)) continue;
-                total += sample;
-                valid++;
+                int sample = Integer.parseInt(value.trim());
+                if (isPlausibleCapacity(sample)) samples.add(sample);
             } catch (NumberFormatException ignored) { }
         }
-        return valid > 0 ? Math.round(total / (float) valid) : 0;
+        while (samples.size() > 150) samples.remove(0);
+        return samples;
+    }
+
+    static String serializeSamples(List<Integer> samples) {
+        StringBuilder output = new StringBuilder();
+        if (samples == null) return "";
+        for (Integer sample : samples) {
+            if (sample == null || !isPlausibleCapacity(sample)) continue;
+            if (output.length() > 0) output.append(',');
+            output.append(sample);
+        }
+        return output.toString();
     }
 
     static int estimatedCapacityMah(Context context, SharedPreferences prefs, int designMah) {

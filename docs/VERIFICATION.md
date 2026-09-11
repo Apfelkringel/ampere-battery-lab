@@ -5,11 +5,14 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.146` (`versionCode 146`)
+- Version: `0.147` (`versionCode 147`)
 - `minSdk 23`, `targetSdk 37`
 - Release APK SHA-256: `a65f7d41e4248165ae5e1fb7f7d43443685c34dcdb58b002d0dddf439c200729`
 - The same hash is published in the public update repository manifest.
 
+Release `0.147` additionally filters legacy health-capacity samples once at
+load time and writes the normalized list back, so invalid points cannot remain
+in the health graph or future averages.
 Release `0.146` additionally refreshes dynamic OEM full-charge-capacity values
 every 15 minutes while the monitor is running, so learned fuel-gauge values do
 not remain stale for the lifetime of the process.

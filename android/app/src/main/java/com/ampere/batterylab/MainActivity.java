@@ -623,12 +623,7 @@ class BatteryDashboard extends View {
 
     private void reloadLiveCollections() {
         healthSamples.clear();
-        String savedHealth = prefs.getString("healthSamples", "");
-        if (!savedHealth.isEmpty()) {
-            for (String value : savedHealth.split(",")) {
-                try { healthSamples.add(Integer.parseInt(value)); } catch (NumberFormatException ignored) { }
-            }
-        }
+        loadAndCleanHealthSamples();
         sessions.clear();
         loadSessions(prefs.getString("sessions", ""));
         chargeAlarm = prefs.getBoolean("chargeAlarm", chargeAlarm);
@@ -638,9 +633,16 @@ class BatteryDashboard extends View {
     }
 
     private void reloadHealthSamples() {
-        String saved = prefs.getString("healthSamples", "");
         healthSamples.clear();
-        if (!saved.isEmpty()) for (String value : saved.split(",")) try { healthSamples.add(Integer.parseInt(value)); } catch (NumberFormatException ignored) { }
+        loadAndCleanHealthSamples();
+    }
+
+    private void loadAndCleanHealthSamples() {
+        String saved = prefs.getString("healthSamples", "");
+        ArrayList<Integer> cleaned = BatteryHealth.parseSamples(saved);
+        healthSamples.addAll(cleaned);
+        String normalized = BatteryHealth.serializeSamples(cleaned);
+        if (!saved.equals(normalized)) prefs.edit().putString("healthSamples", normalized).apply();
     }
 
     private void loadStoredData() {
@@ -658,8 +660,7 @@ class BatteryDashboard extends View {
         }
         if (longHistory.isEmpty()) longHistory.addAll(history);
         while (longHistory.size() > longHistoryRetentionSamples()) longHistory.remove(0);
-        String savedHealth = prefs.getString("healthSamples", "");
-        if (!savedHealth.isEmpty()) for (String value : savedHealth.split(",")) try { healthSamples.add(Integer.parseInt(value)); } catch (NumberFormatException ignored) { }
+        loadAndCleanHealthSamples();
         String savedSessions = prefs.getString("sessions", "");
         loadSessions(savedSessions);
         sessionStartedAt = prefs.getLong("sessionStartedAt", 0L);
