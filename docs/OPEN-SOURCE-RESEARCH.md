@@ -610,3 +610,16 @@ die Accessibility-Bounds teilen dieselben Maße; die Compact-Gesundheitszeile
 trennt Temperaturstatistik und Vollzyklen in zwei Label-/Wertzeilen, damit
 keine Textkollision entsteht. OLED-, Dark- und Light-Varianten bleiben tonal
 getrennt, während aktive Zustände zusätzlich textlich erkennbar sind.
+
+Für die nächste Button-Runde wurden die aktuellen Open-Source-Referenzen von
+[Material Components Android](https://github.com/material-components/material-components-android/blob/master/docs/components/Button.md),
+den [Material-Web-Button-Tokens](https://github.com/material-components/material-web/blob/main/docs/components/button.md)
+und dem [Lucide-Iconprojekt](https://github.com/lucide-icons/lucide) als
+Verhaltens- und Lizenzreferenz geprüft. Übernommen wurden nur die
+übertragbaren Prinzipien: tonal getrennte Button-Rollen, sichtbarer Press-State,
+große Touch-Ziele und konsistente Outline-/Icon-Geometrie. Die Canvas-Controls
+bleiben eine eigene, lokale Implementierung ohne zusätzliche Bibliotheks- oder
+Netzwerkabhängigkeit. Die neue visuelle Sprache heißt intern „Energy Rail“:
+aktive Controls erhalten einen schmalen Energie-Fuß, ruhige Innenkanten und
+eine zurückhaltende Materialstaffelung statt Neon-Glow, Schattenwolken oder
+flächendeckender Pillen.

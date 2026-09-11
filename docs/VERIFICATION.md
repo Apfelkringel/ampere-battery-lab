@@ -4,9 +4,11 @@ Last verified: 2026-09-11 (Europe/Berlin)
 
 ## Current development change
 
-Version `0.262` additionally refines the smooth button system with responsive
-text bounds and exact, non-overlapping touch/accessibility geometry for the
-charge controls. Version `0.261` additionally derives battery-side power from the existing
+Version `0.263` additionally refines the smooth button system with an
+Energy Rail visual language, tonal depth, readable active-tab contrast and
+responsive text bounds. Version `0.262` additionally aligned the charge
+controls' touch/accessibility geometry without overlap. Version `0.261`
+additionally derives battery-side power from the existing
 validated current and voltage telemetry. Charging and discharging ranges are
 kept separate, and minimum/average/maximum values are included in the
 diagnostic Research JSON and as a derived `battery_power_mw` CSV column.

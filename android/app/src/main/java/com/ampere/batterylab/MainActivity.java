@@ -2012,9 +2012,9 @@ class BatteryDashboard extends View {
     }
 
     private float u(float value) { return value * density; }
-    private void fill(Canvas c, int color) { p.setStyle(Paint.Style.FILL); p.setColor(color); }
-    private void stroke(Canvas c, int color, float width) { p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(u(width)); p.setStrokeCap(Paint.Cap.ROUND); p.setStrokeJoin(Paint.Join.ROUND); p.setColor(color); }
-    private void type(float size, int color, boolean bold) { p.setTextSize(u(size)); p.setColor(color); p.setTypeface(Typeface.create("sans", bold ? Typeface.BOLD : Typeface.NORMAL)); p.setStyle(Paint.Style.FILL); }
+    private void fill(Canvas c, int color) { p.setShader(null); p.setStyle(Paint.Style.FILL); p.setColor(color); }
+    private void stroke(Canvas c, int color, float width) { p.setShader(null); p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(u(width)); p.setStrokeCap(Paint.Cap.ROUND); p.setStrokeJoin(Paint.Join.ROUND); p.setColor(color); }
+    private void type(float size, int color, boolean bold) { p.setShader(null); p.setTextSize(u(size)); p.setColor(color); p.setTypeface(Typeface.create("sans", bold ? Typeface.BOLD : Typeface.NORMAL)); p.setStyle(Paint.Style.FILL); }
     private void text(Canvas c, String value, float x, float y, float size, int color, boolean bold) {
         float viewWidth = layoutWidthDp > 0f ? layoutWidthDp : getWidth() / density;
         float safeX = Math.max(8f, Math.min(x, Math.max(8f, viewWidth - 8f)));
@@ -2072,45 +2072,78 @@ class BatteryDashboard extends View {
         c.drawRoundRect(rect, u(radius), u(radius), p);
     }
 
+    private int mixColor(int from, int to, float amount) {
+        float t = Math.max(0f, Math.min(1f, amount));
+        return Color.rgb(
+                Math.round(Color.red(from) + (Color.red(to) - Color.red(from)) * t),
+                Math.round(Color.green(from) + (Color.green(to) - Color.green(from)) * t),
+                Math.round(Color.blue(from) + (Color.blue(to) - Color.blue(from)) * t));
+    }
+
+    private void gradientRounded(Canvas c, float l, float t, float r, float b, float radius,
+                                 int topColor, int bottomColor) {
+        p.setStyle(Paint.Style.FILL);
+        p.setShader(new LinearGradient(0, u(t), 0, u(b), topColor, bottomColor, Shader.TileMode.CLAMP));
+        rect.set(u(l), u(t), u(r), u(b));
+        c.drawRoundRect(rect, u(radius), u(radius), p);
+        p.setShader(null);
+    }
+
     /**
-     * Shared button treatment: a quiet tonal surface, a single crisp outline,
-     * and one accent state. Keeping this primitive shared prevents the old
-     * mix of outlined capsules, flat rectangles and undersized CTAs from
-     * drifting apart across pages.
+     * Shared Energy Rail control: a restrained vertical material gradient,
+     * an inset top edge and a real one-dp press-in. It gives every interactive
+     * surface the same physical language without relying on glow or a pill
+     * around every label.
      */
     private void smoothButton(Canvas c, float l, float t, float r, float b,
                               float radius, int baseColor, int borderColor, int accentColor,
                               boolean selected, boolean pressed) {
-        int fillColor = selected ? accentColor : baseColor;
+        float inset = pressed ? 1f : 0f;
+        float left = l + inset;
+        float top = t + inset;
+        float right = r - inset;
+        float bottom = b - inset;
+        int surface = selected ? accentColor : baseColor;
+        int topColor = mixColor(surface, Color.WHITE, selected ? .12f : (light ? .22f : .08f));
+        int bottomColor = mixColor(surface, Color.rgb(14, 20, 17), selected ? .08f : (light ? .045f : .18f));
         if (pressed) {
-            if (selected) {
-                fillColor = Color.rgb(
-                        Math.max(0, Color.red(accentColor) - 24),
-                        Math.max(0, Color.green(accentColor) - 24),
-                        Math.max(0, Color.blue(accentColor) - 24));
-            } else {
-                fillColor = pressedFill(baseColor, true);
-            }
+            topColor = mixColor(topColor, Color.rgb(14, 20, 17), selected ? .08f : .04f);
+            bottomColor = mixColor(bottomColor, Color.rgb(14, 20, 17), selected ? .10f : .06f);
         }
-        rounded(c, l, t, r, b, radius, fillColor);
-        stroke(c, selected ? accentColor : borderColor, pressed ? 1.4f : 1f);
-        rect.set(u(l), u(t), u(r), u(b));
-        c.drawRoundRect(rect, u(radius), u(radius), p);
+        gradientRounded(c, left, top, right, bottom, Math.max(7f, radius - (pressed ? 1f : 0f)), topColor, bottomColor);
+        stroke(c, selected ? mixColor(accentColor, Color.rgb(37, 55, 25), .3f) : borderColor, pressed ? 1.35f : 1f);
+        rect.set(u(left), u(top), u(right), u(bottom));
+        c.drawRoundRect(rect, u(Math.max(7f, radius - (pressed ? 1f : 0f))), u(Math.max(7f, radius - (pressed ? 1f : 0f))), p);
+        // A single hairline catches light at the top edge and replaces the
+        // heavy shadow treatment common to generic dashboard buttons.
+        line(c, left + radius, top + 1.2f, right - radius, top + 1.2f,
+                Color.argb(light ? 120 : 80, 255, 255, 255), .7f);
+        if (selected) {
+            rounded(c, left + 10f, bottom - 4f, right - 10f, bottom - 2f, 1f,
+                    mixColor(accentColor, Color.rgb(48, 70, 30), light ? .08f : .25f));
+        }
     }
 
     private void drawToggleButton(Canvas c, float l, float t, float r, float b,
                                   String label, String status, boolean enabled,
                                   boolean pressed, int primary, int muted, int raised, int border) {
         smoothButton(c, l, t, r, b, 12, raised, border, lime, false, pressed);
-        text(c, label, l + 14, t + (b - t) / 2f + 4f, 10, primary, true);
+        rounded(c, l + 9f, t + 10f, l + 13f, b - 10f, 2f, enabled ? lime : border);
+        text(c, label, l + 21, t + (b - t) / 2f + 4f, 10, primary, true);
         rightText(c, status, r - 56, t + (b - t) / 2f + 4f, 9, enabled ? lime : muted, false);
         float switchLeft = r - 48f;
         float switchTop = t + (b - t - 24f) / 2f;
-        rounded(c, switchLeft, switchTop, r - 12f, switchTop + 24f, 12,
-                enabled ? Color.rgb(87, 108, 48) : border);
+        int trackTop = enabled ? Color.rgb(111, 137, 60) : mixColor(border, Color.WHITE, light ? .08f : .04f);
+        int trackBottom = enabled ? Color.rgb(73, 91, 40) : mixColor(border, Color.rgb(14, 20, 17), light ? .03f : .14f);
+        gradientRounded(c, switchLeft, switchTop, r - 12f, switchTop + 24f, 12, trackTop, trackBottom);
+        stroke(c, enabled ? Color.rgb(77, 96, 43) : border, .8f);
+        rect.set(u(switchLeft), u(switchTop), u(r - 12f), u(switchTop + 24f));
+        c.drawRoundRect(rect, u(12), u(12), p);
         fill(c, enabled ? lime : muted);
         c.drawCircle(u(enabled ? r - 24f : switchLeft + 12f),
                 u(switchTop + 12f), u(8f), p);
+        fill(c, Color.argb(light ? 135 : 85, 255, 255, 255));
+        c.drawCircle(u(enabled ? r - 26f : switchLeft + 10f), u(switchTop + 9f), u(2.2f), p);
     }
 
     private void frame(Canvas c, float l, float t, float r, float b, int panel, int border, int accent) {
@@ -2289,24 +2322,30 @@ class BatteryDashboard extends View {
         float cell = (w - 36) / 5f;
         final float navTop = 120f;
         final float navBottom = 168f;
-        smoothButton(c, 18, navTop, w - 18, navBottom, 16, panel, border, lime, false, false);
+        controlSurface(c, 18, navTop, w - 18, navBottom, 16, panel, border);
         for (int i = 0; i < labels.length; i++) {
             float x = 18 + i * cell;
             float centerX = x + cell / 2f;
             boolean active = page == i;
             boolean pressed = isPressed(10 + i);
             if (active || pressed) {
-                // Equal insets and a shared 40dp indicator keep every item
-                // centered, independent of label length or device width.
-                smoothButton(c, x + 4, 124, x + cell - 4, 164, 12,
-                        panel, border, lime, active && !pressed, pressed);
+                // The active state is an instrument rail, not another pill:
+                // the tonal wash gives context while the lime footmark gives
+                // a precise, color-plus-position cue for the selected page.
+                int activeSurface = light ? Color.rgb(239, 247, 222) : Color.rgb(35, 48, 29);
+                if (pressed) activeSurface = pressedFill(activeSurface, true);
+                rounded(c, x + 4, 124, x + cell - 4, 164, 10, activeSurface);
+                if (active) {
+                    rounded(c, x + 13, 160, x + cell - 13, 163, 1.5f, lime);
+                }
             }
-            int iconColor = active ? Color.rgb(23, 28, 16) : muted;
+            int activeTextColor = light ? Color.rgb(23, 28, 16) : lime;
+            int iconColor = active ? activeTextColor : muted;
             if (compactNav) {
                 // A fixed 24dp icon slot plus one shared label baseline is
                 // the same top-centered model used by Material NavigationBar.
                 drawNavGlyph(c, i, centerX, 136, iconColor);
-                centeredText(c, labels[i], centerX, 158, 8.5f, active ? Color.rgb(23, 28, 16) : muted, active);
+                centeredText(c, labels[i], centerX, 158, 8.5f, active ? activeTextColor : muted, active);
             } else {
                 // Material's horizontal navigation layout centers one shared
                 // content block: a 24-dp icon box, fixed icon/label spacing,
@@ -2315,13 +2354,13 @@ class BatteryDashboard extends View {
                 final float iconBox = 24f;
                 final float iconLabelGap = 8f;
                 String fittedLabel = fitText(labels[i], Math.max(24f, cell - iconBox - iconLabelGap - 12f), 9, active);
-                type(9, active ? Color.rgb(23, 28, 16) : muted, active);
+                type(9, active ? activeTextColor : muted, active);
                 float labelWidth = p.measureText(fittedLabel) / density;
                 float groupWidth = iconBox + iconLabelGap + labelWidth;
                 float groupLeft = centerX - groupWidth / 2f;
                 drawNavGlyph(c, i, groupLeft + iconBox / 2f, 144, iconColor);
                 boundedText(c, fittedLabel, groupLeft + iconBox + iconLabelGap, x + cell - 8f, 148, 9,
-                        active ? Color.rgb(23, 28, 16) : muted, active);
+                        active ? activeTextColor : muted, active);
             }
         }
     }
