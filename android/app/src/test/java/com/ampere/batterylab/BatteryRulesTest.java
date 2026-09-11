@@ -159,6 +159,12 @@ public class BatteryRulesTest {
         assertEquals("", BatteryExportRules.normalizeTelemetry(invalid));
     }
 
+    @Test public void telemetryRowsAreCanonicalizedChronologically() {
+        String newer = "1700000000100,46,1,900,25.0,4.20,6600,0,,12,2";
+        String older = "1700000000000,45,1,900,25.0,4.20,6590,0,,12,2";
+        assertEquals(older + "\n" + newer, BatteryExportRules.normalizeTelemetry(newer + "\n" + older));
+    }
+
     @Test public void telemetryExportRejectsContradictoryCurrentDirection() {
         String[] charging = {"1700000000000", "46", "1", "-900", "25.0", "4.20", "6600", "0", "", "12", "2"};
         String[] discharging = {"1700000000000", "46", "0", "900", "25.0", "4.20", "6600", "0", "", "12", "0"};
@@ -209,6 +215,15 @@ public class BatteryRulesTest {
         String invalid = "Charge,0%,1 Min.,11.09. 12:00";
         assertEquals(valid, BatterySessionRules.normalizeSerialized(valid + "|" + invalid + "|"));
         assertEquals("", BatterySessionRules.normalizeSerialized(invalid));
+    }
+
+    @Test public void clockRollbackCannotCreateBackwardsSession() {
+        assertTrue(BatteryTimelineRules.isRollback(2_000L, 1_999L));
+        assertFalse(BatteryTimelineRules.isRollback(2_000L, 2_000L));
+        assertTrue(BatteryTimelineRules.isForward(2_000L, 2_001L));
+        assertFalse(BatteryTimelineRules.isForward(2_000L, 1_999L));
+        assertEquals(0L, BatteryTimelineRules.sessionMinutes(2_000L, 1_999L));
+        assertEquals(1L, BatteryTimelineRules.sessionMinutes(2_000L, 2_001L));
     }
 
     @Test public void sessionChangeUsesMeasuredEnergyWhenLevelSnapshotIsNoisy() {

@@ -5,9 +5,13 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.192` (`versionCode 192`)
+- Version: `0.193` (`versionCode 193`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `64cd1b30d1b1df6fe1a0e4912f63ba0e2ef5faf99d0beac448c1becb1df70f0d`
+- Release APK SHA-256: wird nach dem signierten CI-Artefakt ergänzt
+
+Release `0.193` additionally sorts valid telemetry rows by timestamp before
+analytics, export and persistence. It also refuses to write a backwards
+session after a wall-clock rollback, preserving the existing local data.
 
 Release `0.192` additionally removes the unnecessary API-36 gate from the
 Android BatteryManager state-of-health probe. Android 14/15 devices and OEM

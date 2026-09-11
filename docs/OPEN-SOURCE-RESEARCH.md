@@ -72,6 +72,11 @@ Referenzen: [Android BatteryManager](https://developer.android.com/reference/and
 [ABattery](https://github.com/abanana84/abattery) und
 [BatteryLog](https://github.com/TheDeathDragon/BatteryLog).
 
+Wie bei historischen Batterie-Loggern wird die lokale Zeitreihe vor
+aufeinanderfolgenden Raten- und Diagramm-Berechnungen chronologisch sortiert.
+Wenn die Geräteuhr rückwärts korrigiert wurde, verwirft Ampere außerdem die
+offene Sitzungsgrenze statt eine künstliche Ein-Minuten-Sitzung zu speichern.
+
 Jeder automatische Treffer bleibt auf 500–30.000 mAh begrenzt und wird als
 Quelle angezeigt. Ein nicht verfügbarer Wert wird weder als `0 mAh` noch als
 Gesundheitsmessung dargestellt.

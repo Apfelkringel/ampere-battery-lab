@@ -1,6 +1,7 @@
 package com.ampere.batterylab;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 /** Keeps malformed legacy telemetry from aborting a user-requested export. */
 final class BatteryExportRules {
@@ -53,7 +54,15 @@ final class BatteryExportRules {
         for (String row : serialized.split("\\n", -1)) {
             if (!row.trim().isEmpty() && isValidTelemetry(row.split(",", -1))) rows.add(row);
         }
+        // A manual clock correction or a restored file can leave valid rows
+        // out of order. Analytics consume consecutive rows, so canonicalize
+        // their timeline before any chart/rate calculation uses them.
+        Collections.sort(rows, (left, right) -> Long.compare(timestampOf(left), timestampOf(right)));
         return rows;
+    }
+
+    private static long timestampOf(String row) {
+        return Long.parseLong(row.substring(0, row.indexOf(',' )).trim());
     }
 
     /** Serializes only rows that are safe to keep after backup restore/migration. */

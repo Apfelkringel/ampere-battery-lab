@@ -37,6 +37,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - Lokale Gesundheitsmessungen werden über die letzten fünf gültigen Ladevorgänge robust per Median ausgewertet, damit ein einzelner Ausreißer die Anzeige nicht verfälscht
 - Ein gültiger Android-SoH-Wert ist die gemeinsame Quelle für Prozent- und Kapazitätsanzeige; ungültige oder nicht plausible Quellen bleiben ausdrücklich nicht verfügbar
 - Android-SoH wird auf Android 14–17 opportunistisch über die vorhandene BatteryManager-Eigenschaft gelesen; Feature-Flag, OEM-Backport oder fehlende Berechtigung ändern nur die Fallback-Quelle, niemals die Validierungsgrenze
+- Telemetrie-Zeitreihen werden vor Berechnung und Export chronologisch kanonisiert; eine manuelle Uhrkorrektur erzeugt dadurch keine rückwärts laufenden Raten oder Diagrammlinien
 - Automatische Gesundheitsproben entstehen nur nach einer nahezu vollständigen Ladung ab 95 % und dem zuletzt gültigen Ladestrom bis 25 mA; der manuelle Benchmark bleibt separat
 - Kabel-Events überbrücken nur die kurze Android-Broadcast-Verzögerung; danach wird der tatsächliche Status erneut synchronisiert, damit Sitzungen nicht dauerhaft falsch offen bleiben
 - Alle gespeicherten Phasen-Prozentwerte werden vor Berechnung und Anzeige auf endliche Werte zwischen 0 und 100 % geprüft; kumulativer Verbrauch seit voller Ladung darf fachlich über 100 % liegen

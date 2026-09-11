@@ -264,7 +264,11 @@ public class BatteryMonitorService extends Service {
             if (manager != null) manager.cancel(9);
             if (temperatureSent) prefs.edit().putBoolean("temperatureAlarmSent", false).apply();
         }
-        if (now - prefs.getLong("lastSample", 0L) < sampleInterval()) return;
+        long lastSampleAt = prefs.getLong("lastSample", 0L);
+        // Wall-clock changes must not block sampling forever. The next sample
+        // establishes a new baseline; persisted points are never rewritten.
+        if (BatteryTimelineRules.isRollback(lastSampleAt, now)) lastSampleAt = 0L;
+        if (now - lastSampleAt < sampleInterval()) return;
         String saved = prefs.getString("history", "");
         ArrayList<Integer> points = new ArrayList<>();
         if (!saved.isEmpty()) for (String point : saved.split(",")) try {
@@ -563,8 +567,17 @@ public class BatteryMonitorService extends Service {
                     .putInt("monitorSessionStartLevel", level).putInt("monitorSessionStartCounterMah", counterMah).apply();
             return;
         }
+        if (BatteryTimelineRules.isRollback(startedAt, now)) {
+            // A user/NTP time correction can make the persisted boundary lie
+            // in the future. Reset only the open boundary; never write a
+            // backwards session that would later poison history or exports.
+            prefs.edit().putLong("monitorSessionStartedAt", now).putBoolean("monitorLastCharging", charging)
+                    .putInt("monitorSessionStartLevel", level).putInt("monitorSessionStartCounterMah", counterMah).apply();
+            return;
+        }
         if (previousCharging == charging) return;
-        long minutes = Math.max(1L, (now - startedAt) / 60000L);
+        long minutes = BatteryTimelineRules.sessionMinutes(startedAt, now);
+        if (minutes <= 0L) return;
         int change = level - startLevel;
         int energy = counterMah > 0 && startCounter > 0 ? (previousCharging ? Math.max(0, counterMah - startCounter) : Math.max(0, startCounter - counterMah)) : 0;
         // The state transition is authoritative, but a level snapshot can be
