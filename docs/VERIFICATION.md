@@ -5,9 +5,15 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.223` (`versionCode 223`)
+- Version: `0.224` (`versionCode 224`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `391c15d9ba540a1dc59bfbb46b04da5fd1edd0da2ef25f1a008d191c1136644f`
+- Release APK SHA-256: wird nach dem signierten CI-Artefakt ergänzt
+
+Release `0.224` additionally exposes the visible page controls through the
+same virtual accessibility tree as the header: chart range, charging toggles,
+benchmark, capacity editing, usage details and CSV export use page-local
+screen bounds and stateful labels. Touch exploration also emits only one
+hover-enter event per control.
 
 Release `0.223` additionally supplies screen-space bounds for the Canvas
 dashboard's virtual accessibility controls, so TalkBack can place focus on

@@ -793,7 +793,10 @@ class BatteryDashboard extends View {
     }
 
     private int healthPercent() {
-        return healthReading.percent;
+        // Keep a final guard at the last consumer as well as in the reader.
+        // This protects every Canvas and accessibility surface if a future
+        // source reader or restored object ever bypasses the normal path.
+        return BatteryHealth.displayPercent(healthReading.percent);
     }
 
     private int healthMeasurementMah() {
@@ -874,6 +877,30 @@ class BatteryDashboard extends View {
     private int calculationCapacityMah() {
         int measured = estimatedCapacityMah();
         return measured > 0 ? measured : Math.max(0, designCapacityMah());
+    }
+
+    /** Uses the same guarded benchmark action for touch and accessibility. */
+    private void toggleBenchmark() {
+        if (benchmarkActive) {
+            benchmarkActive = false;
+            prefs.edit().putBoolean("benchmarkActive", false)
+                    .remove("benchmarkStartLevel").remove("benchmarkStartCounterMah")
+                    .remove("benchmarkChargeLastCounterMah").remove("benchmarkChargeAddedMah")
+                    .remove("benchmarkChargeStatsBaselineMah").apply();
+        } else if (charging || level > 25) {
+            Toast.makeText(getContext(), "Starte den Benchmark getrennt vom Ladegerät unter 25 %.", Toast.LENGTH_LONG).show();
+        } else {
+            benchmarkActive = true;
+            SharedPreferences.Editor editor = prefs.edit().putBoolean("benchmarkActive", true)
+                    .putInt("benchmarkStartLevel", level).putInt("benchmarkChargeAddedMah", 0)
+                    .remove("benchmarkChargeLastCounterMah")
+                    .remove("benchmarkChargeStatsBaselineMah");
+            if (chargeCounterMah > 0) editor.putInt("benchmarkStartCounterMah", chargeCounterMah);
+            else editor.remove("benchmarkStartCounterMah");
+            editor.apply();
+        }
+        updateAccessibilitySummary();
+        invalidate();
     }
 
     private void editDesignCapacity() {
@@ -3066,12 +3093,14 @@ class BatteryDashboard extends View {
 
     private void updateAccessibilitySummary() {
         String state = level < 0 ? "Akku nicht verfügbar" : (charging ? "Laden erkannt" : "Akkubetrieb");
+        int health = healthPercent();
         String capacity = BatteryCapacityLevel.isAvailable(capacityLevel)
                 ? " Kapazitätsniveau " + BatteryCapacityLevel.label(capacityLevel) + "." : "";
         String chargingProfile = charging && BatteryChargingState.isSpecial(chargingStatus)
                 ? " Ladeprofil " + BatteryChargingState.label(chargingStatus) + "." : "";
         setContentDescription(pageName() + ". " + state + ". Akkustand "
                 + (level >= 0 ? level + " Prozent" : "nicht verfügbar") + ". "
+                + "Akkugesundheit " + (health > 0 ? health + " Prozent" : "nicht gemessen") + ". "
                 + "Android-Zustand " + BatteryPlatformHealth.label(platformHealth) + "." + capacity
                 + chargingProfile
                 + " Tabs: Übersicht, Laden, Entladen, Gesundheit, Verlauf. Aktiver Tab: " + pageName() + ".");
@@ -3082,13 +3111,18 @@ class BatteryDashboard extends View {
         if (virtualViewId >= 10 && virtualViewId <= 14) return true;
         if (virtualViewId == BatteryHeaderLayout.OVERFLOW
                 || virtualViewId == BatteryHeaderLayout.THEME) return true;
-        return virtualViewId == BatteryHeaderLayout.LIVE_REFRESH && getWidth() / density >= 390f;
+        if (virtualViewId == BatteryHeaderLayout.LIVE_REFRESH) return getWidth() / density >= 390f;
+        return BatteryAccessibilityLayout.isVisible(virtualViewId, page);
     }
 
     private String virtualViewLabel(int virtualViewId) {
         if (virtualViewId == BatteryHeaderLayout.OVERFLOW) return "Einstellungen";
         if (virtualViewId == BatteryHeaderLayout.THEME) return light ? "Dunkles Design" : "Helles Design";
         if (virtualViewId == BatteryHeaderLayout.LIVE_REFRESH) return "Live-Daten aktualisieren";
+        if (BatteryAccessibilityLayout.isVisible(virtualViewId, page)) {
+            return BatteryAccessibilityLayout.label(virtualViewId, historyDays == 30,
+                    chargeAlarm, overlayEnabled, benchmarkActive);
+        }
         String[] labels = getWidth() / density < 480f
                 ? new String[]{"Start", "Laden", "Entladen", "Gesundheit", "Verlauf"}
                 : new String[]{"Übersicht", "Laden", "Entladen", "Gesundheit", "Verlauf"};
@@ -3113,6 +3147,14 @@ class BatteryDashboard extends View {
             return new Rect(Math.round((w - 64f) * density), Math.round(12f * density),
                     Math.round((w - 16f) * density), Math.round(60f * density));
         }
+        if (BatteryAccessibilityLayout.isVisible(virtualViewId, page)) {
+            float bodyWidth = contentWidth(w);
+            float bodyInset = contentInset(w);
+            int[] bounds = BatteryAccessibilityLayout.bounds(virtualViewId, bodyInset, bodyWidth,
+                    overviewChartTop(), historyExportTop());
+            return new Rect(Math.round(bounds[0] * density), Math.round(bounds[1] * density),
+                    Math.round(bounds[2] * density), Math.round(bounds[3] * density));
+        }
         float cell = (w - 36f) / 5f;
         float left = 18f + (virtualViewId - 10) * cell + 4f;
         return new Rect(Math.round(left * density), Math.round(124f * density),
@@ -3126,6 +3168,13 @@ class BatteryDashboard extends View {
         if (y >= 118f && y < 176f && x >= 18f && x <= w - 18f) {
             float cell = (w - 36f) / 5f;
             return 10 + Math.max(0, Math.min(4, (int) ((x - 18f) / cell)));
+        }
+        float bodyWidth = contentWidth(w);
+        float bodyInset = contentInset(w);
+        for (int id : BatteryAccessibilityLayout.pageControlsFor(page)) {
+            int[] bounds = BatteryAccessibilityLayout.bounds(id, bodyInset, bodyWidth,
+                    overviewChartTop(), historyExportTop());
+            if (x >= bounds[0] && x <= bounds[2] && y >= bounds[1] && y <= bounds[3]) return id;
         }
         return AccessibilityNodeProvider.HOST_VIEW_ID;
     }
@@ -3150,6 +3199,34 @@ class BatteryDashboard extends View {
             updateAccessibilitySummary();
             updateLayoutHeight();
             invalidate();
+        } else if (virtualViewId == BatteryAccessibilityLayout.OVERVIEW_7D
+                || virtualViewId == BatteryAccessibilityLayout.OVERVIEW_30D) {
+            historyDays = virtualViewId == BatteryAccessibilityLayout.OVERVIEW_30D ? 30 : 7;
+            prefs.edit().putInt("historyDays", historyDays).apply();
+            updateAccessibilitySummary();
+            invalidate();
+        } else if (virtualViewId == BatteryAccessibilityLayout.CHARGE_ALARM) {
+            chargeAlarm = !chargeAlarm;
+            prefs.edit().putBoolean("chargeAlarm", chargeAlarm).apply();
+            if (!chargeAlarm) {
+                android.app.NotificationManager manager = (android.app.NotificationManager)
+                        getContext().getSystemService(Context.NOTIFICATION_SERVICE);
+                if (manager != null) manager.cancel(8);
+                prefs.edit().putBoolean("chargeAlarmSent", false).apply();
+            }
+            updateAccessibilitySummary();
+            invalidate();
+        } else if (virtualViewId == BatteryAccessibilityLayout.CHARGE_OVERLAY) {
+            setOverlayEnabled(!overlayEnabled);
+            updateAccessibilitySummary();
+        } else if (virtualViewId == BatteryAccessibilityLayout.HEALTH_BENCHMARK) {
+            toggleBenchmark();
+        } else if (virtualViewId == BatteryAccessibilityLayout.HEALTH_CAPACITY) {
+            editDesignCapacity();
+        } else if (virtualViewId == BatteryAccessibilityLayout.DISCHARGE_USAGE) {
+            showAppUsageDetails();
+        } else if (virtualViewId == BatteryAccessibilityLayout.HISTORY_EXPORT) {
+            exportHistory();
         }
     }
 
@@ -3164,6 +3241,9 @@ class BatteryDashboard extends View {
                 if (isVisibleVirtualView(BatteryHeaderLayout.LIVE_REFRESH)) {
                     host.addChild(BatteryDashboard.this, BatteryHeaderLayout.LIVE_REFRESH);
                 }
+                for (int id : BatteryAccessibilityLayout.pageControlsFor(page)) {
+                    host.addChild(BatteryDashboard.this, id);
+                }
                 return host;
             }
             if (!isVisibleVirtualView(virtualViewId)) return null;
@@ -3171,7 +3251,9 @@ class BatteryDashboard extends View {
                     BatteryDashboard.this, virtualViewId);
             String label = virtualViewLabel(virtualViewId);
             node.setPackageName(getContext().getPackageName());
-            node.setClassName("android.widget.Button");
+            boolean toggle = virtualViewId == BatteryAccessibilityLayout.CHARGE_ALARM
+                    || virtualViewId == BatteryAccessibilityLayout.CHARGE_OVERLAY;
+            node.setClassName(toggle ? "android.widget.Switch" : "android.widget.Button");
             node.setText(label);
             node.setContentDescription(label);
             node.setParent(BatteryDashboard.this);
@@ -3189,7 +3271,14 @@ class BatteryDashboard extends View {
             node.setEnabled(isEnabled());
             node.setFocusable(true);
             node.setClickable(true);
-            node.setSelected(virtualViewId >= 10 && virtualViewId - 10 == page);
+            node.setSelected((virtualViewId >= 10 && virtualViewId - 10 == page)
+                    || (virtualViewId == BatteryAccessibilityLayout.OVERVIEW_7D && historyDays == 7)
+                    || (virtualViewId == BatteryAccessibilityLayout.OVERVIEW_30D && historyDays == 30));
+            if (toggle) {
+                node.setCheckable(true);
+                node.setChecked(virtualViewId == BatteryAccessibilityLayout.CHARGE_ALARM
+                        ? chargeAlarm : overlayEnabled);
+            }
             node.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK);
             node.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_ACCESSIBILITY_FOCUS);
             node.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLEAR_ACCESSIBILITY_FOCUS);
@@ -3222,7 +3311,7 @@ class BatteryDashboard extends View {
             ArrayList<AccessibilityNodeInfo> result = new ArrayList<>();
             if (searched == null) return result;
             String query = searched.toLowerCase(Locale.GERMANY);
-            for (int id = 1; id <= 14; id++) {
+            for (int id = 1; id <= BatteryAccessibilityLayout.HISTORY_EXPORT; id++) {
                 if (!isVisibleVirtualView(id)) continue;
                 String label = virtualViewLabel(id);
                 if (label.toLowerCase(Locale.GERMANY).contains(query)) {
@@ -3417,25 +3506,7 @@ class BatteryDashboard extends View {
             return true;
         }
         if (page == 3 && y > 700 && y < 815 && x > bodyW - 140) {
-            if (benchmarkActive) {
-                benchmarkActive = false;
-                prefs.edit().putBoolean("benchmarkActive", false)
-                        .remove("benchmarkStartLevel").remove("benchmarkStartCounterMah")
-                        .remove("benchmarkChargeLastCounterMah").remove("benchmarkChargeAddedMah")
-                        .remove("benchmarkChargeStatsBaselineMah").apply();
-            } else if (charging || level > 25) {
-                Toast.makeText(getContext(), "Starte den Benchmark getrennt vom Ladegerät unter 25 %.", Toast.LENGTH_LONG).show();
-            } else {
-                benchmarkActive = true;
-                SharedPreferences.Editor editor = prefs.edit().putBoolean("benchmarkActive", true)
-                        .putInt("benchmarkStartLevel", level).putInt("benchmarkChargeAddedMah", 0)
-                        .remove("benchmarkChargeLastCounterMah")
-                        .remove("benchmarkChargeStatsBaselineMah");
-                if (chargeCounterMah > 0) editor.putInt("benchmarkStartCounterMah", chargeCounterMah);
-                else editor.remove("benchmarkStartCounterMah");
-                editor.apply();
-            }
-            invalidate();
+            toggleBenchmark();
             return true;
         }
         if (page == 3 && y > 815 && y < 890) {

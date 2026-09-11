@@ -19,6 +19,53 @@ public class BatteryRulesTest {
         assertFalse(BatteryState.isCharging(BatteryManager.BATTERY_STATUS_DISCHARGING, BatteryManager.BATTERY_PLUGGED_AC));
     }
 
+    @Test public void pageAccessibilityControlsFollowTheActivePage() {
+        assertTrue(BatteryAccessibilityLayout.isVisible(
+                BatteryAccessibilityLayout.OVERVIEW_7D, 0));
+        assertTrue(BatteryAccessibilityLayout.isVisible(
+                BatteryAccessibilityLayout.OVERVIEW_30D, 0));
+        assertFalse(BatteryAccessibilityLayout.isVisible(
+                BatteryAccessibilityLayout.OVERVIEW_7D, 1));
+        assertTrue(BatteryAccessibilityLayout.isVisible(
+                BatteryAccessibilityLayout.CHARGE_ALARM, 1));
+        assertTrue(BatteryAccessibilityLayout.isVisible(
+                BatteryAccessibilityLayout.CHARGE_OVERLAY, 1));
+        assertTrue(BatteryAccessibilityLayout.isVisible(
+                BatteryAccessibilityLayout.HEALTH_BENCHMARK, 3));
+        assertTrue(BatteryAccessibilityLayout.isVisible(
+                BatteryAccessibilityLayout.HEALTH_CAPACITY, 3));
+        assertTrue(BatteryAccessibilityLayout.isVisible(
+                BatteryAccessibilityLayout.DISCHARGE_USAGE, 2));
+        assertTrue(BatteryAccessibilityLayout.isVisible(
+                BatteryAccessibilityLayout.HISTORY_EXPORT, 4));
+    }
+
+    @Test public void pageAccessibilityBoundsStayInsideTheCenteredBody() {
+        for (int page = 0; page <= 4; page++) {
+            for (int id : BatteryAccessibilityLayout.pageControlsFor(page)) {
+                int[] bounds = BatteryAccessibilityLayout.bounds(
+                        id, 18f, 360f, 430f, 1280f);
+                assertTrue(bounds[0] >= 18);
+                assertTrue(bounds[1] >= 0);
+                assertTrue(bounds[2] <= 378);
+                assertTrue(bounds[3] > bounds[1]);
+            }
+        }
+    }
+
+    @Test public void pageAccessibilityLabelsExposeCurrentToggleState() {
+        assertEquals("7 Tage", BatteryAccessibilityLayout.label(
+                BatteryAccessibilityLayout.OVERVIEW_7D, false, true, false, false));
+        assertEquals("30 Tage", BatteryAccessibilityLayout.label(
+                BatteryAccessibilityLayout.OVERVIEW_30D, true, true, false, false));
+        assertEquals("Ladealarm: Aus", BatteryAccessibilityLayout.label(
+                BatteryAccessibilityLayout.CHARGE_ALARM, false, false, false, false));
+        assertEquals("Live-Anzeige: Aktiv", BatteryAccessibilityLayout.label(
+                BatteryAccessibilityLayout.CHARGE_OVERLAY, false, true, true, false));
+        assertEquals("Benchmark stoppen", BatteryAccessibilityLayout.label(
+                BatteryAccessibilityLayout.HEALTH_BENCHMARK, false, true, false, true));
+    }
+
     @Test public void uiUsesRecentStabilizedMonitorState() {
         assertTrue(BatteryState.resolveUiCharging(false, true, true));
         assertFalse(BatteryState.resolveUiCharging(true, true, false));
