@@ -131,6 +131,15 @@ public class BatteryRulesTest {
         assertEquals("20 h 4 m", BatteryDuration.compact(1204));
     }
 
+    @Test public void liveHeaderRefreshHasASeparateWideHitbox() {
+        assertEquals(BatteryHeaderLayout.LIVE_REFRESH,
+                BatteryHeaderLayout.actionAt(379f, 36f, 411f));
+        assertEquals(BatteryHeaderLayout.NONE,
+                BatteryHeaderLayout.actionAt(350f, 36f, 360f));
+        assertEquals(BatteryHeaderLayout.NONE,
+                BatteryHeaderLayout.actionAt(379f, 72f, 411f));
+    }
+
     @Test public void finalHealthGateNeverReturnsAnImpossiblePercentage() {
         for (int value : new int[]{-100, 0, 101, 110, 1000, Integer.MAX_VALUE}) {
             assertEquals(0, BatteryHealth.displayPercent(value));

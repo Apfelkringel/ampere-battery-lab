@@ -23,8 +23,8 @@ charging state, blue for neutral telemetry and amber for warnings or wear.
 - Drawn tabs use a 48 dp vertical touch target, a fixed 24 dp icon slot and a
   shared label baseline while preserving the visual tab height.
 - Header actions use the same 48 dp bounds, radius and outline geometry; the
-  live badge is centered as one icon/text group instead of positioning its
-  dot and label independently.
+  live refresh action is centered as one dot/text group and immediately reads
+  Android's current sticky battery broadcast.
 - Landscape overview cards reserve separate lanes for the gauge and the live
   status row; redundant status chips are omitted when they would compete for
   the same geometry, and the gauge has an explicit gap below the heading.

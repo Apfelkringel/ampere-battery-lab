@@ -1750,16 +1750,10 @@ class BatteryDashboard extends View {
     private boolean isPressed(int region) { return pressedRegion == region; }
 
     private int pressedRegionAt(float x, float y, float w) {
-        // Keep the touch map in lockstep with drawHeader(): below 390 dp the
-        // header has two controls, so the three-control hitboxes must not be
-        // used on common 320/360 dp phone windows.
-        if (w < 390f) {
-            if (y >= 8 && y < 70 && x > w - 116 && x < w - 64) return 1; // overflow
-            if (y >= 8 && y < 70 && x >= w - 64 && x < w - 12) return 2; // theme
-        }
-        if (y >= 8 && y < 70 && x > w - 184 && x < w - 128) return 1; // overflow
-        if (y >= 8 && y < 70 && x >= w - 128 && x < w - 72) return 2; // theme
-        if (y >= 8 && y < 70 && x >= w - 72 && x < w - 16) return 3; // live status
+        // Keep hit testing exactly aligned with the header's responsive action
+        // geometry; this avoids a drawn control with a dead or shifted target.
+        int headerAction = BatteryHeaderLayout.actionAt(x, y, w);
+        if (headerAction != BatteryHeaderLayout.NONE) return headerAction;
         if (y >= 118 && y < 176 && x >= 18 && x <= w - 18) {
             float cell = (w - 36) / 5f;
             return 10 + Math.max(0, Math.min(4, (int) ((x - 18) / cell)));
@@ -3142,8 +3136,18 @@ class BatteryDashboard extends View {
         if (System.currentTimeMillis() - lastTouch < 80) return true;
         lastTouch = System.currentTimeMillis();
         float w = getWidth() / density;
-        if (releasedRegion == 1 && y < 70) { showSettings(); return true; }
-        if (releasedRegion == 2 && y < 70) { light = !light; amoled = false; prefs.edit().putBoolean("lightTheme", light).putBoolean("amoledTheme", amoled).apply(); applySystemBarTheme(); invalidate(); return true; }
+        if (releasedRegion == BatteryHeaderLayout.OVERFLOW && y < 70) { showSettings(); return true; }
+        if (releasedRegion == BatteryHeaderLayout.THEME && y < 70) { light = !light; amoled = false; prefs.edit().putBoolean("lightTheme", light).putBoolean("amoledTheme", amoled).apply(); applySystemBarTheme(); invalidate(); return true; }
+        if (releasedRegion == BatteryHeaderLayout.LIVE_REFRESH && y < 70) {
+            // The LIVE control is an explicit refresh action: Android's
+            // sticky battery broadcast is read immediately, so the user can
+            // verify the current state without waiting for the next sample.
+            Intent battery = ((Activity) getContext()).registerReceiver(
+                    null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+            if (battery != null) readBattery(battery);
+            Toast.makeText(getContext(), "Live-Daten aktualisiert.", Toast.LENGTH_SHORT).show();
+            return true;
+        }
         if (y >= 124 && y < 174) {
             float cell = (w - 36) / 5f;
             page = Math.max(0, Math.min(4, (int) ((screenX - 18) / cell)));
