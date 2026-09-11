@@ -117,6 +117,13 @@ public class BatteryRulesTest {
         assertEquals("", reading.source);
     }
 
+    @Test public void samsungAsocIsAHealthAttributeButQualitativeHealthIsNot() {
+        assertTrue(BatteryCapacity.isStateOfHealthAttribute("state_of_health"));
+        assertTrue(BatteryCapacity.isStateOfHealthAttribute("fg_asoc"));
+        assertTrue(BatteryCapacity.isStateOfHealthAttribute("battery_soh"));
+        assertFalse(BatteryCapacity.isStateOfHealthAttribute("health"));
+    }
+
     @Test public void widgetUsesShortLayoutForVeryLowHeight() {
         assertEquals(BatteryWidgetLayoutRules.SHORT,
                 BatteryWidgetLayoutRules.select(320, 56));

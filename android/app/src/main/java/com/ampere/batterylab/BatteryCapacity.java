@@ -206,13 +206,18 @@ final class BatteryCapacity {
 
     private static PercentReading readStateOfHealth(File supply) {
         // state_of_health is the standard Linux power_supply spelling. The
-        // two aliases cover common OEM fuel-gauge nodes, but qualitative
-        // "health" is intentionally excluded because it means Good/Dead/etc.
-        String[] names = {"state_of_health", "battery_state_of_health", "soh"};
+        // aliases cover common OEM fuel-gauge nodes. Samsung commonly exposes
+        // its aging ratio as fg_asoc; qualitative "health" is intentionally
+        // excluded because it means Good/Dead/etc., not a percentage.
+        String[] names = {"state_of_health", "battery_state_of_health", "soh", "battery_soh", "fg_asoc"};
         for (String name : names) {
             long raw = readLong(new File(supply, name));
             int percent = normalizeStateOfHealth(raw);
-            if (percent > 0) return new PercentReading(percent, "Batterie-Treiber (SoH)");
+            if (percent > 0) {
+                String source = "fg_asoc".equals(name)
+                        ? "Samsung-Batterietreiber (ASOC)" : "Batterie-Treiber (SoH)";
+                return new PercentReading(percent, source);
+            }
         }
         return null;
     }
@@ -220,6 +225,15 @@ final class BatteryCapacity {
     /** Accepts only the ABI's integer percentage; 110 remains invalid. */
     static int normalizeStateOfHealth(long raw) {
         return raw >= 1L && raw <= 100L ? (int) raw : 0;
+    }
+
+    /** Recognizes explicit SoH/ASOC attributes, never the qualitative health state. */
+    static boolean isStateOfHealthAttribute(String name) {
+        return "state_of_health".equals(name)
+                || "battery_state_of_health".equals(name)
+                || "soh".equals(name)
+                || "battery_soh".equals(name)
+                || "fg_asoc".equals(name);
     }
 
     private static Reading readChargeCapacity(File supply) {

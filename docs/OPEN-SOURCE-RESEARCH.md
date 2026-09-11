@@ -142,6 +142,14 @@ damit er nicht stillschweigend als `100` ausgegeben wird. Die Intent-Auswertung
 und die Trennung zwischen beiden Bedeutungen sind in `BatteryRulesTest`
 regressionsgesichert.
 
+Für Samsung-Kompatibilität übernimmt Ampere zusätzlich nur den expliziten,
+lesbaren `fg_asoc`-Treiberwert als ASOC-SoH-Fallback. Dieser Pfad ist in
+offenen Samsung-Diagnoseprojekten als sekundäre Quelle dokumentiert; er wird
+gegen denselben Bereich 1–100 geprüft und als `Samsung-Batterietreiber (ASOC)`
+gekennzeichnet. Das qualitative Linux-Attribut `health` bleibt absichtlich
+ausgeschlossen, weil `Good`/`Dead` kein Prozentwert ist. Es wurde kein
+proprietärer oder GPL-Code kopiert.
+
 Für den Live-Strom liest Ampere zuerst `BatteryManager.CURRENT_NOW` und
 `CURRENT_AVERAGE`. Wenn ein OEM dort keinen verwertbaren Wert liefert, folgt
 ein strikt lesender Fallback auf `current_now` beziehungsweise `current_avg`
