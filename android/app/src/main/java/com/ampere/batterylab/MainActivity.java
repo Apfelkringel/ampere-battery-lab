@@ -765,7 +765,7 @@ class BatteryDashboard extends View {
 
     private int healthPercent() {
         int design = designCapacityMah();
-        return BatteryHealth.displayPercent(BatteryHealth.percent(getContext(), prefs, design));
+        return BatteryHealth.resolveDisplayPercent(getContext(), prefs, design);
     }
 
     private int healthMeasurementMah() {

@@ -34,6 +34,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - best-effort lokale Designkapazitäts-Erkennung mit Batterie-/BMS-Treiber, Energie-/Spannungswerten und Android-PowerProfile sowie separate Full-Charge-Kapazität vom Batterie-Treiber; jede Quelle bleibt mit Einheitengrenzen und Herkunft transparent
 - dynamische Full-Charge-Kapazität wird im laufenden Monitor regelmäßig neu gelesen, damit OEM-Lernwerte nach einer Ladung nicht veralten
 - Health-Auswertung mit letztem Ladeverschleiß und äquivalenten Vollzyklen (EFC); Gesundheit wird fachlich auf maximal 100 % begrenzt, ungültige OEM-Werte über 100 % werden verworfen
+- Jede Gesundheitsanzeige läuft zusätzlich durch einen zentralen Endfilter; Werte wie 110 % werden auf allen Seiten und in der Hintergrundbenachrichtigung als nicht gemessen behandelt
 - Lokale Gesundheitsmessungen werden über die letzten fünf gültigen Ladevorgänge robust per Median ausgewertet, damit ein einzelner Ausreißer die Anzeige nicht verfälscht
 - Ein gültiger Android-SoH-Wert ist die gemeinsame Quelle für Prozent- und Kapazitätsanzeige; ungültige oder nicht plausible Quellen bleiben ausdrücklich nicht verfügbar
 - Android-SoH wird auf Android 14–17 opportunistisch über die vorhandene BatteryManager-Eigenschaft gelesen; Feature-Flag, OEM-Backport oder fehlende Berechtigung ändern nur die Fallback-Quelle, niemals die Validierungsgrenze

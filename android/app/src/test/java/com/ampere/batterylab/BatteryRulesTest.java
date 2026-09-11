@@ -67,6 +67,15 @@ public class BatteryRulesTest {
         assertEquals(0, BatteryHealth.displayPercent(110));
     }
 
+    @Test public void finalHealthGateNeverReturnsAnImpossiblePercentage() {
+        for (int value : new int[]{-100, 0, 101, 110, 1000, Integer.MAX_VALUE}) {
+            assertEquals(0, BatteryHealth.displayPercent(value));
+        }
+        for (int value = 1; value <= 100; value++) {
+            assertEquals(value, BatteryHealth.displayPercent(value));
+        }
+    }
+
     @Test public void automaticHealthSamplesRequireAStableNearFullCharge() {
         assertTrue(BatteryHealthSampleRules.isEligible(30, 96, 4200, 20));
         assertFalse(BatteryHealthSampleRules.isEligible(30, 94, 4200, 20));

@@ -5,9 +5,13 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.197` (`versionCode 197`)
+- Version: `0.198` (`versionCode 198`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `b778a74a2995246d4d1c0807c7bb9401f1dd88858e8956f82b3299df4b1fb323`
+- Release APK SHA-256: wird nach dem signierten CI-Artefakt ergänzt
+
+Release `0.198` additionally routes every displayed health value through one
+final validation gate. Only 1–100 % can be shown; invalid OEM/API values and
+legacy values such as 110 % become unavailable instead of being rendered.
 
 Release `0.197` additionally plots charging/discharging current using the
 actual telemetry timestamps. Long collection gaps are left as visual gaps

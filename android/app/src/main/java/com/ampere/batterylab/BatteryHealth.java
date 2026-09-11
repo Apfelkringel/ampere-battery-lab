@@ -24,8 +24,24 @@ final class BatteryHealth {
 
     /** Uses Android's system-reported SoH when the running platform exposes it. */
     static int percent(Context context, SharedPreferences prefs, int designMah) {
-        int reported = reportedStateOfHealth(context);
-        return displayPercent(reported > 0 ? reported : percent(measurementMah(context, prefs), designMah));
+        return resolveDisplayPercent(context, prefs, designMah);
+    }
+
+    /**
+     * Single source of truth for the percentage shown in every UI surface.
+     *
+     * Keep the final gate at the outside of the complete source hierarchy.
+     * This is deliberately redundant with the individual readers: a future
+     * OEM/API reader must never be able to make an impossible value visible
+     * just because it was added before the existing validation code.
+     */
+    static int resolveDisplayPercent(Context context, SharedPreferences prefs, int designMah) {
+        if (prefs == null) return 0;
+        int reported = displayPercent(reportedStateOfHealth(context));
+        int resolved = reported > 0
+                ? reported
+                : percent(measurementMah(context, prefs), designMah);
+        return displayPercent(resolved);
     }
 
     static boolean isPlausibleCapacity(int mah) {
@@ -58,7 +74,8 @@ final class BatteryHealth {
 
     static int reportedStateOfHealth(Context context) {
         int systemValue = batteryManagerStateOfHealth(context);
-        return systemValue > 0 ? systemValue : BatteryCapacity.stateOfHealthPercent();
+        int fallback = BatteryCapacity.stateOfHealthPercent();
+        return displayPercent(systemValue > 0 ? systemValue : fallback);
     }
 
     static String reportedStateOfHealthSource(Context context) {
