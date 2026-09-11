@@ -71,6 +71,7 @@ public class MainActivity extends Activity {
             "history", "historyLong", "lastSample", "healthSamples", "sessions",
             "sessionStartedAt", "sessionStartLevel", "sessionStartChargeCounterMah", "lastCharging",
             "chargeAlarm", "chargeAlarmSent", "chargeLimit", "benchmarkActive", "benchmarkCapacityMah",
+            "temperatureAlarm", "temperatureAlarmSent", "temperatureAlarmThresholdTenths",
             "benchmarkStartLevel", "benchmarkStartCounterMah", "benchmarkChargeLastCounterMah",
             "benchmarkChargeAddedMah", "benchmarkChargeStatsBaselineMah", "healthSampleSessionAt",
             "lastChargeHealthReason", "totalChargedMah", "chargeCycles", "cycleLastLevel",
@@ -1325,7 +1326,7 @@ class BatteryDashboard extends View {
     }
 
     private void showSettings() {
-        String[] options = {"Dunkles Design", "AMOLED-Schwarz", "Helles Design", "Benachrichtigungen", "Overlay-Berechtigung", "Daten & Datenschutz", "Sicherung & Wiederherstellung", "Hintergrundüberwachung", "Datenerfassung", "Nach Updates suchen", "Kurzanleitung", "Gesundheitsbasis zurücksetzen", "Lokale Daten löschen"};
+        String[] options = {"Dunkles Design", "AMOLED-Schwarz", "Helles Design", "Benachrichtigungen", "Temperaturwarnung", "Overlay-Berechtigung", "Daten & Datenschutz", "Sicherung & Wiederherstellung", "Hintergrundüberwachung", "Datenerfassung", "Nach Updates suchen", "Kurzanleitung", "Gesundheitsbasis zurücksetzen", "Lokale Daten löschen"};
         LinearLayout titleBar = new LinearLayout(getContext());
         titleBar.setOrientation(LinearLayout.HORIZONTAL);
         titleBar.setGravity(Gravity.CENTER_VERTICAL);
@@ -1358,20 +1359,22 @@ class BatteryDashboard extends View {
                     getContext().startActivity(notificationSettings);
                 } catch (Exception ignored) { }
             } else if (which == 4) {
-                try { getContext().startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getContext().getPackageName()))); } catch (Exception ignored) { }
+                showTemperatureAlarmSettings();
             } else if (which == 5) {
-                showDataPrivacy();
+                try { getContext().startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getContext().getPackageName()))); } catch (Exception ignored) { }
             } else if (which == 6) {
-                showBackupRestore();
+                showDataPrivacy();
             } else if (which == 7) {
-                requestBackgroundMonitoring();
+                showBackupRestore();
             } else if (which == 8) {
-                showDataCollection();
+                requestBackgroundMonitoring();
             } else if (which == 9) {
-                UpdateChecker.checkNow((Activity) getContext());
+                showDataCollection();
             } else if (which == 10) {
-                showTutorial(true);
+                UpdateChecker.checkNow((Activity) getContext());
             } else if (which == 11) {
+                showTutorial(true);
+            } else if (which == 12) {
                 confirmResetHealthBaseline();
             } else {
                 confirmDeleteData();
@@ -1404,6 +1407,30 @@ class BatteryDashboard extends View {
             });
         });
         dialog.show();
+    }
+
+    private void showTemperatureAlarmSettings() {
+        final int[] thresholds = {0, 400, 450, 500, 550};
+        final String[] labels = {"Aus", "Ab 40 °C", "Ab 45 °C (empfohlen)", "Ab 50 °C", "Ab 55 °C"};
+        int current = prefs.getBoolean("temperatureAlarm", true)
+                ? BatteryTemperatureAlarm.normalizeThreshold(prefs.getInt("temperatureAlarmThresholdTenths", BatteryTemperatureAlarm.DEFAULT_THRESHOLD_TENTHS))
+                : 0;
+        int selected = 0;
+        for (int i = 0; i < thresholds.length; i++) if (thresholds[i] == current) selected = i;
+        final int[] choice = {selected};
+        new AlertDialog.Builder(getContext())
+                .setTitle("Temperaturwarnung")
+                .setMessage("Ampere informiert dich einmalig, wenn die vom Akku gemeldete Temperatur den Grenzwert erreicht. Die Warnung wird erst unter 3 °C darunter zurückgesetzt.")
+                .setSingleChoiceItems(labels, selected, (dialog, which) -> choice[0] = which)
+                .setNegativeButton("Abbrechen", null)
+                .setPositiveButton("Speichern", (dialog, which) -> {
+                    boolean enabled = thresholds[choice[0]] > 0;
+                    int threshold = enabled ? thresholds[choice[0]] : BatteryTemperatureAlarm.DEFAULT_THRESHOLD_TENTHS;
+                    prefs.edit().putBoolean("temperatureAlarm", enabled)
+                            .putInt("temperatureAlarmThresholdTenths", threshold)
+                            .remove("temperatureAlarmSent").apply();
+                    Toast.makeText(getContext(), enabled ? labels[choice[0]] : "Temperaturwarnung ausgeschaltet", Toast.LENGTH_LONG).show();
+                }).show();
     }
 
     private void showDataCollection() {

@@ -233,6 +233,19 @@ public class BatteryMonitorService extends Service {
             if (manager != null) manager.cancel(8);
             if (alarmSent) prefs.edit().putBoolean("chargeAlarmSent", false).apply();
         }
+        boolean temperatureAlarm = prefs.getBoolean("temperatureAlarm", true);
+        int temperatureThreshold = BatteryTemperatureAlarm.normalizeThreshold(
+                prefs.getInt("temperatureAlarmThresholdTenths", BatteryTemperatureAlarm.DEFAULT_THRESHOLD_TENTHS));
+        boolean temperatureSent = prefs.getBoolean("temperatureAlarmSent", false);
+        if (BatteryTemperatureAlarm.shouldAlert(temperature, temperatureThreshold, temperatureAlarm, temperatureSent)) {
+            NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            if (manager != null) manager.notify(9, temperatureAlarmNotification(temperature, temperatureThreshold));
+            prefs.edit().putBoolean("temperatureAlarmSent", true).apply();
+        } else if (!temperatureAlarm || BatteryTemperatureAlarm.shouldReset(temperature, temperatureThreshold)) {
+            NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            if (manager != null) manager.cancel(9);
+            if (temperatureSent) prefs.edit().putBoolean("temperatureAlarmSent", false).apply();
+        }
         if (now - prefs.getLong("lastSample", 0L) < sampleInterval()) return;
         String saved = prefs.getString("history", "");
         ArrayList<Integer> points = new ArrayList<>();
@@ -814,6 +827,18 @@ public class BatteryMonitorService extends Service {
                 .setContentText("Akku bei " + value + "% · eingestelltes Ziel " + limit + "%")
                 .setContentIntent(pending)
                 .setAutoCancel(true)
+                .build();
+    }
+
+    private Notification temperatureAlarmNotification(int temperatureTenths, int thresholdTenths) {
+        Intent launch = new Intent(this, MainActivity.class);
+        PendingIntent pending = PendingIntent.getActivity(this, 3, launch, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? new Notification.Builder(this, ALARM_CHANNEL_ID) : new Notification.Builder(this);
+        return builder.setSmallIcon(com.ampere.batterylab.R.drawable.ic_launcher)
+                .setContentTitle("Hohe Akkutemperatur")
+                .setContentText(String.format(Locale.GERMANY, "Akku bei %.1f °C · Grenzwert %.1f °C", temperatureTenths / 10f, thresholdTenths / 10f))
+                .setContentIntent(pending)
+                .setAutoCancel(false)
                 .build();
     }
 

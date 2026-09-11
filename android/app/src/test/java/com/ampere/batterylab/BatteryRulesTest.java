@@ -113,6 +113,16 @@ public class BatteryRulesTest {
         assertEquals("≈ 4,5 W", BatteryPower.label(4500));
     }
 
+    @Test public void temperatureAlarmUsesThresholdAndHysteresis() {
+        assertEquals(450, BatteryTemperatureAlarm.normalizeThreshold(0));
+        assertTrue(BatteryTemperatureAlarm.shouldAlert(450, 450, true, false));
+        assertFalse(BatteryTemperatureAlarm.shouldAlert(449, 450, true, false));
+        assertFalse(BatteryTemperatureAlarm.shouldAlert(500, 450, true, true));
+        assertFalse(BatteryTemperatureAlarm.shouldReset(430, 450));
+        assertTrue(BatteryTemperatureAlarm.shouldReset(420, 450));
+        assertFalse(BatteryTemperatureAlarm.shouldAlert(500, 450, false, false));
+    }
+
     @Test public void capacityUnitsNormalizeWithoutInventingAValue() {
         assertEquals(6600L, BatteryCapacity.normalizeCapacity(6600000L));
         assertEquals(6600L, BatteryCapacity.normalizeCapacity(6600L));

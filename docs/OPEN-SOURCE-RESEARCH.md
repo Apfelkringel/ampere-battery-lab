@@ -98,6 +98,12 @@ gemessener Akkustrom wird mit der Akkuspannung multipliziert. Die Implementierun
 prüft Einheiten und Grenzen, zeigt die Größe als Akku-Seitenleistung mit `≈` an
 und behauptet damit ausdrücklich keine Leistung an der Steckdose.
 
+Die Temperaturwarnung folgt dem in mehreren offenen Batteriemonitoren üblichen
+Muster aus Grenzwert und Hysterese: eine Warnung wird nur einmal ausgelöst und
+erst nach deutlicher Abkühlung zurückgesetzt. Ampere speichert die Einstellung
+lokal, nutzt den Android-Akkusensor und verändert weder Ladeleistung noch
+Systemeinstellungen.
+
 Für die optionale App-Nutzungsansicht verwendet Ampere bevorzugt Androids
 `UsageStatsManager.queryEvents()`. Aggregierte `queryUsageStats()`-Tageswerte
 können laut Android-Dokumentation über den angefragten Zeitraum hinausreichen;
