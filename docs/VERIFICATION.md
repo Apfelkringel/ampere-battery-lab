@@ -5,9 +5,14 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.206` (`versionCode 206`)
+- Version: `0.208` (`versionCode 208`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `ed3f8b855e9e180899b35bacf5331c290ef23ce2f1f150b050447bdeb7cc3b03`
+- Release APK SHA-256: wird nach dem signierten CI-Artefakt ergänzt
+
+Release `0.208` additionally refreshes one shared validated health snapshot
+after stored-data reloads, live samples, restores and design-capacity changes.
+All health surfaces therefore use the same source and cannot mix an invalid
+system value such as 110% with a different capacity fallback.
 
 Release `0.207` additionally resolves health percentage and its derived
 capacity through one validated source snapshot. An invalid system SoH such as

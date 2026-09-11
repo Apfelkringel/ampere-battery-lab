@@ -95,6 +95,13 @@ public class BatteryRulesTest {
         assertEquals("Android BatteryManager", reading.source);
     }
 
+    @Test public void healthSnapshotKeepsMeasuredCapacityWhenDesignValueIsUnavailable() {
+        BatteryHealth.HealthReading reading = BatteryHealth.resolveReading(
+                0, 6600, 0, "", "lokale Lademessungen");
+        assertEquals(0, reading.percent);
+        assertEquals(6600, reading.capacityMah);
+    }
+
     @Test public void finalHealthGateNeverReturnsAnImpossiblePercentage() {
         for (int value : new int[]{-100, 0, 101, 110, 1000, Integer.MAX_VALUE}) {
             assertEquals(0, BatteryHealth.displayPercent(value));

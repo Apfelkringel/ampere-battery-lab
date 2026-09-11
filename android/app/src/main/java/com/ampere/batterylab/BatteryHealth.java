@@ -111,7 +111,20 @@ final class BatteryHealth {
         String reportedSource = reported > 0 ? reportedStateOfHealthSource(context) : "";
         int measured = measurementMah(context, prefs);
         return resolveReading(reported, measured, designMah, reportedSource,
-                "lokale Lademessungen");
+                measurementSource(context, prefs));
+    }
+
+    private static String measurementSource(Context context, SharedPreferences prefs) {
+        if (averageRecentSamples(prefs.getString("healthSamples", "")) > 0) {
+            return "lokale Lademessungen";
+        }
+        if (isPlausibleCapacity(prefs.getInt("benchmarkCapacityMah", 0))) {
+            return "manueller Benchmark";
+        }
+        if (BatteryCapacity.fullChargeCapacityMah(context) > 0) {
+            return BatteryCapacity.fullChargeCapacitySource(context);
+        }
+        return "";
     }
 
     static String reportedStateOfHealthSource(Context context) {

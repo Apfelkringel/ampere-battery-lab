@@ -463,6 +463,7 @@ class BatteryDashboard extends View {
     private final ArrayList<Integer> longHistory = new ArrayList<>();
     private final ArrayList<Integer> healthSamples = new ArrayList<>();
     private final ArrayList<String> sessions = new ArrayList<>();
+    private BatteryHealth.HealthReading healthReading = new BatteryHealth.HealthReading(0, 0, "");
     private boolean charging = false;
     private boolean light = false;
     private boolean amoled = false;
@@ -498,6 +499,7 @@ class BatteryDashboard extends View {
         prefs = context.getSharedPreferences("ampere-data", Context.MODE_PRIVATE);
         telemetryPrefs = context.getSharedPreferences("ampere-telemetry", Context.MODE_PRIVATE);
         loadStoredData();
+        refreshHealthReading();
         updateAccessibilitySummary();
     }
 
@@ -520,6 +522,7 @@ class BatteryDashboard extends View {
         healthSamples.clear();
         sessions.clear();
         loadStoredData();
+        refreshHealthReading();
         updateLayoutHeight();
         invalidate();
     }
@@ -648,6 +651,7 @@ class BatteryDashboard extends View {
         loadAndCleanHealthSamples();
         sessions.clear();
         loadSessions(prefs.getString("sessions", ""));
+        refreshHealthReading();
         chargeAlarm = prefs.getBoolean("chargeAlarm", chargeAlarm);
         chargeLimit = loadChargeLimit();
         benchmarkActive = prefs.getBoolean("benchmarkActive", benchmarkActive);
@@ -657,6 +661,11 @@ class BatteryDashboard extends View {
     private void reloadHealthSamples() {
         healthSamples.clear();
         loadAndCleanHealthSamples();
+        refreshHealthReading();
+    }
+
+    private void refreshHealthReading() {
+        healthReading = BatteryHealth.read(getContext(), prefs, designCapacityMah());
     }
 
     private void loadAndCleanHealthSamples() {
@@ -764,15 +773,14 @@ class BatteryDashboard extends View {
     }
 
     private int healthPercent() {
-        int design = designCapacityMah();
-        return BatteryHealth.resolveDisplayPercent(getContext(), prefs, design);
+        return healthReading.percent;
     }
 
     private int healthMeasurementMah() {
-        return BatteryHealth.measurementMah(getContext(), prefs);
+        return healthReading.capacityMah;
     }
 
-    private String healthDisplay() { return healthPercent() > 0 ? String.valueOf(healthPercent()) : "—"; }
+    private String healthDisplay() { return healthReading.percent > 0 ? String.valueOf(healthReading.percent) : "—"; }
 
     private String temperatureDisplay() { return temperature > 0f ? String.format(Locale.US, "%.1f", temperature) : "—"; }
 
@@ -824,29 +832,25 @@ class BatteryDashboard extends View {
     }
 
     private int estimatedCapacityMah() {
-        return BatteryHealth.estimatedCapacityMah(getContext(), prefs, designCapacityMah());
+        return healthReading.capacityMah > 0
+                ? (designCapacityMah() > 0
+                        ? Math.min(healthReading.capacityMah, designCapacityMah())
+                        : healthReading.capacityMah) : 0;
     }
 
     private String healthMeasurementSource() {
-        String systemSource = BatteryHealth.reportedStateOfHealthSource(getContext());
-        if (!systemSource.isEmpty()) return systemSource;
-        String serialized = prefs.getString("healthSamples", "");
-        if (BatteryHealth.averageRecentSamples(serialized) > 0) return "lokalen Lademessungen";
-        if (BatteryHealth.isPlausibleCapacity(prefs.getInt("benchmarkCapacityMah", 0))) return "manuellem Benchmark";
-        if (BatteryCapacity.fullChargeCapacityMah(getContext()) > 0) return BatteryCapacity.fullChargeCapacitySource(getContext());
-        return "keiner Messung";
+        return healthReading.source.isEmpty() ? "keiner Messung" : healthReading.source;
     }
 
     private String healthMeasurementSourceLabel() {
-        String systemSource = BatteryHealth.reportedStateOfHealthSource(getContext());
-        if (!systemSource.isEmpty()) {
-            return "Android BatteryManager".equals(systemSource)
-                    ? "Android-Systemwert" : "Batterie-Treiber-SoH";
+        String source = healthReading.source;
+        if (!source.isEmpty()) {
+            if ("Android BatteryManager".equals(source)) return "Android-Systemwert";
+            if ("lokale Lademessungen".equals(source)) return "lokale Lademessungen";
+            if ("manueller Benchmark".equals(source)) return "manueller Benchmark";
+            if (source.contains("SoH")) return "Batterie-Treiber-SoH";
+            return "BMS-/Treiberwert";
         }
-        String serialized = prefs.getString("healthSamples", "");
-        if (BatteryHealth.averageRecentSamples(serialized) > 0) return "lokale Lademessungen";
-        if (BatteryHealth.isPlausibleCapacity(prefs.getInt("benchmarkCapacityMah", 0))) return "manueller Benchmark";
-        if (BatteryCapacity.fullChargeCapacityMah(getContext()) > 0) return "BMS-/Treiberwert";
         return "keine Messung";
     }
 
@@ -875,9 +879,11 @@ class BatteryDashboard extends View {
                         int capacity = Integer.parseInt(input.getText().toString().trim());
                         if (capacity == 0) {
                             prefs.edit().remove("designCapacityMah").apply();
+                            refreshHealthReading();
                             invalidate();
                         } else if (capacity >= 500 && capacity <= 30000) {
                             prefs.edit().putInt("designCapacityMah", capacity).apply();
+                            refreshHealthReading();
                             invalidate();
                         }
                     } catch (NumberFormatException ignored) { }
