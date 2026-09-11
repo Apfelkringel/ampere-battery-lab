@@ -14,6 +14,11 @@ final class BatteryCapacityLevel {
     static int fromIntent(Intent battery) {
         if (battery == null) return -1;
         int value = battery.getIntExtra(EXTRA, -1);
+        return normalize(value);
+    }
+
+    /** Keeps the validation rule testable without a mocked Android framework. */
+    static int normalize(int value) {
         return isAvailable(value) ? value : -1;
     }
 

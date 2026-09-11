@@ -25,6 +25,10 @@ Apache-2.0- und MIT-Projekten verwendet; GPL-Code wurde nicht übernommen.
   wie eine reine Informationskachel Strom, Spannung, Temperatur und Ladestatus
   sinnvoll bündelt. Verwendet wurde nur die Produktidee; der Quellcode wurde
   nicht übernommen.
+- [Android AOSP BatteryManager](https://android.googlesource.com/platform/frameworks/base/+/main/core/java/android/os/BatteryManager): offizielle
+  API-Definition für Androids qualitative Kapazitätsstufe. Diese Stufe ist ein
+  Power-Management-Signal und keine Akkugesundheit in Prozent; Ampere zeigt sie
+  deshalb separat und nur bei tatsächlich vorhandenem Systemwert.
 
 ## Bewusst nicht übernommen
 
@@ -63,6 +67,12 @@ unplausible Sprünge werden verworfen. Die Anzeige markiert diesen Fallback mit
 
 Die gemeinsam verwendeten Regeln sind in `BatteryRulesTest` gegen Androids
 Status-/Netzquellenregel und gegen ungültige Zyklusgrenzen abgesichert.
+
+Die Android-16/17-Kapazitätsstufe wird in `BatteryCapacityLevel` bewusst nicht
+in `BatteryHealth.percent(...)` eingespeist. Ein Systemwert wie `Hoch` oder
+`Voll` kann damit niemals versehentlich als `110 %` oder als andere
+Gesundheitszahl dargestellt werden. Die Intent-Auswertung und die Trennung
+zwischen beiden Bedeutungen sind in `BatteryRulesTest` regressionsgesichert.
 
 Für die optionale App-Nutzungsansicht verwendet Ampere bevorzugt Androids
 `UsageStatsManager.queryEvents()`. Aggregierte `queryUsageStats()`-Tageswerte

@@ -81,6 +81,12 @@ public class BatteryRulesTest {
         assertEquals("Nicht verfügbar", BatteryCapacityLevel.label(-1));
     }
 
+    @Test public void capacityLevelNormalizesOnlyAndroidsQualitativeSignal() {
+        assertEquals(4, BatteryCapacityLevel.normalize(4));
+        assertEquals(-1, BatteryCapacityLevel.normalize(0));
+        assertEquals(-1, BatteryCapacityLevel.normalize(6));
+    }
+
     @Test public void capacityUnitsNormalizeWithoutInventingAValue() {
         assertEquals(6600L, BatteryCapacity.normalizeCapacity(6600000L));
         assertEquals(6600L, BatteryCapacity.normalizeCapacity(6600L));
