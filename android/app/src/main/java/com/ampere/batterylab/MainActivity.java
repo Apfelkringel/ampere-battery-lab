@@ -731,13 +731,19 @@ class BatteryDashboard extends View {
         int measured = 0;
         if (!healthSamples.isEmpty()) {
             int count = Math.min(5, healthSamples.size());
-            int total = 0;
-            for (int i = healthSamples.size() - count; i < healthSamples.size(); i++) total += healthSamples.get(i);
-            measured = Math.round(total / (float) count);
+            long total = 0L;
+            int validSamples = 0;
+            for (int i = healthSamples.size() - count; i < healthSamples.size(); i++) {
+                int sample = healthSamples.get(i);
+                if (!BatteryHealth.isPlausibleCapacity(sample)) continue;
+                total += sample;
+                validSamples++;
+            }
+            measured = validSamples > 0 ? Math.round(total / (float) validSamples) : 0;
         }
-        if (measured <= 0) measured = prefs.getInt("benchmarkCapacityMah", 0);
-        if (measured <= 0) measured = BatteryCapacity.fullChargeCapacityMah(getContext());
-        return measured;
+        if (!BatteryHealth.isPlausibleCapacity(measured)) measured = prefs.getInt("benchmarkCapacityMah", 0);
+        if (!BatteryHealth.isPlausibleCapacity(measured)) measured = BatteryCapacity.fullChargeCapacityMah(getContext());
+        return BatteryHealth.isPlausibleCapacity(measured) ? measured : 0;
     }
 
     private String healthDisplay() { return healthPercent() > 0 ? String.valueOf(healthPercent()) : "—"; }

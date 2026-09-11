@@ -5,11 +5,13 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.141` (`versionCode 141`)
+- Version: `0.142` (`versionCode 142`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `bd59083bfbba5c78e2edd388f8f2ccf49efdc07c6cc6db59ef2c380a403e5d2e`
+- Release APK SHA-256: `pending — wird nach dem signierten CI-Build ergänzt`
 - The same hash is published in the public update repository manifest.
 
+Release `0.142` rejects implausible health-capacity samples before averaging,
+uses overflow-safe accumulation, and keeps health at a maximum of 100 percent.
 Release `0.141` bases landscape selection on the visible ScrollView viewport,
 not the taller scroll content canvas. This keeps rotation and split-screen
 layouts on the compact composition reliably.

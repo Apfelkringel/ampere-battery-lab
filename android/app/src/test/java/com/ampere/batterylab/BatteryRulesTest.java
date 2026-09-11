@@ -35,6 +35,9 @@ public class BatteryRulesTest {
         assertEquals(85, BatteryHealth.percent(8500, 10000));
         assertEquals(100, BatteryHealth.percent(12000, 10000));
         assertEquals(0, BatteryHealth.percent(0, 10000));
+        assertEquals(0, BatteryHealth.percent(30001, 10000));
+        assertFalse(BatteryHealth.isPlausibleCapacity(0));
+        assertTrue(BatteryHealth.isPlausibleCapacity(6600));
     }
 
     @Test public void sessionHistoryRejectsZeroAndWrongDirectionRowsInEveryFormat() {
