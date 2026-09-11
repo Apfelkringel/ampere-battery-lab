@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.142` (`versionCode 142`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `pending — wird nach dem signierten CI-Build ergänzt`
+- Release APK SHA-256: `f17247a04d07686cf85887d46979e3ba5c3f205249226d911a384c6107369e79`
 - The same hash is published in the public update repository manifest.
 
 Release `0.142` rejects implausible health-capacity samples before averaging,
