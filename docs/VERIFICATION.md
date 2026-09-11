@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.128` (`versionCode 128`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `d65f6ea07440276d38d0a7177bce6677689d743b22a729699ec3f07f6856cb84`
+- Release APK SHA-256: `f2aeee413eb44d481850b4797ea1171d1f39771ff5ac3234b1b0b738609d184a`
 - The same hash is published in the public update repository manifest.
 
 Release `0.128` removes zero-change and malformed legacy session rows even when
