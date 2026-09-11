@@ -1842,27 +1842,31 @@ class BatteryDashboard extends View {
         final float controlTop = 12f;
         final float controlBottom = 60f;
         if (w < 390f) {
-            // One action rail gives both controls the same visual ownership;
-            // each half remains a separate 48dp touch target.
-            controlSurface(c, w - 116, controlTop, w - 12, controlBottom, 24, panel, border);
-            if (isPressed(1)) rounded(c, w - 114, controlTop + 2, w - 66, controlBottom - 2, 22, pressedFill(panel, true));
-            if (isPressed(2)) rounded(c, w - 62, controlTop + 2, w - 14, controlBottom - 2, 22, pressedFill(panel, true));
+            // Keep the actions as two independent 48-dp controls. A shared
+            // capsule visually merged unrelated actions and made their
+            // outlines look misaligned on narrow phones.
+            controlSurface(c, w - 116, controlTop, w - 68, controlBottom, 16, panel, border);
+            controlSurface(c, w - 60, controlTop, w - 12, controlBottom, 16, panel, border);
+            if (isPressed(1)) rounded(c, w - 114, controlTop + 2, w - 70, controlBottom - 2, 14, pressedFill(panel, true));
+            if (isPressed(2)) rounded(c, w - 58, controlTop + 2, w - 14, controlBottom - 2, 14, pressedFill(panel, true));
             drawHeaderOverflow(c, w - 90, muted);
             drawSun(c, w - 38, 36, muted);
         } else {
-            // The toolbar actions share one capsule instead of three
-            // mismatched floating boxes. This keeps their baselines and
-            // corner geometry identical on every density.
-            controlSurface(c, w - 184, controlTop, w - 16, controlBottom, 24, panel, border);
-            if (isPressed(1)) rounded(c, w - 182, controlTop + 2, w - 134, controlBottom - 2, 22, pressedFill(panel, true));
-            if (isPressed(2)) rounded(c, w - 126, controlTop + 2, w - 78, controlBottom - 2, 22, pressedFill(panel, true));
-            if (isPressed(3)) rounded(c, w - 70, controlTop + 2, w - 18, controlBottom - 2, 22, pressedFill(panel, true));
-            drawHeaderOverflow(c, w - 156, muted);
-            drawSun(c, w - 100, 36, muted);
+            // Three equal controls use the same measured cell and gap as the
+            // narrow layout. Each icon and the LIVE label are centered inside
+            // its own surface, never across a neighboring button.
+            controlSurface(c, w - 176, controlTop, w - 128, controlBottom, 16, panel, border);
+            controlSurface(c, w - 120, controlTop, w - 72, controlBottom, 16, panel, border);
+            controlSurface(c, w - 64, controlTop, w - 16, controlBottom, 16, panel, border);
+            if (isPressed(1)) rounded(c, w - 174, controlTop + 2, w - 130, controlBottom - 2, 14, pressedFill(panel, true));
+            if (isPressed(2)) rounded(c, w - 118, controlTop + 2, w - 74, controlBottom - 2, 14, pressedFill(panel, true));
+            if (isPressed(3)) rounded(c, w - 62, controlTop + 2, w - 18, controlBottom - 2, 14, pressedFill(panel, true));
+            drawHeaderOverflow(c, w - 152, muted);
+            drawSun(c, w - 96, 36, muted);
             type(9, primary, true);
             float liveLabelWidth = p.measureText("LIVE") / density;
             float liveGroupWidth = 8f + 7f + liveLabelWidth;
-            float liveLeft = w - 44f - liveGroupWidth / 2f;
+            float liveLeft = w - 40f - liveGroupWidth / 2f;
             fill(c, lime); c.drawCircle(u(liveLeft + 2f), u(36), u(4), p);
             text(c, "LIVE", liveLeft + 12f, 40, 9, primary, true);
         }

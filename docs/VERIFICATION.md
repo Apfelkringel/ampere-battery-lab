@@ -5,9 +5,14 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.203` (`versionCode 203`)
+- Version: `0.204` (`versionCode 204`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `99ba1c2fa792d38259d40aeec0d7af9c626a9e4bc440ea4de1feba4ca2ff0219`
+- Release APK SHA-256: wird nach dem signierten CI-Artefakt ergänzt
+
+Release `0.204` additionally gives the top settings, theme and live controls
+independent equal-size 48-dp surfaces with matching touch geometry. Narrow
+phone layouts use two controls; wider layouts use three without visual or
+label overlap.
 
 Release `0.203` additionally checks the documented read-only OPlus/ColorOS
 `battery_fcc` and `battery_soh` paths after the standard power-supply
