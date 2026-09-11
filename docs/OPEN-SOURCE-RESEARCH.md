@@ -2,6 +2,13 @@
 
 Stand: 11. September 2026
 
+Die zweite Referenzrunde wurde nicht als bloßes Recoloring umgesetzt. Die
+Referenzen verwenden gefüllte Primäraktionen, ruhige neutrale Controls, flache
+weiße Flächen, einen klaren oberen Farbakzent und konsistente Icon-/Label-
+Gruppen. Ampere bildet diese Regeln in `0.282` als eigene Canvas-Komponenten
+ab; die Akkuinformationen und Touch-/Accessibility-Geometrie bleiben dabei
+dieselben, damit die neue Oberfläche nicht auf Kosten der Bedienbarkeit geht.
+
 Die vom Nutzer gelieferten Referenzen wurden als Layout-Grammatik gelesen,
 nicht als Asset- oder Codequelle: kompakte abgerundete Aktionsflächen,
 konsequente Icon-/Label-Ausrichtung, ein klarer Primärakzent und eine ruhige

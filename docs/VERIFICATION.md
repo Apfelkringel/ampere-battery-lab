@@ -4,6 +4,13 @@ Last verified: 2026-09-11 (Europe/Berlin)
 
 ## Current development change
 
+Version `0.282` additionally follows the supplied reference interaction
+language instead of only recoloring the existing UI: selected navigation and
+enabled toggles are filled turquoise actions, neutral controls remain quiet,
+the background is flat, and a compact top color rail replaces the previous
+glossy/green emphasis. The existing battery data hierarchy and semantic amber
+temperature / blue discharge cues remain intact.
+
 Version `0.281` additionally applies the supplied visual reference language to
 the Android Canvas UI: the primary signal color is now a cool blue-green,
 surfaces and borders move to a blue-black instrument palette, and selected
