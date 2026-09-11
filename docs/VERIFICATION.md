@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.211` (`versionCode 211`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: wird nach dem signierten CI-Build ergänzt.
+- Release APK SHA-256: `c1b15fe86516da38c963a541908e5bae3bc391903c0ebb5a244bcf667c677898`
 
 Release `0.211` additionally uses a compact, complete duration format in
 metric cards. Values such as 20 hours and 4 minutes render as `20 h 4 m`

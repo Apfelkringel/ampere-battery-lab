@@ -22,6 +22,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - Charging-, Discharging-, Health- und History-Ansichten
 - lokaler Ladealarm und einstellbares Ladeziel
 - vollständige Ladesitzungsdetails mit Prozentänderung, Startzeit, Dauer sowie Bildschirm-an/aus-Aufteilung
+- kompakte Kennzahlenkarten zeigen vollständige Zeitwerte wie `20 h 4 m`, ohne abgeschnittene Ellipsen
 - jede neue Lade-/Entladephase speichert zusätzlich Bildschirmwerte, Bildschirmdauer, Ladequelle und Start-/Endzeit für detaillierte lokale Vergleiche
 - lokale 30-Tage-Verlaufspunkte und bis zu 150 Lade-/Entladesitzungen mit Details
 - analysefähiger lokaler CSV-Export mit Zeitreihe für Akkustand, signiertem Strom (Laden positiv/Entladen negativ), Temperatur, Spannung, Ladequelle, Zykluszähler, Bildschirmstatus und Bildschirm-Wakeups
