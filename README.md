@@ -45,6 +45,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - Auf OnePlus/Oppo/Realme-Geräten werden zusätzlich die dokumentierten read-only `battery_fcc`-/`battery_soh`-Pfade des OPlus/ColorOS-Ladecontrollers geprüft; fehlende oder ungültige OEM-Werte bleiben „Nicht verfügbar"
 - Wenn BatteryManager keinen verwertbaren Live-Strom liefert, liest Ampere zusätzlich `current_now`/`current_avg` der Batterie-/BMS-Treiber; USB-Eingangsknoten werden nicht als Akku-Strom ausgegeben
 - Samsung-Geräte mit lesbarem `fg_asoc` erhalten zusätzlich einen expliziten ASOC-SoH-Fallback; der qualitative Treiberwert `health` bleibt davon getrennt
+- Die Gesundheitsquelle wird in jeder Ansicht einheitlich benannt; ungültige Prozentwerte können keine veraltete Quellenbezeichnung zurücklassen
 - Batterie-, BMS-, Fuel-Gauge- und USB-Power-Supply-Knoten werden zentral nach deklarierter Linux-Quelle priorisiert; ein irreführend benannter USB-Knoten kann dadurch weder Strom, Kapazität noch Zyklen liefern
 - Stromdiagramme verwenden die echten Telemetrie-Zeitabstände; längere Überwachungslücken werden als Lücke dargestellt und nicht als erfundene Rampe verbunden
 - Telemetrie-Zeitreihen werden vor Berechnung und Export chronologisch kanonisiert; eine manuelle Uhrkorrektur erzeugt dadurch keine rückwärts laufenden Raten oder Diagrammlinien

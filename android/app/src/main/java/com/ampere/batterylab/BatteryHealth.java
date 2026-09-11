@@ -23,7 +23,7 @@ final class BatteryHealth {
         HealthReading(int percent, int capacityMah, String source) {
             this.percent = displayPercent(percent);
             this.capacityMah = isPlausibleCapacity(capacityMah) ? capacityMah : 0;
-            this.source = source == null ? "" : source;
+            this.source = this.percent > 0 && source != null ? source : "";
         }
     }
 
@@ -125,6 +125,17 @@ final class BatteryHealth {
 
     static int reportedStateOfHealth(Context context) {
         return readReportedStateOfHealth(context).percent;
+    }
+
+    /** Maps a validated source to short UI text without losing its provenance. */
+    static String displaySourceLabel(String source) {
+        if (source == null || source.isEmpty()) return "keine Messung";
+        if ("Android BatteryManager".equals(source)) return "Android-Systemwert";
+        if ("lokale Lademessungen".equals(source)) return "lokale Lademessungen";
+        if ("manueller Benchmark".equals(source)) return "manueller Benchmark";
+        if (source.contains("ASOC")) return "Samsung-ASOC";
+        if (source.contains("SoH")) return "Batterie-Treiber-SoH";
+        return "BMS-/Treiberwert";
     }
 
     static HealthReading read(Context context, SharedPreferences prefs, int designMah) {

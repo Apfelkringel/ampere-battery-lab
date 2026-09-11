@@ -124,6 +124,21 @@ public class BatteryRulesTest {
         assertFalse(BatteryCapacity.isStateOfHealthAttribute("health"));
     }
 
+    @Test public void invalidHealthReadingCannotKeepAProvenanceLabel() {
+        BatteryHealth.HealthReading reading = new BatteryHealth.HealthReading(
+                110, 0, "Android BatteryManager");
+        assertEquals(0, reading.percent);
+        assertEquals("", reading.source);
+    }
+
+    @Test public void healthSourceLabelNamesSamsungAsocExplicitly() {
+        assertEquals("Samsung-ASOC",
+                BatteryHealth.displaySourceLabel("Samsung-Batterietreiber (ASOC)"));
+        assertEquals("Batterie-Treiber-SoH",
+                BatteryHealth.displaySourceLabel("Batterie-Treiber (SoH)"));
+        assertEquals("keine Messung", BatteryHealth.displaySourceLabel(null));
+    }
+
     @Test public void widgetUsesShortLayoutForVeryLowHeight() {
         assertEquals(BatteryWidgetLayoutRules.SHORT,
                 BatteryWidgetLayoutRules.select(320, 56));

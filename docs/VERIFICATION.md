@@ -5,9 +5,13 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.219` (`versionCode 219`)
+- Version: `0.220` (`versionCode 220`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `6d6cfb7f2509597c13d27b735feaa40cf14c3f0513336a289b3ee11b9a12426e`
+- Release APK SHA-256: `pending CI artifact`
+
+Release `0.220` additionally keeps health provenance atomic: invalid readings
+cannot retain an old source label, and Samsung ASOC is named explicitly in
+the UI instead of being reduced to a generic driver label.
 
 Release `0.219` additionally accepts Samsung's explicit read-only `fg_asoc`
 attribute as a validated ASOC health fallback while excluding the qualitative

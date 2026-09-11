@@ -843,15 +843,7 @@ class BatteryDashboard extends View {
     }
 
     private String healthMeasurementSourceLabel() {
-        String source = healthReading.source;
-        if (!source.isEmpty()) {
-            if ("Android BatteryManager".equals(source)) return "Android-Systemwert";
-            if ("lokale Lademessungen".equals(source)) return "lokale Lademessungen";
-            if ("manueller Benchmark".equals(source)) return "manueller Benchmark";
-            if (source.contains("SoH")) return "Batterie-Treiber-SoH";
-            return "BMS-/Treiberwert";
-        }
-        return "keine Messung";
+        return BatteryHealth.displaySourceLabel(healthReading.source);
     }
 
     /**
