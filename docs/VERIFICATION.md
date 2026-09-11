@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.133` (`versionCode 133`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `4097a9e05425895b62fea9ce5f280e8d8eeae2c6026bd6201bee8b86f32a6233`
+- Release APK SHA-256: `2a14de43373601a3aea9b260f9026a1b95672f7f385ae0072437df7774878b86`
 - The same hash is published in the public update repository manifest.
 
 Release `0.133` ignores level reversals while charging when calculating the
