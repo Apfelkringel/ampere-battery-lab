@@ -62,6 +62,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - strombasierte mAh-Fallbacks berücksichtigen auch gewählte 60-Minuten-Messintervalle
 - 30-Tage-History passt die gespeicherte Punktzahl automatisch an das gewählte Messintervall an
 - lokale Telemetrie behält ebenfalls ungefähr 30 Tage bei jeder Messfrequenz (5/15/30/60 Minuten)
+- Live-Raten, App-Verbrauch, Stromdiagramme und Verlaufsgrafik verwenden dieselbe validierte Telemetriequelle wie die Exporte; beschädigte Altzeilen beeinflussen keine Anzeige mehr
 - Ladezeit-Prognosen nutzen lokale 7-Tage-Laderaten, wenn Android keinen Systemwert liefert
 - verbleibende Nutzungszeit wird als gemischt, Bildschirm-an und Bildschirm-aus ausgewiesen
 - verbleibende Nutzungszeit nutzt zuerst lokale 7-Tage-Daten und kann auf Android 12+ zusätzlich die geprüfte Systemprognose verwenden; die Quelle wird sichtbar benannt

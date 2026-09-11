@@ -914,7 +914,7 @@ class BatteryDashboard extends View {
         boolean previousCharging = false;
         float weightedRate = 0f;
         long weightedMs = 0L;
-        for (String row : saved.split("\\n")) {
+        for (String row : BatteryExportRules.validTelemetryRows(saved)) {
             String[] parts = row.split(",", 11);
             if (parts.length < 7) continue;
             try {
@@ -977,7 +977,7 @@ class BatteryDashboard extends View {
             boolean previousScreenOn = false;
             float consumed = 0f;
             long elapsedMs = 0L;
-            for (String row : saved.split("\\n")) {
+            for (String row : BatteryExportRules.validTelemetryRows(saved)) {
                 String[] parts = row.split(",", 11);
                 if (parts.length < 8) continue;
                 try {
@@ -2458,10 +2458,10 @@ class BatteryDashboard extends View {
     private int telemetryAppMah(String packageName, long start, long end) {
         String saved = telemetryPrefs.getString("telemetrySamples", "");
         if (saved.isEmpty()) return 0;
-        String[] rows = saved.split("\\n");
+        ArrayList<String> rows = BatteryExportRules.validTelemetryRows(saved);
         int total = 0;
-        for (int index = 0; index < rows.length; index++) {
-            String row = rows[index];
+        for (int index = 0; index < rows.size(); index++) {
+            String row = rows.get(index);
             String[] parts = row.split(",", 11);
             if (parts.length < 9 || !packageName.equals(parts[8])) continue;
             try {
@@ -2470,8 +2470,8 @@ class BatteryDashboard extends View {
                 int current = Math.abs(Integer.parseInt(parts[3]));
                 if (current <= 0) continue;
                 long intervalEnd = end;
-                if (index + 1 < rows.length) {
-                    String[] nextParts = rows[index + 1].split(",", 2);
+                if (index + 1 < rows.size()) {
+                    String[] nextParts = rows.get(index + 1).split(",", 2);
                     try { intervalEnd = Long.parseLong(nextParts[0]); } catch (NumberFormatException ignored) { }
                 }
                 if (intervalEnd <= timestamp) intervalEnd = timestamp + samplingIntervalMs();
@@ -2821,7 +2821,7 @@ class BatteryDashboard extends View {
         String saved = telemetryPrefs.getString("telemetrySamples", "");
         ArrayList<Integer> values = new ArrayList<>();
         if (!saved.isEmpty()) {
-            for (String row : saved.split("\\n")) {
+            for (String row : BatteryExportRules.validTelemetryRows(saved)) {
                 String[] parts = row.split(",", 11);
                 if (parts.length < 4 || !String.valueOf(chargingFilter ? 1 : 0).equals(parts[2])) continue;
                 try {
@@ -2886,7 +2886,7 @@ class BatteryDashboard extends View {
         long start = end - chartWindowMs();
         String saved = telemetryPrefs.getString("telemetrySamples", "");
         if (!saved.isEmpty()) {
-            for (String row : saved.split("\\n")) {
+            for (String row : BatteryExportRules.validTelemetryRows(saved)) {
                 String[] parts = row.split(",", 3);
                 if (parts.length < 2) continue;
                 try {

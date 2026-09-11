@@ -29,6 +29,11 @@ Apache-2.0- und MIT-Projekten verwendet; GPL-Code wurde nicht übernommen.
   API-Definition für Androids qualitative Kapazitätsstufe. Diese Stufe ist ein
   Power-Management-Signal und keine Akkugesundheit in Prozent; Ampere zeigt sie
   deshalb separat und nur bei tatsächlich vorhandenem Systemwert.
+- [BatteryLog](https://github.com/TheDeathDragon/BatteryLog), MIT: trennt die
+  Aufzeichnung von Akkuereignissen von der späteren Anzeige und verhindert,
+  dass Status-/Level-Rauschen die Historie unnötig vergrößert. Als Muster wurde
+  hier die zentrale Validierung vor jeder Auswertung genutzt; der Quellcode
+  wurde nicht übernommen.
 
 ## Bewusst nicht übernommen
 

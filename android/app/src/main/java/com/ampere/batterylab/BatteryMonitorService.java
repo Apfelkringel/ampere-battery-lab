@@ -388,8 +388,13 @@ public class BatteryMonitorService extends Service {
         long last = prefs.getLong("telemetryLastSampleAt", 0L);
         if (now - last < sampleInterval()) return;
         String saved = prefs.getString("telemetrySamples", "");
+        ArrayList<String> existingRows = BatteryExportRules.validTelemetryRows(saved);
         StringBuilder all = new StringBuilder(saved.length() + 96);
-        if (!saved.isEmpty()) all.append(saved).append('\n');
+        for (String existingRow : existingRows) {
+            if (all.length() > 0) all.append('\n');
+            all.append(existingRow);
+        }
+        if (all.length() > 0) all.append('\n');
         all.append(now).append(',')
                 .append(level).append(',')
                 .append(isCharging ? 1 : 0).append(',')
