@@ -32,9 +32,17 @@ final class BatteryState {
         return charging || plugged != 0;
     }
 
-    static boolean resolveUiCharging(boolean detectedCharging, boolean hasRecentMonitorSample,
-                                     boolean monitorCharging) {
-        return hasRecentMonitorSample ? monitorCharging : detectedCharging;
+    /**
+     * Prefers the current sticky battery broadcast. A persisted monitor sample
+     * is only a fallback when Android did not provide a usable status; it must
+     * never mask a fresh plug/unplug transition for hours.
+     */
+    static boolean resolveUiCharging(int status, boolean detectedCharging,
+                                     boolean hasRecentMonitorSample, boolean monitorCharging) {
+        if (status == BatteryManager.BATTERY_STATUS_UNKNOWN && hasRecentMonitorSample) {
+            return monitorCharging;
+        }
+        return detectedCharging;
     }
 
     /** Allows a power edge to bridge Android's short broadcast ordering gap only. */

@@ -4,7 +4,10 @@ Last verified: 2026-09-11 (Europe/Berlin)
 
 ## Current development change
 
-Version `0.277` additionally removes the last isolated purple hardcodes from
+Version `0.278` additionally makes the current known Android battery status
+authoritative in the dashboard; a persisted monitor sample is used only when
+Android reports an unknown status, so a fresh unplug event cannot be masked for
+up to two hours. Version `0.277` additionally removes the last isolated purple hardcodes from
 secondary telemetry surfaces and uses one restrained eucalyptus tone throughout
 the dashboard. Version `0.276` additionally removes the isolated purple screen-time accent
 from the dashboard and uses a restrained eucalyptus tone that belongs to the

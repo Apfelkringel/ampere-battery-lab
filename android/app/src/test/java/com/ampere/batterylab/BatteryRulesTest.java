@@ -106,10 +106,17 @@ public class BatteryRulesTest {
         assertEquals(100, BatteryAccessibilityLayout.normalizeChargeLimit(150));
     }
 
-    @Test public void uiUsesRecentStabilizedMonitorState() {
-        assertTrue(BatteryState.resolveUiCharging(false, true, true));
-        assertFalse(BatteryState.resolveUiCharging(true, true, false));
-        assertTrue(BatteryState.resolveUiCharging(true, false, false));
+    @Test public void uiPrefersCurrentKnownBatteryStateOverStaleMonitorState() {
+        assertTrue(BatteryState.resolveUiCharging(
+                BatteryManager.BATTERY_STATUS_UNKNOWN, false, true, true));
+        assertFalse(BatteryState.resolveUiCharging(
+                BatteryManager.BATTERY_STATUS_DISCHARGING, false, true, true));
+        assertTrue(BatteryState.resolveUiCharging(
+                BatteryManager.BATTERY_STATUS_CHARGING, true, true, false));
+        assertFalse(BatteryState.resolveUiCharging(
+                BatteryManager.BATTERY_STATUS_DISCHARGING, false, true, true));
+        assertTrue(BatteryState.resolveUiCharging(
+                BatteryManager.BATTERY_STATUS_CHARGING, true, false, false));
     }
 
     @Test public void powerBroadcastHintExpiresAfterSynchronizationWindow() {

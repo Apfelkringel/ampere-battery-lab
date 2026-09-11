@@ -737,8 +737,8 @@ class BatteryDashboard extends View {
         long monitorSampleAt = prefs.getLong("monitorSampleAt", 0L);
         boolean hasRecentMonitorSample = monitorSampleAt > 0L
                 && now >= monitorSampleAt && now - monitorSampleAt <= 2L * 60L * 60L * 1000L;
-        boolean newCharging = BatteryState.resolveUiCharging(detectedCharging, hasRecentMonitorSample,
-                prefs.getBoolean("monitorLastCharging", detectedCharging));
+        boolean newCharging = BatteryState.resolveUiCharging(status, detectedCharging,
+                hasRecentMonitorSample, prefs.getBoolean("monitorLastCharging", detectedCharging));
         if (sessionStartedAt == 0L) {
             lastCharging = newCharging;
             sessionStartedAt = now;
