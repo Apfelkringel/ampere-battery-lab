@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.202` (`versionCode 202`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: wird nach dem signierten CI-Artefakt ergänzt
+- Release APK SHA-256: `bc96a1e992f22bf62fc4e99cc81a1e4eb207a21d0ceee26351c154344f9c479d`
 
 Release `0.202` additionally treats a Linux power-supply `cycle_count` of
 zero as unavailable while preserving zero as a valid Android-reported count.
