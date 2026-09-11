@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.164` (`versionCode 164`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `8c771e104a7921b14cce8c63f32aa46a2ec3686ad6952d3a87fb20eb66b78559`
+- Release APK SHA-256: `53185523883a4a2c0b219cbd28c8f14ccfa6e4f71182c198ae710dbfed124969`
 - The same hash is published in the public update repository manifest.
 
 Release `0.164` additionally validates Android's raw level/scale pair in every
