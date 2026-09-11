@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.139` (`versionCode 139`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `pending — wird nach dem signierten CI-Build ergänzt`
+- Release APK SHA-256: `d9da0b0157495d9b870bb91500a9a62bdcd62da7a7c12ef872221b0cafe0ed23`
 - The same hash is published in the public update repository manifest.
 
 Release `0.139` uses the actual Canvas dimensions for landscape selection on
