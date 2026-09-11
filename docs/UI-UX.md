@@ -34,6 +34,8 @@ charging state, blue for neutral telemetry and amber for warnings or wear.
   the system file picker.
 - Every interactive area is kept inside the scrollable content and is checked on
   the compact 320 dp test layout as well as the larger emulator layouts.
+- Metric cards switch to the stacked icon/label/value composition below 160 dp,
+  so the label lane remains readable on 320 dp phones.
 
 The current UI checks cover dark and light themes, all five tabs, compact
 charging details, scroll reachability and fatal-exception log scans on Android

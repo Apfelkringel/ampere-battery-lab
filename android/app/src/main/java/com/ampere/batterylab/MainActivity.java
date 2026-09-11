@@ -2763,7 +2763,7 @@ class BatteryDashboard extends View {
 
     private void drawStat(Canvas c, float x, float y, float width, float height, String label, String value, String unit, int accent, int primary, int muted, int border, int panel, String icon) {
         frame(c, x, y, x + width, y + height, panel, border, accent);
-        if (width < 116f) {
+        if (BatteryMetricLayout.shouldStack(width)) {
             // Two-column cards become too narrow on small phones. Stack the
             // compact card content instead of letting icon, label and value
             // compete for the same horizontal row.
