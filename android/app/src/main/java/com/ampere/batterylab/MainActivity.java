@@ -2821,7 +2821,10 @@ class BatteryDashboard extends View {
                 rows.add(new AppUsageRow(entry.getKey(), entry.getValue()));
             }
         }
-        if (rows.isEmpty()) {
+        // An exact event stream can legitimately contain only short sessions
+        // below the one-minute display threshold. Do not replace that honest
+        // result with an unbounded daily UsageStats bucket.
+        if (rows.isEmpty() && exact.isEmpty()) {
             List<UsageStats> stats = manager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, start, end);
             if (stats != null) {
                 for (UsageStats stat : stats) {
@@ -2973,13 +2976,19 @@ class BatteryDashboard extends View {
                 if (intervalEnd <= timestamp) intervalEnd = timestamp + samplingIntervalMs();
                 intervalEnd = Math.min(end, Math.min(intervalEnd, timestamp + 2L * 60L * 60L * 1000L));
                 if (intervalEnd > timestamp) {
-                    int added = Math.round(current * (intervalEnd - timestamp) / 3600000f);
+                    int added = BatteryAppAttribution.sampleMah(
+                            current, intervalEnd - timestamp, appAttributionIntervalCapMs());
                     totals.put(parts[8], totals.containsKey(parts[8])
                             ? totals.get(parts[8]) + added : added);
                 }
             } catch (NumberFormatException ignored) { }
         }
         return totals;
+    }
+
+    /** Matches the monitor's stale-sample policy without claiming a long gap for one app. */
+    private long appAttributionIntervalCapMs() {
+        return Math.max(30L * 60L * 1000L, samplingIntervalMs());
     }
 
     private void drawHealthPage(Canvas c, float w, float h, int panel, int raised, int border, int primary, int muted, int faint) {

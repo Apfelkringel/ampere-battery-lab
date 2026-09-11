@@ -2,6 +2,14 @@
 
 Stand: 11. September 2026
 
+Der aktuelle App-Verbrauchsvergleich wurde anschließend weiter geschärft:
+Ein exakter Usage-Events-Stream mit kurzen Sitzungen darf nicht durch einen
+gröberen Tages-Bucket ersetzt werden, und ein veralteter Telemetriepunkt wird
+nicht länger als die gemeinsame Accounting-Grenze einer einzelnen App
+zugeschrieben. Ohne beobachtete Entladeenergie bleibt die App-Schätzung
+bewusst nicht verfügbar. Diese Änderungen sind eigene Regeln mit
+Regressionstests; Referenzcode wurde nicht übernommen.
+
 Die konfigurierbare Tiefstandwarnung ist von den Alarmfunktionen des GPL-3.0-
 Projekts [Battery Monitor](https://github.com/tswistak/Battery-Monitor) inspiriert.
 Es wurde kein Code übernommen: Die Implementierung in `BatteryDischargeAlarm`

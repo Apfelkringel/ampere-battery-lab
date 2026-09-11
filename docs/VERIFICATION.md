@@ -4,7 +4,11 @@ Last verified: 2026-09-11 (Europe/Berlin)
 
 ## Current development change
 
-Version `0.264` additionally prevents the OEM current-scale heuristic from
+Version `0.265` additionally keeps app-drain attribution bounded when no
+observed discharge exists, avoids replacing short exact usage sessions with an
+unbounded daily bucket, and caps stale telemetry attribution at the shared
+accounting interval. Regression tests cover all three guards. Version `0.264`
+additionally prevents the OEM current-scale heuristic from
 inflating plausible sub-10-mA deep-sleep readings; the regression is covered
 by a unit test. Version `0.263` additionally refines the smooth button system with an
 Energy Rail visual language, tonal depth, readable active-tab contrast and
