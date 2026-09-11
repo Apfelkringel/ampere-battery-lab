@@ -6,7 +6,6 @@ import android.os.SystemClock;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.util.Locale;
 
 /**
  * Local battery design-capacity lookup with an explicit unavailable state.
@@ -108,12 +107,10 @@ final class BatteryCapacity {
             if (supplies != null) {
                 // Prefer the battery/BMS nodes, then inspect every OEM node.
                 java.util.Arrays.sort(supplies, (left, right) -> {
-                    boolean leftBattery = isBatteryNode(left);
-                    boolean rightBattery = isBatteryNode(right);
-                    return Boolean.compare(!leftBattery, !rightBattery);
+                    return Integer.compare(BatterySupplyRules.rank(left), BatterySupplyRules.rank(right));
                 });
                 for (File supply : supplies) {
-                    if (!supply.isDirectory()) continue;
+                    if (!supply.isDirectory() || !BatterySupplyRules.isBatteryNode(supply)) continue;
                     Reading charge = readChargeCapacity(supply);
                     if (charge != null) return charge;
                     Reading energy = readEnergyCapacity(supply);
@@ -169,12 +166,10 @@ final class BatteryCapacity {
             File[] supplies = root.listFiles();
             if (supplies != null) {
                 java.util.Arrays.sort(supplies, (left, right) -> {
-                    boolean leftBattery = isBatteryNode(left);
-                    boolean rightBattery = isBatteryNode(right);
-                    return Boolean.compare(!leftBattery, !rightBattery);
+                    return Integer.compare(BatterySupplyRules.rank(left), BatterySupplyRules.rank(right));
                 });
                 for (File supply : supplies) {
-                    if (!supply.isDirectory()) continue;
+                    if (!supply.isDirectory() || !BatterySupplyRules.isBatteryNode(supply)) continue;
                     Reading reading = readFullChargeCapacity(supply);
                     if (reading != null) return reading;
                 }
@@ -191,12 +186,10 @@ final class BatteryCapacity {
             File[] supplies = root.listFiles();
             if (supplies != null) {
                 java.util.Arrays.sort(supplies, (left, right) -> {
-                    boolean leftBattery = isBatteryNode(left);
-                    boolean rightBattery = isBatteryNode(right);
-                    return Boolean.compare(!leftBattery, !rightBattery);
+                    return Integer.compare(BatterySupplyRules.rank(left), BatterySupplyRules.rank(right));
                 });
                 for (File supply : supplies) {
-                    if (!supply.isDirectory()) continue;
+                    if (!supply.isDirectory() || !BatterySupplyRules.isBatteryNode(supply)) continue;
                     PercentReading reading = readStateOfHealth(supply);
                     if (reading != null) return reading;
                 }
@@ -227,11 +220,6 @@ final class BatteryCapacity {
     /** Accepts only the ABI's integer percentage; 110 remains invalid. */
     static int normalizeStateOfHealth(long raw) {
         return raw >= 1L && raw <= 100L ? (int) raw : 0;
-    }
-
-    private static boolean isBatteryNode(File supply) {
-        String name = supply.getName().toLowerCase(Locale.US);
-        return name.contains("battery") || name.contains("bms") || name.contains("maxfg") || name.contains("max170");
     }
 
     private static Reading readChargeCapacity(File supply) {

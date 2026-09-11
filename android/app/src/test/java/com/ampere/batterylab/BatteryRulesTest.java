@@ -43,6 +43,14 @@ public class BatteryRulesTest {
         assertFalse(BatteryCycleCount.isSysfsValue(100001));
     }
 
+    @Test public void batterySupplyRankingRejectsInputNodesAndPrefersCellSources() {
+        assertEquals(0, BatterySupplyRules.rank("battery", "Battery"));
+        assertEquals(2, BatterySupplyRules.rank("bms", "BMS"));
+        assertEquals(4, BatterySupplyRules.rank("main-fuelgauge", ""));
+        assertEquals(BatterySupplyRules.UNSUPPORTED, BatterySupplyRules.rank("usb", "USB"));
+        assertEquals(BatterySupplyRules.UNSUPPORTED, BatterySupplyRules.rank("usb_battery", "USB"));
+    }
+
     @Test public void healthCannotExceedOneHundredPercent() {
         assertEquals(85, BatteryHealth.percent(8500, 10000));
         assertEquals(100, BatteryHealth.percent(12000, 10000));

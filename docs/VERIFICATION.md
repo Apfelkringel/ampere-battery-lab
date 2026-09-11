@@ -5,9 +5,14 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.204` (`versionCode 204`)
+- Version: `0.205` (`versionCode 205`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `3d2a457ca52046f02475363c23641fb3a788d7fe595408d7cb126d7f135b7a18`
+- Release APK SHA-256: wird nach dem signierten CI-Artefakt ergänzt
+
+Release `0.205` additionally centralizes Linux power-supply source ranking
+for current, capacity and cycle-count readers. A declared USB/input type is
+rejected even when its directory name contains `battery`; battery, BMS and
+fuel-gauge sources remain deterministically prioritized.
 
 Release `0.204` additionally gives the top settings, theme and live controls
 independent equal-size 48-dp surfaces with matching touch geometry. Narrow

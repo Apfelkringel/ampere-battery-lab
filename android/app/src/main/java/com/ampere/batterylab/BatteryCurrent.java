@@ -5,7 +5,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.Arrays;
-import java.util.Locale;
 
 /** Reads Android current properties once and rejects sentinels, bad units and spikes. */
 final class BatteryCurrent {
@@ -46,9 +45,10 @@ final class BatteryCurrent {
             File root = new File("/sys/class/power_supply");
             File[] supplies = root.listFiles();
             if (supplies == null) return 0;
-            Arrays.sort(supplies, (left, right) -> Boolean.compare(!isBatteryNode(left), !isBatteryNode(right)));
+            Arrays.sort(supplies, (left, right) -> Integer.compare(
+                    BatterySupplyRules.rank(left), BatterySupplyRules.rank(right)));
             for (File supply : supplies) {
-                if (!supply.isDirectory() || !isBatteryNode(supply)) continue;
+                if (!supply.isDirectory() || !BatterySupplyRules.isBatteryNode(supply)) continue;
                 int now = fromMicroamps(readLong(new File(supply, "current_now")));
                 if (now > 0) return now;
                 int average = fromMicroamps(readLong(new File(supply, "current_avg")));
@@ -58,13 +58,6 @@ final class BatteryCurrent {
             // Treat inaccessible sysfs as an honest unavailable reading.
         }
         return 0;
-    }
-
-    private static boolean isBatteryNode(File supply) {
-        String name = supply.getName().toLowerCase(Locale.US);
-        return name.contains("battery") || name.contains("bms") || name.contains("maxfg")
-                || name.contains("max170") || name.contains("fuelgauge")
-                || name.contains("fuel-gauge");
     }
 
     private static long readLong(File file) {

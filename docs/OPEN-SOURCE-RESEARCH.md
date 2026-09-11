@@ -38,6 +38,10 @@ Apache-2.0- und MIT-Projekten verwendet; GPL-Code wurde nicht übernommen.
   dass Status-/Level-Rauschen die Historie unnötig vergrößert. Als Muster wurde
   hier die zentrale Validierung vor jeder Auswertung genutzt; der Quellcode
   wurde nicht übernommen.
+- [Battery Monitor](https://github.com/tswistak/Battery-Monitor), GPL-3.0:
+  die aktuelle Version priorisiert Power-Supply-Knoten anhand von `type` und
+  Namen. Ampere verwendet davon nur das allgemeine Auswahlprinzip und eine
+  eigene Implementierung; GPL-Code wurde nicht übernommen.
 
 ## Bewusst nicht übernommen
 
@@ -87,6 +91,11 @@ Zusätzlich nutzt Ampere den standardisierten Linux-
 [power_supply-`state_of_health`-Knoten](https://github.com/torvalds/linux/blob/master/Documentation/ABI/testing/sysfs-class-power)
 als read-only OEM-Fallback. Die qualitative Datei `health` wird bewusst nicht
 als Prozent interpretiert; nur ein expliziter Integer von 1 bis 100 ist gültig.
+
+Die gemeinsame `BatterySupplyRules`-Rangfolge prüft vor dem Dateinamen den
+deklarierten Power-Supply-Typ. Dadurch werden USB-/Netzeingänge auch dann
+ausgeschlossen, wenn ein OEM ihnen einen irreführenden Namen gibt; Batterie,
+BMS und Fuel-Gauge werden in einer stabilen Reihenfolge gelesen.
 
 Wie bei historischen Batterie-Loggern wird die lokale Zeitreihe vor
 aufeinanderfolgenden Raten- und Diagramm-Berechnungen chronologisch sortiert.

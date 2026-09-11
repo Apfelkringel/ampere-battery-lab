@@ -62,22 +62,17 @@ final class BatteryCycleCount {
         File root = new File("/sys/class/power_supply");
         File[] supplies = root.listFiles();
         if (supplies == null) return null;
-        Arrays.sort(supplies, (left, right) -> Boolean.compare(!isBatteryNode(left), !isBatteryNode(right)));
+        Arrays.sort(supplies, (left, right) -> Integer.compare(
+                BatterySupplyRules.rank(left), BatterySupplyRules.rank(right)));
         String[] names = {"cycle_count", "battery_cycle_count", "battery_cycle", "charge_cycles"};
         for (File supply : supplies) {
-            if (!supply.isDirectory()) continue;
+            if (!supply.isDirectory() || !BatterySupplyRules.isBatteryNode(supply)) continue;
             for (String name : names) {
                 int value = readInt(new File(supply, name));
                 if (isSysfsValue(value)) return new Reading(value, "Batterie-Treiber");
             }
         }
         return null;
-    }
-
-    private static boolean isBatteryNode(File supply) {
-        String name = supply.getName().toLowerCase(java.util.Locale.US);
-        return name.contains("battery") || name.contains("bms") || name.contains("maxfg")
-                || name.contains("max170") || name.contains("fuelgauge") || name.contains("fuel-gauge");
     }
 
     private static int readInt(File file) {
