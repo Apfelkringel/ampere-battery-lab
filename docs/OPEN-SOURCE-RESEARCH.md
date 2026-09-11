@@ -98,6 +98,14 @@ verwendet ebenfalls mehrere Größenpunkte mit `RemoteViews(Map<SizeF, RemoteVie
 Ampere übernimmt nur das allgemeine Android-API-Muster, nicht dessen Fahrzeug-,
 Smartcar- oder Home-Assistant-Code.
 
+Die Canvas-Bedienung folgt für Screenreader dem offiziellen Muster für eine
+virtuelle View-Hierarchie: Android beschreibt dafür einen
+[`AccessibilityNodeProvider`](https://developer.android.com/reference/android/view/accessibility/AccessibilityNodeProvider)
+als passende Schnittstelle für komplexe Custom Views. Das
+[Android-TV-Accessibility-Beispiel](https://github.com/android/tv-samples/tree/main/AccessibilityDemo)
+zeigt denselben Ansatz; Ampere verwendet nur die API-Idee für die eigenen
+Header- und Tab-Flächen.
+
 Die gemeinsame `BatterySupplyRules`-Rangfolge prüft vor dem Dateinamen den
 deklarierten Power-Supply-Typ. Dadurch werden USB-/Netzeingänge auch dann
 ausgeschlossen, wenn ein OEM ihnen einen irreführenden Namen gibt; Batterie,

@@ -5,9 +5,14 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.221` (`versionCode 221`)
+- Version: `0.222` (`versionCode 222`)
 - `minSdk 23`, `targetSdk 37`
 - Release APK SHA-256: `b7c80d31b65c775d5c614f919aabadd9e0d601596d98f738ff9e6246501743a5`
+
+Release `0.222` additionally exposes the Canvas dashboard's header actions and
+five navigation tabs as individually focusable Android accessibility controls,
+including touch-exploration hover events. The visual layout and normal touch
+geometry stay unchanged.
 
 Release `0.221` additionally supplies Android 12+ with responsive widget
 `RemoteViews` cutoffs for short, compact and standard sizes. Older launchers

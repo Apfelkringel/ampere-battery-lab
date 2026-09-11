@@ -30,6 +30,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - CSV-Export als auswählbare Datei über den Android-Dateidialog
 - strukturierter Research-Export als JSON mit Messreihen, Sitzungen und Geräte-/Android-Kontext nach ausdrücklicher Nutzeraktion
 - Der Research-Export überspringt beschädigte Altzeilen einzeln, statt wegen eines einzigen ungültigen Wertes komplett abzubrechen
+- Die gezeichneten Header-Aktionen und fünf Navigationstabs werden zusätzlich als einzelne Android-Bedienelemente für TalkBack und Touch-Exploration bereitgestellt
 - CSV- und Research-Export verwenden dieselbe Telemetrievalidierung; beschädigte oder physikalisch widersprüchliche Altzeilen werden in beiden Formaten ausgelassen
 - einstellbare lokale Messfrequenz (5/15/30/60 Minuten) für Hintergrundmonitor und Verlauf
 - Kapazitätsschätzung und manueller Health-Benchmark

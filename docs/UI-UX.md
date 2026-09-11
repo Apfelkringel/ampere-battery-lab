@@ -29,7 +29,8 @@ charging state, blue for neutral telemetry and amber for warnings or wear.
   status row; redundant status chips are omitted when they would compete for
   the same geometry, and the gauge has an explicit gap below the heading.
 - The dashboard exposes the current page, battery state, level and available
-  tabs as an accessibility summary for screen readers.
+  tabs as an accessibility summary, and its Canvas header actions and tabs are
+  also exposed as individually focusable virtual Android buttons for TalkBack.
 - Settings, backup/restore, export and text entry use native Android controls or
   the system file picker.
 - Every interactive area is kept inside the scrollable content and is checked on

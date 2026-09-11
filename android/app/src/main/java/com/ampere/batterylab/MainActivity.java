@@ -22,6 +22,7 @@ import android.graphics.LinearGradient;
 import android.graphics.Shader;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewParent;
 import android.view.Gravity;
 import android.widget.ScrollView;
 import android.widget.EditText;
@@ -40,6 +41,10 @@ import android.net.Uri;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.WindowInsets;
+import android.view.accessibility.AccessibilityEvent;
+import android.view.accessibility.AccessibilityManager;
+import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.accessibility.AccessibilityNodeProvider;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.ByteArrayOutputStream;
@@ -478,6 +483,9 @@ class BatteryDashboard extends View {
     private float lastTouchY;
     private boolean touchDragged;
     private int pressedRegion = 0;
+    private final AccessibilityNodeProvider accessibilityNodeProvider = new DashboardAccessibilityNodeProvider();
+    private int accessibilityFocusedVirtualView = AccessibilityNodeProvider.HOST_VIEW_ID;
+    private int hoveredVirtualView = AccessibilityNodeProvider.HOST_VIEW_ID;
     // Drawing happens in two coordinate spaces: the full window for the
     // header and the centered body column for every page. Keeping the active
     // width here prevents generic text helpers from measuring against the
@@ -501,6 +509,18 @@ class BatteryDashboard extends View {
         loadStoredData();
         refreshHealthReading();
         updateAccessibilitySummary();
+    }
+
+    /** Exposes the Canvas controls as real logical controls to TalkBack. */
+    @Override public AccessibilityNodeProvider getAccessibilityNodeProvider() {
+        return accessibilityNodeProvider;
+    }
+
+    @Override public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
+        super.onInitializeAccessibilityNodeInfo(info);
+        info.setClassName(BatteryDashboard.class.getName());
+        info.setScrollable(true);
+        info.setFocusable(true);
     }
 
     void applySystemBarTheme() {
@@ -3055,6 +3075,200 @@ class BatteryDashboard extends View {
                 + "Android-Zustand " + BatteryPlatformHealth.label(platformHealth) + "." + capacity
                 + chargingProfile
                 + " Tabs: Übersicht, Laden, Entladen, Gesundheit, Verlauf. Aktiver Tab: " + pageName() + ".");
+        sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED);
+    }
+
+    private boolean isVisibleVirtualView(int virtualViewId) {
+        if (virtualViewId >= 10 && virtualViewId <= 14) return true;
+        if (virtualViewId == BatteryHeaderLayout.OVERFLOW
+                || virtualViewId == BatteryHeaderLayout.THEME) return true;
+        return virtualViewId == BatteryHeaderLayout.LIVE_REFRESH && getWidth() / density >= 390f;
+    }
+
+    private String virtualViewLabel(int virtualViewId) {
+        if (virtualViewId == BatteryHeaderLayout.OVERFLOW) return "Einstellungen";
+        if (virtualViewId == BatteryHeaderLayout.THEME) return light ? "Dunkles Design" : "Helles Design";
+        if (virtualViewId == BatteryHeaderLayout.LIVE_REFRESH) return "Live-Daten aktualisieren";
+        String[] labels = getWidth() / density < 480f
+                ? new String[]{"Start", "Laden", "Entladen", "Gesundheit", "Verlauf"}
+                : new String[]{"Übersicht", "Laden", "Entladen", "Gesundheit", "Verlauf"};
+        return virtualViewId >= 10 && virtualViewId <= 14 ? labels[virtualViewId - 10] : "";
+    }
+
+    private Rect virtualViewBounds(int virtualViewId) {
+        float w = getWidth() / density;
+        if (virtualViewId == BatteryHeaderLayout.OVERFLOW) {
+            return new Rect(Math.round((w < 390f ? w - 116f : w - 176f) * density),
+                    Math.round(12f * density),
+                    Math.round((w < 390f ? w - 68f : w - 128f) * density),
+                    Math.round(60f * density));
+        }
+        if (virtualViewId == BatteryHeaderLayout.THEME) {
+            return new Rect(Math.round((w < 390f ? w - 60f : w - 120f) * density),
+                    Math.round(12f * density),
+                    Math.round((w < 390f ? w - 12f : w - 72f) * density),
+                    Math.round(60f * density));
+        }
+        if (virtualViewId == BatteryHeaderLayout.LIVE_REFRESH) {
+            return new Rect(Math.round((w - 64f) * density), Math.round(12f * density),
+                    Math.round((w - 16f) * density), Math.round(60f * density));
+        }
+        float cell = (w - 36f) / 5f;
+        float left = 18f + (virtualViewId - 10) * cell + 4f;
+        return new Rect(Math.round(left * density), Math.round(124f * density),
+                Math.round((left + cell - 8f) * density), Math.round(164f * density));
+    }
+
+    private int virtualViewAt(float x, float y) {
+        int header = BatteryHeaderLayout.actionAt(x, y, getWidth() / density);
+        if (header != BatteryHeaderLayout.NONE && isVisibleVirtualView(header)) return header;
+        float w = getWidth() / density;
+        if (y >= 118f && y < 176f && x >= 18f && x <= w - 18f) {
+            float cell = (w - 36f) / 5f;
+            return 10 + Math.max(0, Math.min(4, (int) ((x - 18f) / cell)));
+        }
+        return AccessibilityNodeProvider.HOST_VIEW_ID;
+    }
+
+    private void performVirtualClick(int virtualViewId) {
+        if (virtualViewId == BatteryHeaderLayout.OVERFLOW) {
+            showSettings();
+        } else if (virtualViewId == BatteryHeaderLayout.THEME) {
+            light = !light;
+            amoled = false;
+            prefs.edit().putBoolean("lightTheme", light).putBoolean("amoledTheme", amoled).apply();
+            applySystemBarTheme();
+            invalidate();
+            updateAccessibilitySummary();
+        } else if (virtualViewId == BatteryHeaderLayout.LIVE_REFRESH) {
+            Intent battery = ((Activity) getContext()).registerReceiver(
+                    null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+            if (battery != null) readBattery(battery);
+            Toast.makeText(getContext(), "Live-Daten aktualisiert.", Toast.LENGTH_SHORT).show();
+        } else if (virtualViewId >= 10 && virtualViewId <= 14) {
+            page = virtualViewId - 10;
+            updateAccessibilitySummary();
+            updateLayoutHeight();
+            invalidate();
+        }
+    }
+
+    private final class DashboardAccessibilityNodeProvider extends AccessibilityNodeProvider {
+        @Override public AccessibilityNodeInfo createAccessibilityNodeInfo(int virtualViewId) {
+            if (virtualViewId == HOST_VIEW_ID) {
+                AccessibilityNodeInfo host = AccessibilityNodeInfo.obtain(BatteryDashboard.this);
+                BatteryDashboard.this.onInitializeAccessibilityNodeInfo(host);
+                for (int id = 10; id <= 14; id++) host.addChild(BatteryDashboard.this, id);
+                host.addChild(BatteryDashboard.this, BatteryHeaderLayout.OVERFLOW);
+                host.addChild(BatteryDashboard.this, BatteryHeaderLayout.THEME);
+                if (isVisibleVirtualView(BatteryHeaderLayout.LIVE_REFRESH)) {
+                    host.addChild(BatteryDashboard.this, BatteryHeaderLayout.LIVE_REFRESH);
+                }
+                return host;
+            }
+            if (!isVisibleVirtualView(virtualViewId)) return null;
+            AccessibilityNodeInfo node = AccessibilityNodeInfo.obtain(
+                    BatteryDashboard.this, virtualViewId);
+            String label = virtualViewLabel(virtualViewId);
+            node.setPackageName(getContext().getPackageName());
+            node.setClassName("android.widget.Button");
+            node.setText(label);
+            node.setContentDescription(label);
+            node.setParent(BatteryDashboard.this);
+            node.setBoundsInParent(virtualViewBounds(virtualViewId));
+            node.setVisibleToUser(isShown());
+            node.setEnabled(isEnabled());
+            node.setFocusable(true);
+            node.setClickable(true);
+            node.setSelected(virtualViewId >= 10 && virtualViewId - 10 == page);
+            node.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK);
+            node.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_ACCESSIBILITY_FOCUS);
+            node.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLEAR_ACCESSIBILITY_FOCUS);
+            node.setAccessibilityFocused(accessibilityFocusedVirtualView == virtualViewId);
+            return node;
+        }
+
+        @Override public boolean performAction(int virtualViewId, int action, Bundle arguments) {
+            if (!isVisibleVirtualView(virtualViewId)) return false;
+            if (action == AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS) {
+                accessibilityFocusedVirtualView = virtualViewId;
+                sendVirtualAccessibilityEvent(virtualViewId, AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUSED);
+                return true;
+            }
+            if (action == AccessibilityNodeInfo.ACTION_CLEAR_ACCESSIBILITY_FOCUS) {
+                if (accessibilityFocusedVirtualView == virtualViewId) {
+                    accessibilityFocusedVirtualView = HOST_VIEW_ID;
+                    sendVirtualAccessibilityEvent(virtualViewId, AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUS_CLEARED);
+                }
+                return true;
+            }
+            if (action != AccessibilityNodeInfo.ACTION_CLICK) return false;
+            performVirtualClick(virtualViewId);
+            sendVirtualAccessibilityEvent(virtualViewId, AccessibilityEvent.TYPE_VIEW_CLICKED);
+            return true;
+        }
+
+        @Override public List<AccessibilityNodeInfo> findAccessibilityNodeInfosByText(
+                String searched, int virtualViewId) {
+            ArrayList<AccessibilityNodeInfo> result = new ArrayList<>();
+            if (searched == null) return result;
+            String query = searched.toLowerCase(Locale.GERMANY);
+            for (int id = 1; id <= 14; id++) {
+                if (!isVisibleVirtualView(id)) continue;
+                String label = virtualViewLabel(id);
+                if (label.toLowerCase(Locale.GERMANY).contains(query)) {
+                    AccessibilityNodeInfo node = createAccessibilityNodeInfo(id);
+                    if (node != null) result.add(node);
+                }
+            }
+            return result;
+        }
+    }
+
+    private void sendVirtualAccessibilityEvent(int virtualViewId, int eventType) {
+        AccessibilityEvent event = AccessibilityEvent.obtain(eventType);
+        event.setPackageName(getContext().getPackageName());
+        event.setClassName("android.widget.Button");
+        event.getText().add(virtualViewLabel(virtualViewId));
+        event.setSource(this, virtualViewId);
+        ViewParent parent = getParent();
+        if (parent != null) parent.requestSendAccessibilityEvent(this, event);
+    }
+
+    /** Lets touch-exploration users discover the same controls by hovering. */
+    @Override public boolean dispatchHoverEvent(MotionEvent event) {
+        AccessibilityManager manager = (AccessibilityManager) getContext()
+                .getSystemService(Context.ACCESSIBILITY_SERVICE);
+        if (manager == null || !manager.isTouchExplorationEnabled()) {
+            return super.dispatchHoverEvent(event);
+        }
+        int action = event.getActionMasked();
+        if (action == MotionEvent.ACTION_HOVER_EXIT) {
+            if (hoveredVirtualView != AccessibilityNodeProvider.HOST_VIEW_ID) {
+                sendVirtualAccessibilityEvent(hoveredVirtualView, AccessibilityEvent.TYPE_VIEW_HOVER_EXIT);
+                hoveredVirtualView = AccessibilityNodeProvider.HOST_VIEW_ID;
+            }
+            return true;
+        }
+        if (action != MotionEvent.ACTION_HOVER_ENTER && action != MotionEvent.ACTION_HOVER_MOVE) {
+            return true;
+        }
+        int virtualViewId = virtualViewAt(event.getX() / density, event.getY() / density);
+        if (virtualViewId == AccessibilityNodeProvider.HOST_VIEW_ID) {
+            if (hoveredVirtualView != AccessibilityNodeProvider.HOST_VIEW_ID) {
+                sendVirtualAccessibilityEvent(hoveredVirtualView, AccessibilityEvent.TYPE_VIEW_HOVER_EXIT);
+                hoveredVirtualView = AccessibilityNodeProvider.HOST_VIEW_ID;
+            }
+            return true;
+        }
+        if (hoveredVirtualView != virtualViewId) {
+            if (hoveredVirtualView != AccessibilityNodeProvider.HOST_VIEW_ID) {
+                sendVirtualAccessibilityEvent(hoveredVirtualView, AccessibilityEvent.TYPE_VIEW_HOVER_EXIT);
+            }
+            hoveredVirtualView = virtualViewId;
+            sendVirtualAccessibilityEvent(virtualViewId, AccessibilityEvent.TYPE_VIEW_HOVER_ENTER);
+        }
+        return true;
     }
 
     private void drawGauge(Canvas c, float cx, float cy, float radius, int value, int primary, int faint) {
