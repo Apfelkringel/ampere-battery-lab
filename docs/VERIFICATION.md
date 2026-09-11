@@ -5,10 +5,14 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.157` (`versionCode 157`)
+- Version: `0.158` (`versionCode 158`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `1fa92438562faf6978b571abf82812e1884e574552a65f5bb4122eb420379c28`
-- The same hash is published in the public update repository manifest.
+- Release APK SHA-256: wird nach dem signierten Build ergänzt
+- The same hash will be published in the public update repository manifest.
+
+Release `0.158` additionally rejects impossible Android state-of-health
+values above 100% instead of silently converting them to 100%; local health
+measurements remain the fallback.
 
 Release `0.157` additionally validates Android current-property sentinels and
 implausible spikes consistently across the dashboard, service, widget, overlay
@@ -41,9 +45,6 @@ in the health graph or future averages.
 Release `0.146` additionally refreshes dynamic OEM full-charge-capacity values
 every 15 minutes while the monitor is running, so learned fuel-gauge values do
 not remain stale for the lifetime of the process.
-Release `0.145` clamps OEM-reported state-of-health values to
-the physical 1–100% range, including devices that incorrectly report values
-such as 110%; unsupported values still use the local-capacity fallback.
 Release `0.144` uses Android's runtime-available state-of-health property on
 Android 16/17, with local-capacity fallback on unsupported or restricted
 devices.

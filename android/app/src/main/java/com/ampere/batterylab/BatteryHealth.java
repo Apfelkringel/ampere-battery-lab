@@ -31,9 +31,10 @@ final class BatteryHealth {
 
     static int reportedPercentValue(int value) {
         // Some OEM battery services have been observed to report a rounded
-        // value above the physical 100% ceiling. Keep the signal useful, but
-        // never let an impossible percentage reach any UI or notification.
-        return value <= 0 ? 0 : Math.min(100, value);
+        // value above the physical 100% ceiling. Do not silently turn an
+        // impossible reading such as 110 into a seemingly valid 100: reject
+        // it so the caller can use a local measurement or show unavailable.
+        return value >= 1 && value <= 100 ? value : 0;
     }
 
     static int reportedStateOfHealth(Context context) {

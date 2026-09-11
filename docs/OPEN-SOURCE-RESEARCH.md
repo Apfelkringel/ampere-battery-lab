@@ -71,8 +71,11 @@ Status-/Netzquellenregel und gegen ungültige Zyklusgrenzen abgesichert.
 Die Android-16/17-Kapazitätsstufe wird in `BatteryCapacityLevel` bewusst nicht
 in `BatteryHealth.percent(...)` eingespeist. Ein Systemwert wie `Hoch` oder
 `Voll` kann damit niemals versehentlich als `110 %` oder als andere
-Gesundheitszahl dargestellt werden. Die Intent-Auswertung und die Trennung
-zwischen beiden Bedeutungen sind in `BatteryRulesTest` regressionsgesichert.
+Gesundheitszahl dargestellt werden. Der separate SoH-Wert wird nur im
+strikten Bereich 1–100 akzeptiert; ein OEM-Fehlwert wie `110` wird verworfen,
+damit er nicht stillschweigend als `100` ausgegeben wird. Die Intent-Auswertung
+und die Trennung zwischen beiden Bedeutungen sind in `BatteryRulesTest`
+regressionsgesichert.
 
 Für die Laufzeitprognose bleibt der persönliche lokale 7-Tage-Verlauf die
 erste Wahl. Wenn dafür noch keine ausreichenden Daten vorliegen, verwendet
