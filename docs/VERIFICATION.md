@@ -5,11 +5,14 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.151` (`versionCode 151`)
+- Version: `0.152` (`versionCode 152`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `b38396b34bde39031d242ecd7503d7c3aabf91de6e94ae8118f45ec57d8bfd7c`
+- Release APK SHA-256: `735c69ce9037879a14c03b139c52b0b7585ca49d1cecba0566b849d9cec37bae`
 - The same hash is published in the public update repository manifest.
 
+Release `0.152` additionally validates Android's optional charger current/
+voltage pair and displays the resulting maximum source power separately from
+the live battery current.
 Release `0.149` additionally reads Android 16+'s qualitative capacity-level
 signal separately from state-of-health, and exposes it only when the system
 provides it.
