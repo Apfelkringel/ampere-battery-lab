@@ -39,6 +39,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - Der persistente Charge-Counter wird zentral in Androids Microampere-Stunden-Einheit validiert, bevor Sitzungen oder EFC daraus berechnet werden
 - Der gespeicherte EFC-Restanteil bleibt endlich und kleiner als 1,0; beschädigte Werte wie `NaN`, Unendlich oder künstlich große Bruchteile erzeugen keine falschen Zyklen
 - Erweiterte Sitzungszeilen prüfen auch den EFC-Wert strikt; ungültige Altzeilen können die Verschleißgrafik nicht mehr beschädigen
+- Erweiterte Sitzungszeilen prüfen zusätzlich Start-/End-Akkustand, Energie, Bildschirmwerte und Zeitfelder, bevor sie in Details oder Export gelangen
 - Sitzungsänderungen werden strikt auf maximal 100 % begrenzt; fehlerhafte Altzeilen und unrealistische Live-Änderungen werden verworfen bzw. aus gültiger Energie neu abgeleitet
 - System-Ladezyklen werden aus Android oder unterstützten Batterie-/BMS-Treibern gelesen; fehlt beides, nutzt Ampere eine vorsichtige lokale EFC-Schätzung aus Androids persistentem Charge Counter und kennzeichnet sie mit `~`
 - transparente Anzeige, warum eine Ladesitzung noch nicht als Health-Kapazitätsprobe zählt

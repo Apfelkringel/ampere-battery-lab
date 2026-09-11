@@ -78,6 +78,12 @@ Auch erweiterte Sitzungszeilen validieren ihren EFC-Wert vor der Aufnahme in
 die lokale Historie. Das verhindert, dass von `Float.parseFloat` akzeptierte
 Sonderwerte wie `NaN` oder `Infinity` die Verschleißgrafik skalieren.
 
+Die übrigen optionalen Felder derselben Zeilen werden ebenfalls typabhängig
+geprüft: Start und Ende bleiben echte 0–100-%-Akkustände, Entladewerte sind
+auf 0–1000 Zehntelprozent begrenzt und Zeit-/Energiefelder müssen endliche,
+nichtnegative Ganzzahlen sein. So kann eine beschädigte Sicherung keine
+ungültige Prozentzahl in der Detailansicht oder im Export wieder einschleusen.
+
 Die Android-16/17-Kapazitätsstufe wird in `BatteryCapacityLevel` bewusst nicht
 in `BatteryHealth.percent(...)` eingespeist. Ein Systemwert wie `Hoch` oder
 `Voll` kann damit niemals versehentlich als `110 %` oder als andere

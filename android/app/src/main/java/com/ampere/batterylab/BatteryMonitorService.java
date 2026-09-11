@@ -526,7 +526,8 @@ public class BatteryMonitorService extends Service {
     private void recordSession(android.content.SharedPreferences prefs, int level, boolean charging, int counterMah, long now) {
         long startedAt = prefs.getLong("monitorSessionStartedAt", 0L);
         boolean previousCharging = prefs.getBoolean("monitorLastCharging", charging);
-        int startLevel = prefs.getInt("monitorSessionStartLevel", level);
+        int startLevel = BatteryLevel.normalizePercent(prefs.getInt("monitorSessionStartLevel", level));
+        if (startLevel < 0) startLevel = level;
         int startCounter = prefs.getInt("monitorSessionStartCounterMah", 0);
         if (startedAt == 0L) {
             prefs.edit().putLong("monitorSessionStartedAt", now).putBoolean("monitorLastCharging", charging)

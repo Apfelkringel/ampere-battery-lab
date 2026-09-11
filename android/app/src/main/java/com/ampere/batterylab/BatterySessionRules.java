@@ -31,7 +31,16 @@ final class BatterySessionRules {
             // Extended rows contain an EFC value used by the health chart.
             // Float.parseFloat accepts NaN and Infinity, so explicitly reject
             // both and keep impossible chart scales out of the UI.
+            if (parts.length >= 6
+                    && (!isValidLevel(parts[4]) || !isValidLevel(parts[5]))) return false;
+            if (parts.length >= 7 && !isNonNegativeInt(parts[6])) return false;
             if (parts.length >= 8 && !isValidEquivalentCycles(parts[7])) return false;
+            if (parts.length >= 10
+                    && (!isValidScreenValue(parts[8], "Discharge".equals(type))
+                    || !isValidScreenValue(parts[9], "Discharge".equals(type)))) return false;
+            if (parts.length >= 13
+                    && (!isNonNegativeInt(parts[10]) || !isNonNegativeInt(parts[11])
+                    || !isNonNegativeInt(parts[12]))) return false;
             return "Charge".equals(type) ? change > 0 : change < 0;
         } catch (NumberFormatException ignored) {
             return false;
@@ -43,6 +52,31 @@ final class BatterySessionRules {
             float parsed = Float.parseFloat(value == null ? "" : value.trim());
             return Float.isFinite(parsed) && parsed >= 0f && parsed <= 3f;
         } catch (NumberFormatException ignored) {
+            return false;
+        }
+    }
+
+    private static boolean isValidLevel(String value) {
+        try {
+            return BatteryLevel.normalizePercent(Integer.parseInt(value.trim())) >= 0;
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    private static boolean isValidScreenValue(String value, boolean discharge) {
+        try {
+            int parsed = Integer.parseInt(value.trim());
+            return parsed >= 0 && (!discharge || parsed <= 1000);
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    private static boolean isNonNegativeInt(String value) {
+        try {
+            return Integer.parseInt(value.trim()) >= 0;
+        } catch (Exception ignored) {
             return false;
         }
     }
