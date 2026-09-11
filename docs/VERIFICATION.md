@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.206` (`versionCode 206`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: wird nach dem signierten CI-Artefakt ergänzt
+- Release APK SHA-256: `da958d7eb8e73f9bd5f6d023538c1b846c578ec3c80a19d183417fcfe2181291`
 
 Release `0.206` additionally selects a compact non-overlapping home-screen
 widget layout below 220 dp and re-renders each widget on resize using its
