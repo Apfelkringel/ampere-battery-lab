@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.215` (`versionCode 215`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `5275f4da1e3e2ea8748b88b419456ac6c3f8a08b480a47a133c7fbb86eb67cb6`
+- Release APK SHA-256: `947978efbc8c80b1fd4c23a344627ab2b65a59d06a8ea5ce5773943a6d2df2db`
 
 Release `0.215` additionally removes contradictory legacy session rows whose
 stored start/end levels run opposite to their charging or discharging type.
