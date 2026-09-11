@@ -5,9 +5,13 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.198` (`versionCode 198`)
+- Version: `0.199` (`versionCode 199`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `6e3ffca0998f2199c5373b96e3a9ab29c62999b2addbb7a751d27975105918e7`
+- Release APK SHA-256: wird nach dem signierten CI-Artefakt ergänzt
+
+Release `0.199` additionally removes the legacy 110% headroom from the
+capacity-measurement chart. The chart now uses the same 0–100% scale as the
+health value, progress bar and all other health surfaces.
 
 Release `0.198` additionally routes every displayed health value through one
 final validation gate. Only 1–100 % can be shown; invalid OEM/API values and

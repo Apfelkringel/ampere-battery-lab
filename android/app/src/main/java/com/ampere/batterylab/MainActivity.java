@@ -2570,7 +2570,11 @@ class BatteryDashboard extends View {
             for (int i = 0; i < healthSamples.size(); i++) {
                 float normalized = Math.max(0f, Math.min(1f, healthSamples.get(i) / (float) design));
                 float px = chartX + chartW * i / Math.max(1, healthSamples.size() - 1);
-                float py = chartY + chartH - normalized * chartH / 1.1f;
+                // The health chart uses the same physical 0–100% scale as
+                // the value and progress bar. Do not retain the old 110%
+                // headroom: it makes a full-capacity sample look artificially
+                // low and suggests that health can exceed the real ceiling.
+                float py = chartY + chartH - normalized * chartH;
                 if (i == 0) trend.moveTo(u(px), u(py)); else trend.lineTo(u(px), u(py));
             }
             stroke(c, lime, 2); c.drawPath(trend, p);
