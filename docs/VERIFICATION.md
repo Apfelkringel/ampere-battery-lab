@@ -5,11 +5,15 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.133` (`versionCode 133`)
+- Version: `0.134` (`versionCode 134`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `2a14de43373601a3aea9b260f9026a1b95672f7f385ae0072437df7774878b86`
+- Release APK SHA-256: `f35a7a16d6d4b9406e8453445d3de58de12e8e1f5b571392fa4a426c832b49bf`
 - The same hash is published in the public update repository manifest.
 
+Release `0.134` adds a conservative local equivalent-full-cycle estimate from
+Android's persistent charge counter for devices without a system/BMS cycle
+counter. Only stable counter increases while charging count; resets and
+unplausible jumps are ignored, and the UI marks the estimate with `~`.
 Release `0.133` ignores level reversals while charging when calculating the
 local full-cycle fallback, preventing OEM recalibration from creating false
 cycles. It retains the `0.132` validated OEM full-charge-capacity fallback.
