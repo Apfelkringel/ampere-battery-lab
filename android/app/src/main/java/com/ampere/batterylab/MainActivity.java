@@ -1920,7 +1920,10 @@ class BatteryDashboard extends View {
             text(c, health == 0 ? "Nicht gemessen" : health + "%", 36, top + 280 + compactDetailsOffset, 14, primary, true);
             float capacityX = 18 + heroW * .57f;
             float compactDetailsRight = 18 + heroW - 42;
-            boundedText(c, heroW < 230f ? "Kapazität" : "Geschätzte Kapazität", capacityX, compactDetailsRight,
+            // Prefer a complete short label on phone-width cards. Fitting the
+            // longer label character-by-character produced "Geschätzte
+            // Kapaz…" inside an otherwise clean metric column.
+            boundedText(c, heroW < 350f ? "Kapazität" : "Geschätzte Kapazität", capacityX, compactDetailsRight,
                     top + 258 + compactDetailsOffset, 9, muted, false);
             boundedText(c, health > 0 ? mahDisplay(estimatedCapacityMah()) : "—", capacityX, compactDetailsRight,
                     top + 280 + compactDetailsOffset, 12, primary, true);
