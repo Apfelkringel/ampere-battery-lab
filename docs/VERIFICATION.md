@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.219` (`versionCode 219`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `pending CI artifact`
+- Release APK SHA-256: `6d6cfb7f2509597c13d27b735feaa40cf14c3f0513336a289b3ee11b9a12426e`
 
 Release `0.219` additionally accepts Samsung's explicit read-only `fg_asoc`
 attribute as a validated ASOC health fallback while excluding the qualitative
