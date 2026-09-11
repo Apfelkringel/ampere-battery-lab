@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.209` (`versionCode 209`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: wird nach dem signierten CI-Build ergänzt.
+- Release APK SHA-256: `2295ddb1595e3bfa2a5e09f780a7074ecdfc3f6ef7e7d05be672d4346afedaf5`
 
 Release `0.209` additionally resolves the Android/OEM state-of-health
 percentage and its source as one validated reading. An invalid system value
