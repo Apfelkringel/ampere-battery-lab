@@ -12,6 +12,10 @@ Last verified: 2026-09-11 (Europe/Berlin)
 
 Release `0.135` prefers exact foreground/background usage events for app-drain
 analysis; aggregated daily usage is retained as a compatibility fallback.
+The signed `0.135` artifact was installed over the existing API-36 test
+installation from the public Contents endpoint; the install timestamp stayed
+unchanged. With usage access enabled, the Entladen view produced a foreground
+app row from runtime usage events without a fatal exception.
 Release `0.134` adds a conservative local equivalent-full-cycle estimate from
 Android's persistent charge counter for devices without a system/BMS cycle
 counter. Only stable counter increases while charging count; resets and
