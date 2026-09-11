@@ -5,10 +5,16 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.127` (`versionCode 127`)
+- Version: `0.128` (`versionCode 128`)
 - `minSdk 23`, `targetSdk 37`
 - Release APK SHA-256: `d65f6ea07440276d38d0a7177bce6677689d743b22a729699ec3f07f6856cb84`
 - The same hash is published in the public update repository manifest.
+
+Release `0.128` removes zero-change and malformed legacy session rows even when
+they use the old four-field format. It also displays Android's qualitative
+battery-health signal separately from the locally estimated capacity percent;
+the estimate remains bounded to 1–100% and is never derived from the
+qualitative signal.
 
 ## Runtime checks
 

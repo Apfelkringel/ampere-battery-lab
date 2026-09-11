@@ -103,10 +103,11 @@ public class BatteryMonitorService extends Service {
     }
 
     private Notification notification() {
-        return statusNotification(-1, false, 0, 0, 0);
+        return statusNotification(-1, false, 0, 0, 0, BatteryManager.BATTERY_HEALTH_UNKNOWN);
     }
 
-    private Notification statusNotification(int value, boolean isCharging, int currentMa, int temperatureTenths, int voltageMv) {
+    private Notification statusNotification(int value, boolean isCharging, int currentMa, int temperatureTenths,
+                                            int voltageMv, int platformHealth) {
         Intent launch = new Intent(this, MainActivity.class);
         PendingIntent pending = PendingIntent.getActivity(this, 0, launch, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? new Notification.Builder(this, CHANNEL_ID) : new Notification.Builder(this);
@@ -122,6 +123,7 @@ public class BatteryMonitorService extends Service {
             int design = BatteryCapacity.designCapacityMah(this);
             int health = BatteryHealth.percent(capacity, design);
             details += "\n" + (isCharging ? "Laden erkannt" : "Bildschirm- und Hintergrundverbrauch lokal erfasst")
+                    + " · Android-Zustand " + BatteryPlatformHealth.label(platformHealth)
                     + (health > 0 ? " · Gesundheit " + health + "%" : "")
                     + (capacity > 0 ? " · Schätzung " + capacity + " mAh" : "");
         }
@@ -184,7 +186,9 @@ public class BatteryMonitorService extends Service {
         long deepSleepDeltaMs = recordDeepSleepClock(prefs);
         String foregroundPackage = foregroundPackage(now);
         NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        if (notificationManager != null) notificationManager.notify(7, statusNotification(value, isCharging, signedCurrentMa, temperature, battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0)));
+        if (notificationManager != null) notificationManager.notify(7, statusNotification(value, isCharging, signedCurrentMa, temperature,
+                battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0),
+                battery.getIntExtra(BatteryManager.EXTRA_HEALTH, BatteryManager.BATTERY_HEALTH_UNKNOWN)));
         BatteryWidgetProvider.updateAll(this);
         BatteryQuickSettingsService.requestRefresh(this);
         updateSinceFullStats(prefs, value, isCharging, chargeCounterMah, currentMa, now, interactive, deepSleepDeltaMs);

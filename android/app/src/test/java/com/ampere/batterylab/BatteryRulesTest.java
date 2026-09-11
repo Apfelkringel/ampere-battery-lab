@@ -28,4 +28,19 @@ public class BatteryRulesTest {
         assertEquals(100, BatteryHealth.percent(12000, 10000));
         assertEquals(0, BatteryHealth.percent(0, 10000));
     }
+
+    @Test public void sessionHistoryRejectsZeroAndWrongDirectionRowsInEveryFormat() {
+        assertTrue(BatterySessionRules.isValid("Charge,+12%,18 Min.,11.09. 12:00"));
+        assertTrue(BatterySessionRules.isValid("Discharge,-8%,42 Min.,11.09. 13:00,70,62,300,0.03"));
+        assertFalse(BatterySessionRules.isValid("Charge,0%,1 Min.,11.09. 12:00"));
+        assertFalse(BatterySessionRules.isValid("Discharge,0%,1 Min.,11.09. 12:00,70,70,0,0"));
+        assertFalse(BatterySessionRules.isValid("Charge,-3%,1 Min.,11.09. 12:00"));
+        assertFalse(BatterySessionRules.isValid("not-a-session"));
+    }
+
+    @Test public void platformHealthStaysQualitative() {
+        assertEquals("Gut", BatteryPlatformHealth.label(BatteryManager.BATTERY_HEALTH_GOOD));
+        assertEquals("Überhitzt", BatteryPlatformHealth.label(BatteryManager.BATTERY_HEALTH_OVERHEAT));
+        assertEquals("Nicht verfügbar", BatteryPlatformHealth.label(BatteryManager.BATTERY_HEALTH_UNKNOWN));
+    }
 }

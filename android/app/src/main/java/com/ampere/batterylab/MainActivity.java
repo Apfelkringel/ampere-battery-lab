@@ -429,6 +429,7 @@ class BatteryDashboard extends View {
     private int level = 0;
     private float temperature = 0f;
     private float voltage = 0f;
+    private int platformHealth = BatteryManager.BATTERY_HEALTH_UNKNOWN;
     private int currentMa = 0;
     private int signedCurrentMa = 0;
     private int chargeCounterMah = 0;
@@ -578,6 +579,7 @@ class BatteryDashboard extends View {
         plugged = pluggedSource;
         int temp = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -1);
         temperature = temp > 0 ? temp / 10f : 0f;
+        platformHealth = intent.getIntExtra(BatteryManager.EXTRA_HEALTH, BatteryManager.BATTERY_HEALTH_UNKNOWN);
         int mv = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1);
         voltage = mv > 0 ? mv / 1000f : 0f;
         BatteryManager manager = (BatteryManager) getContext().getSystemService(Context.BATTERY_SERVICE);
@@ -677,17 +679,7 @@ class BatteryDashboard extends View {
     }
 
     private boolean isInvalidSession(String value) {
-        String[] parts = value.split(",", -1);
-        if (parts.length < 7) return false;
-        try {
-            String type = parts[0];
-            int change = Integer.parseInt(parts[1].replace("%", "").replace("+", ""));
-            if ("Charge".equals(type)) return change <= 0;
-            if ("Discharge".equals(type)) return change >= 0;
-            return false;
-        } catch (NumberFormatException ignored) {
-            return false;
-        }
+        return !BatterySessionRules.isValid(value);
     }
 
     private void saveSample() {
@@ -2275,10 +2267,13 @@ class BatteryDashboard extends View {
         text(c, w < 340f ? "Alterung" : "Akkualterung", w < 340f ? w - 90 : w - 145, y + 211, 10, muted, false);
         text(c, health > 0 ? (100 - Math.min(100, health)) + "%" : "—", w - 58, y + 211, 10, amber, true);
         line(c, 36, y + 232, w - 36, y + 232, border, 1);
-        text(c, "Temperatur heute", 36, y + 257, 10, muted, false);
-        text(c, temperature > 0f ? String.format(Locale.US, "%.1f°C", temperature) : "—", w - 93, y + 257, 10, amber, true);
-        text(c, "Ladeeffizienz", 36, y + 282, 10, muted, false);
-        text(c, chargingEfficiency(), w - 75, y + 282, 10, blue, true);
+        text(c, "Android-Zustand", 36, y + 257, 10, muted, false);
+        rightText(c, BatteryPlatformHealth.label(platformHealth), w - 36, y + 257, 10,
+                BatteryPlatformHealth.isAvailable(platformHealth) ? lime : faint, true);
+        text(c, "Temperatur heute", 36, y + 282, 9, muted, false);
+        rightText(c, temperature > 0f ? String.format(Locale.US, "%.1f°C", temperature) : "—", w * .48f, y + 282, 9, amber, true);
+        text(c, "Ladeeffizienz", w * .55f, y + 282, 9, muted, false);
+        rightText(c, chargingEfficiency(), w - 36, y + 282, 9, blue, true);
         drawStat(c, 18, y + 316, (w - 48) / 2f, 105, "Spannung", voltageDisplay(), voltage > 0f ? "V" : "", blue, primary, muted, border, panel, "bolt");
         drawStat(c, 30 + (w - 48) / 2f, y + 316, (w - 48) / 2f, 105, "Ladezyklen", chargeCyclesDisplay(), "", Color.rgb(180, 154, 255), primary, muted, border, panel, "grid");
         rounded(c, 18, y + 438, w - 18, y + 520, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 438), u(w - 18), u(y + 520)); c.drawRoundRect(rect, u(12), u(12), p);
