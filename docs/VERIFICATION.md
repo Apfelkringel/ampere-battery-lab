@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.216` (`versionCode 216`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `947978efbc8c80b1fd4c23a344627ab2b65a59d06a8ea5ce5773943a6d2df2db`
+- Release APK SHA-256: `996e2415bccf9c7260c932a16f9c6840846eb2339e3d377bec84372ce9c37f9c`
 
 Release `0.216` additionally rejects Charge-Counter jumps above three nominal
 battery capacities before storing session energy or calculating EFC. The
