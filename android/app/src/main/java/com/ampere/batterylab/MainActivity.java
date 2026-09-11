@@ -1217,14 +1217,6 @@ class BatteryDashboard extends View {
         return locallyObserved > 0 ? String.valueOf(locallyObserved) : "—";
     }
 
-    private String chargingEfficiency() {
-        int charged = prefs.getInt("totalChargedMah", 0);
-        int cycles = chargeCycles();
-        int design = designCapacityMah();
-        if (charged <= 0 || cycles <= 0 || design <= 0) return "—";
-        return String.format(Locale.US, "%.0f%%", charged * 100f / (design * cycles));
-    }
-
     private String lastChargeEquivalentCycles() {
         int energy = lastChargeEnergyMah();
         int design = designCapacityMah();
@@ -2272,8 +2264,8 @@ class BatteryDashboard extends View {
                 BatteryPlatformHealth.isAvailable(platformHealth) ? lime : faint, true);
         text(c, "Temperatur heute", 36, y + 282, 9, muted, false);
         rightText(c, temperature > 0f ? String.format(Locale.US, "%.1f°C", temperature) : "—", w * .48f, y + 282, 9, amber, true);
-        text(c, "Ladeeffizienz", w * .55f, y + 282, 9, muted, false);
-        rightText(c, chargingEfficiency(), w - 36, y + 282, 9, blue, true);
+        text(c, "Vollzyklen (EFC)", w * .55f, y + 282, 9, muted, false);
+        rightText(c, totalEquivalentCycles(), w - 36, y + 282, 9, blue, true);
         drawStat(c, 18, y + 316, (w - 48) / 2f, 105, "Spannung", voltageDisplay(), voltage > 0f ? "V" : "", blue, primary, muted, border, panel, "bolt");
         drawStat(c, 30 + (w - 48) / 2f, y + 316, (w - 48) / 2f, 105, "Ladezyklen", chargeCyclesDisplay(), "", Color.rgb(180, 154, 255), primary, muted, border, panel, "grid");
         rounded(c, 18, y + 438, w - 18, y + 520, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 438), u(w - 18), u(y + 520)); c.drawRoundRect(rect, u(12), u(12), p);
