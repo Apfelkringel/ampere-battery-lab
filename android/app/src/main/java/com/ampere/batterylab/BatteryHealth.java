@@ -3,7 +3,6 @@ package com.ampere.batterylab;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.BatteryManager;
-import android.os.Build;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -58,10 +57,12 @@ final class BatteryHealth {
     }
 
     static int reportedStateOfHealth(Context context) {
-        if (Build.VERSION.SDK_INT < 36) return 0;
+        if (context == null) return 0;
         try {
-            // The field is rollout-gated on some Android 16 builds. Reflection
-            // keeps Android 14/15 compatible and falls back safely when absent.
+            // Android exposes this property behind a feature flag on some
+            // releases and OEMs may backport it. Do not hard-code an API-level
+            // gate: reflection lets every device advertise its real support,
+            // while a missing/blocked field still falls back safely.
             int property = BatteryManager.class
                     .getField("BATTERY_PROPERTY_STATE_OF_HEALTH").getInt(null);
             BatteryManager manager = context.getSystemService(BatteryManager.class);

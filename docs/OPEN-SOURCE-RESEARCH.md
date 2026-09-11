@@ -60,6 +60,18 @@ Capacity` vom Batterie-/BMS-Treiber bleibt der letzte Fallback. Keine Quelle
 wird als eine andere umetikettiert und jede Kapazität bleibt auf
 500–30.000 mAh begrenzt.
 
+Die Android-15-Quelle führt `BATTERY_PROPERTY_STATE_OF_HEALTH` als
+feature-flagged BatteryManager-Eigenschaft. Deshalb setzt Ampere keine starre
+API-36-Grenze: Auf Android 14–17 und bei OEM-Backports wird die Eigenschaft
+versuchsweise gelesen, aber nur bei einem Wert von 1–100 akzeptiert. Fehlt das
+Feld oder liefert der Dienst einen ungültigen Wert wie 110, wird die Quelle
+verworfen und die lokale Kapazitätshierarchie verwendet.
+
+Referenzen: [Android BatteryManager](https://developer.android.com/reference/android/os/BatteryManager),
+[Android-15-BatteryManager-Quelle](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/android15-release/core/java/android/os/BatteryManager.java),
+[ABattery](https://github.com/abanana84/abattery) und
+[BatteryLog](https://github.com/TheDeathDragon/BatteryLog).
+
 Jeder automatische Treffer bleibt auf 500–30.000 mAh begrenzt und wird als
 Quelle angezeigt. Ein nicht verfügbarer Wert wird weder als `0 mAh` noch als
 Gesundheitsmessung dargestellt.

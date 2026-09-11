@@ -5,10 +5,14 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.191` (`versionCode 191`)
+- Version: `0.192` (`versionCode 192`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `d55aa30ebd6ecbc0e196f5713352cbbe17cd92420cd0fc47ee96d98c9fb687c3`
-- The same hash is published in the public update repository manifest.
+- Release APK SHA-256: wird nach dem signierten CI-Artefakt ergänzt
+
+Release `0.192` additionally removes the unnecessary API-36 gate from the
+Android BatteryManager state-of-health probe. Android 14/15 devices and OEM
+backports may expose the feature-flagged property earlier; absent, blocked or
+impossible values still fall back safely and can never render above 100 %.
 
 Release `0.181` additionally keeps a valid Android state-of-health reading as
 the shared source for both the displayed health percentage and derived mAh
