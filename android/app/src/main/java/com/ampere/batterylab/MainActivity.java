@@ -1147,6 +1147,10 @@ class BatteryDashboard extends View {
         return (minutes / 60) + " Std. " + (minutes % 60) + " Min.";
     }
 
+    private String screenOnTimeCard() {
+        return BatteryDuration.compact(prefs.getLong("screenOnMs", 0L) / 60000L);
+    }
+
     private String deepSleepTime() {
         long minutes = prefs.getLong(charging ? "lastDischargeDeepSleepMs" : "dischargeDeepSleepMs", 0L) / 60000L;
         if (minutes <= 0) return "—";
@@ -1290,6 +1294,12 @@ class BatteryDashboard extends View {
         if (charging) key = "last" + Character.toUpperCase(key.charAt(0)) + key.substring(1);
         long minutes = prefs.getLong(key, 0L) / 60000L;
         return minutes <= 0 ? "—" : formatDuration(minutes);
+    }
+
+    private String dischargeDurationCompact(boolean screenOn) {
+        String key = screenOn ? "dischargeScreenOnMs" : "dischargeScreenOffMs";
+        if (charging) key = "last" + Character.toUpperCase(key.charAt(0)) + key.substring(1);
+        return BatteryDuration.compact(prefs.getLong(key, 0L) / 60000L);
     }
 
     private String dischargeRuntime(boolean screenOn) {
@@ -2064,7 +2074,7 @@ class BatteryDashboard extends View {
         drawStat(c, 18, cardsTop, cardW, 105, "Akkugesundheit", healthDisplay(), health > 0 ? "%" : "", lime, primary, muted, border, panel, "heart");
         drawStat(c, 18 + cardW + cardGap, cardsTop, cardW, 105, "Akkutemperatur", temperatureDisplay(), temperature > 0f ? "°C" : "", amber, primary, muted, border, panel, "temp");
         drawStat(c, 18, cardsTop + 117, cardW, 105, "Spannung", voltageDisplay(), voltage > 0f ? "V" : "", blue, primary, muted, border, panel, "bolt");
-        drawStat(c, 18 + cardW + cardGap, cardsTop + 117, cardW, 105, "Bildschirmzeit", screenOnTime(), "", Color.rgb(180, 154, 255), primary, muted, border, panel, "clock");
+        drawStat(c, 18 + cardW + cardGap, cardsTop + 117, cardW, 105, "Bildschirmzeit", screenOnTimeCard(), "", Color.rgb(180, 154, 255), primary, muted, border, panel, "clock");
 
         float lowerTop = cardsTop + 234;
         drawChart(c, 18, lowerTop, w - 36, 360, panel, border, primary, muted, faint);
@@ -2131,7 +2141,7 @@ class BatteryDashboard extends View {
                 primary, muted, border, panel, "temp");
         drawStat(c, metricsX, top + 106, metricW, 98, "Spannung", voltageDisplay(), voltage > 0f ? "V" : "", blue,
                 primary, muted, border, panel, "bolt");
-        drawStat(c, metricsX + metricW + metricGap, top + 106, metricW, 98, "Screenzeit", screenOnTime(), "", violet,
+        drawStat(c, metricsX + metricW + metricGap, top + 106, metricW, 98, "Screenzeit", screenOnTimeCard(), "", violet,
                 primary, muted, border, panel, "clock");
 
         drawChart(c, 18, top + 218, w - 36, 360, panel, border, primary, muted, faint);
@@ -2187,7 +2197,7 @@ class BatteryDashboard extends View {
                 primary, muted, border, panel, "temp");
         drawStat(c, metricsX, top + 106, metricW, 98, "Spannung", voltageDisplay(), voltage > 0f ? "V" : "", blue,
                 primary, muted, border, panel, "bolt");
-        drawStat(c, metricsX + metricW + metricGap, top + 106, metricW, 98, "Screenzeit", screenOnTime(), "", violet,
+        drawStat(c, metricsX + metricW + metricGap, top + 106, metricW, 98, "Screenzeit", screenOnTimeCard(), "", violet,
                 primary, muted, border, panel, "clock");
 
         drawChart(c, 18, top + 218, w - 36, 360, panel, border, primary, muted, faint);
@@ -2330,7 +2340,7 @@ class BatteryDashboard extends View {
         text(c, "Bildschirm an / aus", w - 112, y + 262, 8, faint, false);
         text(c, "Ladestrom live", 36, y + 280, 9, muted, false);
         text(c, !charging && currentMa > 0 ? "−" + currentMa + " mA" : "—", w - 95, y + 280, 10, blue, true);
-        drawStat(c, 18, y + 316, (w - 48) / 2f, 105, "Bildschirmzeit", dischargeDuration(true), "", Color.rgb(180, 154, 255), primary, muted, border, panel, "clock");
+        drawStat(c, 18, y + 316, (w - 48) / 2f, 105, "Bildschirmzeit", dischargeDurationCompact(true), "", Color.rgb(180, 154, 255), primary, muted, border, panel, "clock");
         drawStat(c, 30 + (w - 48) / 2f, y + 316, (w - 48) / 2f, 105, "Verbrauch", dischargeMah() > 0 ? String.valueOf(dischargeMah()) : "—", "mAh", blue, primary, muted, border, panel, "arrow");
         rounded(c, 18, y + 438, w - 18, y + 536, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 438), u(w - 18), u(y + 536)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "Nutzungsübersicht", 36, y + 468, 10, muted, true);

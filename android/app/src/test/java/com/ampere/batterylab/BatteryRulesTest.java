@@ -124,6 +124,13 @@ public class BatteryRulesTest {
         assertFalse(UpdateChecker.shouldResumePersistedDownload(DownloadManager.STATUS_FAILED));
     }
 
+    @Test public void compactDurationsNeverNeedEllipsisForMetricCards() {
+        assertEquals("—", BatteryDuration.compact(0));
+        assertEquals("45 m", BatteryDuration.compact(45));
+        assertEquals("2 h", BatteryDuration.compact(120));
+        assertEquals("20 h 4 m", BatteryDuration.compact(1204));
+    }
+
     @Test public void finalHealthGateNeverReturnsAnImpossiblePercentage() {
         for (int value : new int[]{-100, 0, 101, 110, 1000, Integer.MAX_VALUE}) {
             assertEquals(0, BatteryHealth.displayPercent(value));

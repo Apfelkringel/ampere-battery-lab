@@ -5,9 +5,13 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.210` (`versionCode 210`)
+- Version: `0.211` (`versionCode 211`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `07d30906404d507680153ef0cd8c4ca120965d2abe51d4924d84c2385d43565d`
+- Release APK SHA-256: wird nach dem signierten CI-Build ergänzt.
+
+Release `0.211` additionally uses a compact, complete duration format in
+metric cards. Values such as 20 hours and 4 minutes render as `20 h 4 m`
+instead of being ellipsized inside narrow responsive cards.
 
 Release `0.210` additionally reconciles a successfully completed persisted
 DownloadManager update when the app becomes visible again. This recovers

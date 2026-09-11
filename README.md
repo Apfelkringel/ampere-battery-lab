@@ -107,6 +107,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - keine ungenutzte Berechtigung zur Ausnahme von der Android-Akkuoptimierung; der Monitor bleibt bei den tatsächlich benötigten Rechten
 - Downloads werden auch nach einem App-Prozess-Neustart per Android-DownloadManager fortgesetzt, vor der Installation gehasht und von Android bestätigt
 - Ein bereits vollständig heruntergeladenes Update wird nach einem Prozess-Neustart beim nächsten Öffnen erneut verifiziert; laufende und doppelte Downloads werden nicht parallel gestartet
+- Zeitwerte in schmalen Kennzahlenkarten werden kompakt und vollständig angezeigt, statt am Kartenrand abgeschnitten zu werden
 - der Hintergrundmonitor prüft höchstens alle 12 Stunden die öffentliche Update-Datei und meldet neue Versionen per Android-Benachrichtigung
 - In-App-Updates laden Manifest und APK über den festgelegten GitHub-Contents-Endpunkt und prüfen vor dem Installer zusätzlich Hash, Paketname, Version und das eingebettete Release-Zertifikat; Details in `docs/UPDATE-SECURITY.md`
 - Lade-/Entladegrenzen werden zusätzlich direkt über Androids `POWER_CONNECTED`-/`POWER_DISCONNECTED`-Broadcasts verarbeitet, damit Kabelwechsel und Ladealarm nicht auf eine verzögerte Statusmessung warten
