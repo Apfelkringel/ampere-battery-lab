@@ -185,7 +185,8 @@ public class BatteryMonitorService extends Service {
         BatteryManager batteryManager = (BatteryManager) getSystemService(BATTERY_SERVICE);
         int currentMa = BatteryCurrent.milliAmps(batteryManager);
         int signedCurrentMa = currentMa == 0 ? 0 : (isCharging ? currentMa : -currentMa);
-        int temperature = battery.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0);
+        int temperature = BatteryTemperature.normalizeTenths(
+                battery.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0));
         long rawChargeCounterUah = readChargeCounterUah(batteryManager);
         int chargeCounterMah = rawChargeCounterUah > 0
                 ? (int) Math.min(Integer.MAX_VALUE, Math.round(rawChargeCounterUah / 1000d)) : 0;

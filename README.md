@@ -32,6 +32,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - best-effort lokale Designkapazitäts-Erkennung mit Batterie-/BMS-Treiber, Energie-/Spannungswerten und Android-PowerProfile sowie separate Full-Charge-Kapazität vom Batterie-Treiber; jede Quelle bleibt mit Einheitengrenzen und Herkunft transparent
 - dynamische Full-Charge-Kapazität wird im laufenden Monitor regelmäßig neu gelesen, damit OEM-Lernwerte nach einer Ladung nicht veralten
 - Health-Auswertung mit letztem Ladeverschleiß und äquivalenten Vollzyklen (EFC); Gesundheit wird fachlich auf maximal 100 % begrenzt, ungültige OEM-Werte über 100 % werden verworfen
+- Temperaturwerte werden in Dashboard, Dienst, Widget, Overlay, Kachel und Alarm zentral auf Androids Zehntelgrad-Einheit und einen plausiblen Bereich geprüft
 - System-Ladezyklen werden aus Android oder unterstützten Batterie-/BMS-Treibern gelesen; fehlt beides, nutzt Ampere eine vorsichtige lokale EFC-Schätzung aus Androids persistentem Charge Counter und kennzeichnet sie mit `~`
 - transparente Anzeige, warum eine Ladesitzung noch nicht als Health-Kapazitätsprobe zählt
 - Bildschirmzeit, echte Android-Suspendzeit (Deep Sleep), Ladezyklen und optionale Vordergrund-App-Nutzung

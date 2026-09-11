@@ -591,7 +591,8 @@ class BatteryDashboard extends View {
         }
         charging = newCharging;
         plugged = pluggedSource;
-        int temp = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -1);
+        int temp = BatteryTemperature.normalizeTenths(
+                intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -1));
         temperature = temp > 0 ? temp / 10f : 0f;
         platformHealth = intent.getIntExtra(BatteryManager.EXTRA_HEALTH, BatteryManager.BATTERY_HEALTH_UNKNOWN);
         capacityLevel = BatteryCapacityLevel.fromIntent(intent);

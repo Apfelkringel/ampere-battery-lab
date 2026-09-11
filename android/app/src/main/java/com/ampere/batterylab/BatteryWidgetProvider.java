@@ -41,7 +41,8 @@ public class BatteryWidgetProvider extends AppWidgetProvider {
                 : battery.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN);
         int plugged = battery == null ? 0 : battery.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0);
         boolean charging = BatteryState.isCharging(status, plugged);
-        int temperatureTenths = battery == null ? 0 : battery.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0);
+        int temperatureTenths = battery == null ? 0 : BatteryTemperature.normalizeTenths(
+                battery.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0));
         int voltageMv = battery == null ? 0 : battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0);
         int currentMa = readCurrentMa(context);
 

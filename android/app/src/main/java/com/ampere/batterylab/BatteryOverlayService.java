@@ -107,7 +107,8 @@ public class BatteryOverlayService extends Service {
         int raw = battery.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
         int scale = battery.getIntExtra(BatteryManager.EXTRA_SCALE, 100);
         int level = raw >= 0 && scale > 0 ? Math.round(raw * 100f / scale) : 0;
-        int temperature = battery.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0);
+        int temperature = BatteryTemperature.normalizeTenths(
+                battery.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0));
         int voltage = battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0);
         int status = battery.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN);
         int plugged = battery.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0);

@@ -95,6 +95,12 @@ Strom-mal-Spannung-Prinzip in Milliwatt umgerechnet. Ampere zeigt das Ergebnis
 nur mit engen Spannungs-, Strom- und Leistungsgrenzen als „Max. … W“; der
 aktuelle Batteriefluss bleibt davon unabhängig.
 
+Temperaturdaten folgen demselben Validierungsprinzip: Android liefert sie als
+Zehntelgrad Celsius, aber einzelne Geräte können fehlende oder unplausible
+Werte melden. `BatteryTemperature` verwirft deshalb Werte außerhalb von
+0,1–100,0 °C zentral, bevor sie in Dashboard, Widget, Overlay, Kachel,
+Telemetrie oder Alarm gelangen.
+
 Für die zusätzliche Live-Leistung orientiert sich Ampere an dem in offenen
 Batteriemonitoren üblichen, transparenten Modell `P = I × U`: Androids
 gemessener Akkustrom wird mit der Akkuspannung multipliziert. Die Implementierung
