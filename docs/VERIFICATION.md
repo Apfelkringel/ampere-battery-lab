@@ -4,7 +4,9 @@ Last verified: 2026-09-11 (Europe/Berlin)
 
 ## Current development change
 
-Version `0.265` additionally keeps app-drain attribution bounded when no
+Version `0.266` additionally preserves Android activity class names across the
+legacy `MOVE_TO_BACKGROUND`/modern `ACTIVITY_PAUSED` event-number collision, so
+in-app activity switches are not closed early. Version `0.265` additionally keeps app-drain attribution bounded when no
 observed discharge exists, avoids replacing short exact usage sessions with an
 unbounded daily bucket, and caps stale telemetry attribution at the shared
 accounting interval. Regression tests cover all three guards. Version `0.264`

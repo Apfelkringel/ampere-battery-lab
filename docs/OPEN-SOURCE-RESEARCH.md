@@ -10,6 +10,12 @@ zugeschrieben. Ohne beobachtete Entladeenergie bleibt die App-Schätzung
 bewusst nicht verfügbar. Diese Änderungen sind eigene Regeln mit
 Regressionstests; Referenzcode wurde nicht übernommen.
 
+Beim Activity-Wechsel wurde außerdem die Event-Kollision von Androids altem
+`MOVE_TO_BACKGROUND` und `ACTIVITY_PAUSED` berücksichtigt: Der Klassenname
+bleibt erhalten, wenn Android ihn liefert, sodass ein Wechsel innerhalb einer
+App nicht mehr versehentlich als vollständiges Paketende zählt. Ein wirklich
+leeres Klassenfeld bleibt der konservative paketweite Fallback.
+
 Die konfigurierbare Tiefstandwarnung ist von den Alarmfunktionen des GPL-3.0-
 Projekts [Battery Monitor](https://github.com/tswistak/Battery-Monitor) inspiriert.
 Es wurde kein Code übernommen: Die Implementierung in `BatteryDischargeAlarm`

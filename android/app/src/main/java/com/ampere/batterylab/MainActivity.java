@@ -2858,8 +2858,11 @@ class BatteryDashboard extends View {
                 continue;
             }
             if (packageName == null || packageName.isEmpty() || timestamp > end) continue;
-            String className = event.getEventType() == UsageEvents.Event.MOVE_TO_BACKGROUND
-                    ? "" : event.getClassName();
+            // MOVE_TO_BACKGROUND and ACTIVITY_PAUSED share an event value on
+            // Android. Keep the class name whenever the platform provides it;
+            // UsageEventAccumulator treats a genuinely empty name as the
+            // legacy package-wide close.
+            String className = event.getClassName();
             UsageEventAccumulator.apply(totals, active, packageName, className,
                     timestamp, start, end, isForegroundEvent(event.getEventType()),
                     isBackgroundEvent(event.getEventType()));
