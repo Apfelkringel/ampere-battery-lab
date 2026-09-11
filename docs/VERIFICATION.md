@@ -5,11 +5,13 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.154` (`versionCode 154`)
+- Version: `0.155` (`versionCode 155`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `06e622d4e31bbef4db3d8a8982b6eb304e7efe94b5cdc385886715cbc4673dfa`
+- Release APK SHA-256: `14156ca504fe1c9b9bfea17e5dea125ccaa165972d3abe5084e05413b37f840d`
 - The same hash is published in the public update repository manifest.
 
+Release `0.155` additionally adds a configurable temperature warning with
+three-degree hysteresis and one notification per heat phase.
 Release `0.154` additionally keeps the compact charging power label readable
 on narrow 320/360 dp layouts without crossing its metric column.
 Release `0.153` additionally calculates and displays validated battery-side
