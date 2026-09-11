@@ -143,7 +143,8 @@ public class BatteryMonitorService extends Service {
         String temperatureText = temperatureTenths > 0
                 ? String.format(Locale.US, "%.1f°C", temperatureTenths / 10f)
                 : "Temperatur nicht verfügbar";
-        String details = value >= 0 ? (currentMagnitudeMa > 0 ? currentMagnitudeMa + " mA" : "Strom nicht verfügbar") + " · " + temperatureText + (voltageMv > 0 ? " · " + String.format(Locale.US, "%.2f V", voltageMv / 1000f) : "") : "Akkumesswerte werden auf diesem Gerät gespeichert";
+        String currentText = BatteryTelemetryText.current(currentMagnitudeMa, isCharging, true);
+        String details = value >= 0 ? ("—".equals(currentText) ? "Strom nicht verfügbar" : currentText) + " · " + temperatureText + (voltageMv > 0 ? " · " + String.format(Locale.US, "%.2f V", voltageMv / 1000f) : "") : "Akkumesswerte werden auf diesem Gerät gespeichert";
         long remainingEnergyNanoWattHours = BatteryEnergy.readNanoWattHours(
                 (BatteryManager) getSystemService(BATTERY_SERVICE));
         if (remainingEnergyNanoWattHours > 0L) {
