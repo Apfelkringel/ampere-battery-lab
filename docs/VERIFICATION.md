@@ -5,11 +5,13 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.155` (`versionCode 155`)
+- Version: `0.156` (`versionCode 156`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `14156ca504fe1c9b9bfea17e5dea125ccaa165972d3abe5084e05413b37f840d`
+- Release APK SHA-256: `wird nach CI-Signatur eingetragen`
 - The same hash is published in the public update repository manifest.
 
+Release `0.156` additionally keeps the temperature threshold choices visible
+in the Android settings dialog.
 Release `0.155` additionally adds a configurable temperature warning with
 three-degree hysteresis and one notification per heat phase.
 Release `0.154` additionally keeps the compact charging power label readable

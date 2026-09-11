@@ -1419,8 +1419,7 @@ class BatteryDashboard extends View {
         for (int i = 0; i < thresholds.length; i++) if (thresholds[i] == current) selected = i;
         final int[] choice = {selected};
         new AlertDialog.Builder(getContext())
-                .setTitle("Temperaturwarnung")
-                .setMessage("Ampere informiert dich einmalig, wenn die vom Akku gemeldete Temperatur den Grenzwert erreicht. Die Warnung wird erst unter 3 °C darunter zurückgesetzt.")
+                .setTitle("Temperaturwarnung · Rücksetzung 3 °C darunter")
                 .setSingleChoiceItems(labels, selected, (dialog, which) -> choice[0] = which)
                 .setNegativeButton("Abbrechen", null)
                 .setPositiveButton("Speichern", (dialog, which) -> {
