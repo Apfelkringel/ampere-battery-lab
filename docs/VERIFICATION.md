@@ -4,7 +4,10 @@ Last verified: 2026-09-11 (Europe/Berlin)
 
 ## Current development change
 
-Version `0.273` additionally gives successful Canvas control activations a
+Version `0.274` additionally marks virtual Canvas controls visible to
+accessibility services only while their real screen bounds intersect the
+visible dashboard, preventing clipped offscreen nodes from being announced as
+visible at `[0,0]`. Version `0.273` additionally gives successful Canvas control activations a
 single system-respecting haptic confirmation and cancels header actions when
 the finger is released over a different control. Version `0.272`
 additionally shares the direction-aware current label with the

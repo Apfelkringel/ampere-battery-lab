@@ -3885,7 +3885,11 @@ class BatteryDashboard extends View {
             getLocationOnScreen(location);
             boundsInParent.offset(location[0], location[1]);
             node.setBoundsInScreen(boundsInParent);
-            node.setVisibleToUser(isShown());
+            Rect visibleDashboard = new Rect();
+            boolean visibleToUser = isShown()
+                    && getGlobalVisibleRect(visibleDashboard)
+                    && Rect.intersects(visibleDashboard, boundsInParent);
+            node.setVisibleToUser(visibleToUser);
             node.setEnabled(isEnabled());
             node.setFocusable(true);
             node.setClickable(true);
