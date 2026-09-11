@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.221` (`versionCode 221`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `ab82dbc44973de2056740ebb3ab173ce3e8e33b97bc936eac49e68a64dfc2af2`
+- Release APK SHA-256: `b7c80d31b65c775d5c614f919aabadd9e0d601596d98f738ff9e6246501743a5`
 
 Release `0.221` additionally supplies Android 12+ with responsive widget
 `RemoteViews` cutoffs for short, compact and standard sizes. Older launchers
