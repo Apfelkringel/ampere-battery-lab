@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.172` (`versionCode 172`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `c927fa56dcca7d522c69712ec945562f97a8cd12c3ba5154143371440b10e32e`
+- Release APK SHA-256: `d504aa70987a67f1c5982f658671b2578f03f81fad9dae7bef6d0593afcc1188`
 - The same hash is published in the public update repository manifest.
 
 Release `0.172` additionally removes the unused battery-optimization exemption
