@@ -2243,11 +2243,14 @@ class BatteryDashboard extends View {
         float y = 182;
         rounded(c, 18, y, w - 18, y + 300, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y), u(w - 18), u(y + 300)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "ENTLADEVORGANG", 36, y + 31, 10, muted, true);
-        text(c, charging ? "Letzter Entladevorgang" : "Akkuverbrauch", 36, y + 58, 18, primary, true);
-        int displayLevel = charging ? prefs.getInt("lastDischargeEndLevel", level) : level;
+        int savedDischargeEnd = BatteryLevel.normalizePercent(prefs.getInt("lastDischargeEndLevel", -1));
+        boolean hasDischargeHistory = savedDischargeEnd >= 0;
+        text(c, charging ? (hasDischargeHistory ? "Letzter Entladevorgang" : "Noch keine Entladung") : "Akkuverbrauch",
+                36, y + 58, 18, primary, true);
+        int displayLevel = charging ? savedDischargeEnd : level;
         drawGauge(c, 94, y + 145, 55, displayLevel, primary, faint);
         text(c, percentDisplay(displayLevel), 70, y + 153, 22, primary, true);
-        text(c, "verbleibend", 69, y + 173, 9, muted, false);
+        text(c, displayLevel >= 0 ? "verbleibend" : "noch keine Entladung", 69, y + 173, 9, muted, false);
         line(c, w * .54f, y + 94, w * .54f, y + 196, border, 1);
         text(c, "Gemischte Laufzeit", w * .6f, y + 106, 10, muted, false);
         text(c, runtimeEstimate(), w * .6f, y + 138, 20, primary, true);

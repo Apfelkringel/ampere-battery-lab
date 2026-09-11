@@ -72,6 +72,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - Auch gespeicherte Verlaufspunkte und Chart-Telemetrie akzeptieren keine ungültigen Prozentwerte aus alten App-Versionen
 - Vor dem ersten gültigen Android-Akku-Broadcast zeigt das Dashboard „—“ statt eines erfundenen 0-%-Werts
 - Vor dem ersten gültigen Android-Akku-Broadcast bleiben auch Status-Chip und Statuszeile konsistent bei „Nicht verfügbar“
+- Die Entladen-Ansicht zeigt ohne abgeschlossene Entladung keinen aktuellen Akkustand als scheinbare Historie, sondern „Noch keine Entladung“
 - responsive Kompaktansichten für schmale und breite Displays, zentrierter Inhaltsbereich auf Tablets/Foldables, 48-dp-Touch-Zonen und Screenreader-Zusammenfassung; Details in `docs/UI-UX.md`
 - Landscape-Übersicht reserviert Gauge, Überschrift, Kennzahlen und Statuszeile in getrennten Geometrie-Lanes, damit nichts übereinanderliegt
 - Schmale Hochkant-Karten verwenden vollständige Kurzlabels wie „Kapazität“ statt abgeschnittener Bezeichnungen
