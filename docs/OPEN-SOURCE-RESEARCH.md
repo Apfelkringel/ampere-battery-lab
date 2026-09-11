@@ -101,6 +101,11 @@ Werte melden. `BatteryTemperature` verwirft deshalb Werte außerhalb von
 0,1–100,0 °C zentral, bevor sie in Dashboard, Widget, Overlay, Kachel,
 Telemetrie oder Alarm gelangen.
 
+Auch Batteriespannung wird vor Anzeige und Leistungsberechnung zentral als
+Millivolt validiert. Der Bereich 1.000–10.000 mV deckt die üblichen ein- und
+mehrzelligen Smartphone-/Tablet-Akkus ab; fehlende oder darüberliegende Werte
+werden als nicht verfügbar behandelt.
+
 Für die zusätzliche Live-Leistung orientiert sich Ampere an dem in offenen
 Batteriemonitoren üblichen, transparenten Modell `P = I × U`: Androids
 gemessener Akkustrom wird mit der Akkuspannung multipliziert. Die Implementierung

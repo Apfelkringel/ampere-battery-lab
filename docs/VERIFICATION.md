@@ -14,6 +14,8 @@ Release `0.159` additionally labels the actual health-data source on the
 capacity card, so Android system SoH is not mislabeled as a local measurement.
 Release `0.160` additionally validates battery temperature consistently across
 the dashboard, service, widget, overlay, Quick-Settings tile and alarm.
+Release `0.161` additionally validates battery voltage consistently before
+display and battery-side power calculation.
 Release `0.158` rejects impossible Android state-of-health
 values above 100% instead of silently converting them to 100%; local health
 measurements remain the fallback.

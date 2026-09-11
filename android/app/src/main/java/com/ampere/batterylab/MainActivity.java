@@ -598,7 +598,8 @@ class BatteryDashboard extends View {
         capacityLevel = BatteryCapacityLevel.fromIntent(intent);
         chargingStatus = BatteryChargingState.fromIntent(intent);
         maxChargingPowerMilliwatts = BatteryChargerCapability.maxPowerMilliwatts(intent);
-        int mv = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1);
+        int mv = BatteryVoltage.normalizeMilliVolts(
+                intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1));
         voltage = mv > 0 ? mv / 1000f : 0f;
         BatteryManager manager = (BatteryManager) getContext().getSystemService(Context.BATTERY_SERVICE);
         currentMa = BatteryCurrent.milliAmps(manager);

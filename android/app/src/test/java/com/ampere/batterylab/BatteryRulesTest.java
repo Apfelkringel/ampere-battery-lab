@@ -55,6 +55,14 @@ public class BatteryRulesTest {
         assertEquals(0, BatteryTemperature.normalizeTenths(1001));
     }
 
+    @Test public void voltageRejectsMissingAndImplausibleValues() {
+        assertEquals(4200, BatteryVoltage.normalizeMilliVolts(4200));
+        assertEquals(1000, BatteryVoltage.normalizeMilliVolts(1000));
+        assertEquals(0, BatteryVoltage.normalizeMilliVolts(0));
+        assertEquals(0, BatteryVoltage.normalizeMilliVolts(-1));
+        assertEquals(0, BatteryVoltage.normalizeMilliVolts(10001));
+    }
+
     @Test public void sessionHistoryRejectsZeroAndWrongDirectionRowsInEveryFormat() {
         assertTrue(BatterySessionRules.isValid("Charge,+12%,18 Min.,11.09. 12:00"));
         assertTrue(BatterySessionRules.isValid("Discharge,-8%,42 Min.,11.09. 13:00,70,62,300,0.03"));

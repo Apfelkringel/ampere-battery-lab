@@ -105,7 +105,8 @@ public class BatteryQuickSettingsService extends TileService {
         boolean charging = BatteryState.isCharging(status, plugged);
         int temp = battery == null ? 0 : BatteryTemperature.normalizeTenths(
                 battery.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0));
-        int voltage = battery == null ? 0 : battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0);
+        int voltage = battery == null ? 0 : BatteryVoltage.normalizeMilliVolts(
+                battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0));
         int current = readCurrentMa();
 
         // Keep the title stable so SystemUI does not cache a stale dynamic

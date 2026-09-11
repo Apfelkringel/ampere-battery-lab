@@ -43,7 +43,8 @@ public class BatteryWidgetProvider extends AppWidgetProvider {
         boolean charging = BatteryState.isCharging(status, plugged);
         int temperatureTenths = battery == null ? 0 : BatteryTemperature.normalizeTenths(
                 battery.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0));
-        int voltageMv = battery == null ? 0 : battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0);
+        int voltageMv = battery == null ? 0 : BatteryVoltage.normalizeMilliVolts(
+                battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0));
         int currentMa = readCurrentMa(context);
 
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.battery_widget);

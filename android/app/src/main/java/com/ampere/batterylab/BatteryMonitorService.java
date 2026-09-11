@@ -187,6 +187,8 @@ public class BatteryMonitorService extends Service {
         int signedCurrentMa = currentMa == 0 ? 0 : (isCharging ? currentMa : -currentMa);
         int temperature = BatteryTemperature.normalizeTenths(
                 battery.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0));
+        int voltageMv = BatteryVoltage.normalizeMilliVolts(
+                battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0));
         long rawChargeCounterUah = readChargeCounterUah(batteryManager);
         int chargeCounterMah = rawChargeCounterUah > 0
                 ? (int) Math.min(Integer.MAX_VALUE, Math.round(rawChargeCounterUah / 1000d)) : 0;
@@ -202,7 +204,7 @@ public class BatteryMonitorService extends Service {
         String foregroundPackage = foregroundPackage(now);
         NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         if (notificationManager != null) notificationManager.notify(7, statusNotification(value, isCharging, signedCurrentMa, temperature,
-                battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0),
+                voltageMv,
                 battery.getIntExtra(BatteryManager.EXTRA_HEALTH, BatteryManager.BATTERY_HEALTH_UNKNOWN),
                 BatteryCapacityLevel.fromIntent(battery),
                 BatteryChargingState.fromIntent(battery),
@@ -213,7 +215,7 @@ public class BatteryMonitorService extends Service {
         updateDischargeStats(prefs, value, isCharging, chargeCounterMah, currentMa, now, interactive, deepSleepDeltaMs);
         updateChargeStats(prefs, value, isCharging, chargeCounterMah, currentMa, now, interactive, plugged);
         recordSession(prefs, value, isCharging, chargeCounterMah, now);
-        recordTelemetrySample(telemetryPrefs, now, value, isCharging, signedCurrentMa, temperature, battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0), chargeCounterMah, interactive, foregroundPackage, systemCycleCount, plugged);
+        recordTelemetrySample(telemetryPrefs, now, value, isCharging, signedCurrentMa, temperature, voltageMv, chargeCounterMah, interactive, foregroundPackage, systemCycleCount, plugged);
         requestAutomaticBackup(prefs, now);
         UpdateChecker.checkInBackground(this);
         int benchmarkCapacity = updateBenchmark(prefs, value, isCharging, chargeCounterMah);
