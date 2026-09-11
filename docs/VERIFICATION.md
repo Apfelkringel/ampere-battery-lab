@@ -4,7 +4,11 @@ Last verified: 2026-09-11 (Europe/Berlin)
 
 ## Current development change
 
-Version `0.270` additionally preserves Android's charging status when an OEM
+Version `0.271` additionally shares direction-aware current and power labels
+across the widget, Quick Settings tile, overlay and charging screensaver, so
+discharge is never presented as an unsigned charge value. Missing telemetry is
+rendered as unavailable instead of a fabricated zero. Version `0.270`
+additionally preserves Android's charging status when an OEM
 omits `EXTRA_PLUGGED`, while still treating an explicit zero as unplugged.
 Version `0.269` additionally keeps local charge-time profiles separate for
 AC, wireless, USB and dock sources and does not carry an interval across a

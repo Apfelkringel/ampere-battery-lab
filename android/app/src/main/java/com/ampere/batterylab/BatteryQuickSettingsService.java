@@ -122,7 +122,7 @@ public class BatteryQuickSettingsService extends TileService {
     private static String shortSubtitle(int level, int status, boolean charging, int currentMa, int temperatureTenths) {
         StringBuilder result = new StringBuilder().append(level).append("% · ")
                 .append(charging ? "Laden" : status == BatteryManager.BATTERY_STATUS_UNKNOWN ? "Status unbekannt" : "Akkubetrieb");
-        if (currentMa > 0) result.append(" · ").append(charging ? "+" : "−").append(formatCurrent(currentMa));
+        if (currentMa > 0) result.append(" · ").append(BatteryTelemetryText.current(currentMa, charging, false));
         if (temperatureTenths > 0) result.append(" · ").append(String.format(Locale.US, "%.1f°C", temperatureTenths / 10f));
         return result.toString();
     }
@@ -132,15 +132,10 @@ public class BatteryQuickSettingsService extends TileService {
         if (charging) result.append("Laden");
         else if (status == BatteryManager.BATTERY_STATUS_UNKNOWN) result.append("Status unbekannt");
         else result.append("Akkubetrieb");
-        if (currentMa > 0) result.append(" · ").append(charging ? "+" : "−").append(formatCurrent(currentMa));
+        if (currentMa > 0) result.append(" · ").append(BatteryTelemetryText.current(currentMa, charging, false));
         if (temperatureTenths > 0) result.append(" · ").append(String.format(Locale.US, "%.1f°C", temperatureTenths / 10f));
         if (voltageMv > 0) result.append(" · ").append(String.format(Locale.US, "%.2fV", voltageMv / 1000f));
         return result.toString();
     }
 
-    private static String formatCurrent(int currentMa) {
-        return currentMa >= 1000
-                ? String.format(Locale.US, "%.1fA", currentMa / 1000f)
-                : currentMa + "mA";
-    }
 }

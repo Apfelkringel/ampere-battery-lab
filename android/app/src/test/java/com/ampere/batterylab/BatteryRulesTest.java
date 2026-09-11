@@ -966,6 +966,15 @@ public class BatteryRulesTest {
         assertEquals("≈ 4,5 W", BatteryPower.label(4500));
     }
 
+    @Test public void sharedTelemetryTextKeepsDirectionAcrossOutputSurfaces() {
+        assertEquals("+900 mA", BatteryTelemetryText.current(900, true, true));
+        assertEquals("−900mA", BatteryTelemetryText.current(900, false, false));
+        assertEquals("+4,5 W", BatteryTelemetryText.power(900, 5000, true));
+        assertEquals("−4,5 W", BatteryTelemetryText.power(900, 5000, false));
+        assertEquals("—", BatteryTelemetryText.current(0, true, true));
+        assertEquals("—", BatteryTelemetryText.power(900, 0, true));
+    }
+
     @Test public void currentParserRejectsSentinelsAndUnrealisticSpikes() {
         assertEquals(900, BatteryCurrent.fromMicroamps(900_000));
         assertEquals(900, BatteryCurrent.fromMicroamps(900_000L));

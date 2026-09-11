@@ -126,16 +126,10 @@ public class BatteryWidgetProvider extends AppWidgetProvider {
 
     private static String detailsText(boolean charging, int currentMa, int temperatureTenths, int voltageMv) {
         StringBuilder details = new StringBuilder();
-        if (currentMa > 0) details.append(charging ? "+" : "−").append(formatCurrent(currentMa));
-        else details.append("Strom —");
+        String current = BatteryTelemetryText.current(currentMa, charging, true);
+        details.append(current.equals("—") ? "Strom —" : current);
         if (temperatureTenths > 0) details.append(" · ").append(String.format(Locale.US, "%.1f °C", temperatureTenths / 10f));
         if (voltageMv > 0) details.append(" · ").append(String.format(Locale.US, "%.2f V", voltageMv / 1000f));
         return details.toString();
-    }
-
-    private static String formatCurrent(int currentMa) {
-        return currentMa >= 1000
-                ? String.format(Locale.US, "%.1f A", currentMa / 1000f)
-                : currentMa + " mA";
     }
 }

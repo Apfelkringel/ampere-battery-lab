@@ -172,16 +172,15 @@ final class BatteryDreamView extends View {
         float y = Math.min(height - 120f, 510f);
         float gap = 12f;
         float cell = (width - 64f - gap * 2f) / 3f;
-        stat(canvas, 32, y, cell, "STROM", currentMa > 0 ? currentMa + " mA" : "—", charging ? lime : blue);
-        stat(canvas, 32 + cell + gap, y, cell, "LEISTUNG", powerText(), lime);
+        stat(canvas, 32, y, cell, "STROM", BatteryTelemetryText.current(currentMa, charging, true), charging ? lime : blue);
+        stat(canvas, 32 + cell + gap, y, cell, "LEISTUNG", powerText(), charging ? lime : blue);
         stat(canvas, 32 + (cell + gap) * 2f, y, cell, "TEMP.", temperatureTenths > 0 ? String.format(Locale.US, "%.1f °C", temperatureTenths / 10f) : "—", Color.rgb(242, 179, 106));
         text(canvas, voltageMv > 0 ? String.format(Locale.US, "Spannung %.2f V", voltageMv / 1000f) : "Spannung nicht verfügbar", 32, y + 72, 11, faint, false);
         rightText(canvas, "Berühren zum Beenden", width - 32, y + 72, 11, faint, false);
     }
 
     private String powerText() {
-        int power = BatteryPower.milliWatts(charging ? currentMa : -currentMa, voltageMv);
-        return power > 0 ? String.format(Locale.GERMANY, "%.1f W", power / 1000f) : "—";
+        return BatteryTelemetryText.power(currentMa, voltageMv, charging);
     }
 
     private void stat(Canvas canvas, float x, float y, float width, String label, String value, int color) {

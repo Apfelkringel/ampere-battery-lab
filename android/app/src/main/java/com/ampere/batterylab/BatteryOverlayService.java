@@ -111,7 +111,7 @@ public class BatteryOverlayService extends Service {
         int voltage = reading.voltageMv;
         boolean charging = reading.charging;
         int current = reading.currentMa;
-        String currentText = current > 0 ? (charging ? "+" : "−") + current + " mA" : "—";
+        String currentText = BatteryTelemetryText.current(current, charging, true);
         int coreCpu = readCpuPercent();
         String topPackage = topAppPackage();
         String topLabel = topAppLabel(topPackage);
