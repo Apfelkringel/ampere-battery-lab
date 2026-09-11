@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.224` (`versionCode 224`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: wird nach dem signierten CI-Artefakt ergänzt
+- Release APK SHA-256: `c12b56b6b8275c83e27e5901bafbe6ca59e30db00e86e8b37df02c5eda748c5c`
 
 Release `0.224` additionally exposes the visible page controls through the
 same virtual accessibility tree as the header: chart range, charging toggles,
