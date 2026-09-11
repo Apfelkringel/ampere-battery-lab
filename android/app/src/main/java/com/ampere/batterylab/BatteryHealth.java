@@ -14,6 +14,37 @@ final class BatteryHealth {
 
     private BatteryHealth() { }
 
+    /** Validated health percentage and the capacity that belongs to that source. */
+    static final class HealthReading {
+        final int percent;
+        final int capacityMah;
+        final String source;
+
+        HealthReading(int percent, int capacityMah, String source) {
+            this.percent = displayPercent(percent);
+            this.capacityMah = isPlausibleCapacity(capacityMah) ? capacityMah : 0;
+            this.source = source == null ? "" : source;
+        }
+    }
+
+    /**
+     * Resolves all health inputs in one order. An invalid system value such as
+     * 110 is discarded before either the percentage or its derived capacity is
+     * returned, so the UI cannot mix a rejected percentage with another source.
+     */
+    static HealthReading resolveReading(int reportedPercent, int measuredMah, int designMah,
+                                        String reportedSource, String measuredSource) {
+        int reported = displayPercent(reportedPercent);
+        if (reported > 0) {
+            return new HealthReading(reported, capacityFromReportedPercent(reported, designMah),
+                    reportedSource);
+        }
+        int measured = isPlausibleCapacity(measuredMah) ? measuredMah : 0;
+        int measuredPercent = percent(measured, designMah);
+        return new HealthReading(measuredPercent, measured,
+                measuredPercent > 0 ? measuredSource : "");
+    }
+
     static int percent(int measuredMah, int designMah) {
         if (!isPlausibleCapacity(measuredMah) || !isPlausibleCapacity(designMah)) return 0;
         // A measured capacity can be slightly above the nominal value because
@@ -37,11 +68,7 @@ final class BatteryHealth {
      */
     static int resolveDisplayPercent(Context context, SharedPreferences prefs, int designMah) {
         if (prefs == null) return 0;
-        int reported = displayPercent(reportedStateOfHealth(context));
-        int resolved = reported > 0
-                ? reported
-                : percent(measurementMah(context, prefs), designMah);
-        return displayPercent(resolved);
+        return read(context, prefs, designMah).percent;
     }
 
     static boolean isPlausibleCapacity(int mah) {
@@ -76,6 +103,15 @@ final class BatteryHealth {
         int systemValue = batteryManagerStateOfHealth(context);
         int fallback = BatteryCapacity.stateOfHealthPercent();
         return displayPercent(systemValue > 0 ? systemValue : fallback);
+    }
+
+    static HealthReading read(Context context, SharedPreferences prefs, int designMah) {
+        if (prefs == null) return new HealthReading(0, 0, "");
+        int reported = reportedStateOfHealth(context);
+        String reportedSource = reported > 0 ? reportedStateOfHealthSource(context) : "";
+        int measured = measurementMah(context, prefs);
+        return resolveReading(reported, measured, designMah, reportedSource,
+                "lokale Lademessungen");
     }
 
     static String reportedStateOfHealthSource(Context context) {
@@ -155,11 +191,8 @@ final class BatteryHealth {
     }
 
     static int estimatedCapacityMah(Context context, SharedPreferences prefs, int designMah) {
-        int reported = reportedStateOfHealth(context);
-        int systemCapacity = capacityFromReportedPercent(reported, designMah);
-        if (systemCapacity > 0) return systemCapacity;
-        int measured = measurementMah(context, prefs);
-        if (isPlausibleCapacity(measured)) return designMah > 0 ? Math.min(measured, designMah) : measured;
-        return 0;
+        HealthReading reading = read(context, prefs, designMah);
+        if (reading.capacityMah <= 0) return 0;
+        return designMah > 0 ? Math.min(reading.capacityMah, designMah) : reading.capacityMah;
     }
 }

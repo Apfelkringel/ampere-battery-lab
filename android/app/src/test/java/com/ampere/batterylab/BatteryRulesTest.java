@@ -79,6 +79,22 @@ public class BatteryRulesTest {
         assertEquals(0, BatteryHealth.displayPercent(110));
     }
 
+    @Test public void healthSnapshotFallsBackAtomicallyWhenSystemSohIsInvalid() {
+        BatteryHealth.HealthReading reading = BatteryHealth.resolveReading(
+                110, 5940, 6600, "Android BatteryManager", "lokale Lademessungen");
+        assertEquals(90, reading.percent);
+        assertEquals(5940, reading.capacityMah);
+        assertEquals("lokale Lademessungen", reading.source);
+    }
+
+    @Test public void healthSnapshotKeepsSystemSohAndDerivedCapacityTogether() {
+        BatteryHealth.HealthReading reading = BatteryHealth.resolveReading(
+                91, 5940, 6600, "Android BatteryManager", "lokale Lademessungen");
+        assertEquals(91, reading.percent);
+        assertEquals(6006, reading.capacityMah);
+        assertEquals("Android BatteryManager", reading.source);
+    }
+
     @Test public void finalHealthGateNeverReturnsAnImpossiblePercentage() {
         for (int value : new int[]{-100, 0, 101, 110, 1000, Integer.MAX_VALUE}) {
             assertEquals(0, BatteryHealth.displayPercent(value));

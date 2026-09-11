@@ -9,6 +9,11 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - `minSdk 23`, `targetSdk 37`
 - Release APK SHA-256: `da958d7eb8e73f9bd5f6d023538c1b846c578ec3c80a19d183417fcfe2181291`
 
+Release `0.207` additionally resolves health percentage and its derived
+capacity through one validated source snapshot. An invalid system SoH such as
+110% is rejected before either value reaches the UI; the fallback percentage,
+capacity and source remain consistent.
+
 Release `0.206` additionally selects a compact non-overlapping home-screen
 widget layout below 220 dp and re-renders each widget on resize using its
 actual minimum width.
