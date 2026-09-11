@@ -5,9 +5,14 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.208` (`versionCode 208`)
+- Version: `0.209` (`versionCode 209`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `165fe0815727a79b8dd245df64b74fcf21728fce532a160e8023b6702ec92754`
+- Release APK SHA-256: wird nach dem signierten CI-Build ergänzt.
+
+Release `0.209` additionally resolves the Android/OEM state-of-health
+percentage and its source as one validated reading. An invalid system value
+such as 110% can therefore neither reach the UI nor retain the wrong
+"Android BatteryManager" label while a fallback is displayed.
 
 Release `0.208` additionally refreshes one shared validated health snapshot
 after stored-data reloads, live samples, restores and design-capacity changes.

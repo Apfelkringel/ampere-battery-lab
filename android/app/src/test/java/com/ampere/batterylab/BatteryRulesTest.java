@@ -102,6 +102,20 @@ public class BatteryRulesTest {
         assertEquals(6600, reading.capacityMah);
     }
 
+    @Test public void invalidSystemHealthFallsBackWithTheFallbackSource() {
+        BatteryHealth.ReportedReading reading = BatteryHealth.resolveReportedReading(
+                110, 91, "Android BatteryManager", "OPlus/ColorOS-Batterietreiber (SoH)");
+        assertEquals(91, reading.percent);
+        assertEquals("OPlus/ColorOS-Batterietreiber (SoH)", reading.source);
+    }
+
+    @Test public void invalidSystemAndFallbackHealthAreUnavailable() {
+        BatteryHealth.ReportedReading reading = BatteryHealth.resolveReportedReading(
+                110, 101, "Android BatteryManager", "Batterie-Treiber (SoH)");
+        assertEquals(0, reading.percent);
+        assertEquals("", reading.source);
+    }
+
     @Test public void finalHealthGateNeverReturnsAnImpossiblePercentage() {
         for (int value : new int[]{-100, 0, 101, 110, 1000, Integer.MAX_VALUE}) {
             assertEquals(0, BatteryHealth.displayPercent(value));

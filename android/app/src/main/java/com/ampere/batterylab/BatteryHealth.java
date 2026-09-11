@@ -27,6 +27,17 @@ final class BatteryHealth {
         }
     }
 
+    /** One validated system/OEM percentage together with its actual source. */
+    static final class ReportedReading {
+        final int percent;
+        final String source;
+
+        ReportedReading(int percent, String source) {
+            this.percent = displayPercent(percent);
+            this.source = this.percent > 0 && source != null ? source : "";
+        }
+    }
+
     /**
      * Resolves all health inputs in one order. An invalid system value such as
      * 110 is discarded before either the percentage or its derived capacity is
@@ -43,6 +54,19 @@ final class BatteryHealth {
         int measuredPercent = percent(measured, designMah);
         return new HealthReading(measuredPercent, measured,
                 measuredPercent > 0 ? measuredSource : "");
+    }
+
+    /**
+     * Chooses a system value only after validating it, then falls back to the
+     * read-only OEM value. Keeping the source in this same object prevents a
+     * transient/invalid system reading from being paired with the fallback
+     * percentage while still being labelled as an Android system value.
+     */
+    static ReportedReading resolveReportedReading(int systemPercent, int fallbackPercent,
+                                                  String systemSource, String fallbackSource) {
+        int system = displayPercent(systemPercent);
+        if (system > 0) return new ReportedReading(system, systemSource);
+        return new ReportedReading(fallbackPercent, fallbackSource);
     }
 
     static int percent(int measuredMah, int designMah) {
@@ -100,18 +124,23 @@ final class BatteryHealth {
     }
 
     static int reportedStateOfHealth(Context context) {
-        int systemValue = batteryManagerStateOfHealth(context);
-        int fallback = BatteryCapacity.stateOfHealthPercent();
-        return displayPercent(systemValue > 0 ? systemValue : fallback);
+        return readReportedStateOfHealth(context).percent;
     }
 
     static HealthReading read(Context context, SharedPreferences prefs, int designMah) {
         if (prefs == null) return new HealthReading(0, 0, "");
-        int reported = reportedStateOfHealth(context);
-        String reportedSource = reported > 0 ? reportedStateOfHealthSource(context) : "";
+        ReportedReading reportedReading = readReportedStateOfHealth(context);
         int measured = measurementMah(context, prefs);
-        return resolveReading(reported, measured, designMah, reportedSource,
+        return resolveReading(reportedReading.percent, measured, designMah, reportedReading.source,
                 measurementSource(context, prefs));
+    }
+
+    private static ReportedReading readReportedStateOfHealth(Context context) {
+        int system = batteryManagerStateOfHealth(context);
+        int fallback = BatteryCapacity.stateOfHealthPercent();
+        String systemSource = system > 0 ? "Android BatteryManager" : "";
+        String fallbackSource = fallback > 0 ? BatteryCapacity.stateOfHealthSource() : "";
+        return resolveReportedReading(system, fallback, systemSource, fallbackSource);
     }
 
     private static String measurementSource(Context context, SharedPreferences prefs) {
@@ -128,9 +157,7 @@ final class BatteryHealth {
     }
 
     static String reportedStateOfHealthSource(Context context) {
-        if (batteryManagerStateOfHealth(context) > 0) return "Android BatteryManager";
-        return BatteryCapacity.stateOfHealthPercent() > 0
-                ? BatteryCapacity.stateOfHealthSource() : "";
+        return readReportedStateOfHealth(context).source;
     }
 
     private static int batteryManagerStateOfHealth(Context context) {
