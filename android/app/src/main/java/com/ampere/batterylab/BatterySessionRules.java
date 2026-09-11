@@ -32,6 +32,20 @@ final class BatterySessionRules {
                 || durationMinutes >= MIN_SINGLE_PERCENT_SESSION_MINUTES;
     }
 
+    /**
+     * Rejects a counter reset or unit error before it becomes session energy.
+     * The stored EFC format intentionally allows at most three full cycles per
+     * continuous phase; zero means unavailable and lets the percentage delta
+     * remain useful without inventing an mAh value.
+     */
+    static int normalizeEnergy(int energyMah, int designMah) {
+        if (energyMah < 0) return 0;
+        long maximum = designMah > 0
+                ? Math.min(30_000L, designMah * 3L)
+                : 30_000L;
+        return energyMah <= maximum ? energyMah : 0;
+    }
+
     static boolean isValid(String value) {
         if (value == null || value.isEmpty()) return false;
         String[] parts = value.split(",", -1);

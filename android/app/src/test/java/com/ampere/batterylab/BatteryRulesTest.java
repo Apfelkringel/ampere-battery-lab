@@ -360,6 +360,15 @@ public class BatteryRulesTest {
         assertFalse(BatterySessionRules.shouldRecord(0, 100, 20));
     }
 
+    @Test public void sessionEnergyRejectsCounterResetsBeforeEfcCalculation() {
+        assertEquals(6600, BatterySessionRules.normalizeEnergy(6600, 6600));
+        assertEquals(19800, BatterySessionRules.normalizeEnergy(19800, 6600));
+        assertEquals(0, BatterySessionRules.normalizeEnergy(19801, 6600));
+        assertEquals(0, BatterySessionRules.normalizeEnergy(-1, 6600));
+        assertEquals(30000, BatterySessionRules.normalizeEnergy(30000, 0));
+        assertEquals(0, BatterySessionRules.normalizeEnergy(30001, 0));
+    }
+
     @Test public void restoredChargeLimitStaysInsideSupportedRange() {
         assertEquals(80, BatteryChargeLimit.normalize(0));
         assertEquals(80, BatteryChargeLimit.normalize(49));

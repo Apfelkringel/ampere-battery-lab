@@ -5,13 +5,14 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.215` (`versionCode 215`)
+- Version: `0.216` (`versionCode 216`)
 - `minSdk 23`, `targetSdk 37`
 - Release APK SHA-256: `947978efbc8c80b1fd4c23a344627ab2b65a59d06a8ea5ce5773943a6d2df2db`
 
-Release `0.215` additionally removes contradictory legacy session rows whose
-stored start/end levels run opposite to their charging or discharging type.
-Normal historical rows remain preserved during normalization.
+Release `0.216` additionally rejects Charge-Counter jumps above three nominal
+battery capacities before storing session energy or calculating EFC. The
+percentage change remains available when it is valid, while the impossible
+mAh value is treated as unavailable.
 
 Release `0.213` additionally removes the platform-dependent emoji from the
 optional live overlay. Its first line now uses stable text and measurements so

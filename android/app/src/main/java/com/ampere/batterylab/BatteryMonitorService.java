@@ -612,6 +612,7 @@ public class BatteryMonitorService extends Service {
             if (energy <= 0) energy = prefs.getInt("lastDischargeMah", 0);
         }
         int designCapacity = BatteryCapacity.designCapacityMah(this);
+        energy = BatterySessionRules.normalizeEnergy(energy, designCapacity);
         int effectiveChange = BatterySessionRules.effectiveChange(
                 change, energy, designCapacity, previousCharging);
         // A session is a percentage-based history item. Never create a 0% row
