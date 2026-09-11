@@ -5,11 +5,14 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.137` (`versionCode 137`)
+- Version: `0.138` (`versionCode 138`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `f4cfcdc83a1ad168bb00462d9a5ac270c9deae1e67e189a4e0134d6ee6cffdf8`
+- Release APK SHA-256: `pending — wird nach dem signierten CI-Build ergänzt`
 - The same hash is published in the public update repository manifest.
 
+Release `0.138` makes the compact landscape overview height-aware. The live
+card, gauge and health details stay inside the visible safe band above system
+navigation, including short split-screen windows.
 Release `0.137` moves monitor broadcast handling, sampling and local
 persistence to a dedicated background thread, keeping the UI main thread
 independent of telemetry work.

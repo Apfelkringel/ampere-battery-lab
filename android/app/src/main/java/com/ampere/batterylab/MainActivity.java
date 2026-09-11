@@ -1899,7 +1899,7 @@ class BatteryDashboard extends View {
     private void drawOverviewLandscape(Canvas c, float w, float h, int panel, int raised, int border,
                                        int primary, int muted, int faint) {
         if (h < 390f) {
-            drawOverviewLandscapeShort(c, w, panel, raised, border, primary, muted, faint);
+            drawOverviewLandscapeShort(c, w, h, panel, raised, border, primary, muted, faint);
             return;
         }
         float top = 182f;
@@ -1961,7 +1961,7 @@ class BatteryDashboard extends View {
      * windows. The live card remains complete; the metric cards continue below
      * in the ScrollView instead of being painted underneath system navigation.
      */
-    private void drawOverviewLandscapeShort(Canvas c, float w, int panel, int raised, int border,
+    private void drawOverviewLandscapeShort(Canvas c, float w, float h, int panel, int raised, int border,
                                             int primary, int muted, int faint) {
         float top = 174f;
         float gap = 14f;
@@ -1970,7 +1970,13 @@ class BatteryDashboard extends View {
         float metricsX = 18f + heroW + gap;
         float metricsW = Math.max(150f, w - metricsX - 18f);
         float heroRight = 18f + heroW;
-        float heroBottom = top + 132f;
+        // On a short landscape viewport the system navigation area can cover
+        // the last 20–30 dp of the canvas. Keep the compact hero inside a
+        // measured safe band instead of letting its lower edge disappear
+        // behind that area. The card still scales down a little further for
+        // split-screen windows whose visible height is smaller than 320 dp.
+        float heroHeight = Math.max(88f, Math.min(96f, h - top - 12f));
+        float heroBottom = top + heroHeight;
         frame(c, 18, top, heroRight, heroBottom, panel, border, lime);
         text(c, "AKKUSTAND · AUTOMATIK", 34, top + 23, 8, muted, true);
         text(c, fitText("Aktueller Akkustand", heroW - 32, 15, true), 34, top + 46, 15, primary, true);
@@ -1981,22 +1987,22 @@ class BatteryDashboard extends View {
         c.drawCircle(u(44), u(top + 62), u(2.5f), p);
         text(c, charging ? "LÄDT JETZT" : "AKKUBETRIEB", 53, top + 65, 7, charging ? lime : blue, true);
 
-        float gaugeRadius = Math.min(40f, Math.max(36f, heroW * .13f));
+        float gaugeRadius = Math.min(24f, Math.max(21f, heroW * .08f));
         float gaugeCx = 34f + gaugeRadius + 5f;
-        float gaugeCy = top + 94f;
+        float gaugeCy = top + heroHeight - gaugeRadius - 5f;
         drawGauge(c, gaugeCx, gaugeCy, gaugeRadius, level, primary, faint);
-        centeredText(c, level + "%", gaugeCx, gaugeCy + 6, 22, primary, true);
-        centeredText(c, charging ? "Laden" : "Akku", gaugeCx, gaugeCy + 22, 6, muted, false);
+        centeredText(c, level + "%", gaugeCx, gaugeCy + 5, 14, primary, true);
+        centeredText(c, charging ? "Laden" : "Akku", gaugeCx, gaugeCy + 16, 5.5f, muted, false);
 
         int health = healthPercent();
         float detailX = Math.max(142f, heroW * .50f);
-        float detailW = Math.max(90f, heroW - detailX - 20f);
         float detailRight = heroRight - 16f;
         boundedText(c, health == 0 ? "Nicht gemessen" : (health > 80 ? "Guter Zustand" : "Prüfung nötig"),
-                detailX, detailRight, top + 76, 12, primary, true);
-        boundedText(c, "Akkugesundheit", detailX, detailRight, top + 90, 6.5f, muted, false);
-        boundedText(c, "Volle Kapazität", detailX, detailRight, top + 105, 6.5f, muted, false);
-        boundedText(c, health > 0 ? mahDisplay(estimatedCapacityMah()) : "—", detailX, detailRight, top + 119, 9, primary, true);
+                detailX, detailRight, top + 69, 10, primary, true);
+        boundedText(c, "Gesundheit", detailX, detailRight, top + 81, 6.5f, muted, false);
+        boundedText(c, health > 0 ? health + "%" : "—", detailX, detailRight, top + 91, 8, primary, true);
+        boundedText(c, "Kapazität " + (health > 0 ? mahDisplay(estimatedCapacityMah()) : "—"),
+                detailX, detailRight, top + 91, 6.5f, faint, false);
 
         float metricGap = 10f;
         float metricW = (metricsW - metricGap) / 2f;
