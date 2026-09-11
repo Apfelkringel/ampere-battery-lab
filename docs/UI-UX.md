@@ -25,6 +25,9 @@ charging state, blue for neutral telemetry and amber for warnings or wear.
 - Header actions use the same 48 dp bounds, radius and outline geometry; the
   live badge is centered as one icon/text group instead of positioning its
   dot and label independently.
+- Landscape overview cards reserve separate lanes for the gauge and the live
+  status row; redundant status chips are omitted when they would compete for
+  the same geometry.
 - The dashboard exposes the current page, battery state, level and available
   tabs as an accessibility summary for screen readers.
 - Settings, backup/restore, export and text entry use native Android controls or

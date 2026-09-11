@@ -2002,13 +2002,9 @@ class BatteryDashboard extends View {
         frame(c, 18, top, heroRight, heroBottom, panel, border, lime);
         text(c, "AKKUSTAND · AUTOMATIK", 36, top + 31, 10, muted, true);
         text(c, "Aktueller Akkustand", 36, top + 56, 17, primary, true);
-        rounded(c, 36, top + 67, 132, top + 89, 11,
-                charging ? Color.argb(42, Color.red(lime), Color.green(lime), Color.blue(lime))
-                        : Color.argb(35, Color.red(blue), Color.green(blue), Color.blue(blue)));
-        fill(c, charging ? lime : blue);
-        c.drawCircle(u(47), u(top + 78), u(3), p);
-        text(c, charging ? "LÄDT JETZT" : "AKKUBETRIEB", 57, top + 82, 8, charging ? lime : blue, true);
-
+        // The live state is shown once in the dedicated status row below.
+        // A second chip here competed for the same vertical lane as the
+        // gauge on wide landscape cards and could be painted underneath it.
         float gaugeRadius = Math.min(54f, Math.max(48f, heroW * .18f));
         float gaugeCx = 36f + gaugeRadius + 8f;
         float gaugeCy = top + 112f;
@@ -2069,13 +2065,9 @@ class BatteryDashboard extends View {
         frame(c, 18, top, heroRight, heroBottom, panel, border, lime);
         text(c, "AKKUSTAND · AUTOMATIK", 34, top + 23, 8, muted, true);
         text(c, fitText("Aktueller Akkustand", heroW - 32, 15, true), 34, top + 46, 15, primary, true);
-        rounded(c, 34, top + 52, 122, top + 72, 10,
-                charging ? Color.argb(42, Color.red(lime), Color.green(lime), Color.blue(lime))
-                        : Color.argb(35, Color.red(blue), Color.green(blue), Color.blue(blue)));
-        fill(c, charging ? lime : blue);
-        c.drawCircle(u(44), u(top + 62), u(2.5f), p);
-        text(c, charging ? "LÄDT JETZT" : "AKKUBETRIEB", 53, top + 65, 7, charging ? lime : blue, true);
-
+        // The live state is represented by the lower status row. Keeping it
+        // out of this short card's gauge lane prevents a hidden overlap when
+        // the window is only a few hundred dp high.
         // Put the gauge in its own right-hand lane. Stacking it below the
         // status chip made the two visual groups collide in 320dp-tall
         // landscape windows even when the card itself fit.

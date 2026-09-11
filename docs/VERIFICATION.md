@@ -5,10 +5,13 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.164` (`versionCode 164`)
+- Version: `0.165` (`versionCode 165`)
 - `minSdk 23`, `targetSdk 37`
 - Release APK SHA-256: `53185523883a4a2c0b219cbd28c8f14ccfa6e4f71182c198ae710dbfed124969`
 - The same hash is published in the public update repository manifest.
+
+Release `0.165` additionally keeps wide-landscape gauge and status elements in
+separate geometry lanes so the status cannot be painted underneath the ring.
 
 Release `0.164` additionally validates Android's raw level/scale pair in every
 surface and in background session accounting; impossible OEM values remain
