@@ -4,6 +4,8 @@ Last verified: 2026-09-11 (Europe/Berlin)
 
 ## Current development change
 
+Version `0.270` additionally preserves Android's charging status when an OEM
+omits `EXTRA_PLUGGED`, while still treating an explicit zero as unplugged.
 Version `0.269` additionally keeps local charge-time profiles separate for
 AC, wireless, USB and dock sources and does not carry an interval across a
 charger change. Version `0.268` additionally caps monitoring and screen-time integration after

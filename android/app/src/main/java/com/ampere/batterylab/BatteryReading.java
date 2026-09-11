@@ -45,14 +45,24 @@ final class BatteryReading {
         BatteryManager manager = context == null ? null
                 : (BatteryManager) context.getSystemService(Context.BATTERY_SERVICE);
         int current = BatteryCurrent.milliAmps(manager, charging, Math.max(0, level));
-        return fromValidatedValues(level, status, plugged, temperature, voltage, current);
+        return fromValidatedValues(level, status, plugged, temperature, voltage, current,
+                battery.hasExtra(BatteryManager.EXTRA_PLUGGED));
     }
 
     /** Pure constructor used by tests after the individual raw values are validated. */
     static BatteryReading fromValidatedValues(int level, int status, int plugged,
                                               int temperatureTenths, int voltageMv,
                                               int currentMa) {
-        return new BatteryReading(level, status, plugged, BatteryState.isCharging(status, plugged),
+        return fromValidatedValues(level, status, plugged, temperatureTenths, voltageMv,
+                currentMa, true);
+    }
+
+    /** Keeps the distinction between an explicit unplugged value and a missing OEM field. */
+    static BatteryReading fromValidatedValues(int level, int status, int plugged,
+                                              int temperatureTenths, int voltageMv,
+                                              int currentMa, boolean plugValuePresent) {
+        return new BatteryReading(level, status, plugged,
+                BatteryState.isCharging(status, plugged, plugValuePresent),
                 temperatureTenths, voltageMv, currentMa);
     }
 

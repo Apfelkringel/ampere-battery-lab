@@ -507,6 +507,16 @@ public class BatteryRulesTest {
         assertFalse(unavailable.charging);
     }
 
+    @Test public void sharedBatteryReadingKeepsChargingWhenOemOmitsPlugField() {
+        BatteryReading reading = BatteryReading.fromValidatedValues(
+                80, BatteryManager.BATTERY_STATUS_CHARGING, 0, 0, 0, 0, false);
+        assertTrue(reading.charging);
+
+        BatteryReading explicitUnplugged = BatteryReading.fromValidatedValues(
+                80, BatteryManager.BATTERY_STATUS_CHARGING, 0, 0, 0, 0, true);
+        assertFalse(explicitUnplugged.charging);
+    }
+
     @Test public void chargeTimeEstimateNeverInventsDurationWithoutCapacity() {
         assertEquals(30L, BatteryTimeEstimate.minutesToTarget(50, 100,
                 3000, 3000f, 0));
