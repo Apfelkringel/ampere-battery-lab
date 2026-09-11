@@ -37,6 +37,10 @@ public class BatteryRulesTest {
         assertTrue(BatteryCycleCount.isPlausible(100000));
         assertFalse(BatteryCycleCount.isPlausible(-1));
         assertFalse(BatteryCycleCount.isPlausible(100001));
+        assertFalse(BatteryCycleCount.isSysfsValue(0));
+        assertTrue(BatteryCycleCount.isSysfsValue(1));
+        assertTrue(BatteryCycleCount.isSysfsValue(100000));
+        assertFalse(BatteryCycleCount.isSysfsValue(100001));
     }
 
     @Test public void healthCannotExceedOneHundredPercent() {

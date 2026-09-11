@@ -5,9 +5,13 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.201` (`versionCode 201`)
+- Version: `0.202` (`versionCode 202`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `5bad75e4287bc33bd25b7e81f74e9d99345d7ffcbc2d182b678a997c21b3166c`
+- Release APK SHA-256: wird nach dem signierten CI-Artefakt ergänzt
+
+Release `0.202` additionally treats a Linux power-supply `cycle_count` of
+zero as unavailable while preserving zero as a valid Android-reported count.
+The scan also recognizes fuel-gauge node names used by additional OEMs.
 
 Release `0.201` additionally applies one shared sampling-gap rule to the
 level and current charts. Missed monitoring windows remain visible as gaps

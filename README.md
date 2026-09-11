@@ -38,6 +38,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - Lokale Gesundheitsmessungen werden über die letzten fünf gültigen Ladevorgänge robust per Median ausgewertet, damit ein einzelner Ausreißer die Anzeige nicht verfälscht
 - Ein gültiger Android-SoH-Wert ist die gemeinsame Quelle für Prozent- und Kapazitätsanzeige; ungültige oder nicht plausible Quellen bleiben ausdrücklich nicht verfügbar
 - Android-SoH wird auf Android 14–17 opportunistisch über die vorhandene BatteryManager-Eigenschaft gelesen; Feature-Flag, OEM-Backport oder fehlende Berechtigung ändern nur die Fallback-Quelle, niemals die Validierungsgrenze
+- Zykluszahlen werden zuerst aus der Android-Batterie-API und danach dynamisch aus Batterie-/BMS-/Fuel-Gauge-Treibern gelesen; ein Linux-`cycle_count` von 0 gilt dort korrekt als nicht verfügbar
 - Wenn BatteryManager keinen SoH liefert, liest Ampere zusätzlich die standardisierte read-only `state_of_health`-Datei von Batterie-/BMS-Treibern; die konkrete Quelle bleibt sichtbar und Rohwerte wie 110 % werden verworfen
 - Wenn BatteryManager keinen verwertbaren Live-Strom liefert, liest Ampere zusätzlich `current_now`/`current_avg` der Batterie-/BMS-Treiber; USB-Eingangsknoten werden nicht als Akku-Strom ausgegeben
 - Stromdiagramme verwenden die echten Telemetrie-Zeitabstände; längere Überwachungslücken werden als Lücke dargestellt und nicht als erfundene Rampe verbunden

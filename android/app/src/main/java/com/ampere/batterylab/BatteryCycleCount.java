@@ -44,7 +44,7 @@ final class BatteryCycleCount {
         };
         for (String path : paths) {
             int value = readInt(new File(path));
-            if (valid(value)) return new Reading(value, "Batterie-Treiber");
+            if (isSysfsValue(value)) return new Reading(value, "Batterie-Treiber");
         }
         Reading scanned = scanPowerSupplyNodes();
         if (scanned != null) return scanned;
@@ -52,6 +52,9 @@ final class BatteryCycleCount {
     }
 
     static boolean isPlausible(int value) { return value >= 0 && value <= MAX_CYCLES; }
+
+    /** Linux power_supply uses zero to mean that the cycle count is unavailable. */
+    static boolean isSysfsValue(int value) { return value > 0 && value <= MAX_CYCLES; }
 
     private static boolean valid(int value) { return isPlausible(value); }
 
@@ -65,7 +68,7 @@ final class BatteryCycleCount {
             if (!supply.isDirectory()) continue;
             for (String name : names) {
                 int value = readInt(new File(supply, name));
-                if (valid(value)) return new Reading(value, "Batterie-Treiber");
+                if (isSysfsValue(value)) return new Reading(value, "Batterie-Treiber");
             }
         }
         return null;
@@ -73,7 +76,8 @@ final class BatteryCycleCount {
 
     private static boolean isBatteryNode(File supply) {
         String name = supply.getName().toLowerCase(java.util.Locale.US);
-        return name.contains("battery") || name.contains("bms") || name.contains("maxfg") || name.contains("max170");
+        return name.contains("battery") || name.contains("bms") || name.contains("maxfg")
+                || name.contains("max170") || name.contains("fuelgauge") || name.contains("fuel-gauge");
     }
 
     private static int readInt(File file) {
