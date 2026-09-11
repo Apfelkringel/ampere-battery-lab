@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.169` (`versionCode 169`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `c64daf21d06f6a8d0d274d280cf6aa3d1a8ae06e99da2e16ad22fa061eef8eae`
+- Release APK SHA-256: `636be8c89ad9a82c40ccb24deb955f6243ecab9ae21956f2b22905720440e7d9`
 - The same hash is published in the public update repository manifest.
 
 Release `0.169` additionally rejects impossible legacy percentage points in
