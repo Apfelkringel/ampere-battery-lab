@@ -147,6 +147,12 @@ public class BatteryRulesTest {
                 BatteryManager.BATTERY_PLUGGED_AC | BatteryManager.BATTERY_PLUGGED_USB));
     }
 
+    @Test public void chargeBaselineUsesResolvedChargingWhenPlugFieldIsMissing() {
+        assertTrue(BatteryState.isPowerConnected(true, 0));
+        assertTrue(BatteryState.isPowerConnected(false, BatteryManager.BATTERY_PLUGGED_USB));
+        assertFalse(BatteryState.isPowerConnected(false, 0));
+    }
+
     @Test public void chargeRateHistoryKeepsChargerSourcesSeparate() {
         assertEquals(BatteryChargeSource.AC,
                 BatteryChargeSource.fromPlugged(BatteryManager.BATTERY_PLUGGED_AC));

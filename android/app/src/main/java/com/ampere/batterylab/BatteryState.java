@@ -23,6 +23,15 @@ final class BatteryState {
         return !plugValuePresent || plugged != 0;
     }
 
+    /**
+     * Returns the power-connected signal used by charge baselines. Some OEMs
+     * omit EXTRA_PLUGGED even while reporting CHARGING/FULL; the resolved
+     * charging state must remain authoritative in that case.
+     */
+    static boolean isPowerConnected(boolean charging, int plugged) {
+        return charging || plugged != 0;
+    }
+
     static boolean resolveUiCharging(boolean detectedCharging, boolean hasRecentMonitorSample,
                                      boolean monitorCharging) {
         return hasRecentMonitorSample ? monitorCharging : detectedCharging;

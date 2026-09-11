@@ -4,6 +4,9 @@ Last verified: 2026-09-11 (Europe/Berlin)
 
 ## Current development change
 
+Version `0.275` additionally keeps the charge-baseline anchor powered when
+an OEM omits `EXTRA_PLUGGED` but the resolved battery state is charging/full;
+this prevents a valid charging session from being treated as an unplug point.
 Version `0.274` additionally marks virtual Canvas controls visible to
 accessibility services only while their real screen bounds intersect the
 visible dashboard, preventing clipped offscreen nodes from being announced as

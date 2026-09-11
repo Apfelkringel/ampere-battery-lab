@@ -604,7 +604,8 @@ public class BatteryMonitorService extends Service {
         BatteryChargeAnchor.State before = readChargeAnchor(prefs);
         BatteryChargeAnchor.State state = before;
         if (!previousCharging && charging) state = BatteryChargeAnchor.onPowerConnected(state);
-        state = BatteryChargeAnchor.onBatteryChanged(state, level, plugged != 0,
+        state = BatteryChargeAnchor.onBatteryChanged(state, level,
+                BatteryState.isPowerConnected(charging, plugged),
                 charging && level >= 99, now);
         if (previousCharging && !charging) {
             state = BatteryChargeAnchor.onPowerDisconnected(state, level, now);
