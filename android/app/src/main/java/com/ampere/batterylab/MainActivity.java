@@ -1629,7 +1629,9 @@ class BatteryDashboard extends View {
         // The dashboard has a dedicated landscape composition for wide,
         // short windows. Give that composition enough horizontal room while
         // retaining a readable max width everywhere else.
-        if (page == 0 && viewportWidthDp >= 600f && viewportHeightDp > 0f && viewportHeightDp < 600f) {
+        float drawableWidth = getWidth() / density;
+        float drawableHeight = getHeight() / density;
+        if (page == 0 && drawableWidth >= 600f && drawableWidth > drawableHeight) {
             return Math.min(Math.max(0f, viewWidth - 48f), 960f);
         }
         return Math.min(viewWidth, 560f);
@@ -1789,10 +1791,15 @@ class BatteryDashboard extends View {
         // navigation area on some Android 16/17 configurations, so relying
         // on its height can select the tall landscape composition and paint
         // the bottom of the live card behind the gesture bar.
+        // getWindowVisibleDisplayFrame() may retain pre-rotation dimensions
+        // during an Android 16/17 rotation. The Canvas dimensions are the
+        // authoritative geometry for this draw pass.
+        float drawableWidth = getWidth() / density;
+        float drawableHeight = getHeight() / density;
         boolean landscapeWindow = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE
-                || (viewportWidthDp >= 600f && viewportHeightDp > 0f && viewportWidthDp > viewportHeightDp);
-        if (landscapeWindow && w >= 600f) {
-            float visibleHeight = viewportHeightDp > 0f ? viewportHeightDp : h;
+                || (drawableWidth >= 600f && drawableWidth > drawableHeight);
+        if (landscapeWindow) {
+            float visibleHeight = drawableHeight > 0f ? drawableHeight : h;
             drawOverviewLandscape(c, w, visibleHeight, panel, raised, border, primary, muted, faint);
             return;
         }
@@ -1975,7 +1982,7 @@ class BatteryDashboard extends View {
         // measured safe band instead of letting its lower edge disappear
         // behind that area. The card still scales down a little further for
         // split-screen windows whose visible height is smaller than 320 dp.
-        float heroHeight = Math.max(88f, Math.min(96f, h - top - 12f));
+        float heroHeight = Math.max(84f, Math.min(88f, h - top - 12f));
         float heroBottom = top + heroHeight;
         frame(c, 18, top, heroRight, heroBottom, panel, border, lime);
         text(c, "AKKUSTAND · AUTOMATIK", 34, top + 23, 8, muted, true);
@@ -1998,11 +2005,11 @@ class BatteryDashboard extends View {
         float detailX = Math.max(142f, heroW * .50f);
         float detailRight = heroRight - 16f;
         boundedText(c, health == 0 ? "Nicht gemessen" : (health > 80 ? "Guter Zustand" : "Prüfung nötig"),
-                detailX, detailRight, top + 69, 10, primary, true);
-        boundedText(c, "Gesundheit", detailX, detailRight, top + 81, 6.5f, muted, false);
-        boundedText(c, health > 0 ? health + "%" : "—", detailX, detailRight, top + 91, 8, primary, true);
+                detailX, detailRight, top + 63, 9, primary, true);
+        boundedText(c, "Gesundheit " + (health > 0 ? health + "%" : "—"),
+                detailX, detailRight, top + 76, 7, muted, false);
         boundedText(c, "Kapazität " + (health > 0 ? mahDisplay(estimatedCapacityMah()) : "—"),
-                detailX, detailRight, top + 91, 6.5f, faint, false);
+                detailX, detailRight, top + 87, 6.5f, faint, false);
 
         float metricGap = 10f;
         float metricW = (metricsW - metricGap) / 2f;
