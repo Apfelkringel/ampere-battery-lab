@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.144` (`versionCode 144`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `pending — wird nach dem signierten CI-Build ergänzt`
+- Release APK SHA-256: `e075f8a0462d7c90ef2d6b0fa1fb99605fa566bfc8aed94f32620bc31164c2b9`
 - The same hash is published in the public update repository manifest.
 
 Release `0.144` additionally uses Android's runtime-available state-of-health
