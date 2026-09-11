@@ -72,6 +72,11 @@ Referenzen: [Android BatteryManager](https://developer.android.com/reference/and
 [ABattery](https://github.com/abanana84/abattery) und
 [BatteryLog](https://github.com/TheDeathDragon/BatteryLog).
 
+Zusätzlich nutzt Ampere den standardisierten Linux-
+[power_supply-`state_of_health`-Knoten](https://github.com/torvalds/linux/blob/master/Documentation/ABI/testing/sysfs-class-power)
+als read-only OEM-Fallback. Die qualitative Datei `health` wird bewusst nicht
+als Prozent interpretiert; nur ein expliziter Integer von 1 bis 100 ist gültig.
+
 Wie bei historischen Batterie-Loggern wird die lokale Zeitreihe vor
 aufeinanderfolgenden Raten- und Diagramm-Berechnungen chronologisch sortiert.
 Wenn die Geräteuhr rückwärts korrigiert wurde, verwirft Ampere außerdem die

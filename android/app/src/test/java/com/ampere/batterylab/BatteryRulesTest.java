@@ -340,6 +340,14 @@ public class BatteryRulesTest {
         assertEquals(6600, BatteryHealth.averageRecentSamples("0,6600,110,-2,broken"));
     }
 
+    @Test public void sysfsHealthAcceptsOnlyExplicitPercentages() {
+        assertEquals(1, BatteryCapacity.normalizeStateOfHealth(1));
+        assertEquals(100, BatteryCapacity.normalizeStateOfHealth(100));
+        assertEquals(0, BatteryCapacity.normalizeStateOfHealth(0));
+        assertEquals(0, BatteryCapacity.normalizeStateOfHealth(101));
+        assertEquals(0, BatteryCapacity.normalizeStateOfHealth(110));
+    }
+
     @Test public void localCycleFallbackIgnoresLevelDropsWhileCharging() {
         assertEquals(8f, BatteryCycleAccumulator.addDischargePercent(0f, 80, 72, false), 0.001f);
         assertEquals(0f, BatteryCycleAccumulator.addDischargePercent(0f, 80, 72, true), 0.001f);

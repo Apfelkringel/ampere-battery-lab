@@ -21,8 +21,10 @@ final class BatteryCapacity {
     private static final long CACHE_REFRESH_MS = 15L * 60L * 1000L;
     private static volatile Reading cachedReading;
     private static volatile Reading cachedFullChargeReading;
+    private static volatile PercentReading cachedStateOfHealthReading;
     private static volatile long cachedReadingAt;
     private static volatile long cachedFullChargeReadingAt;
+    private static volatile long cachedStateOfHealthReadingAt;
 
     private BatteryCapacity() { }
 
@@ -69,6 +71,17 @@ final class BatteryCapacity {
 
     static String fullChargeCapacitySource(Context context) {
         Reading reading = automaticFullChargeReading();
+        return reading.isAvailable() ? reading.source : "Nicht verfügbar";
+    }
+
+    /** Reads the standard read-only OEM state-of-health node, if exposed. */
+    static int stateOfHealthPercent() {
+        PercentReading reading = automaticStateOfHealthReading();
+        return reading.isAvailable() ? reading.percent : 0;
+    }
+
+    static String stateOfHealthSource() {
+        PercentReading reading = automaticStateOfHealthReading();
         return reading.isAvailable() ? reading.source : "Nicht verfügbar";
     }
 
@@ -132,6 +145,20 @@ final class BatteryCapacity {
         }
     }
 
+    private static PercentReading automaticStateOfHealthReading() {
+        PercentReading cached = cachedStateOfHealthReading;
+        long now = SystemClock.elapsedRealtime();
+        if (cached != null && isCacheFresh(cachedStateOfHealthReadingAt, now)) return cached;
+        synchronized (BatteryCapacity.class) {
+            now = SystemClock.elapsedRealtime();
+            if (cachedStateOfHealthReading == null || !isCacheFresh(cachedStateOfHealthReadingAt, now)) {
+                cachedStateOfHealthReading = detectStateOfHealth();
+                cachedStateOfHealthReadingAt = now;
+            }
+            return cachedStateOfHealthReading;
+        }
+    }
+
     static boolean isCacheFresh(long cachedAt, long now) {
         return cachedAt > 0L && now >= cachedAt && now - cachedAt < CACHE_REFRESH_MS;
     }
@@ -154,6 +181,44 @@ final class BatteryCapacity {
             }
         } catch (Exception ignored) { }
         return new Reading(0, "Nicht verfügbar");
+    }
+
+    private static PercentReading detectStateOfHealth() {
+        try {
+            File root = new File("/sys/class/power_supply");
+            File[] supplies = root.listFiles();
+            if (supplies != null) {
+                java.util.Arrays.sort(supplies, (left, right) -> {
+                    boolean leftBattery = isBatteryNode(left);
+                    boolean rightBattery = isBatteryNode(right);
+                    return Boolean.compare(!leftBattery, !rightBattery);
+                });
+                for (File supply : supplies) {
+                    if (!supply.isDirectory()) continue;
+                    PercentReading reading = readStateOfHealth(supply);
+                    if (reading != null) return reading;
+                }
+            }
+        } catch (Exception ignored) { }
+        return new PercentReading(0, "Nicht verfügbar");
+    }
+
+    private static PercentReading readStateOfHealth(File supply) {
+        // state_of_health is the standard Linux power_supply spelling. The
+        // two aliases cover common OEM fuel-gauge nodes, but qualitative
+        // "health" is intentionally excluded because it means Good/Dead/etc.
+        String[] names = {"state_of_health", "battery_state_of_health", "soh"};
+        for (String name : names) {
+            long raw = readLong(new File(supply, name));
+            int percent = normalizeStateOfHealth(raw);
+            if (percent > 0) return new PercentReading(percent, "Batterie-Treiber (SoH)");
+        }
+        return null;
+    }
+
+    /** Accepts only the ABI's integer percentage; 110 remains invalid. */
+    static int normalizeStateOfHealth(long raw) {
+        return raw >= 1L && raw <= 100L ? (int) raw : 0;
     }
 
     private static boolean isBatteryNode(File supply) {
@@ -221,6 +286,18 @@ final class BatteryCapacity {
 
     private static boolean validLong(long mah) {
         return mah >= MIN_MAH && mah <= MAX_MAH;
+    }
+
+    private static final class PercentReading {
+        final int percent;
+        final String source;
+
+        PercentReading(int percent, String source) {
+            this.percent = percent;
+            this.source = source;
+        }
+
+        boolean isAvailable() { return normalizeStateOfHealth(percent) > 0; }
     }
 
     private static long readLong(File file) {

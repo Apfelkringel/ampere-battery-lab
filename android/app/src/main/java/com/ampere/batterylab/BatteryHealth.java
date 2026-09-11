@@ -57,6 +57,17 @@ final class BatteryHealth {
     }
 
     static int reportedStateOfHealth(Context context) {
+        int systemValue = batteryManagerStateOfHealth(context);
+        return systemValue > 0 ? systemValue : BatteryCapacity.stateOfHealthPercent();
+    }
+
+    static String reportedStateOfHealthSource(Context context) {
+        if (batteryManagerStateOfHealth(context) > 0) return "Android BatteryManager";
+        return BatteryCapacity.stateOfHealthPercent() > 0
+                ? BatteryCapacity.stateOfHealthSource() : "";
+    }
+
+    private static int batteryManagerStateOfHealth(Context context) {
         if (context == null) return 0;
         try {
             // Android exposes this property behind a feature flag on some

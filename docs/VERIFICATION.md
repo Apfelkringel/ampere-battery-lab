@@ -5,9 +5,14 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.194` (`versionCode 194`)
+- Version: `0.195` (`versionCode 195`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `3d035ef3a7972583d8649770befc0772097af633b8176b874c638095a8784a3d`
+- Release APK SHA-256: wird nach dem signierten CI-Artefakt ergänzt
+
+Release `0.195` additionally adds a read-only `state_of_health` fallback for
+Android 14–17 OEM battery/BMS nodes. Only explicit values from 1–100 are
+accepted; qualitative `health` files and impossible values such as 110 remain
+unavailable.
 
 Release `0.194` additionally reopens foreground and background sampling after
 a wall-clock rollback. The next sample becomes the new cadence baseline while

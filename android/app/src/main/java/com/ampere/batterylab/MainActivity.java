@@ -828,7 +828,8 @@ class BatteryDashboard extends View {
     }
 
     private String healthMeasurementSource() {
-        if (BatteryHealth.reportedStateOfHealth(getContext()) > 0) return "Android BatteryManager";
+        String systemSource = BatteryHealth.reportedStateOfHealthSource(getContext());
+        if (!systemSource.isEmpty()) return systemSource;
         String serialized = prefs.getString("healthSamples", "");
         if (BatteryHealth.averageRecentSamples(serialized) > 0) return "lokalen Lademessungen";
         if (BatteryHealth.isPlausibleCapacity(prefs.getInt("benchmarkCapacityMah", 0))) return "manuellem Benchmark";
@@ -837,7 +838,11 @@ class BatteryDashboard extends View {
     }
 
     private String healthMeasurementSourceLabel() {
-        if (BatteryHealth.reportedStateOfHealth(getContext()) > 0) return "Android-Systemwert";
+        String systemSource = BatteryHealth.reportedStateOfHealthSource(getContext());
+        if (!systemSource.isEmpty()) {
+            return "Android BatteryManager".equals(systemSource)
+                    ? "Android-Systemwert" : "Batterie-Treiber-SoH";
+        }
         String serialized = prefs.getString("healthSamples", "");
         if (BatteryHealth.averageRecentSamples(serialized) > 0) return "lokale Lademessungen";
         if (BatteryHealth.isPlausibleCapacity(prefs.getInt("benchmarkCapacityMah", 0))) return "manueller Benchmark";

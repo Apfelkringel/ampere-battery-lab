@@ -37,6 +37,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - Lokale Gesundheitsmessungen werden über die letzten fünf gültigen Ladevorgänge robust per Median ausgewertet, damit ein einzelner Ausreißer die Anzeige nicht verfälscht
 - Ein gültiger Android-SoH-Wert ist die gemeinsame Quelle für Prozent- und Kapazitätsanzeige; ungültige oder nicht plausible Quellen bleiben ausdrücklich nicht verfügbar
 - Android-SoH wird auf Android 14–17 opportunistisch über die vorhandene BatteryManager-Eigenschaft gelesen; Feature-Flag, OEM-Backport oder fehlende Berechtigung ändern nur die Fallback-Quelle, niemals die Validierungsgrenze
+- Wenn BatteryManager keinen SoH liefert, liest Ampere zusätzlich die standardisierte read-only `state_of_health`-Datei von Batterie-/BMS-Treibern; die konkrete Quelle bleibt sichtbar und Rohwerte wie 110 % werden verworfen
 - Telemetrie-Zeitreihen werden vor Berechnung und Export chronologisch kanonisiert; eine manuelle Uhrkorrektur erzeugt dadurch keine rückwärts laufenden Raten oder Diagrammlinien
 - Hintergrund- und Vordergrund-Sampling setzen nach einer rückwärts korrigierten Geräteuhr ihre Abtastbasis neu, statt für die falsche alte Zeitspanne auszufallen
 - Automatische Gesundheitsproben entstehen nur nach einer nahezu vollständigen Ladung ab 95 % und dem zuletzt gültigen Ladestrom bis 25 mA; der manuelle Benchmark bleibt separat
