@@ -5,12 +5,14 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.158` (`versionCode 158`)
+- Version: `0.159` (`versionCode 159`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `6da9d32f3e8f7da9b741ed3ce8f55759927fd146ed8d09aac25a6fde9edc0bdf`
+- Release APK SHA-256: wird nach dem signierten Build ergänzt
 - The same hash is published in the public update repository manifest.
 
-Release `0.158` additionally rejects impossible Android state-of-health
+Release `0.159` additionally labels the actual health-data source on the
+capacity card, so Android system SoH is not mislabeled as a local measurement.
+Release `0.158` rejects impossible Android state-of-health
 values above 100% instead of silently converting them to 100%; local health
 measurements remain the fallback.
 

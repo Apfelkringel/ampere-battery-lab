@@ -798,6 +798,15 @@ class BatteryDashboard extends View {
         return "keiner Messung";
     }
 
+    private String healthMeasurementSourceLabel() {
+        if (BatteryHealth.reportedStateOfHealth(getContext()) > 0) return "Android-Systemwert";
+        String serialized = prefs.getString("healthSamples", "");
+        if (BatteryHealth.averageRecentSamples(serialized) > 0) return "lokale Lademessungen";
+        if (prefs.getInt("benchmarkCapacityMah", 0) > 0) return "manueller Benchmark";
+        if (BatteryCapacity.fullChargeCapacityMah(getContext()) > 0) return "BMS-/Treiberwert";
+        return "keine Messung";
+    }
+
     /**
      * Capacity used for time/rate calculations. A measured health estimate is
      * preferred, while the detected factory capacity keeps live projections
@@ -2182,7 +2191,7 @@ class BatteryDashboard extends View {
         rounded(c, 18, capacityTop, w - 18, capacityTop + 85, 12, panel); stroke(c, border, 1); rect.set(u(18), u(capacityTop), u(w - 18), u(capacityTop + 85)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "KAPAZITÄTSSCHÄTZUNG", 36, capacityTop + 30, 10, muted, true);
         text(c, healthPercent() > 0 ? mahDisplay(estimatedCapacityMah()) : "—", 36, capacityTop + 61, 24, lime, true);
-        rightText(c, healthPercent() > 0 ? "aus lokalen Lademessungen" : "Länger laden für eine Schätzung", w - 30, capacityTop + 59, 8, faint, false);
+        rightText(c, healthPercent() > 0 ? "Quelle: " + healthMeasurementSourceLabel() : "Länger laden für eine Schätzung", w - 30, capacityTop + 59, 8, faint, false);
         text(c, healthEstimateStatus(), 36, capacityTop + 79, 8, faint, false);
         float speedTop = capacityTop + 110;
         rounded(c, 18, speedTop, w - 18, speedTop + 105, 12, panel); stroke(c, border, 1); rect.set(u(18), u(speedTop), u(w - 18), u(speedTop + 105)); c.drawRoundRect(rect, u(12), u(12), p);
