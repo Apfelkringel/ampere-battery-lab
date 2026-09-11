@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.179` (`versionCode 179`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `wird nach dem signierten CI-Build ergänzt`
+- Release APK SHA-256: `58cbbdc648e58c1ad0d528d61e9521a3d65572350e544789af4ba36fa75d0824`
 - The same hash is published in the public update repository manifest.
 
 Release `0.179` additionally rejects telemetry rows whose current direction
