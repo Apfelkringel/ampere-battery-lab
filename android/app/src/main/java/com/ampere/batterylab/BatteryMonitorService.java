@@ -141,10 +141,10 @@ public class BatteryMonitorService extends Service {
         String title = value >= 0 ? value + "% · " + (isCharging ? "Laden" : "Akkubetrieb") : "Ampere überwacht den Akku";
         int currentMagnitudeMa = Math.abs(currentMa);
         String temperatureText = temperatureTenths > 0
-                ? String.format(Locale.US, "%.1f°C", temperatureTenths / 10f)
+                ? String.format(Locale.GERMANY, "%.1f°C", temperatureTenths / 10f)
                 : "Temperatur nicht verfügbar";
         String currentText = BatteryTelemetryText.current(currentMagnitudeMa, isCharging, true);
-        String details = value >= 0 ? ("—".equals(currentText) ? "Strom nicht verfügbar" : currentText) + " · " + temperatureText + (voltageMv > 0 ? " · " + String.format(Locale.US, "%.2f V", voltageMv / 1000f) : "") : "Akkumesswerte werden auf diesem Gerät gespeichert";
+        String details = value >= 0 ? ("—".equals(currentText) ? "Strom nicht verfügbar" : currentText) + " · " + temperatureText + (voltageMv > 0 ? " · " + String.format(Locale.GERMANY, "%.2f V", voltageMv / 1000f) : "") : "Akkumesswerte werden auf diesem Gerät gespeichert";
         long remainingEnergyNanoWattHours = BatteryEnergy.readNanoWattHours(
                 (BatteryManager) getSystemService(BATTERY_SERVICE));
         if (remainingEnergyNanoWattHours > 0L) {

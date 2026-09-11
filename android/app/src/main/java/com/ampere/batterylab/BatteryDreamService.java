@@ -174,8 +174,8 @@ final class BatteryDreamView extends View {
         float cell = (width - 64f - gap * 2f) / 3f;
         stat(canvas, 32, y, cell, "STROM", BatteryTelemetryText.current(currentMa, charging, true), charging ? lime : blue);
         stat(canvas, 32 + cell + gap, y, cell, "LEISTUNG", powerText(), charging ? lime : blue);
-        stat(canvas, 32 + (cell + gap) * 2f, y, cell, "TEMP.", temperatureTenths > 0 ? String.format(Locale.US, "%.1f °C", temperatureTenths / 10f) : "—", Color.rgb(242, 179, 106));
-        text(canvas, voltageMv > 0 ? String.format(Locale.US, "Spannung %.2f V", voltageMv / 1000f) : "Spannung nicht verfügbar", 32, y + 72, 11, faint, false);
+        stat(canvas, 32 + (cell + gap) * 2f, y, cell, "TEMP.", temperatureTenths > 0 ? String.format(Locale.GERMANY, "%.1f °C", temperatureTenths / 10f) : "—", Color.rgb(242, 179, 106));
+        text(canvas, voltageMv > 0 ? String.format(Locale.GERMANY, "Spannung %.2f V", voltageMv / 1000f) : "Spannung nicht verfügbar", 32, y + 72, 11, faint, false);
         rightText(canvas, "Berühren zum Beenden", width - 32, y + 72, 11, faint, false);
     }
 

@@ -12,6 +12,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.graphics.Canvas;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
@@ -550,6 +552,7 @@ class BatteryDashboard extends View {
     private final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final RectF rect = new RectF();
     private final float density;
+    private final Bitmap batteryCareIllustration;
     private int level = -1;
     private float temperature = 0f;
     private float voltage = 0f;
@@ -611,16 +614,18 @@ class BatteryDashboard extends View {
     // The reference language uses one assertive accent. Ampere uses a
     // blue-green signal instead of the old yellow-green, with a darker
     // accessible tone in light mode and a luminous tone on dark surfaces.
-    private int lime = Color.rgb(91, 213, 204);
-    private final int blue = Color.rgb(126, 190, 232);
-    private final int amber = Color.rgb(242, 179, 106);
+    private int lime = Color.rgb(53, 211, 200);
+    private final int blue = Color.rgb(115, 228, 216);
+    private final int amber = Color.rgb(38, 169, 160);
     // Secondary telemetry is context, not a competing alert. A quiet
     // blue-grey tone keeps it inside the same cool instrument palette.
-    private final int secondaryTone = Color.rgb(151, 188, 190);
+    private final int secondaryTone = Color.rgb(111, 185, 180);
 
     BatteryDashboard(Context context) {
         super(context);
         density = getResources().getDisplayMetrics().density;
+        batteryCareIllustration = BitmapFactory.decodeResource(
+                getResources(), com.ampere.batterylab.R.drawable.ampere_battery_care);
         p.setTypeface(Typeface.create("sans", Typeface.NORMAL));
         setFocusable(true);
         setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
@@ -645,8 +650,8 @@ class BatteryDashboard extends View {
 
     void applySystemBarTheme() {
         Window window = ((Activity) getContext()).getWindow();
-        lime = light ? Color.rgb(8, 132, 140) : Color.rgb(71, 215, 211);
-        int surface = light ? Color.rgb(244, 248, 248) : (amoled ? Color.BLACK : Color.rgb(9, 18, 23));
+        lime = light ? Color.rgb(8, 143, 138) : Color.rgb(53, 211, 200);
+        int surface = light ? Color.rgb(255, 249, 238) : (amoled ? Color.BLACK : Color.rgb(4, 52, 56));
         window.setStatusBarColor(surface);
         window.setNavigationBarColor(surface);
         int flags = 0;
@@ -675,7 +680,20 @@ class BatteryDashboard extends View {
 
     private void updateLayoutHeight() {
         int rowCount = Math.min(150, sessions.size());
-        int contentDp = page == 4 ? Math.max(1320, 600 + rowCount * 44) : (page == 1 ? 1550 : (page == 3 ? 1500 : 1320));
+        boolean editorialPortrait = getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE
+                && getResources().getConfiguration().screenWidthDp < 600;
+        int contentDp;
+        if (editorialPortrait) {
+            if (page == 1) contentDp = 1810;
+            else if (page == 2) contentDp = 1900;
+            else if (page == 3) contentDp = 1700;
+            else if (page == 4 && sessions.isEmpty()) contentDp = 1050;
+            else if (page == 4) contentDp = Math.max(900, 600 + rowCount * 44);
+            else contentDp = 1320;
+        } else {
+            contentDp = page == 4 ? Math.max(1320, 600 + rowCount * 44)
+                    : (page == 1 ? 1550 : (page == 3 ? 1500 : 1320));
+        }
         int contentPx = Math.round(contentDp * density);
         setMinimumHeight(contentPx);
         if (getLayoutParams() != null && getLayoutParams().height != contentPx) {
@@ -685,6 +703,9 @@ class BatteryDashboard extends View {
     }
 
     private float historyExportTop() {
+        boolean editorialPortrait = getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE
+                && getResources().getConfiguration().screenWidthDp < 600;
+        if (editorialPortrait && sessions.isEmpty()) return 958;
         int rowCount = Math.min(150, sessions.size());
         float listBottom = 182 + 160 + rowCount * 44f;
         float panelBottom = Math.max(182 + 610, listBottom + 250);
@@ -941,9 +962,9 @@ class BatteryDashboard extends View {
 
     private String healthDisplay() { return healthReading.percent > 0 ? String.valueOf(healthReading.percent) : "—"; }
 
-    private String temperatureDisplay() { return temperature > 0f ? String.format(Locale.US, "%.1f", temperature) : "—"; }
+    private String temperatureDisplay() { return temperature > 0f ? String.format(Locale.GERMANY, "%.1f", temperature) : "—"; }
 
-    private String voltageDisplay() { return voltage > 0f ? String.format(Locale.US, "%.2f", voltage) : "—"; }
+    private String voltageDisplay() { return voltage > 0f ? String.format(Locale.GERMANY, "%.2f", voltage) : "—"; }
 
     private String mahDisplay(int value) {
         return String.format(Locale.GERMANY, "%,d mAh", value);
@@ -966,8 +987,17 @@ class BatteryDashboard extends View {
 
     private String liveCurrentSubLabel(boolean compact) {
         String power = livePowerDisplay();
-        return "—".equals(power) ? (charging ? "Ladestrom live" : "Entladestrom live")
-                : (compact ? power + " Akku" : (charging ? "Ladestrom live · " : "Entladestrom live · ") + power + " Akku");
+        return "—".equals(power) ? "Akkustrom live"
+                : (compact ? power + " Akkuleistung" : "Akkustrom live · " + power + " Akkuleistung");
+    }
+
+    private boolean isProbablyEmulator() {
+        String fingerprint = Build.FINGERPRINT == null ? "" : Build.FINGERPRINT.toLowerCase(Locale.ROOT);
+        String model = Build.MODEL == null ? "" : Build.MODEL.toLowerCase(Locale.ROOT);
+        String product = Build.PRODUCT == null ? "" : Build.PRODUCT.toLowerCase(Locale.ROOT);
+        return fingerprint.contains("generic") || fingerprint.contains("emulator")
+                || model.contains("emulator") || model.contains("sdk_gphone")
+                || product.contains("sdk") || product.contains("emulator");
     }
 
     private String chargerTypeDisplay() {
@@ -1296,7 +1326,7 @@ class BatteryDashboard extends View {
         }
         float average = score / Math.max(1, chargeLimit - Math.max(0, level));
         String label = average < .95f ? "Niedrig" : average < 1.35f ? "Mittel" : "Hoch";
-        return label + " · " + String.format(Locale.US, "%.1f×", average);
+        return label + " · " + String.format(Locale.GERMANY, "%.1f×", average);
     }
 
     /** Calculates a local 7-day discharge rate from consecutive telemetry points. */
@@ -1380,7 +1410,7 @@ class BatteryDashboard extends View {
 
     private String averageDischargeRateDisplay() {
         float rate = mixedDischargeRate();
-        return rate > 0f ? String.format(Locale.US, "%.1f%%/h", rate) : "—";
+        return rate > 0f ? String.format(Locale.GERMANY, "%.1f%%/h", rate) : "—";
     }
 
     private String runtimeEstimate() {
@@ -1449,7 +1479,7 @@ class BatteryDashboard extends View {
     private String drainRate() {
         int capacity = calculationCapacityMah();
         if (charging || currentMa < 50 || capacity <= 0) return "—";
-        return String.format(Locale.US, "%.1f%% / Std.", currentMa * 100f / capacity);
+        return String.format(Locale.GERMANY, "%.1f%% / Std.", currentMa * 100f / capacity);
     }
 
     private String dischargeSpeed(boolean screenOn) {
@@ -1462,12 +1492,12 @@ class BatteryDashboard extends View {
         float percent = BatteryPercentage.normalizePhase(prefs.getFloat(percentKey, 0f));
         long minutes = prefs.getLong(durationKey, 0L) / 60000L;
         float storedRate = percent > 0f && minutes >= 5 ? percent * 60f / minutes : 0f;
-        if (Float.isFinite(storedRate) && storedRate > 0f) return String.format(Locale.US, "%.1f%%/h", storedRate);
+        if (Float.isFinite(storedRate) && storedRate > 0f) return String.format(Locale.GERMANY, "%.1f%%/h", storedRate);
         int capacity = calculationCapacityMah();
         if (charging || currentMa < 50 || capacity <= 0) return "—";
         float liveRate = currentMa * 100f / capacity;
         return Float.isFinite(liveRate) && liveRate > 0f
-                ? String.format(Locale.US, "%.1f%%/h", liveRate) : "—";
+                ? String.format(Locale.GERMANY, "%.1f%%/h", liveRate) : "—";
     }
 
     private String screenOnTime() {
@@ -1494,7 +1524,7 @@ class BatteryDashboard extends View {
         if (deepMs <= 0L || offMs <= 0L) return "—";
         float ratio = deepMs * 100f / offMs;
         return Float.isFinite(ratio) && ratio >= 0f
-                ? String.format(Locale.US, "%.0f%%", Math.min(100f, ratio)) : "—";
+                ? String.format(Locale.GERMANY, "%.0f%%", Math.min(100f, ratio)) : "—";
     }
 
     private int wakeupCount() {
@@ -1519,7 +1549,7 @@ class BatteryDashboard extends View {
         if (!prefs.getBoolean("sinceFullActive", false)) return "Noch keine Ladebasis";
         float consumedPercent = BatteryPercentage.normalizeCumulative(prefs.getFloat("sinceFullPercent", 0f));
         String range = consumedPercent > 0f
-                ? String.format(Locale.US, "%.0f%% verbraucht", consumedPercent) : "Noch kein Verbrauch";
+                ? String.format(Locale.GERMANY, "%.0f%% verbraucht", consumedPercent) : "Noch kein Verbrauch";
         int mah = prefs.getInt("sinceFullMah", 0);
         return range + " · " + sinceFullDuration() + " · " + (mah > 0 ? mah + " mAh" : "—");
     }
@@ -1621,7 +1651,7 @@ class BatteryDashboard extends View {
         String key = screenOn ? "dischargeScreenOnPercent" : "dischargeScreenOffPercent";
         if (charging) key = "last" + Character.toUpperCase(key.charAt(0)) + key.substring(1);
         float value = BatteryPercentage.normalizePhase(prefs.getFloat(key, 0f));
-        return value > 0f ? String.format(Locale.US, "%.0f%%", value) : "—";
+        return value > 0f ? String.format(Locale.GERMANY, "%.0f%%", value) : "—";
     }
 
     private String dischargeDuration(boolean screenOn) {
@@ -1688,19 +1718,19 @@ class BatteryDashboard extends View {
         int mahPerHour = chargeSpeedMahPerHour(screenOn);
         if (mahPerHour <= 0) return "—";
         float percentPerHour = chargeSpeedPercentPerHour(screenOn);
-        if (percentPerHour > 0f) return String.format(Locale.US, "%d mA · %.1f%%/h", mahPerHour, percentPerHour);
-        return String.format(Locale.US, "%d mA", mahPerHour);
+        if (percentPerHour > 0f) return String.format(Locale.GERMANY, "%d mAh/h · %.1f%%/h", mahPerHour, percentPerHour);
+        return String.format(Locale.GERMANY, "%d mAh/h", mahPerHour);
     }
 
     private String compactChargeSpeed(boolean screenOn) {
         int mahPerHour = chargeSpeedMahPerHour(screenOn);
         if (mahPerHour <= 0) return "—";
-        return String.format(Locale.US, "%d mA", mahPerHour);
+        return String.format(Locale.GERMANY, "%d mAh/h", mahPerHour);
     }
 
     private String compactChargeSpeedRate(boolean screenOn) {
         float percentPerHour = chargeSpeedPercentPerHour(screenOn);
-        return percentPerHour > 0f ? String.format(Locale.US, "%.1f%%/h", percentPerHour) : "Rate nicht verfügbar";
+        return percentPerHour > 0f ? String.format(Locale.GERMANY, "%.1f%%/h", percentPerHour) : "Rate nicht verfügbar";
     }
 
     private int chargeCycles() {
@@ -1720,13 +1750,13 @@ class BatteryDashboard extends View {
     private String lastChargeEquivalentCycles() {
         int energy = lastChargeEnergyMah();
         int design = designCapacityMah();
-        return energy > 0 && design > 0 ? String.format(Locale.US, "%.2f EFC", energy / (float) design) : "—";
+        return energy > 0 && design > 0 ? String.format(Locale.GERMANY, "%.2f EFC", energy / (float) design) : "—";
     }
 
     private String totalEquivalentCycles() {
         int charged = prefs.getInt("totalChargedMah", 0);
         int design = designCapacityMah();
-        return charged > 0 && design > 0 ? String.format(Locale.US, "%.2f EFC", charged / (float) design) : "—";
+        return charged > 0 && design > 0 ? String.format(Locale.GERMANY, "%.2f EFC", charged / (float) design) : "—";
     }
 
     private ArrayList<String[]> chargeWearRows() {
@@ -2044,6 +2074,17 @@ class BatteryDashboard extends View {
     private void fill(Canvas c, int color) { p.setShader(null); p.setStyle(Paint.Style.FILL); p.setColor(color); }
     private void stroke(Canvas c, int color, float width) { p.setShader(null); p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(u(width)); p.setStrokeCap(Paint.Cap.ROUND); p.setStrokeJoin(Paint.Join.ROUND); p.setColor(color); }
     private void type(float size, int color, boolean bold) { p.setShader(null); p.setTextSize(u(size)); p.setColor(color); p.setTypeface(Typeface.create("sans", bold ? Typeface.BOLD : Typeface.NORMAL)); p.setStyle(Paint.Style.FILL); }
+    private void displayType(float size, int color) {
+        p.setShader(null);
+        p.setTextSize(u(size));
+        p.setColor(color);
+        p.setTypeface(Typeface.create("serif", Typeface.BOLD));
+        p.setStyle(Paint.Style.FILL);
+    }
+    private void displayText(Canvas c, String value, float x, float y, float size, int color) {
+        displayType(size, color);
+        c.drawText(value, u(x), u(y), p);
+    }
     private void text(Canvas c, String value, float x, float y, float size, int color, boolean bold) {
         float viewWidth = layoutWidthDp > 0f ? layoutWidthDp : getWidth() / density;
         float safeX = Math.max(8f, Math.min(x, Math.max(8f, viewWidth - 8f)));
@@ -2081,7 +2122,7 @@ class BatteryDashboard extends View {
     }
     private void rounded(Canvas c, float l, float t, float r, float b, float radius, int color) {
         // One consistent surface language: large cards are softer than controls.
-        float surfaceRadius = radius >= 12f ? 16f : radius;
+        float surfaceRadius = radius >= 12f ? 24f : radius;
         fill(c, color); rect.set(u(l), u(t), u(r), u(b)); c.drawRoundRect(rect, u(surfaceRadius), u(surfaceRadius), p);
     }
     private void line(Canvas c, float x1, float y1, float x2, float y2, int color, float width) { stroke(c, color, width); c.drawLine(u(x1), u(y1), u(x2), u(y2), p); }
@@ -2181,17 +2222,17 @@ class BatteryDashboard extends View {
     }
 
     private void frame(Canvas c, float l, float t, float r, float b, int panel, int border, int accent) {
-        rounded(c, l, t, r, b, 16, panel);
+        rounded(c, l, t, r, b, 24, panel);
         stroke(c, border, 1);
         rect.set(u(l), u(t), u(r), u(b));
-        c.drawRoundRect(rect, u(16), u(16), p);
+        c.drawRoundRect(rect, u(24), u(24), p);
         // A quiet color rail makes the information hierarchy scannable without
         // turning every card into a bright button.
         // Clip it to the card shape: a separate narrow rounded rectangle has
         // square-looking ends wherever the card itself has a large corner.
         rect.set(u(l), u(t), u(r), u(b));
         Path cardClip = new Path();
-        cardClip.addRoundRect(rect, u(16), u(16), Path.Direction.CW);
+        cardClip.addRoundRect(rect, u(24), u(24), Path.Direction.CW);
         c.save();
         c.clipPath(cardClip);
         fill(c, Color.argb(150, Color.red(accent), Color.green(accent), Color.blue(accent)));
@@ -2228,8 +2269,8 @@ class BatteryDashboard extends View {
         float bodyX = x - contentInset(w);
         float bodyW = contentWidth(w);
         if (page == 1 && y > 350 && y < 420 && bodyX > bodyW - 130) return 20; // charge target
-        if (page == 1 && y >= 462 && y < 504 && bodyX >= bodyW - 145) return 21; // alarm
-        if (page == 1 && y >= 508 && y < 552 && bodyX >= bodyW - 145) return 22; // overlay
+        if (page == 1 && y >= 462 && y < 504 && bodyX >= 18 && bodyX <= bodyW - 18) return 21; // alarm
+        if (page == 1 && y >= 508 && y < 552 && bodyX >= 18 && bodyX <= bodyW - 18) return 22; // overlay
         if (page == 3 && y > 690 && y < 825 && bodyX > bodyW - 140) return 30; // benchmark
         if (page == 4 && y > historyExportTop() && y < historyExportTop() + 55) return 40;
         return 0;
@@ -2277,13 +2318,13 @@ class BatteryDashboard extends View {
         viewportWidthDp = visibleWindow.width() > 0 ? visibleWindow.width() / density : w;
         viewportHeightDp = visibleWindow.height() > 0 ? visibleWindow.height() / density : h;
         layoutWidthDp = w;
-        int bg = light ? Color.rgb(244, 248, 248) : (amoled ? Color.BLACK : Color.rgb(9, 18, 23));
-        int panel = light ? Color.WHITE : (amoled ? Color.rgb(5, 10, 13) : Color.rgb(17, 30, 36));
-        int raised = light ? Color.rgb(231, 242, 241) : (amoled ? Color.rgb(11, 22, 27) : Color.rgb(24, 43, 50));
-        int border = light ? Color.rgb(199, 218, 218) : (amoled ? Color.rgb(31, 53, 61) : Color.rgb(44, 70, 78));
-        int primary = light ? Color.rgb(20, 35, 38) : Color.rgb(239, 247, 246);
-        int muted = light ? Color.rgb(77, 101, 105) : Color.rgb(151, 172, 177);
-        int faint = light ? Color.rgb(105, 126, 130) : Color.rgb(108, 131, 137);
+        int bg = light ? Color.rgb(255, 249, 238) : (amoled ? Color.BLACK : Color.rgb(4, 52, 56));
+        int panel = light ? Color.rgb(255, 253, 247) : (amoled ? Color.rgb(3, 25, 27) : Color.rgb(6, 63, 68));
+        int raised = light ? Color.rgb(215, 245, 239) : (amoled ? Color.rgb(6, 49, 52) : Color.rgb(7, 86, 90));
+        int border = light ? Color.rgb(195, 231, 223) : (amoled ? Color.rgb(18, 76, 78) : Color.rgb(20, 114, 111));
+        int primary = light ? Color.rgb(6, 63, 68) : Color.rgb(255, 247, 232);
+        int muted = light ? Color.rgb(77, 119, 116) : Color.rgb(168, 216, 208);
+        int faint = light ? Color.rgb(114, 149, 145) : Color.rgb(110, 166, 160);
         fill(c, bg); c.drawRect(0, 0, getWidth(), getHeight(), p);
 
         drawHeader(c, w, primary, muted, border, panel);
@@ -2305,43 +2346,62 @@ class BatteryDashboard extends View {
     }
 
     private void drawHeader(Canvas c, float w, int primary, int muted, int border, int panel) {
-        // A narrow color rail carries the same immediate visual cue as the
-        // reference app's colored app bar without sacrificing dashboard space.
-        fill(c, light ? Color.rgb(8, 132, 140) : Color.rgb(18, 76, 84));
-        c.drawRect(0, 0, getWidth(), u(6), p);
-        rounded(c, 18, 18, 54, 54, 14, lime);
-        drawBolt(c, 36, 36, Color.rgb(6, 34, 37), 1.1f);
-        text(c, "Ampere", 62, 39, 17, primary, true);
-        String buildLabel = w < 300f ? "v" + BuildConfig.VERSION_NAME : "LIVE-TELEMETRIE · v" + BuildConfig.VERSION_NAME;
-        rounded(c, 62, 44, w < 300f ? 103 : 188, 62, 9, panel);
-        text(c, fitText(buildLabel, w < 300f ? 34f : 116f, 7.5f, true), 70, 56, 7.5f, lime, true);
-        text(c, page == 0 ? "Überwachung  /  Übersicht" : "Überwachung  /  " + pageName(), 18, 80, 10, muted, false);
-        text(c, page == 0 ? "Live-Übersicht" : pageName(), 18, 111, 28, primary, true);
+        // The reference language is led by a bold illustrated color field,
+        // not by a generic app bar. A soft asymmetric wave gives Ampere that
+        // friendly editorial silhouette while keeping every action hitbox in
+        // its established position.
+        int headerDark = Color.rgb(4, 52, 56);
+        int headerMid = Color.rgb(7, 86, 90);
+        int headerText = Color.rgb(255, 247, 232);
+        int headerMuted = Color.rgb(168, 216, 208);
+        fill(c, headerDark);
+        c.drawRect(0, 0, getWidth(), u(112), p);
+        Path wave = new Path();
+        wave.moveTo(0, u(88));
+        wave.cubicTo(u(w * .25f), u(123), u(w * .70f), u(89), u(w), u(112));
+        wave.lineTo(u(w), u(128));
+        wave.lineTo(0, u(128));
+        wave.close();
+        fill(c, headerDark);
+        c.drawPath(wave, p);
+        fill(c, Color.argb(32, 115, 228, 216));
+        c.drawCircle(u(w * .72f), u(-8), u(82), p);
+        rounded(c, 18, 18, 54, 54, 16, lime);
+        drawBolt(c, 36, 36, headerDark, 1.1f);
+        displayText(c, "Ampere", 62, 40, 18, headerText);
+        String buildLabel = isProbablyEmulator()
+                ? (w < 300f ? "TEST" : "TESTDATEN · v" + BuildConfig.VERSION_NAME)
+                : (w < 300f ? "v" + BuildConfig.VERSION_NAME : "LIVE-TELEMETRIE · v" + BuildConfig.VERSION_NAME);
+        rounded(c, 62, 45, w < 300f ? 103 : 188, 63, 9, headerMid);
+        text(c, fitText(buildLabel, w < 300f ? 34f : 116f, 7.5f, true), 70, 57, 7.5f, lime, true);
+        text(c, page == 0 ? "DEIN AKKU · LIVE" : "AMPERE · " + pageName().toUpperCase(Locale.GERMANY),
+                18, 83, 8.5f, headerMuted, true);
+        displayText(c, page == 0 ? "Hallo, dein Akku." : pageName(), 18, 112, 25, headerText);
         final float controlTop = 12f;
         final float controlBottom = 60f;
         if (w < 390f) {
             // Keep the actions as two independent 48-dp controls. A shared
             // capsule visually merged unrelated actions and made their
             // outlines look misaligned on narrow phones.
-            smoothButton(c, w - 116, controlTop, w - 68, controlBottom, 16, panel, border, lime, false, isPressed(1));
-            smoothButton(c, w - 60, controlTop, w - 12, controlBottom, 16, panel, border, lime, false, isPressed(2));
-            drawHeaderOverflow(c, w - 90, muted);
-            drawSun(c, w - 38, 36, muted);
+            smoothButton(c, w - 116, controlTop, w - 68, controlBottom, 16, headerMid, headerMid, lime, false, isPressed(1));
+            smoothButton(c, w - 60, controlTop, w - 12, controlBottom, 16, headerMid, headerMid, lime, false, isPressed(2));
+            drawHeaderOverflow(c, w - 90, headerMuted);
+            drawSun(c, w - 38, 36, headerMuted);
         } else {
             // Three equal controls use the same measured cell and gap as the
             // narrow layout. Each icon and the LIVE label are centered inside
             // its own surface, never across a neighboring button.
-            smoothButton(c, w - 176, controlTop, w - 128, controlBottom, 16, panel, border, lime, false, isPressed(1));
-            smoothButton(c, w - 120, controlTop, w - 72, controlBottom, 16, panel, border, lime, false, isPressed(2));
-            smoothButton(c, w - 64, controlTop, w - 16, controlBottom, 16, panel, border, lime, false, isPressed(3));
-            drawHeaderOverflow(c, w - 152, muted);
-            drawSun(c, w - 96, 36, muted);
-            type(9, primary, true);
+            smoothButton(c, w - 176, controlTop, w - 128, controlBottom, 16, headerMid, headerMid, lime, false, isPressed(1));
+            smoothButton(c, w - 120, controlTop, w - 72, controlBottom, 16, headerMid, headerMid, lime, false, isPressed(2));
+            smoothButton(c, w - 64, controlTop, w - 16, controlBottom, 16, headerMid, headerMid, lime, false, isPressed(3));
+            drawHeaderOverflow(c, w - 152, headerMuted);
+            drawSun(c, w - 96, 36, headerMuted);
+            type(9, headerText, true);
             float liveLabelWidth = p.measureText("LIVE") / density;
             float liveGroupWidth = 8f + 7f + liveLabelWidth;
             float liveLeft = w - 40f - liveGroupWidth / 2f;
             fill(c, lime); c.drawCircle(u(liveLeft + 2f), u(36), u(4), p);
-            text(c, "LIVE", liveLeft + 12f, 40, 9, primary, true);
+            text(c, "LIVE", liveLeft + 12f, 40, 9, headerText, true);
         }
         drawNav(c, w, primary, muted, border, panel);
     }
@@ -2356,7 +2416,7 @@ class BatteryDashboard extends View {
     private void drawNav(Canvas c, float w, int primary, int muted, int border, int panel) {
         boolean compactNav = w < 480f;
         String[] labels = compactNav
-                ? new String[]{"Start", "Laden", "Entl.", "Gesund.", "Verlauf"}
+                ? new String[]{"Start", "Laden", "Entladen", "Akku", "Verlauf"}
                 : new String[]{"Übersicht", "Laden", "Entladen", "Gesundheit", "Verlauf"};
         float cell = (w - 36) / 5f;
         final float navTop = 120f;
@@ -2447,9 +2507,13 @@ class BatteryDashboard extends View {
         // identical phones between two visibly different compositions.
         boolean compact = viewportWidthDp > 0f ? viewportWidthDp < 600f : w < 600f;
         float heroH = compact ? 400f : 320f;
-        frame(c, 18, top, 18 + heroW, top + heroH, panel, border, lime);
-        text(c, "AKKUSTAND · AUTOMATIK", 36, top + 31, 10, muted, true);
-        text(c, "Aktueller Akkustand", 36, top + 56, 17, primary, true);
+        int heroSurface = compact ? Color.rgb(4, 52, 56) : panel;
+        int heroBorder = compact ? Color.rgb(11, 143, 138) : border;
+        int heroPrimary = compact ? Color.rgb(255, 247, 232) : primary;
+        int heroMuted = compact ? Color.rgb(168, 216, 208) : muted;
+        frame(c, 18, top, 18 + heroW, top + heroH, heroSurface, heroBorder, lime);
+        text(c, "AKKUSTAND · AUTOMATISCH", 36, top + 31, 9, compact ? lime : muted, true);
+        if (!compact) displayText(c, "Aktueller Akkustand", 36, top + 58, 17, heroPrimary);
         if (!compact) {
             rounded(c, 18 + heroW - 142, top + 22, 18 + heroW - 36, top + 48, 13, raised);
             fill(c, lime); c.drawCircle(u(18 + heroW - 128), u(top + 35), u(3), p);
@@ -2457,50 +2521,51 @@ class BatteryDashboard extends View {
             line(c, 36, top + 101, 18 + heroW - 36, top + 101, border, 1);
         }
         boolean batteryAvailable = level >= 0;
-        int stateColor = !batteryAvailable ? muted : (charging ? lime : blue);
-        rounded(c, 36, top + 67, 122, top + 89, 11,
-                Color.argb(batteryAvailable ? (charging ? 42 : 35) : 24,
-                        Color.red(stateColor), Color.green(stateColor), Color.blue(stateColor)));
-        fill(c, stateColor); c.drawCircle(u(47), u(top + 78), u(3), p);
-        boundedText(c, batteryChipLabel(), 57, 122, top + 82, 8, stateColor, true);
+        int stateColor = !batteryAvailable ? heroMuted : (charging ? lime : blue);
+        if (!compact) {
+            rounded(c, 36, top + 67, 122, top + 89, 11,
+                    Color.argb(batteryAvailable ? (charging ? 42 : 35) : 24,
+                            Color.red(stateColor), Color.green(stateColor), Color.blue(stateColor)));
+            fill(c, stateColor); c.drawCircle(u(47), u(top + 78), u(3), p);
+            boundedText(c, batteryChipLabel(), 57, 122, top + 82, 8, stateColor, true);
+        }
         int health = healthPercent();
-        String powerText = currentMa > 0 ? String.format(Locale.US, "ca. %.1f W aktueller Verbrauch", currentMa * voltage / 1000f) : "Warte auf Strommessung";
+        String powerText = currentMa > 0 ? String.format(Locale.GERMANY, "ca. %.1f W aktueller Verbrauch", currentMa * voltage / 1000f) : "Warte auf Strommessung";
         String detectionText = batteryAvailable
                 ? (charging ? chargerTypeDisplay() + " · automatisch von Android erkannt" : powerText + " · automatisch von Android erkannt")
                 : "Warte auf Android-Akkuwert";
         if (compact) {
-            float centerX = 18 + heroW / 2f;
-            float gaugeOffset = heroW < 230f ? 22f : 0f;
-            float gaugeRadius = Math.min(80f, Math.max(52f, heroW / 2f - 10f));
-            float gaugeTextSize = gaugeRadius < 64f ? 32f : 44f;
-            drawGauge(c, centerX, top + 153 + gaugeOffset, gaugeRadius, level, primary, faint);
-            centeredText(c, levelDisplay(), centerX, top + 168 + gaugeOffset, gaugeTextSize, primary, true);
-            centeredText(c, batteryModeLabel(), centerX, top + 207 + gaugeOffset, 9, muted, false);
-            float compactDetailsOffset = heroW < 230f ? 20f : 0f;
-            text(c, "Akkugesundheit", 36, top + 258 + compactDetailsOffset, 9, muted, false);
-            text(c, health == 0 ? "Nicht gemessen" : health + "%", 36, top + 280 + compactDetailsOffset, 14, primary, true);
-            float capacityX = 18 + heroW * .57f;
-            float compactDetailsRight = 18 + heroW - 42;
-            // Prefer a complete short label on phone-width cards. Fitting the
-            // longer label character-by-character produced "Geschätzte
-            // Kapaz…" inside an otherwise clean metric column.
-            boundedText(c, heroW < 350f ? "Kapazität" : "Geschätzte Kapazität", capacityX, compactDetailsRight,
-                    top + 258 + compactDetailsOffset, 9, muted, false);
-            boundedText(c, health > 0 ? mahDisplay(estimatedCapacityMah()) : "—", capacityX, compactDetailsRight,
-                    top + 280 + compactDetailsOffset, 12, primary, true);
-            boundedText(c, "Nennwert " + designCapacityDisplay(), capacityX, compactDetailsRight,
-                    top + 297 + compactDetailsOffset, 8, faint, false);
-            float compactStatusOffset = heroW < 230f ? 20f : 0f;
-            rounded(c, 36, top + 315 + compactStatusOffset, 18 + heroW - 36, top + 369 + compactStatusOffset, 8, raised);
-            drawBolt(c, 52, top + 333 + compactStatusOffset, lime, .8f);
-            text(c, batteryRowLabel(), 68, top + 332 + compactStatusOffset, 10, primary, true);
+            // The overview is the emotional entry point: a real editorial
+            // illustration carries the battery story while the level remains
+            // the dominant, instantly readable datum.
+            drawBatteryCareIllustration(c, 18, top, heroW);
+            displayText(c, "Alles läuft", 36, top + 58, 19, heroPrimary);
+            displayText(c, "ganz entspannt.", 36, top + 80, 19, heroPrimary);
+            displayText(c, levelDisplay(), 36, top + 125, heroW < 300f ? 38 : 48, heroPrimary);
+            text(c, batteryModeLabel(), 38, top + 148, 9, heroMuted, false);
+            rounded(c, 36, top + 170, 119, top + 192, 11,
+                    Color.argb(48, Color.red(stateColor), Color.green(stateColor), Color.blue(stateColor)));
+            fill(c, stateColor); c.drawCircle(u(47), u(top + 181), u(3), p);
+            boundedText(c, batteryChipLabel(), 57, 117, top + 185, 8, stateColor, true);
+
+            float infoTop = top + 278;
+            rounded(c, 36, infoTop, 18 + heroW - 36, top + 374, 20,
+                    Color.rgb(7, 86, 90));
+            text(c, "AKKUGESUNDHEIT", 52, infoTop + 24, 8, Color.rgb(115, 228, 216), true);
+            displayText(c, health == 0 ? "Noch nicht gemessen" : health + "% · sehr gut",
+                    52, infoTop + 50, health == 0 ? 16 : 20, heroPrimary);
+            boundedText(c, health > 0 ? mahDisplay(estimatedCapacityMah()) + " von " + designCapacityDisplay()
+                            : "Starte einen Benchmark für deine Kapazität",
+                    52, 18 + heroW - 52, infoTop + 69, 8, heroMuted, false);
+            drawBolt(c, 18 + heroW - 55, infoTop + 26, lime, .7f);
+            text(c, batteryRowLabel(), 52, infoTop + 88, 9, heroPrimary, true);
             String compactDetection = charging ? (heroW < 230f ? chargerTypeDisplay() : chargerTypeDisplay() + " · automatisch")
                     : (heroW < 230f ? "Automatisch erkannt" : "Akku automatisch erkannt");
             float statusRight = 18 + heroW - 50;
             float currentLeft = Math.max(68f, statusRight - 76f);
-            boundedText(c, compactDetection, 68, currentLeft - 8f, top + 350 + compactStatusOffset, 8, muted, false);
+            boundedText(c, compactDetection, 144, currentLeft - 8f, infoTop + 88, 8, heroMuted, false);
             boundedRightText(c, liveCurrentDisplay(), currentLeft, statusRight,
-                    top + 339 + compactStatusOffset, 9, charging ? lime : blue, false);
+                    infoTop + 88, 9, charging ? lime : blue, false);
         } else {
             // Keep a clear vertical rhythm: the gauge ends before the
             // details/status rows begin. The previous 101-dp circle touched
@@ -2667,7 +2732,592 @@ class BatteryDashboard extends View {
         drawChart(c, 18, top + 218, w - 36, 360, panel, border, primary, muted, faint);
     }
 
+    private boolean usesEditorialPortrait(float width) {
+        return width < 600f
+                && getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE;
+    }
+
+    private void drawEditorialSurface(Canvas c, float l, float t, float r, float b,
+                                      int surface, int borderColor, int decoration) {
+        rounded(c, l, t, r, b, 28, surface);
+        stroke(c, borderColor, 1);
+        rect.set(u(l), u(t), u(r), u(b));
+        c.drawRoundRect(rect, u(28), u(28), p);
+        Path clip = new Path();
+        clip.addRoundRect(rect, u(28), u(28), Path.Direction.CW);
+        c.save();
+        c.clipPath(clip);
+        fill(c, Color.argb(25, Color.red(decoration), Color.green(decoration), Color.blue(decoration)));
+        c.drawCircle(u(r - 20), u(t + 8), u(78), p);
+        stroke(c, Color.argb(35, 255, 255, 255), 1);
+        c.drawCircle(u(l + 8), u(b + 24), u(68), p);
+        c.restore();
+    }
+
+    /** A tiny hand-drawn battery character for friendly empty/data states. */
+    private void drawEditorialBattery(Canvas c, float cx, float cy, int percent,
+                                      boolean powered, int bodyColor, int liquidColor, int inkColor) {
+        float left = cx - 34f, top = cy - 57f, right = cx + 34f, bottom = cy + 57f;
+        rounded(c, cx - 14, top - 10, cx + 14, top + 4, 7, bodyColor);
+        rounded(c, left, top, right, bottom, 22, bodyColor);
+        float levelTop = bottom - 7f - 100f * Math.max(0, Math.min(100, percent)) / 100f;
+        Path batteryClip = new Path();
+        rect.set(u(left + 7), u(top + 7), u(right - 7), u(bottom - 7));
+        batteryClip.addRoundRect(rect, u(16), u(16), Path.Direction.CW);
+        c.save();
+        c.clipPath(batteryClip);
+        fill(c, liquidColor);
+        c.drawRect(u(left + 7), u(levelTop), u(right - 7), u(bottom - 7), p);
+        c.restore();
+        if (powered) drawBolt(c, cx, cy + 8, inkColor, .9f);
+        else {
+            fill(c, inkColor);
+            c.drawCircle(u(cx - 11), u(cy - 3), u(2), p);
+            c.drawCircle(u(cx + 11), u(cy - 3), u(2), p);
+            stroke(c, inkColor, 1.4f);
+            rect.set(u(cx - 10), u(cy + 1), u(cx + 10), u(cy + 14));
+            c.drawArc(rect, 18, 144, false, p);
+        }
+        drawLeafSprig(c, right + 3, bottom - 3, liquidColor, inkColor);
+    }
+
+    private void drawLeafSprig(Canvas c, float x, float y, int leafColor, int stemColor) {
+        line(c, x, y, x + 24, y - 37, stemColor, 1.3f);
+        Path leaf = new Path();
+        leaf.moveTo(u(x + 9), u(y - 15));
+        leaf.cubicTo(u(x + 9), u(y - 32), u(x + 27), u(y - 35), u(x + 23), u(y - 19));
+        leaf.cubicTo(u(x + 20), u(y - 11), u(x + 14), u(y - 10), u(x + 9), u(y - 15));
+        fill(c, leafColor); c.drawPath(leaf, p);
+        Path leafTwo = new Path();
+        leafTwo.moveTo(u(x + 17), u(y - 27));
+        leafTwo.cubicTo(u(x + 19), u(y - 43), u(x + 36), u(y - 45), u(x + 32), u(y - 30));
+        leafTwo.cubicTo(u(x + 29), u(y - 23), u(x + 22), u(y - 22), u(x + 17), u(y - 27));
+        fill(c, mixColor(leafColor, Color.WHITE, .20f)); c.drawPath(leafTwo, p);
+    }
+
+    private void drawFriendlyMetric(Canvas c, float l, float t, float r, float b,
+                                    String eyebrow, String value, String caption, String glyph,
+                                    int panel, int border, int primary, int muted) {
+        frame(c, l, t, r, b, panel, border, lime);
+        rounded(c, l + 14, t + 14, l + 45, t + 45, 13,
+                Color.argb(light ? 32 : 42, Color.red(lime), Color.green(lime), Color.blue(lime)));
+        if ("temp".equals(glyph)) drawThermometer(c, l + 29.5f, t + 29.5f, lime);
+        else if ("clock".equals(glyph)) drawClock(c, l + 29.5f, t + 29.5f, lime);
+        else if ("heart".equals(glyph)) drawHeart(c, l + 29.5f, t + 29.5f, lime, .65f);
+        else if ("arrow".equals(glyph)) drawArrow(c, l + 29.5f, t + 29.5f, lime);
+        else drawBolt(c, l + 29.5f, t + 29.5f, lime, .65f);
+        text(c, eyebrow.toUpperCase(Locale.GERMANY), l + 14, t + 64, 8f, muted, true);
+        boundedText(c, value, l + 14, r - 12, t + 88, value.length() > 12 ? 13 : 18, primary, true);
+        boundedText(c, caption, l + 14, r - 12, t + 104, 8.5f, muted, false);
+    }
+
+    private void drawFriendlyToggleRow(Canvas c, float l, float t, float r, float b,
+                                       String label, String caption, boolean enabled, boolean pressed,
+                                       int primary, int muted) {
+        int rowFill = pressed
+                ? Color.argb(light ? 30 : 40, Color.red(lime), Color.green(lime), Color.blue(lime))
+                : Color.TRANSPARENT;
+        if (rowFill != Color.TRANSPARENT) rounded(c, l, t, r, b, 14, rowFill);
+        rounded(c, l + 13, t + 9, l + 43, t + 39, 12,
+                Color.argb(light ? 28 : 38, Color.red(lime), Color.green(lime), Color.blue(lime)));
+        if (enabled) drawBolt(c, l + 28, t + 24, lime, .58f);
+        else drawClock(c, l + 28, t + 24, muted);
+        text(c, label, l + 53, t + 21, 10, primary, true);
+        text(c, caption, l + 53, t + 35, 7.5f, muted, false);
+        float switchL = r - 52, switchT = t + 12;
+        rounded(c, switchL, switchT, r - 13, switchT + 24, 12,
+                enabled ? lime : Color.argb(light ? 38 : 55,
+                        Color.red(muted), Color.green(muted), Color.blue(muted)));
+        fill(c, enabled ? Color.rgb(4, 52, 56) : Color.rgb(255, 247, 232));
+        c.drawCircle(u(enabled ? r - 25 : switchL + 12), u(switchT + 12), u(8), p);
+    }
+
+    private int sourceColor(String source) {
+        if ("SYSTEM".equals(source)) return Color.rgb(115, 228, 216);
+        if ("LIVE".equals(source)) return Color.rgb(53, 211, 200);
+        if ("BERECHNET".equals(source)) return Color.rgb(90, 194, 185);
+        return Color.rgb(146, 211, 201);
+    }
+
+    private void drawSourceBadge(Canvas c, String source, float x, float baseline) {
+        int color = sourceColor(source);
+        type(6.5f, color, true);
+        float width = p.measureText(source) / density + 12f;
+        rounded(c, x, baseline - 10, x + width, baseline + 3, 6.5f,
+                Color.argb(light ? 28 : 42, Color.red(color), Color.green(color), Color.blue(color)));
+        text(c, source, x + 6, baseline, 6.5f, color, true);
+    }
+
+    private void drawTechnicalRow(Canvas c, float left, float right, float top,
+                                  String label, String value, String source,
+                                  int primary, int muted, int border) {
+        text(c, label, left, top + 19, 9.5f, primary, true);
+        drawSourceBadge(c, source, left, top + 37);
+        boundedRightText(c, value, left + 112, right, top + 25, value.length() > 18 ? 9.5f : 12, primary, true);
+        line(c, left, top + 46, right, top + 46, border, 1);
+    }
+
+    private void drawTechnicalPanel(Canvas c, float left, float top, float right, float bottom,
+                                    String eyebrow, String title, int panel, int border,
+                                    int primary, int muted) {
+        frame(c, left, top, right, bottom, panel, border, lime);
+        text(c, eyebrow, left + 18, top + 27, 8.5f, muted, true);
+        displayText(c, title, left + 18, top + 53, 18, primary);
+    }
+
+    private String chargeEnergyWhDisplay() {
+        int mah = chargeEnergyForDisplay();
+        if (mah <= 0 || voltage <= 0f) return "Noch offen";
+        return String.format(Locale.GERMANY, "≈ %.2f Wh", mah * voltage / 1000f);
+    }
+
+    private String dischargeEnergyWhDisplay() {
+        int mah = dischargeMah();
+        if (mah <= 0 || voltage <= 0f) return "Noch offen";
+        return String.format(Locale.GERMANY, "≈ %.2f Wh", mah * voltage / 1000f);
+    }
+
+    private String powerRangeDisplay(BatteryPowerStats.Range range) {
+        if (range == null || !range.isAvailable()) return "Noch keine Reihe";
+        return String.format(Locale.GERMANY, "%.1f / %.1f / %.1f W",
+                range.minimumMw / 1000f, range.averageMw / 1000f, range.maximumMw / 1000f);
+    }
+
+    private String temperatureRangeDisplay(BatteryTelemetryDiagnostics.Summary summary) {
+        if (summary == null || !summary.hasTemperatureData()) return "Noch keine Reihe";
+        return String.format(Locale.GERMANY, "%.1f / %.1f / %.1f °C",
+                summary.minTemperatureTenths / 10f,
+                summary.averageTemperatureTenths / 10f,
+                summary.maxTemperatureTenths / 10f);
+    }
+
+    private String dischargeStartLevelDisplay() {
+        int start = prefs.getInt(charging ? "lastDischargeStartLevel" : "dischargeStartLevel", -1);
+        return percentDisplay(start);
+    }
+
+    private String dischargeLevelLossDisplay() {
+        int start = prefs.getInt(charging ? "lastDischargeStartLevel" : "dischargeStartLevel", -1);
+        int end = charging ? lastDischargeEndLevel() : level;
+        return start >= 0 && end >= 0 && start >= end ? (start - end) + " Prozentpunkte" : "Noch offen";
+    }
+
+    private String dischargeTotalDurationDisplay() {
+        long on = prefs.getLong(charging ? "lastDischargeScreenOnMs" : "dischargeScreenOnMs", 0L);
+        long off = prefs.getLong(charging ? "lastDischargeScreenOffMs" : "dischargeScreenOffMs", 0L);
+        long minutes = (on + off) / 60000L;
+        return minutes > 0 ? formatDuration(minutes) : "Noch offen";
+    }
+
+    private String dischargeScreenTimePairDisplay() {
+        String on = dischargeDuration(true);
+        String off = dischargeDuration(false);
+        return "—".equals(on) && "—".equals(off) ? "Noch offen" : on + " · " + off;
+    }
+
+    private String dischargeRuntimePairDisplay() {
+        String mixed = runtimeEstimate();
+        String screenOn = dischargeRuntime(true);
+        return "—".equals(mixed) && "—".equals(screenOn) ? "Noch offen" : mixed + " · " + screenOn;
+    }
+
+    private String capacityLossMahDisplay() {
+        int design = designCapacityMah();
+        int measured = estimatedCapacityMah();
+        return design > 0 && measured > 0 ? mahDisplay(Math.max(0, design - measured)) : "Noch offen";
+    }
+
+    private String chargingStateDisplay() {
+        if (!charging) return "Nicht verbunden";
+        return BatteryChargingState.label(chargingStatus);
+    }
+
+    private String chargeRateDisplay() {
+        int mahPerHour = Math.round(averageChargeRateMahPerHour());
+        float percentPerHour = Math.max(chargeSpeedPercentPerHour(true), chargeSpeedPercentPerHour(false));
+        if (mahPerHour <= 0 && percentPerHour <= 0f) return "Noch offen";
+        if (mahPerHour > 0 && percentPerHour > 0f) {
+            return String.format(Locale.GERMANY, "%d mAh/h · %.1f %%/h", mahPerHour, percentPerHour);
+        }
+        return mahPerHour > 0 ? mahPerHour + " mAh/h"
+                : String.format(Locale.GERMANY, "%.1f %%/h", percentPerHour);
+    }
+
+    private String healthSampleRangeDisplay() {
+        if (healthSamples.isEmpty()) return "Noch keine Messreihe";
+        int minimum = Integer.MAX_VALUE;
+        int maximum = 0;
+        long sum = 0L;
+        for (int sample : healthSamples) {
+            minimum = Math.min(minimum, sample);
+            maximum = Math.max(maximum, sample);
+            sum += sample;
+        }
+        return String.format(Locale.GERMANY, "%d / %d / %d mAh",
+                minimum, Math.round(sum / (float) healthSamples.size()), maximum);
+    }
+
+    private String healthDataQualityDisplay() {
+        int count = healthSamples.size();
+        if (count == 0) return "Noch keine Basis";
+        if (count == 1) return "Niedrig · 1 Messung";
+        if (count < 4) return "Mittel · " + count + " Messungen";
+        return "Gut · " + count + " Messungen";
+    }
+
+    private void drawChargingEditorial(Canvas c, float w, int panel, int raised, int border,
+                                       int primary, int muted, int faint) {
+        float y = 182;
+        int deep = Color.rgb(4, 52, 56);
+        int teal = Color.rgb(7, 86, 90);
+        int cream = Color.rgb(255, 247, 232);
+        int mint = Color.rgb(215, 245, 239);
+        drawEditorialSurface(c, 18, y, w - 18, y + 270, deep, Color.rgb(11, 143, 138), lime);
+        text(c, "LADEBEGLEITUNG", 36, y + 29, 8.5f, lime, true);
+        displayText(c, charging ? "Laden im Blick." : "Bereit zum Laden.",
+                36, y + 58, 19, cream);
+        displayText(c, levelDisplay(), 36, y + 107, 30, cream);
+        text(c, "aktueller Akkustand", 38, y + 127, 8, Color.rgb(168, 216, 208), false);
+        text(c, charging && currentMa > 0 ? "+" + currentMa + " mA" : "Nicht verbunden",
+                36, y + 151, charging && currentMa > 0 ? 14 : 12, cream, true);
+        text(c, charging ? liveCurrentSubLabel(true) : "Sobald Strom fließt, bin ich da.",
+                36, y + 166, 7.5f, Color.rgb(168, 216, 208), false);
+        drawEditorialBattery(c, w - 79, y + 117, level < 0 ? chargeLimit : level,
+                true, cream, lime, deep);
+
+        text(c, "Fortschritt zum Ladeziel", 36, y + 184, 8, Color.rgb(168, 216, 208), false);
+        rightText(c, levelDisplay() + " von " + chargeLimit + "%", w - 36, y + 184, 8, lime, true);
+        rounded(c, 36, y + 190, w - 36, y + 196, 3, Color.rgb(20, 94, 96));
+        rounded(c, 36, y + 190, 36 + (w - 72) * BatteryChargePresentation.progressToTarget(level, chargeLimit), y + 196, 3, lime);
+        rounded(c, 36, y + 214, w - 36, y + 251, 16, teal);
+        drawBolt(c, 52, y + 232, lime, .65f);
+        boundedText(c, BatteryChargePresentation.status(level, chargeLimit, charging, timeToLimit()),
+                68, w - 46, y + 229, 8.5f, cream, true);
+        text(c, "Alarmziel · Ampere stoppt den Ladevorgang nicht", 68, y + 243, 7, Color.rgb(168, 216, 208), false);
+
+        // One calm settings group replaces two competing system-like boxes.
+        // The established vertical hit regions remain unchanged.
+        rounded(c, 18, y + 278, w - 18, y + 368, 24, panel);
+        stroke(c, border, 1);
+        rect.set(u(18), u(y + 278), u(w - 18), u(y + 368));
+        c.drawRoundRect(rect, u(24), u(24), p);
+        drawFriendlyToggleRow(c, 22, y + 280, w - 22, y + 322, "Ladealarm",
+                chargeAlarm ? "Benachrichtigt dich bei " + chargeLimit + "%" : "Zurzeit ausgeschaltet",
+                chargeAlarm, isPressed(21), primary, muted);
+        line(c, 36, y + 323, w - 36, y + 323, border, 1);
+        drawFriendlyToggleRow(c, 22, y + 326, w - 22, y + 366, "Live-Anzeige",
+                overlayEnabled ? "Schwebt über anderen Apps" : "Über anderen Apps ausgeblendet",
+                overlayEnabled, isPressed(22), primary, muted);
+
+        float gap = 12, cardW = (w - 48) / 2f;
+        int energyAdded = chargeEnergyForDisplay();
+        drawFriendlyMetric(c, 18, y + 382, 18 + cardW, y + 494,
+                "Geladen", energyAdded > 0 ? "+" + energyAdded + " mAh" : "Noch offen",
+                "in dieser Sitzung", "bolt", panel, border, primary, muted);
+        drawFriendlyMetric(c, 30 + cardW, y + 382, w - 18, y + 494,
+                "Temperatur", temperature > 0 ? temperatureDisplay() + " °C" : "Wird gemessen",
+                temperature > 0 && temperature < 36 ? "angenehm kühl" : "Live-Sensor", "temp",
+                panel, border, primary, muted);
+
+        drawEditorialSurface(c, 18, y + 510, w - 18, y + 646, panel, border, lime);
+        text(c, "DEINE LADEGESCHICHTE", 36, y + 539, 8.5f, muted, true);
+        displayText(c, chargeChangeForDisplay(), 36, y + 574, 22, primary);
+        text(c, "Akkustand seit " + chargeStartForDisplay(), 36, y + 595, 8, muted, false);
+        text(c, "Dauer", w * .58f, y + 553, 8, faint, false);
+        boundedText(c, chargeDurationForDisplay(), w * .58f, w - 36, y + 575, 13, primary, true);
+        rounded(c, 36, y + 613, w - 36, y + 632, 9,
+                Color.argb(light ? 28 : 40, Color.red(lime), Color.green(lime), Color.blue(lime)));
+        text(c, healthPercent() > 0 ? "Kapazität " + healthDisplay() + "% · im gesunden Bereich"
+                        : "Nach längeren Ladungen wird die Schätzung genauer",
+                46, y + 626, 7.5f, muted, false);
+
+        BatteryTelemetryDiagnostics.Summary diagnostics = telemetryDiagnostics();
+        float liveTop = y + 664;
+        drawTechnicalPanel(c, 18, liveTop, w - 18, liveTop + 356,
+                "LIVE-TELEMETRIE", "Was gerade im Akku passiert", panel, border, primary, muted);
+        float row = liveTop + 66;
+        drawTechnicalRow(c, 36, w - 36, row, "Akkustand", levelDisplay(), "LIVE", primary, muted, border);
+        drawTechnicalRow(c, 36, w - 36, row + 48, "Akkustrom", liveCurrentDisplay(), "LIVE", primary, muted, border);
+        drawTechnicalRow(c, 36, w - 36, row + 96, "Akkuspannung", voltage > 0 ? voltageDisplay() + " V" : "Nicht verfügbar", "LIVE", primary, muted, border);
+        drawTechnicalRow(c, 36, w - 36, row + 144, "Akkuleistung", "—".equals(livePowerDisplay()) ? "Nicht verfügbar" : livePowerDisplay(), "BERECHNET", primary, muted, border);
+        drawTechnicalRow(c, 36, w - 36, row + 192, "Temperatur", temperature > 0 ? temperatureDisplay() + " °C" : "Nicht verfügbar", "SYSTEM", primary, muted, border);
+        drawTechnicalRow(c, 36, w - 36, row + 240, "Status · Quelle", chargingStateDisplay() + " · " + chargerTypeDisplay(), "SYSTEM", primary, muted, border);
+
+        float analysisTop = liveTop + 372;
+        drawTechnicalPanel(c, 18, analysisTop, w - 18, analysisTop + 356,
+                "SITZUNGSANALYSE", "Seit dem Anschließen", panel, border, primary, muted);
+        row = analysisTop + 66;
+        drawTechnicalRow(c, 36, w - 36, row, "Ladungsmenge", energyAdded > 0 ? "+" + energyAdded + " mAh" : "Noch offen", "BERECHNET", primary, muted, border);
+        drawTechnicalRow(c, 36, w - 36, row + 48, "Energie", chargeEnergyWhDisplay(), "BERECHNET", primary, muted, border);
+        drawTechnicalRow(c, 36, w - 36, row + 96, "Sitzungsdauer", chargeDurationForDisplay(), "LIVE", primary, muted, border);
+        drawTechnicalRow(c, 36, w - 36, row + 144, "Zeit bis Ladeziel", timeToLimit(), "GESCHÄTZT", primary, muted, border);
+        drawTechnicalRow(c, 36, w - 36, row + 192, "Ladegeschwindigkeit", chargeRateDisplay(), "GESCHÄTZT", primary, muted, border);
+        drawTechnicalRow(c, 36, w - 36, row + 240, "Leistung Min / Ø / Max", powerRangeDisplay(diagnostics.powerStats.charging), "BERECHNET", primary, muted, border);
+
+        drawTelemetryChart(c, 18, analysisTop + 372, w - 36, 220,
+                panel, border, primary, muted, faint, true);
+    }
+
+    private void drawDischargingEditorial(Canvas c, float w, int panel, int raised, int border,
+                                          int primary, int muted, int faint) {
+        float y = 182;
+        int deep = Color.rgb(4, 52, 56);
+        int cream = Color.rgb(255, 247, 232);
+        int mint = Color.rgb(215, 245, 239);
+        int savedEnd = lastDischargeEndLevel();
+        boolean hasHistory = savedEnd >= 0;
+        int displayLevel = charging ? savedEnd : level;
+        drawEditorialSurface(c, 18, y, w - 18, y + 290, deep, Color.rgb(11, 143, 138), blue);
+        text(c, "UNTERWEGS MIT AKKU", 36, y + 29, 8.5f, blue, true);
+        if (hasHistory || !charging) {
+            displayText(c, "Dein Tagesrhythmus.", 36, y + 58, 18, cream);
+        } else {
+            displayText(c, "Wir lernen", 36, y + 58, 19, cream);
+            displayText(c, "deinen Rhythmus.", 36, y + 80, 18, cream);
+        }
+        displayText(c, percentDisplay(displayLevel), 36, y + 112, 38, cream);
+        text(c, displayLevel >= 0 ? "aktueller Akkustand" : "noch keine Entladesitzung",
+                38, y + 132, 8.5f, Color.rgb(168, 216, 208), false);
+        text(c, !charging && currentMa > 0 ? "−" + currentMa + " mA" : "Kein Entladestrom",
+                36, y + 153, 12, cream, true);
+        text(c, !charging && currentMa > 0 ? "Akkustrom live" : "Gerät wird gerade geladen",
+                36, y + 168, 8, Color.rgb(168, 216, 208), false);
+        drawEditorialBattery(c, w - 79, y + 121,
+                displayLevel < 0 ? 62 : displayLevel, false, cream, blue, deep);
+        rounded(c, 36, y + 187, w - 36, y + 265, 20, Color.rgb(7, 86, 90));
+        text(c, "GESCHÄTZTE RESTLAUFZEIT", 51, y + 209, 8f, Color.rgb(168, 216, 208), true);
+        displayText(c, runtimeEstimate(), 51, y + 238, 19, cream);
+        text(c, hasHistory ? "bei deiner typischen Nutzung" : "Ladegerät trennen und Gerät normal nutzen",
+                51, y + 254, 8f, Color.rgb(168, 216, 208), false);
+
+        float cardW = (w - 48) / 2f;
+        drawFriendlyMetric(c, 18, y + 306, 18 + cardW, y + 418,
+                "Bildschirm", dischargeDurationCompact(true), "aktive Nutzung", "clock",
+                panel, border, primary, muted);
+        drawFriendlyMetric(c, 30 + cardW, y + 306, w - 18, y + 418,
+                "Verbrauch", dischargeMah() > 0 ? dischargeMah() + " mAh" : "Keine Daten",
+                "seit dem Abstecken", "arrow", panel, border, primary, muted);
+
+        drawEditorialSurface(c, 18, y + 434, w - 18, y + 540, panel, border, lime);
+        text(c, "DEIN AKKU-MUSTER", 36, y + 462, 8.5f, muted, true);
+        displayText(c, deepSleepPercent(), 36, y + 494, 19, primary);
+        text(c, "Tiefschlaf · " + deepSleepTime(), 36, y + 514, 8, muted, false);
+        text(c, "Ø Entladerate", w * .58f, y + 476, 8, muted, false);
+        boundedText(c, averageDischargeRateDisplay(), w * .58f, w - 36, y + 501, 13, primary, true);
+
+        // This complete card remains one accessible tap target for the
+        // optional Android usage permission/details action.
+        drawEditorialSurface(c, 18, y + 560, w - 18, y + 735, panel, border, lime);
+        rounded(c, 36, y + 579, 73, y + 616, 15,
+                Color.argb(light ? 30 : 42, Color.red(lime), Color.green(lime), Color.blue(lime)));
+        drawGrid(c, 54.5f, y + 597.5f, lime);
+        displayText(c, "Was braucht heute Strom?", 36, y + 651, 17, primary);
+        if (hasUsageAccess()) {
+            text(c, "Tippe für deine Verbrauchsdetails", 36, y + 677, 9, muted, false);
+            text(c, "Nur lokal aus Android-Daten berechnet", 36, y + 697, 8, faint, false);
+        } else {
+            text(c, "Aktiviere optional den Nutzungszugriff,", 36, y + 677, 9, muted, false);
+            text(c, "damit Ampere Stromfresser sichtbar macht.", 36, y + 695, 9, muted, false);
+        }
+        rounded(c, 36, y + 708, w - 36, y + 725, 9, Color.argb(35, Color.red(lime), Color.green(lime), Color.blue(lime)));
+        text(c, hasUsageAccess() ? "APP-DETAILS ÖFFNEN" : "ANDROID-ZUGRIFF ÖFFNEN",
+                46, y + 720, 7.5f, lime, true);
+
+        BatteryTelemetryDiagnostics.Summary diagnostics = telemetryDiagnostics();
+        float liveTop = y + 754;
+        drawTechnicalPanel(c, 18, liveTop, w - 18, liveTop + 356,
+                "LIVE & SITZUNG", "Verbrauch seit dem Abstecken", panel, border, primary, muted);
+        float row = liveTop + 66;
+        drawTechnicalRow(c, 36, w - 36, row, "Akkustand aktuell", percentDisplay(displayLevel), "LIVE", primary, muted, border);
+        drawTechnicalRow(c, 36, w - 36, row + 48, "Akkustand beim Start", dischargeStartLevelDisplay(), "SYSTEM", primary, muted, border);
+        drawTechnicalRow(c, 36, w - 36, row + 96, "Verlust", dischargeLevelLossDisplay(), "BERECHNET", primary, muted, border);
+        drawTechnicalRow(c, 36, w - 36, row + 144, "Entladestrom", !charging && currentMa > 0 ? "−" + currentMa + " mA" : "Nicht aktiv", "LIVE", primary, muted, border);
+        drawTechnicalRow(c, 36, w - 36, row + 192, "Leistungsaufnahme", !charging ? livePowerDisplay() : "Nicht aktiv", "BERECHNET", primary, muted, border);
+        drawTechnicalRow(c, 36, w - 36, row + 240, "Temperatur", temperature > 0 ? temperatureDisplay() + " °C" : "Nicht verfügbar", "SYSTEM", primary, muted, border);
+
+        float analysisTop = liveTop + 372;
+        drawTechnicalPanel(c, 18, analysisTop, w - 18, analysisTop + 356,
+                "DEEP ANALYSIS", "Zeit, Ladung und Ruhephasen", panel, border, primary, muted);
+        row = analysisTop + 66;
+        drawTechnicalRow(c, 36, w - 36, row, "Verbrauchte Ladung", dischargeMah() > 0 ? dischargeMah() + " mAh" : "Noch offen", "BERECHNET", primary, muted, border);
+        drawTechnicalRow(c, 36, w - 36, row + 48, "Verbrauchte Energie", dischargeEnergyWhDisplay(), "BERECHNET", primary, muted, border);
+        drawTechnicalRow(c, 36, w - 36, row + 96, "Vergangene Zeit", dischargeTotalDurationDisplay(), "LIVE", primary, muted, border);
+        drawTechnicalRow(c, 36, w - 36, row + 144, "Bildschirm an / aus", dischargeScreenTimePairDisplay(), "BERECHNET", primary, muted, border);
+        drawTechnicalRow(c, 36, w - 36, row + 192, "Restlaufzeit · Screen-on", dischargeRuntimePairDisplay(), "GESCHÄTZT", primary, muted, border);
+        drawTechnicalRow(c, 36, w - 36, row + 240, "Leistung Min / Ø / Max", powerRangeDisplay(diagnostics.powerStats.discharging), "BERECHNET", primary, muted, border);
+
+        drawTelemetryChart(c, 18, analysisTop + 372, w - 36, 220,
+                panel, border, primary, muted, faint, false);
+    }
+
+    private void drawHealthEditorial(Canvas c, float w, int panel, int raised, int border,
+                                     int primary, int muted, int faint) {
+        float y = 182;
+        int deep = Color.rgb(4, 52, 56);
+        int cream = Color.rgb(255, 247, 232);
+        int health = healthPercent();
+        int design = designCapacityMah();
+        drawEditorialSurface(c, 18, y, w - 18, y + 294, deep, Color.rgb(11, 143, 138), lime);
+        text(c, "AKKUGESUNDHEIT", 36, y + 29, 8.5f, lime, true);
+        if (health > 0) {
+            displayText(c, "Dein Akku fühlt sich gut.", 36, y + 58, 17, cream);
+        } else {
+            displayText(c, "Lernen braucht", 36, y + 58, 19, cream);
+            displayText(c, "ein wenig Zeit.", 36, y + 80, 19, cream);
+        }
+        if (health > 0) {
+            displayText(c, health + "%", 36, y + 110, 38, cream);
+        } else {
+            boundedText(c, "Noch keine Messung", 36, w - 112, y + 110, 15.5f, cream, true);
+        }
+        text(c, health > 0 ? "geschätzte Restkapazität" : "Benchmark starten, um Kapazität zu schätzen",
+                38, y + 131, 8.5f, Color.rgb(168, 216, 208), false);
+        drawEditorialBattery(c, w - 79, y + 121, health > 0 ? health : 76,
+                false, cream, lime, deep);
+        if (health > 0) {
+            rounded(c, 36, y + 190, w - 36, y + 196, 3, Color.rgb(20, 94, 96));
+            rounded(c, 36, y + 190, 36 + (w - 72) * health / 100f, y + 196, 3, lime);
+        } else {
+            rounded(c, 36, y + 184, 118, y + 202, 9, Color.rgb(7, 86, 90));
+            text(c, "BENCHMARK 0 / 1", 45, y + 197, 7.5f, lime, true);
+        }
+        rounded(c, 36, y + 218, w - 36, y + 270, 18, Color.rgb(7, 86, 90));
+        text(c, "VOLLE KAPAZITÄT", 50, y + 239, 7.5f, Color.rgb(168, 216, 208), true);
+        text(c, health > 0 ? mahDisplay(estimatedCapacityMah()) : "Noch nicht gemessen",
+                50, y + 259, 13, cream, true);
+        rightText(c, health > 0 && design > 0 ? "von " + mahDisplay(design)
+                        : (isProbablyEmulator() ? "Testgerät" : "Nennwert offen"),
+                w - 50, y + 259, 8.5f, Color.rgb(168, 216, 208), false);
+
+        float cardW = (w - 48) / 2f;
+        drawFriendlyMetric(c, 18, y + 310, 18 + cardW, y + 422,
+                "Akkuspannung", voltage > 0 ? voltageDisplay() + " V" : "Wird gemessen",
+                isProbablyEmulator() ? "Android-Testwert" : "Android-Akkusensor", "bolt", panel, border, primary, muted);
+        drawFriendlyMetric(c, 30 + cardW, y + 310, w - 18, y + 422,
+                "Systemzyklen", chargeCyclesDisplay(), "von Android gemeldet", "heart",
+                panel, border, primary, muted);
+
+        drawEditorialSurface(c, 18, y + 438, w - 18, y + 510, panel, border, lime);
+        text(c, "SO ENTSTEHT DIE SCHÄTZUNG", 36, y + 465, 8.5f, muted, true);
+        text(c, healthMeasurementSource(), 36, y + 485, 9, primary, true);
+        text(c, "Ampere-Vollzyklen: " + totalEquivalentCycles(), 36, y + 501, 7.5f, muted, false);
+
+        // Benchmark coordinates intentionally match the existing touch and
+        // accessibility regions (absolute y 700–815).
+        drawEditorialSurface(c, 18, y + 518, w - 18, y + 633, panel, border, lime);
+        rounded(c, 36, y + 537, 73, y + 574, 15,
+                Color.argb(light ? 30 : 42, Color.red(lime), Color.green(lime), Color.blue(lime)));
+        drawHeart(c, 54.5f, y + 555.5f, lime, .65f);
+        displayText(c, benchmarkActive ? "Benchmark läuft." : "Einmal richtig kennenlernen.",
+                36, y + 596, benchmarkActive ? 18 : 16, primary);
+        text(c, benchmarkActive ? "Zum Abschluss über 95% laden." : "Unter 25% starten, dann in Ruhe vollladen.",
+                36, y + 616, 8, muted, false);
+        smoothButton(c, w - 132, y + 528, w - 36, y + 572, 14,
+                benchmarkActive ? raised : lime, border, lime, !benchmarkActive, isPressed(30));
+        centeredText(c, benchmarkActive ? "Aktiv" : "Starten", w - 84, y + 556, 10,
+                benchmarkActive ? lime : accentForeground(), true);
+
+        drawEditorialSurface(c, 18, y + 648, w - 18, y + 708, panel, border, blue);
+        text(c, "NENNKAPAZITÄT", 36, y + 673, 8, muted, true);
+        text(c, isProbablyEmulator() && !BatteryCapacity.hasManualOverride(getContext())
+                        ? "Testwert · " + designCapacityDisplay() : designCapacityDisplay(),
+                36, y + 697, 14, primary, true);
+        rightText(c, "ANTIPPEN ZUM ÄNDERN", w - 36, y + 695, 7, lime, true);
+
+        BatteryTelemetryDiagnostics.Summary diagnostics = telemetryDiagnostics();
+        float capacityTop = y + 728;
+        drawTechnicalPanel(c, 18, capacityTop, w - 18, capacityTop + 356,
+                "KAPAZITÄT", "Messung und Datenqualität", panel, border, primary, muted);
+        float row = capacityTop + 66;
+        drawTechnicalRow(c, 36, w - 36, row, "Nennkapazität", designCapacityDisplay(),
+                BatteryCapacity.hasManualOverride(getContext()) ? "SYSTEM" : "SYSTEM", primary, muted, border);
+        drawTechnicalRow(c, 36, w - 36, row + 48, "Geschätzte Vollkapazität", estimatedCapacityMah() > 0 ? mahDisplay(estimatedCapacityMah()) : "Noch offen", "GESCHÄTZT", primary, muted, border);
+        drawTechnicalRow(c, 36, w - 36, row + 96, "Kapazitätsverlust", capacityLossMahDisplay(), "BERECHNET", primary, muted, border);
+        drawTechnicalRow(c, 36, w - 36, row + 144, "Gesundheit", health > 0 ? health + " %" : "Noch offen", "GESCHÄTZT", primary, muted, border);
+        drawTechnicalRow(c, 36, w - 36, row + 192, "Min / Ø / Max", healthSampleRangeDisplay(), "BERECHNET", primary, muted, border);
+        drawTechnicalRow(c, 36, w - 36, row + 240, "Datenqualität", healthDataQualityDisplay(), "GESCHÄTZT", primary, muted, border);
+
+        float cyclesTop = capacityTop + 372;
+        drawTechnicalPanel(c, 18, cyclesTop, w - 18, cyclesTop + 260,
+                "ZYKLEN & THERMIK", "Zyklen sauber getrennt", panel, border, primary, muted);
+        row = cyclesTop + 66;
+        drawTechnicalRow(c, 36, w - 36, row, "System-Cycle-Count", chargeCyclesDisplay(), "SYSTEM", primary, muted, border);
+        drawTechnicalRow(c, 36, w - 36, row + 48, "Equivalent Full Cycles", totalEquivalentCycles(), "BERECHNET", primary, muted, border);
+        drawTechnicalRow(c, 36, w - 36, row + 96, "Gesamt geladen", totalChargedMah() > 0 ? totalChargedMah() + " mAh" : "Noch offen", "BERECHNET", primary, muted, border);
+        drawTechnicalRow(c, 36, w - 36, row + 144, "Temperatur Min / Ø / Max", temperatureRangeDisplay(diagnostics), "BERECHNET", primary, muted, border);
+    }
+
+    private void drawHistoryEditorialEmpty(Canvas c, float w, int panel, int raised, int border,
+                                            int primary, int muted, int faint) {
+        float y = 182;
+        int deep = Color.rgb(4, 52, 56);
+        int cream = Color.rgb(255, 247, 232);
+        drawEditorialSurface(c, 18, y, w - 18, y + 286, deep, Color.rgb(11, 143, 138), lime);
+        text(c, "DEIN AKKU-TAGEBUCH", 36, y + 29, 8.5f, lime, true);
+        displayText(c, "Hier wächst bald", 36, y + 59, 19, cream);
+        displayText(c, "deine Geschichte.", 36, y + 81, 19, cream);
+        text(c, "Ampere sammelt nur lokal auf diesem Gerät.", 36, y + 108, 8, Color.rgb(168, 216, 208), false);
+        drawEditorialBattery(c, w - 78, y + 145, 54, false, cream, lime, deep);
+        Path timeline = new Path();
+        timeline.moveTo(u(36), u(y + 184));
+        timeline.cubicTo(u(88), u(y + 159), u(112), u(y + 235), u(177), u(y + 210));
+        timeline.cubicTo(u(213), u(y + 196), u(238), u(y + 236), u(w - 38), u(y + 218));
+        stroke(c, Color.rgb(115, 228, 216), 2); c.drawPath(timeline, p);
+        for (int i = 0; i < 4; i++) {
+            fill(c, i == 3 ? lime : Color.rgb(115, 228, 216));
+            c.drawCircle(u(39 + i * (w - 80) / 3f), u(y + new float[]{183, 190, 217, 218}[i]), u(4), p);
+        }
+        rounded(c, 36, y + 243, w - 36, y + 270, 13, Color.rgb(7, 86, 90));
+        centeredText(c, "Erste Sitzung wird automatisch aufgezeichnet", w / 2f, y + 261, 8, cream, true);
+
+        float cardW = (w - 48) / 2f;
+        drawFriendlyMetric(c, 18, y + 302, 18 + cardW, y + 414,
+                "Messpunkte", String.valueOf(longHistory.size()),
+                sessions.isEmpty() ? "gesammelt · Sitzung läuft" : "lokal gespeichert", "clock",
+                panel, border, primary, muted);
+        drawFriendlyMetric(c, 30 + cardW, y + 302, w - 18, y + 414,
+                "Tiefschlaf", "—".equals(deepSleepTime()) ? "Nicht verfügbar" : deepSleepTime(),
+                "nach erster Sitzung", "heart",
+                panel, border, primary, muted);
+
+        drawEditorialSurface(c, 18, y + 430, w - 18, y + 535, panel, border, lime);
+        text(c, "PRIVAT VON ANFANG AN", 36, y + 459, 8.5f, muted, true);
+        displayText(c, "Deine Werte bleiben bei dir.", 36, y + 490, 16, primary);
+        text(c, "Kein Konto · kein Abo · Export nur auf Wunsch", 36, y + 513, 8, muted, false);
+
+        drawEditorialSurface(c, 18, y + 552, w - 18, y + 754, panel, border, lime);
+        text(c, "ANALYSEZENTRALE", 36, y + 580, 8.5f, muted, true);
+        displayText(c, "Bereit für deine erste Kurve.", 36, y + 610, 16, primary);
+        float chipX = 36;
+        String[] ranges = {"Sitzung", "24 h", "7 Tage", "30 Tage"};
+        for (int i = 0; i < ranges.length; i++) {
+            float chipWidth = i == 0 ? 61 : 49;
+            rounded(c, chipX, y + 628, chipX + chipWidth, y + 653, 12,
+                    i == 0 ? lime : Color.argb(light ? 24 : 36,
+                            Color.red(lime), Color.green(lime), Color.blue(lime)));
+            centeredText(c, ranges[i], chipX + chipWidth / 2f, y + 645, 7.5f,
+                    i == 0 ? accentForeground() : muted, true);
+            chipX += chipWidth + 7;
+        }
+        text(c, "Akkustand · Strom · Leistung · Spannung", 36, y + 681, 8.5f, primary, true);
+        text(c, "Temperatur · mAh · Wh · Bildschirmstatus", 36, y + 699, 8, muted, false);
+        drawSourceBadge(c, "SYSTEM", 36, y + 729);
+        drawSourceBadge(c, "LIVE", 102, y + 729);
+        drawSourceBadge(c, "BERECHNET", 151, y + 729);
+        drawSourceBadge(c, "GESCHÄTZT", 230, y + 729);
+
+        float exportTop = historyExportTop();
+        smoothButton(c, 36, exportTop, w - 36, exportTop + 44, 16,
+                lime, lime, lime, true, isPressed(40));
+        drawArrow(c, 55, exportTop + 22, accentForeground());
+        centeredText(c, "CSV EXPORTIEREN", w / 2f + 8, exportTop + 27, 9, accentForeground(), true);
+    }
+
     private void drawChargingPage(Canvas c, float w, float h, int panel, int raised, int border, int primary, int muted, int faint) {
+        if (usesEditorialPortrait(w)) {
+            drawChargingEditorial(c, w, panel, raised, border, primary, muted, faint);
+            return;
+        }
         float y = 182;
         frame(c, 18, y, w - 18, y + 366, panel, border, lime);
         text(c, "LADEVORGANG", 36, y + 31, 10, muted, true);
@@ -2785,6 +3435,10 @@ class BatteryDashboard extends View {
     }
 
     private void drawDischargingPage(Canvas c, float w, float h, int panel, int raised, int border, int primary, int muted, int faint) {
+        if (usesEditorialPortrait(w)) {
+            drawDischargingEditorial(c, w, panel, raised, border, primary, muted, faint);
+            return;
+        }
         float y = 182;
         rounded(c, 18, y, w - 18, y + 300, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y), u(w - 18), u(y + 300)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "ENTLADEVORGANG", 36, y + 31, 10, muted, true);
@@ -3056,6 +3710,10 @@ class BatteryDashboard extends View {
     }
 
     private void drawHealthPage(Canvas c, float w, float h, int panel, int raised, int border, int primary, int muted, int faint) {
+        if (usesEditorialPortrait(w)) {
+            drawHealthEditorial(c, w, panel, raised, border, primary, muted, faint);
+            return;
+        }
         float y = 182;
         rounded(c, 18, y, w - 18, y + 300, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y), u(w - 18), u(y + 300)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "AKKUGESUNDHEIT", 36, y + 31, 10, muted, true);
@@ -3200,6 +3858,10 @@ class BatteryDashboard extends View {
     }
 
     private void drawHistoryPage(Canvas c, float w, float h, int panel, int raised, int border, int primary, int muted, int faint) {
+        if (usesEditorialPortrait(w) && sessions.isEmpty()) {
+            drawHistoryEditorialEmpty(c, w, panel, raised, border, primary, muted, faint);
+            return;
+        }
         float y = 182;
         int rowCount = Math.min(150, sessions.size());
         float listBottom = y + 160 + rowCount * 44f;
@@ -3240,7 +3902,7 @@ class BatteryDashboard extends View {
         text(c, deepSleepTime(), w - 75, summaryY + 69, 11, secondaryTone, true);
         boundedText(c, "Sitzungen: " + sessionCount("Charge") + " Laden · " + sessionCount("Discharge") + " Entladen",
                 36, w - 36, summaryY + 99, 9, primary, true);
-        boundedText(c, "Energie: " + sessionEnergyDisplay("Charge", "+") + " / " + sessionEnergyDisplay("Discharge", "-"),
+        boundedText(c, "Ladungsmenge: " + sessionEnergyDisplay("Charge", "+") + " / " + sessionEnergyDisplay("Discharge", "-"),
                 36, w - 36, summaryY + 121, 9, blue, true);
         BatteryTelemetryDiagnostics.Summary diagnostics = telemetryDiagnostics();
         boundedText(c, "Diagnose: " + telemetryDiagnosticDisplay(diagnostics), 36, w - 36, summaryY + 187, 8,
@@ -3674,7 +4336,7 @@ class BatteryDashboard extends View {
         if (source.isEmpty()) return "—";
         int total = 0;
         for (Integer value : source) total += Math.max(0, Math.min(100, value));
-        return String.format(Locale.US, "%.0f%%", total / (float) source.size());
+        return String.format(Locale.GERMANY, "%.0f%%", total / (float) source.size());
     }
 
     private String chartRange() {
@@ -3740,7 +4402,7 @@ class BatteryDashboard extends View {
                     chargeAlarm, overlayEnabled, benchmarkActive, chargeLimit);
         }
         String[] labels = getWidth() / density < 480f
-                ? new String[]{"Start", "Laden", "Entladen", "Gesundheit", "Verlauf"}
+                ? new String[]{"Start", "Laden", "Entladen", "Akku", "Verlauf"}
                 : new String[]{"Übersicht", "Laden", "Entladen", "Gesundheit", "Verlauf"};
         return virtualViewId >= 10 && virtualViewId <= 14 ? labels[virtualViewId - 10] : "";
     }
@@ -4039,6 +4701,40 @@ class BatteryDashboard extends View {
         return true;
     }
 
+    private void drawBatteryCareIllustration(Canvas c, float cardLeft, float cardTop, float heroWidth) {
+        if (batteryCareIllustration == null || batteryCareIllustration.isRecycled()) return;
+        float cardRight = cardLeft + heroWidth;
+        Path clip = new Path();
+        rect.set(u(cardLeft), u(cardTop), u(cardRight), u(cardTop + 400));
+        clip.addRoundRect(rect, u(24), u(24), Path.Direction.CW);
+        c.save();
+        c.clipPath(clip);
+
+        // Crop the generous source-image breathing room so the friendly
+        // character and battery read clearly on a phone without crowding the
+        // live level on the left.
+        Rect source = new Rect(0,
+                Math.round(batteryCareIllustration.getHeight() * .12f),
+                batteryCareIllustration.getWidth(),
+                Math.round(batteryCareIllustration.getHeight() * .98f));
+        RectF target = new RectF(
+                u(cardLeft + heroWidth * .34f), u(cardTop + 43),
+                u(cardRight + 18), u(cardTop + 278));
+        p.setShader(null);
+        p.setStyle(Paint.Style.FILL);
+        p.setAlpha(255);
+        c.drawBitmap(batteryCareIllustration, source, target, p);
+
+        // Tiny hand-drawn energy marks echo the reference illustrations and
+        // keep the technical subject playful rather than clinical.
+        int sparkle = Color.rgb(115, 228, 216);
+        line(c, cardRight - 48, cardTop + 55, cardRight - 43, cardTop + 46, sparkle, 1.6f);
+        line(c, cardRight - 36, cardTop + 63, cardRight - 26, cardTop + 60, sparkle, 1.6f);
+        fill(c, sparkle);
+        c.drawCircle(u(cardRight - 59), u(cardTop + 66), u(2.2f), p);
+        c.restore();
+    }
+
     private void drawGauge(Canvas c, float cx, float cy, float radius, int value, int primary, int faint) {
         int track = Color.argb(light ? 120 : 90, Color.red(faint), Color.green(faint), Color.blue(faint));
         stroke(c, track, 10); rect.set(u(cx - radius), u(cy - radius), u(cx + radius), u(cy + radius)); c.drawArc(rect, -90, 360, false, p);
@@ -4143,7 +4839,7 @@ class BatteryDashboard extends View {
             invalidate();
             return true;
         }
-        if (page == 1 && y >= 462 && y < 504 && x >= bodyW - 145) {
+        if (page == 1 && y >= 462 && y < 504 && x >= 18 && x <= bodyW - 18) {
             hapticClick();
             chargeAlarm = !chargeAlarm;
             prefs.edit().putBoolean("chargeAlarm", chargeAlarm)
@@ -4162,7 +4858,7 @@ class BatteryDashboard extends View {
                     Math.round((x - 36) / (bodyW - 72) * 100));
             return true;
         }
-        if (page == 1 && y >= 508 && y < 552 && x >= bodyW - 145) {
+        if (page == 1 && y >= 508 && y < 552 && x >= 18 && x <= bodyW - 18) {
             hapticClick();
             setOverlayEnabled(!overlayEnabled);
             return true;

@@ -25,13 +25,13 @@ final class BatteryDiagnosticReport {
         report.append("MESSDIAGNOSE\n");
         report.append("-------------\n");
         if (summary.maxTemperatureTenths > 0) {
-            report.append(String.format(Locale.US, "Max. Akkutemperatur: %.1f °C\n",
+            report.append(String.format(Locale.GERMANY, "Max. Akkutemperatur: %.1f °C\n",
                     summary.maxTemperatureTenths / 10f));
         } else {
             report.append("Max. Akkutemperatur: nicht verfügbar\n");
         }
         if (summary.hasVoltageData()) {
-            report.append(String.format(Locale.US, "Min. Entladespannung: %.3f V bei %d %%\n",
+            report.append(String.format(Locale.GERMANY, "Min. Entladespannung: %.3f V bei %d %%\n",
                     summary.minDischargeVoltageMv / 1000f, summary.minDischargeVoltageLevel));
         } else {
             report.append("Min. Entladespannung: nicht verfügbar\n");

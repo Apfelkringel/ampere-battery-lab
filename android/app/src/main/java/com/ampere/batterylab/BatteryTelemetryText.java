@@ -10,7 +10,7 @@ final class BatteryTelemetryText {
         if (currentMa <= 0) return "—";
         if (currentMa >= 1000) {
             return (charging ? "+" : "−")
-                    + String.format(Locale.US, "%.1f", currentMa / 1000f)
+                    + String.format(Locale.GERMANY, "%.1f", currentMa / 1000f)
                     + (spacedUnit ? " A" : "A");
         }
         return (charging ? "+" : "−") + currentMa + (spacedUnit ? " mA" : "mA");

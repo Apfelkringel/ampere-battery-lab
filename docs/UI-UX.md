@@ -1,5 +1,21 @@
 # UI/UX notes
 
+## Visual language
+
+Ampere pairs precise battery telemetry with a warm editorial character. The
+overview is intentionally led by a human battery-care illustration rather than
+another technical chart: it makes the product feel helpful before the detailed
+measurements begin. Deep petrol is the anchor, luminous turquoise communicates
+live energy, pale mint separates supporting information and warm cream keeps
+long-form values comfortable to read. Non-critical accents stay inside this
+turquoise family so the interface feels like one authored world.
+
+Large asymmetric curves, 24 dp card corners, small energy marks and a display
+serif for emotional headings provide the charm of the visual references. The
+compact sans-serif remains reserved for telemetry, units and controls. This
+keeps the app expressive without weakening the accuracy or scanability of its
+battery data.
+
 Ampere Battery Lab uses a compact, data-first dashboard for battery readings.
 The visual system is intentionally calm and high-contrast: a dark/AMOLED mode
 for OLED screens, a light mode for bright environments, lime for healthy/live

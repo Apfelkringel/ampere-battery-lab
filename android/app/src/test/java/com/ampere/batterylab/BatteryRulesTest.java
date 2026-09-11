@@ -711,8 +711,8 @@ public class BatteryRulesTest {
         String rows = "1700000000000,80,0,-1200,48.0,4.18,6600,1,,12,0\n"
                 + "1700010860000,78,0,-900,46.0,3.95,6400,1,,12,0";
         String report = BatteryDiagnosticReport.build(rows, 15L * 60L * 1000L, 123L);
-        assertTrue(report.contains("Max. Akkutemperatur: 48.0 °C"));
-        assertTrue(report.contains("Min. Entladespannung: 3.950 V bei 78 %"));
+        assertTrue(report.contains("Max. Akkutemperatur: 48,0 °C"));
+        assertTrue(report.contains("Min. Entladespannung: 3,950 V bei 78 %"));
         assertTrue(report.contains("WARNUNG: Akku erreichte mindestens 48 °C."));
         assertTrue(report.contains("Sampling-Lücke"));
         assertTrue(report.contains("nicht als Early Cutoff"));
