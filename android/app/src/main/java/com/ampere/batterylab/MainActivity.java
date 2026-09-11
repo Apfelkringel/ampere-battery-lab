@@ -23,6 +23,7 @@ import android.graphics.Shader;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewParent;
+import android.view.HapticFeedbackConstants;
 import android.view.Gravity;
 import android.widget.ScrollView;
 import android.widget.EditText;
@@ -3775,6 +3776,7 @@ class BatteryDashboard extends View {
     }
 
     private void performVirtualClick(int virtualViewId) {
+        hapticClick();
         if (virtualViewId == BatteryHeaderLayout.OVERFLOW) {
             showSettings();
         } else if (virtualViewId == BatteryHeaderLayout.THEME) {
@@ -4084,12 +4086,14 @@ class BatteryDashboard extends View {
         if (System.currentTimeMillis() - lastTouch < 80) return true;
         lastTouch = System.currentTimeMillis();
         float w = getWidth() / density;
-        if (releasedRegion == BatteryHeaderLayout.OVERFLOW && y < 70) { showSettings(); return true; }
-        if (releasedRegion == BatteryHeaderLayout.THEME && y < 70) { light = !light; amoled = false; prefs.edit().putBoolean("lightTheme", light).putBoolean("amoledTheme", amoled).apply(); applySystemBarTheme(); invalidate(); return true; }
-        if (releasedRegion == BatteryHeaderLayout.LIVE_REFRESH && y < 70) {
+        int releasedHeader = BatteryHeaderLayout.actionAt(screenX, y, w);
+        if (releasedRegion == BatteryHeaderLayout.OVERFLOW && releasedHeader == releasedRegion) { hapticClick(); showSettings(); return true; }
+        if (releasedRegion == BatteryHeaderLayout.THEME && releasedHeader == releasedRegion) { hapticClick(); light = !light; amoled = false; prefs.edit().putBoolean("lightTheme", light).putBoolean("amoledTheme", amoled).apply(); applySystemBarTheme(); invalidate(); return true; }
+        if (releasedRegion == BatteryHeaderLayout.LIVE_REFRESH && releasedHeader == releasedRegion) {
             // The LIVE control is an explicit refresh action: Android's
             // sticky battery broadcast is read immediately, so the user can
             // verify the current state without waiting for the next sample.
+            hapticClick();
             Intent battery = ((Activity) getContext()).registerReceiver(
                     null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
             if (battery != null) readBattery(battery);
@@ -4097,6 +4101,7 @@ class BatteryDashboard extends View {
             return true;
         }
         if (y >= 124 && y < 174) {
+            if (releasedRegion >= 10 && releasedRegion <= 14) hapticClick();
             float cell = (w - 36) / 5f;
             page = Math.max(0, Math.min(4, (int) ((screenX - 18) / cell)));
             updateAccessibilitySummary();
@@ -4115,6 +4120,7 @@ class BatteryDashboard extends View {
             return true;
         }
         if (page == 1 && y >= 462 && y < 504 && x >= bodyW - 145) {
+            hapticClick();
             chargeAlarm = !chargeAlarm;
             prefs.edit().putBoolean("chargeAlarm", chargeAlarm)
                     .remove("chargeAlarmSent").remove("chargeAlarmLastLevel").apply();
@@ -4127,11 +4133,13 @@ class BatteryDashboard extends View {
             return true;
         }
         if (page == 1 && y > 365 && y < 410 && x >= 36 && x <= bodyW - 36) {
+            hapticClick();
             setChargeLimitFromAccessibility(
                     Math.round((x - 36) / (bodyW - 72) * 100));
             return true;
         }
         if (page == 1 && y >= 508 && y < 552 && x >= bodyW - 145) {
+            hapticClick();
             setOverlayEnabled(!overlayEnabled);
             return true;
         }
@@ -4142,6 +4150,7 @@ class BatteryDashboard extends View {
             return true;
         }
         if (page == 4 && y > historyExportTop() && y < historyExportTop() + 45 && x > bodyW - 155) {
+            hapticClick();
             exportHistory();
             return true;
         }
@@ -4158,6 +4167,10 @@ class BatteryDashboard extends View {
             return true;
         }
         return true;
+    }
+
+    private void hapticClick() {
+        performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
     }
 
     @Override public boolean performClick() {
