@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.214` (`versionCode 214`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: wird nach dem signierten CI-Build ergänzt.
+- Release APK SHA-256: `5275f4da1e3e2ea8748b88b419456ac6c3f8a08b480a47a133c7fbb86eb67cb6`
 
 Release `0.214` additionally switches metric cards below 160 dp to their
 stacked composition. Narrow 320 dp layouts therefore keep icon, label and
