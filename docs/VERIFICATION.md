@@ -5,9 +5,13 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.199` (`versionCode 199`)
+- Version: `0.200` (`versionCode 200`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `79eabf2f43d18470f5c513572777e2c50eb434db73923f1c10d75105de40ab38`
+- Release APK SHA-256: wird nach dem signierten CI-Artefakt ergänzt
+
+Release `0.200` additionally persists the critical DownloadManager metadata
+and installer state synchronously before the app can be reclaimed. A completed
+background download therefore remains verifiable after process recreation.
 
 Release `0.199` additionally removes the legacy 110% headroom from the
 capacity-measurement chart. The chart now uses the same 0–100% scale as the

@@ -321,11 +321,22 @@ final class UpdateChecker {
             request.setDestinationInExternalFilesDir(activity, Environment.DIRECTORY_DOWNLOADS, "ampere-update-" + update.versionCode + ".apk");
 
             long id = manager.enqueue(request);
-            activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            // This metadata must survive immediate process reclamation. The
+            // DownloadManager receiver may run after the app process has been
+            // recreated, so an asynchronous apply() could leave the finished
+            // download without its verification context.
+            boolean persisted = activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
                     .putLong(DOWNLOAD_ID, id)
                     .putString(DOWNLOAD_SHA256, update.sha256)
                     .putInt(DOWNLOAD_VERSION_CODE, update.versionCode)
-                    .apply();
+                    .commit();
+            if (!persisted) {
+                manager.remove(id);
+                clearDownloadState(activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE));
+                finishDownload();
+                Toast.makeText(activity, "Update konnte nicht sicher vorbereitet werden.", Toast.LENGTH_LONG).show();
+                return;
+            }
             Toast.makeText(activity, "Update wird heruntergeladen …", Toast.LENGTH_LONG).show();
         } catch (Exception error) {
             clearDownloadState(activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE));
@@ -420,7 +431,16 @@ final class UpdateChecker {
                 synchronized (OPERATION_LOCK) {
                     installInProgress = true;
                 }
-                prefs.edit().putBoolean(INSTALL_IN_PROGRESS, true).apply();
+                // Persist before handing control to Android's installer. If
+                // the app process is reclaimed between these two operations,
+                // the next resume still knows that an install was initiated.
+                if (!prefs.edit().putBoolean(INSTALL_IN_PROGRESS, true).commit()) {
+                    manager.remove(received);
+                    clearDownloadState(prefs);
+                    finishDownload();
+                    Toast.makeText(context, "Update konnte nicht sicher gestartet werden.", Toast.LENGTH_LONG).show();
+                    return;
+                }
                 Intent install = new Intent(Intent.ACTION_VIEW).setDataAndType(apkUri, "application/vnd.android.package-archive");
                 install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 install.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
