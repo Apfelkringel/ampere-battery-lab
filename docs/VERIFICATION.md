@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.217` (`versionCode 217`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `996e2415bccf9c7260c932a16f9c6840846eb2339e3d377bec84372ce9c37f9c`
+- Release APK SHA-256: `6858d84ee589af0bb463fd49cd7fbc9f8951c24aa06aeb2d644b9f6a97745f65`
 
 Release `0.217` additionally resets an old open session after a long
 unobserved sampling gap. The current point becomes a fresh baseline instead
