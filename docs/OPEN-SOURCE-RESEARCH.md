@@ -85,7 +85,11 @@ Strom kurz vor Ladeende. Ampere implementiert dieselbe fachliche Idee als
 eigene Java-Regel in `BatteryCurrentMultiplierDetector`: nur die Faktoren
 1/10/100/1000 sind möglich, ungültige Werte bleiben unverändert, und die
 Richtung wird weiterhin ausschließlich aus Androids Ladezustand abgeleitet.
-Es wurde kein GPL-Code kopiert.
+Es wurde kein GPL-Code kopiert. Die exakte Referenz multipliziert auch sehr
+kleine Werte bis zur typischen Schwelle; Ampere weicht hier bewusst defensiv
+ab: plausible Basiswerte unter 10 mA bleiben unverändert, weil sie bei
+Tiefschlaf realistisch sind und aus einem Einzelwert kein Skalenfehler
+bewiesen werden kann. Dieser Grenzfall ist als Regressionstest abgesichert.
 
 Der gleiche Battery-Monitor-Vergleich zeigt beim Ladeziel einen persistenten
 `TargetAlarmEvaluator`: Er merkt sich den letzten Prozentwert, feuert nur beim

@@ -12,6 +12,10 @@ final class BatteryCurrentMultiplierDetector {
 
     private static final double MIN_TYPICAL_CHARGING_MA = 500d;
     private static final double MIN_TYPICAL_DISCHARGING_MA = 100d;
+    // A real phone can idle below 10 mA in deep sleep. Below this floor there
+    // is no evidence that a unit-scale error exists, so multiplying a single
+    // sample would manufacture a large drain value from a plausible reading.
+    private static final double MIN_BASE_FOR_SCALE_MA = 10d;
     private static final int CHARGING_TAPER_PERCENT = 90;
     private static final int[] MAGNITUDE_MULTIPLIERS = {1, 10, 100, 1000};
 
@@ -24,6 +28,7 @@ final class BatteryCurrentMultiplierDetector {
                 && status != STATUS_UNPLUGGED) return 1;
 
         double magnitude = Math.abs(milliAmpsAtMultiplierOne);
+        if (magnitude < MIN_BASE_FOR_SCALE_MA) return 1;
         double minimum = status == STATUS_CHARGING
                 ? MIN_TYPICAL_CHARGING_MA : MIN_TYPICAL_DISCHARGING_MA;
         if (status == STATUS_CHARGING && batteryPercent >= CHARGING_TAPER_PERCENT

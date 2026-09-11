@@ -948,7 +948,8 @@ public class BatteryRulesTest {
     @Test public void currentMultiplierDetectorCorrectsOnlyTypicalScaleErrors() {
         assertEquals(1, BatteryCurrentMultiplierDetector.detect(900, BatteryCurrentMultiplierDetector.STATUS_CHARGING, 50));
         assertEquals(10, BatteryCurrentMultiplierDetector.detect(90, BatteryCurrentMultiplierDetector.STATUS_CHARGING, 50));
-        assertEquals(100, BatteryCurrentMultiplierDetector.detect(1, BatteryCurrentMultiplierDetector.STATUS_DISCHARGING, 50));
+        assertEquals(1, BatteryCurrentMultiplierDetector.detect(1, BatteryCurrentMultiplierDetector.STATUS_DISCHARGING, 50));
+        assertEquals(1, BatteryCurrentMultiplierDetector.detect(9.9, BatteryCurrentMultiplierDetector.STATUS_DISCHARGING, 50));
         assertEquals(1, BatteryCurrentMultiplierDetector.detect(100, BatteryCurrentMultiplierDetector.STATUS_CHARGING, 95));
         assertEquals(1, BatteryCurrentMultiplierDetector.detect(Double.NaN, BatteryCurrentMultiplierDetector.STATUS_DISCHARGING, 50));
     }

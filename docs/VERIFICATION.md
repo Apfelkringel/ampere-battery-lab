@@ -4,7 +4,9 @@ Last verified: 2026-09-11 (Europe/Berlin)
 
 ## Current development change
 
-Version `0.263` additionally refines the smooth button system with an
+Version `0.264` additionally prevents the OEM current-scale heuristic from
+inflating plausible sub-10-mA deep-sleep readings; the regression is covered
+by a unit test. Version `0.263` additionally refines the smooth button system with an
 Energy Rail visual language, tonal depth, readable active-tab contrast and
 responsive text bounds. Version `0.262` additionally aligned the charge
 controls' touch/accessibility geometry without overlap. Version `0.261`
