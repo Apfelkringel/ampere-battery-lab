@@ -1919,12 +1919,18 @@ class BatteryDashboard extends View {
             text(c, "LIVE · GERÄT", 18 + heroW - 118, top + 39, 8, lime, true);
             line(c, 36, top + 101, 18 + heroW - 36, top + 101, border, 1);
         }
-        rounded(c, 36, top + 67, 122, top + 89, 11, charging ? Color.argb(42, Color.red(lime), Color.green(lime), Color.blue(lime)) : Color.argb(35, Color.red(blue), Color.green(blue), Color.blue(blue)));
-        fill(c, charging ? lime : blue); c.drawCircle(u(47), u(top + 78), u(3), p);
-        text(c, charging ? "LÄDT JETZT" : "AKKUBETRIEB", 57, top + 82, 8, charging ? lime : blue, true);
+        boolean batteryAvailable = level >= 0;
+        int stateColor = !batteryAvailable ? muted : (charging ? lime : blue);
+        rounded(c, 36, top + 67, 122, top + 89, 11,
+                Color.argb(batteryAvailable ? (charging ? 42 : 35) : 24,
+                        Color.red(stateColor), Color.green(stateColor), Color.blue(stateColor)));
+        fill(c, stateColor); c.drawCircle(u(47), u(top + 78), u(3), p);
+        boundedText(c, batteryChipLabel(), 57, 122, top + 82, 8, stateColor, true);
         int health = healthPercent();
         String powerText = currentMa > 0 ? String.format(Locale.US, "ca. %.1f W aktueller Verbrauch", currentMa * voltage / 1000f) : "Warte auf Strommessung";
-        String detectionText = charging ? chargerTypeDisplay() + " · automatisch von Android erkannt" : powerText + " · automatisch von Android erkannt";
+        String detectionText = batteryAvailable
+                ? (charging ? chargerTypeDisplay() + " · automatisch von Android erkannt" : powerText + " · automatisch von Android erkannt")
+                : "Warte auf Android-Akkuwert";
         if (compact) {
             float centerX = 18 + heroW / 2f;
             float gaugeOffset = heroW < 230f ? 22f : 0f;
@@ -1932,7 +1938,7 @@ class BatteryDashboard extends View {
             float gaugeTextSize = gaugeRadius < 64f ? 32f : 44f;
             drawGauge(c, centerX, top + 153 + gaugeOffset, gaugeRadius, level, primary, faint);
             centeredText(c, levelDisplay(), centerX, top + 168 + gaugeOffset, gaugeTextSize, primary, true);
-            centeredText(c, charging ? "Laden" : "Akkubetrieb", centerX, top + 207 + gaugeOffset, 9, muted, false);
+            centeredText(c, batteryModeLabel(), centerX, top + 207 + gaugeOffset, 9, muted, false);
             float compactDetailsOffset = heroW < 230f ? 20f : 0f;
             text(c, "Akkugesundheit", 36, top + 258 + compactDetailsOffset, 9, muted, false);
             text(c, health == 0 ? "Nicht gemessen" : health + "%", 36, top + 280 + compactDetailsOffset, 14, primary, true);
@@ -1950,7 +1956,7 @@ class BatteryDashboard extends View {
             float compactStatusOffset = heroW < 230f ? 20f : 0f;
             rounded(c, 36, top + 315 + compactStatusOffset, 18 + heroW - 36, top + 369 + compactStatusOffset, 8, raised);
             drawBolt(c, 52, top + 333 + compactStatusOffset, lime, .8f);
-            text(c, charging ? "Laden erkannt" : "Akkubetrieb", 68, top + 332 + compactStatusOffset, 10, primary, true);
+            text(c, batteryRowLabel(), 68, top + 332 + compactStatusOffset, 10, primary, true);
             String compactDetection = charging ? (heroW < 230f ? chargerTypeDisplay() : chargerTypeDisplay() + " · automatisch")
                     : (heroW < 230f ? "Automatisch erkannt" : "Akku automatisch erkannt");
             float statusRight = 18 + heroW - 50;
@@ -1967,7 +1973,7 @@ class BatteryDashboard extends View {
             float gaugeCy = top + 178f;
             drawGauge(c, gaugeCx, gaugeCy, gaugeRadius, level, primary, faint);
             centeredText(c, levelDisplay(), gaugeCx, top + 187, 46, primary, true);
-            centeredText(c, charging ? "Laden" : "Akkubetrieb", gaugeCx, top + 211, 10, muted, false);
+            centeredText(c, batteryModeLabel(), gaugeCx, top + 211, 10, muted, false);
             float detailRight = 18 + heroW - 42;
             boundedText(c, health == 0 ? "Nicht gemessen" : (health > 80 ? "Guter Zustand" : "Prüfung nötig"),
                     255, detailRight, top + 117, 17, primary, true);
@@ -1981,7 +1987,7 @@ class BatteryDashboard extends View {
             float statusTop = top + 271f;
             rounded(c, 36, statusTop, 18 + heroW - 36, statusTop + 38, 8, raised);
             drawBolt(c, 52, statusTop + 19, lime, .8f);
-            text(c, charging ? "Laden erkannt" : "Akkubetrieb", 68, statusTop + 15, 10, primary, true);
+            text(c, batteryRowLabel(), 68, statusTop + 15, 10, primary, true);
             float statusRight = 18 + heroW - 50;
             float currentLeft = Math.max(68f, statusRight - 76f);
             boundedText(c, detectionText, 68, currentLeft - 8f, statusTop + 30, 9, muted, false);
@@ -2034,7 +2040,7 @@ class BatteryDashboard extends View {
         float gaugeCy = top + 122f;
         drawGauge(c, gaugeCx, gaugeCy, gaugeRadius, level, primary, faint);
         centeredText(c, levelDisplay(), gaugeCx, gaugeCy + 8, gaugeRadius < 52f ? 25f : 28f, primary, true);
-        centeredText(c, charging ? "Laden" : "Akku", gaugeCx, gaugeCy + 29, 7, muted, false);
+        centeredText(c, batteryModeLabel(), gaugeCx, gaugeCy + 29, 7, muted, false);
 
         float detailX = Math.max(160f, heroW * .52f);
         int health = healthPercent();
@@ -2048,7 +2054,7 @@ class BatteryDashboard extends View {
 
         rounded(c, 36, top + 164, heroRight - 18, top + 176, 5, raised);
         drawBolt(c, 46, top + 170, lime, .5f);
-        text(c, charging ? "Laden erkannt" : "Akkubetrieb", 57, top + 172, 7, primary, true);
+        text(c, batteryRowLabel(), 57, top + 172, 7, primary, true);
         boundedRightText(c, liveCurrentDisplay(), heroRight - 86, heroRight - 26, top + 172, 7, charging ? lime : blue, false);
 
         float metricGap = 10f;
@@ -2100,7 +2106,7 @@ class BatteryDashboard extends View {
         float gaugeCy = top + 47f;
         drawGauge(c, gaugeCx, gaugeCy, gaugeRadius, level, primary, faint);
         centeredText(c, levelDisplay(), gaugeCx, gaugeCy + 5, 13, primary, true);
-        centeredText(c, charging ? "Laden" : "Akku", gaugeCx, gaugeCy + 15, 5.5f, muted, false);
+        centeredText(c, batteryModeLabel(), gaugeCx, gaugeCy + 15, 5.5f, muted, false);
 
         int health = healthPercent();
         float detailRight = gaugeCx - gaugeRadius - 10f;
@@ -2919,6 +2925,18 @@ class BatteryDashboard extends View {
 
     private String levelDisplay() { return percentDisplay(level); }
     private String percentDisplay(int value) { return value >= 0 ? value + "%" : "—"; }
+
+    private String batteryModeLabel() {
+        return level < 0 ? "Nicht verfügbar" : (charging ? "Laden" : "Akkubetrieb");
+    }
+
+    private String batteryChipLabel() {
+        return level < 0 ? "NICHT BEREIT" : (charging ? "LÄDT JETZT" : "AKKUBETRIEB");
+    }
+
+    private String batteryRowLabel() {
+        return level < 0 ? "Akku nicht verfügbar" : (charging ? "Laden erkannt" : "Akkubetrieb");
+    }
 
     private void updateAccessibilitySummary() {
         String state = level < 0 ? "Akku nicht verfügbar" : (charging ? "Laden erkannt" : "Akkubetrieb");
