@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.201` (`versionCode 201`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: wird nach dem signierten CI-Artefakt ergänzt
+- Release APK SHA-256: `5bad75e4287bc33bd25b7e81f74e9d99345d7ffcbc2d182b678a997c21b3166c`
 
 Release `0.201` additionally applies one shared sampling-gap rule to the
 level and current charts. Missed monitoring windows remain visible as gaps
