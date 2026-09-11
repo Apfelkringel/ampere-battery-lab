@@ -29,7 +29,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - strukturierter Research-Export als JSON mit Messreihen, Sitzungen und Geräte-/Android-Kontext nach ausdrücklicher Nutzeraktion
 - einstellbare lokale Messfrequenz (5/15/30/60 Minuten) für Hintergrundmonitor und Verlauf
 - Kapazitätsschätzung und manueller Health-Benchmark
-- best-effort lokale Designkapazitäts-Erkennung mit Batterie-/BMS-Treiber, Energie-/Spannungswerten und Android-PowerProfile; wenn Android den Werkswert nicht freigibt, bleibt er korrekt nicht verfügbar und kann manuell eingetragen werden
+- best-effort lokale Designkapazitäts-Erkennung mit Batterie-/BMS-Treiber, Energie-/Spannungswerten und Android-PowerProfile sowie separate Full-Charge-Kapazität vom Batterie-Treiber; jede Quelle bleibt mit Einheitengrenzen und Herkunft transparent
 - Health-Auswertung mit letztem Ladeverschleiß und äquivalenten Vollzyklen (EFC); Gesundheit wird fachlich auf maximal 100 % begrenzt
 - System-Ladezyklen werden aus Android oder unterstützten Batterie-/BMS-Treibern gelesen; bei fehlender Quelle bleibt der Wert nicht verfügbar
 - transparente Anzeige, warum eine Ladesitzung noch nicht als Health-Kapazitätsprobe zählt
@@ -56,7 +56,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - kein Konto und kein Upload an einen Ampere-Server; Android-Backup kann Verlauf, Einstellungen und lokale Telemetrie über den vom Gerät gewählten Backup-Transport sichern, wobei Cloud-Backups ohne Verschlüsselungsmöglichkeit ausgeschlossen werden; der sichtbare Export/Backup bleibt zusätzlich verfügbar
 - Downloads werden auch nach einem App-Prozess-Neustart per Android-DownloadManager fortgesetzt, vor der Installation gehasht und von Android bestätigt
 - der Hintergrundmonitor prüft höchstens alle 12 Stunden die öffentliche Update-Datei und meldet neue Versionen per Android-Benachrichtigung
-- In-App-Updates akzeptieren nur den festgelegten HTTPS-Host/Pfad und prüfen vor dem Installer zusätzlich Hash, Paketname, Version und das eingebettete Release-Zertifikat; Details in `docs/UPDATE-SECURITY.md`
+- In-App-Updates laden Manifest und APK über den festgelegten GitHub-Contents-Endpunkt und prüfen vor dem Installer zusätzlich Hash, Paketname, Version und das eingebettete Release-Zertifikat; Details in `docs/UPDATE-SECURITY.md`
 - Lade-/Entladegrenzen werden zusätzlich direkt über Androids `POWER_CONNECTED`-/`POWER_DISCONNECTED`-Broadcasts verarbeitet, damit Kabelwechsel und Ladealarm nicht auf eine verzögerte Statusmessung warten
 
 ## Entwicklung

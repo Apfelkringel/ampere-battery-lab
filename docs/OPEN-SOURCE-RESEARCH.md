@@ -44,6 +44,11 @@ Projekts.
 4. Android-PowerProfile als nominale OEM-Angabe,
 5. explizit „Nicht verfügbar“.
 
+Für die Gesundheitsanzeige wird eine separat gelesene `Full Charge Capacity`
+vom Batterie-/BMS-Treiber nur als Fallback verwendet. Lokale Benchmark- und
+Lademessungen haben Vorrang; die Full-Charge-Quelle wird nie als Nennkapazität
+umetikettiert und bleibt auf 500–30.000 mAh begrenzt.
+
 Jeder automatische Treffer bleibt auf 500–30.000 mAh begrenzt und wird als
 Quelle angezeigt. Ein nicht verfügbarer Wert wird weder als `0 mAh` noch als
 Gesundheitsmessung dargestellt.
