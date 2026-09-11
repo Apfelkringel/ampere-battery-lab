@@ -195,6 +195,15 @@ public class BatteryRulesTest {
         assertEquals(-10, BatterySessionRules.effectiveChange(-110, 660, 6600, false));
     }
 
+    @Test public void shortSinglePercentStatusBlipIsNotASession() {
+        assertFalse(BatterySessionRules.shouldRecord(1, 0, 1));
+        assertFalse(BatterySessionRules.shouldRecord(-1, 0, 4));
+        assertTrue(BatterySessionRules.shouldRecord(1, 0, 5));
+        assertTrue(BatterySessionRules.shouldRecord(-1, 12, 1));
+        assertTrue(BatterySessionRules.shouldRecord(2, 0, 1));
+        assertFalse(BatterySessionRules.shouldRecord(0, 100, 20));
+    }
+
     @Test public void platformHealthStaysQualitative() {
         assertEquals("Gut", BatteryPlatformHealth.label(BatteryManager.BATTERY_HEALTH_GOOD));
         assertEquals("Überhitzt", BatteryPlatformHealth.label(BatteryManager.BATTERY_HEALTH_OVERHEAT));

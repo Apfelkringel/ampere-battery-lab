@@ -595,7 +595,7 @@ public class BatteryMonitorService extends Service {
                 change, energy, designCapacity, previousCharging);
         // A session is a percentage-based history item. Never create a 0% row
         // or silently label a contradictory transition as a real session.
-        if (effectiveChange == 0) {
+        if (!BatterySessionRules.shouldRecord(effectiveChange, energy, minutes)) {
             if (previousCharging && energy > 0) {
                 prefs.edit().putInt("totalChargedMah", prefs.getInt("totalChargedMah", 0) + energy).apply();
             }

@@ -36,6 +36,10 @@ charge/discharge rates, app-attributed drain, current charts and timestamped
 level charts. The background recorder also removes malformed legacy telemetry
 when it next persists a sample, so invalid rows cannot contaminate analytics.
 
+Release `0.187` additionally rejects short single-percent cable/status blips
+without an energy reading; a real single-percent session remains recordable
+when it has measured energy or lasts at least five minutes.
+
 Release `0.180` additionally uses a robust median over the newest five valid
 local capacity samples, so one noisy charge cannot dominate the health result.
 

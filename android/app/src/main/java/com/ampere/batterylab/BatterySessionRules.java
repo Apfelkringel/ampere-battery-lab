@@ -2,6 +2,8 @@ package com.ampere.batterylab;
 
 /** Keeps cable/status blips and malformed legacy rows out of session history. */
 final class BatterySessionRules {
+    private static final long MIN_SINGLE_PERCENT_SESSION_MINUTES = 5L;
+
     private BatterySessionRules() { }
 
     /**
@@ -16,6 +18,18 @@ final class BatterySessionRules {
         long inferred = Math.round(energyMah * 100d / designMah);
         if (inferred < 1L || inferred > 100L) return 0;
         return charging ? (int) inferred : -(int) inferred;
+    }
+
+    /**
+     * Filters cable/status blips that have no measured energy and last only a
+     * moment. Larger level changes, measured energy, and long slow 1-% changes
+     * remain valid sessions.
+     */
+    static boolean shouldRecord(int effectiveChange, int energyMah, long durationMinutes) {
+        if (effectiveChange == 0 || energyMah < 0 || durationMinutes <= 0L) return false;
+        return Math.abs(effectiveChange) >= 2
+                || energyMah > 0
+                || durationMinutes >= MIN_SINGLE_PERCENT_SESSION_MINUTES;
     }
 
     static boolean isValid(String value) {

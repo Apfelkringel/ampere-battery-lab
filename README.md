@@ -70,6 +70,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - Health-Baseline kann nach einem Akkutausch zurückgesetzt werden, ohne History oder Telemetrie zu löschen
 - Ungültige alte Gesundheitsmessungen werden beim Laden automatisch aus Graph und lokaler Messliste bereinigt
 - Ladesitzungen nutzen bei verrauschten Akkustand-Snapshots die gemessene Energie als geprüfte Richtungsstütze, ohne 0-%-Sitzungen zu erzeugen
+- kurze 1-%-Kabel-/Statusblips ohne Energiebeleg werden nicht als echte Sitzung gespeichert; langsame 1-%-Sitzungen mit Zeit- oder Energiebeleg bleiben erhalten
 - Backup-Dialog zeigt den letzten automatischen Backup-Anstoß; Baseline-Änderungen melden Android sofort eine Datenänderung
 - adaptive Darstellung ohne erzwungenes Hochformat für aktuelle Android-16/17-Geräte
 - Android 16/17: optionales qualitatives Kapazitätsniveau wird getrennt von Akkustand und Akkugesundheit angezeigt
