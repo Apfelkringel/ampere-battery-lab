@@ -2157,8 +2157,8 @@ class BatteryDashboard extends View {
         float bodyX = x - contentInset(w);
         float bodyW = contentWidth(w);
         if (page == 1 && y > 350 && y < 420 && bodyX > bodyW - 130) return 20; // charge target
-        if (page == 1 && y > 445 && y < 520 && bodyX > bodyW - 130) return 21; // alarm
-        if (page == 1 && y > 500 && y < 575 && bodyX > bodyW - 140) return 22; // overlay
+        if (page == 1 && y >= 462 && y < 504 && bodyX >= bodyW - 145) return 21; // alarm
+        if (page == 1 && y >= 508 && y < 552 && bodyX >= bodyW - 145) return 22; // overlay
         if (page == 3 && y > 690 && y < 825 && bodyX > bodyW - 140) return 30; // benchmark
         if (page == 4 && y > historyExportTop() && y < historyExportTop() + 55) return 40;
         return 0;
@@ -2732,10 +2732,11 @@ class BatteryDashboard extends View {
         rounded(c, 18, y + 438, w - 18, y + 536, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 438), u(w - 18), u(y + 536)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "Nutzungsübersicht", 36, y + 468, 10, muted, true);
         int recordedDischargeMah = dischargeMah();
-        text(c, "An " + dischargePercent(true) + " · aus " + dischargePercent(false) + " · "
-                + (recordedDischargeMah > 0 ? recordedDischargeMah + " mAh" : "—"), 36, y + 486, 8, primary, false);
-        text(c, "Tiefschlaf: " + deepSleepPercent() + " · " + deepSleepTime() + " · Bildschirm-Aufweckungen " + wakeupCount(), 36, y + 502, 8, primary, false);
-        text(c, sinceFullAnchorLabel() + ": " + sinceFullUsageSummary(), 36, y + 518, 8, primary, false);
+        boundedText(c, "An " + dischargePercent(true) + " · aus " + dischargePercent(false) + " · "
+                + (recordedDischargeMah > 0 ? recordedDischargeMah + " mAh" : "—"), 36, w - 36, y + 486, 8, primary, false);
+        boundedText(c, "Tiefschlaf: " + deepSleepPercent() + " · " + deepSleepTime() + " · Bildschirm-Aufweckungen " + wakeupCount(),
+                36, w - 36, y + 502, 8, primary, false);
+        boundedText(c, sinceFullAnchorLabel() + ": " + sinceFullUsageSummary(), 36, w - 36, y + 518, 8, primary, false);
         rounded(c, 18, y + 540, w - 18, y + 715, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 540), u(w - 18), u(y + 715)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "Vordergrund-Apps", 36, y + 571, 13, primary, true);
         if (hasUsageAccess()) {
@@ -3125,13 +3126,15 @@ class BatteryDashboard extends View {
         text(c, "Zeitraum: bis zu 30 lokale Tage", 36, summaryY + 39, 9, faint, false);
         text(c, "Tiefschlaf", 36, summaryY + 69, 10, muted, false);
         text(c, deepSleepTime(), w - 75, summaryY + 69, 11, Color.rgb(180, 154, 255), true);
-        text(c, "Sitzungen: " + sessionCount("Charge") + " Laden · " + sessionCount("Discharge") + " Entladen", 36, summaryY + 99, 9, primary, true);
-        text(c, "Energie: " + sessionEnergyDisplay("Charge", "+") + " / " + sessionEnergyDisplay("Discharge", "-"), 36, summaryY + 121, 9, blue, true);
+        boundedText(c, "Sitzungen: " + sessionCount("Charge") + " Laden · " + sessionCount("Discharge") + " Entladen",
+                36, w - 36, summaryY + 99, 9, primary, true);
+        boundedText(c, "Energie: " + sessionEnergyDisplay("Charge", "+") + " / " + sessionEnergyDisplay("Discharge", "-"),
+                36, w - 36, summaryY + 121, 9, blue, true);
         BatteryTelemetryDiagnostics.Summary diagnostics = telemetryDiagnostics();
-        text(c, "Diagnose: " + telemetryDiagnosticDisplay(diagnostics), 36, summaryY + 187, 8,
+        boundedText(c, "Diagnose: " + telemetryDiagnosticDisplay(diagnostics), 36, w - 36, summaryY + 187, 8,
                 diagnosticsColor(diagnostics), false);
-        text(c, "Akkumesswerte bleiben auf diesem Gerät.", 36, summaryY + 143, 9, primary, true);
-        text(c, "Export nur auf deine Auswahl; kein Konto/Abonnement.", 36, summaryY + 165, 8, muted, false);
+        boundedText(c, "Akkumesswerte bleiben auf diesem Gerät.", 36, w - 36, summaryY + 143, 9, primary, true);
+        boundedText(c, "Export nur auf deine Auswahl; kein Konto/Abonnement.", 36, w - 36, summaryY + 165, 8, muted, false);
         float exportTop = historyExportTop();
         smoothButton(c, w - 156, exportTop, w - 36, exportTop + 44, 14,
                 lime, lime, lime, true, isPressed(40));
@@ -4020,7 +4023,7 @@ class BatteryDashboard extends View {
             invalidate();
             return true;
         }
-        if (page == 1 && y > 455 && y < 510 && x > bodyW - 130) {
+        if (page == 1 && y >= 462 && y < 504 && x >= bodyW - 145) {
             chargeAlarm = !chargeAlarm;
             prefs.edit().putBoolean("chargeAlarm", chargeAlarm)
                     .remove("chargeAlarmSent").remove("chargeAlarmLastLevel").apply();
@@ -4037,7 +4040,7 @@ class BatteryDashboard extends View {
                     Math.round((x - 36) / (bodyW - 72) * 100));
             return true;
         }
-        if (page == 1 && y > 500 && y < 560 && x > bodyW - 140) {
+        if (page == 1 && y >= 508 && y < 552 && x >= bodyW - 145) {
             setOverlayEnabled(!overlayEnabled);
             return true;
         }
