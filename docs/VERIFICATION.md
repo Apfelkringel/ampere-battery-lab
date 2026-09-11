@@ -5,11 +5,13 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.142` (`versionCode 142`)
+- Version: `0.143` (`versionCode 143`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `f17247a04d07686cf85887d46979e3ba5c3f205249226d911a384c6107369e79`
+- Release APK SHA-256: `pending — wird nach dem signierten CI-Build ergänzt`
 - The same hash is published in the public update repository manifest.
 
+Release `0.143` uses one shared measured-capacity hierarchy for dashboard,
+health page and background notification, including filtered recent samples.
 Release `0.142` rejects implausible health-capacity samples before averaging,
 uses overflow-safe accumulation, and keeps health at a maximum of 100 percent.
 Release `0.141` bases landscape selection on the visible ScrollView viewport,

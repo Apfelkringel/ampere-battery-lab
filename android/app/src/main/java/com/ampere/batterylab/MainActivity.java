@@ -728,22 +728,7 @@ class BatteryDashboard extends View {
     }
 
     private int healthMeasurementMah() {
-        int measured = 0;
-        if (!healthSamples.isEmpty()) {
-            int count = Math.min(5, healthSamples.size());
-            long total = 0L;
-            int validSamples = 0;
-            for (int i = healthSamples.size() - count; i < healthSamples.size(); i++) {
-                int sample = healthSamples.get(i);
-                if (!BatteryHealth.isPlausibleCapacity(sample)) continue;
-                total += sample;
-                validSamples++;
-            }
-            measured = validSamples > 0 ? Math.round(total / (float) validSamples) : 0;
-        }
-        if (!BatteryHealth.isPlausibleCapacity(measured)) measured = prefs.getInt("benchmarkCapacityMah", 0);
-        if (!BatteryHealth.isPlausibleCapacity(measured)) measured = BatteryCapacity.fullChargeCapacityMah(getContext());
-        return BatteryHealth.isPlausibleCapacity(measured) ? measured : 0;
+        return BatteryHealth.measurementMah(getContext(), prefs);
     }
 
     private String healthDisplay() { return healthPercent() > 0 ? String.valueOf(healthPercent()) : "—"; }
@@ -791,7 +776,8 @@ class BatteryDashboard extends View {
     }
 
     private String healthMeasurementSource() {
-        if (!healthSamples.isEmpty()) return "lokalen Lademessungen";
+        String serialized = prefs.getString("healthSamples", "");
+        if (BatteryHealth.averageRecentSamples(serialized) > 0) return "lokalen Lademessungen";
         if (prefs.getInt("benchmarkCapacityMah", 0) > 0) return "manuellem Benchmark";
         if (BatteryCapacity.fullChargeCapacityMah(getContext()) > 0) return BatteryCapacity.fullChargeCapacitySource(getContext());
         return "keiner Messung";

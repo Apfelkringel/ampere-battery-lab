@@ -129,7 +129,7 @@ public class BatteryMonitorService extends Service {
         String details = value >= 0 ? (currentMagnitudeMa > 0 ? currentMagnitudeMa + " mA" : "Strom nicht verfügbar") + " · " + temperatureText + (voltageMv > 0 ? " · " + String.format(Locale.US, "%.2f V", voltageMv / 1000f) : "") : "Akkumesswerte werden auf diesem Gerät gespeichert";
         if (value >= 0) {
             android.content.SharedPreferences prefs = getSharedPreferences("ampere-data", MODE_PRIVATE);
-            int capacity = prefs.getInt("benchmarkCapacityMah", 0);
+            int capacity = BatteryHealth.measurementMah(this, prefs);
             int design = BatteryCapacity.designCapacityMah(this);
             int health = BatteryHealth.percent(capacity, design);
             details += "\n" + (isCharging ? "Laden erkannt" : "Bildschirm- und Hintergrundverbrauch lokal erfasst")
