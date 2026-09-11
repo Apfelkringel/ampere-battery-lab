@@ -990,21 +990,13 @@ public class BatteryRulesTest {
 
     @Test public void currentParserRejectsSentinelsAndUnrealisticSpikes() {
         assertEquals(900, BatteryCurrent.fromMicroamps(900_000));
+        assertEquals(50, BatteryCurrent.fromMicroamps(50_000));
         assertEquals(900, BatteryCurrent.fromMicroamps(900_000L));
         assertEquals(900, BatteryCurrent.fromMicroamps(-900_000));
         assertEquals(0, BatteryCurrent.fromMicroamps(0));
         assertEquals(0, BatteryCurrent.fromMicroamps(Integer.MIN_VALUE));
         assertEquals(0, BatteryCurrent.fromMicroamps(100_000_001));
         assertEquals(0, BatteryCurrent.fromMicroamps(-100_000_001));
-    }
-
-    @Test public void currentMultiplierDetectorCorrectsOnlyTypicalScaleErrors() {
-        assertEquals(1, BatteryCurrentMultiplierDetector.detect(900, BatteryCurrentMultiplierDetector.STATUS_CHARGING, 50));
-        assertEquals(10, BatteryCurrentMultiplierDetector.detect(90, BatteryCurrentMultiplierDetector.STATUS_CHARGING, 50));
-        assertEquals(1, BatteryCurrentMultiplierDetector.detect(1, BatteryCurrentMultiplierDetector.STATUS_DISCHARGING, 50));
-        assertEquals(1, BatteryCurrentMultiplierDetector.detect(9.9, BatteryCurrentMultiplierDetector.STATUS_DISCHARGING, 50));
-        assertEquals(1, BatteryCurrentMultiplierDetector.detect(100, BatteryCurrentMultiplierDetector.STATUS_CHARGING, 95));
-        assertEquals(1, BatteryCurrentMultiplierDetector.detect(Double.NaN, BatteryCurrentMultiplierDetector.STATUS_DISCHARGING, 50));
     }
 
     @Test public void temperatureAlarmUsesThresholdAndHysteresis() {

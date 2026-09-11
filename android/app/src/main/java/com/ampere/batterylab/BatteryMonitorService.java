@@ -224,7 +224,7 @@ public class BatteryMonitorService extends Service {
         if (stableCharging == null) return;
         boolean isCharging = stableCharging;
         BatteryManager batteryManager = (BatteryManager) getSystemService(BATTERY_SERVICE);
-        int currentMa = BatteryCurrent.milliAmps(batteryManager, isCharging, value);
+        int currentMa = BatteryCurrent.milliAmps(batteryManager);
         int signedCurrentMa = currentMa == 0 ? 0 : (isCharging ? currentMa : -currentMa);
         if (isCharging && currentMa > 0) {
             int previousChargingCurrent = prefs.getInt("lastChargingCurrentMa", 0);

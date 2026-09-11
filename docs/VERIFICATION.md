@@ -4,6 +4,14 @@ Last verified: 2026-09-11 (Europe/Berlin)
 
 ## Current development change
 
+Version `0.279` additionally removes the single-sample current scale
+heuristic. Android current properties and battery power-supply nodes are
+converted from their documented microampere representation and validated for
+sentinels, zero and implausible bounds; a plausible low current is no longer
+multiplied merely because it falls below an assumed typical charge or drain
+rate. This prevents real idle drain from being reported as a fabricated 10x,
+100x or 1000x value.
+
 Version `0.278` additionally makes the current known Android battery status
 authoritative in the dashboard; a persisted monitor sample is used only when
 Android reports an unknown status, so a fresh unplug event cannot be masked for

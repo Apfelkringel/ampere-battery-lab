@@ -772,7 +772,7 @@ class BatteryDashboard extends View {
         voltage = mv > 0 ? mv / 1000f : 0f;
         BatteryManager manager = (BatteryManager) getContext().getSystemService(Context.BATTERY_SERVICE);
         remainingEnergyNanoWattHours = BatteryEnergy.readNanoWattHours(manager);
-        currentMa = BatteryCurrent.milliAmps(manager, newCharging, level);
+        currentMa = BatteryCurrent.milliAmps(manager);
         signedCurrentMa = currentMa == 0 ? 0 : (newCharging ? currentMa : -currentMa);
         chargeCounterMah = BatteryChargeCounter.toMilliampereHours(
                 BatteryChargeCounter.readMicroampereHours(manager));

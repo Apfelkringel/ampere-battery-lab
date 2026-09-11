@@ -44,7 +44,7 @@ final class BatteryReading {
         int voltage = BatteryVoltage.readMilliVolts(battery);
         BatteryManager manager = context == null ? null
                 : (BatteryManager) context.getSystemService(Context.BATTERY_SERVICE);
-        int current = BatteryCurrent.milliAmps(manager, charging, Math.max(0, level));
+        int current = BatteryCurrent.milliAmps(manager);
         return fromValidatedValues(level, status, plugged, temperature, voltage, current,
                 battery.hasExtra(BatteryManager.EXTRA_PLUGGED));
     }

@@ -2,6 +2,16 @@
 
 Stand: 11. September 2026
 
+Die Strommessung wurde nochmals gegen ABattery, FusionHUD und die Android-
+`BatteryManager`-Dokumentation geprüft. `CURRENT_NOW` und `CURRENT_AVERAGE`
+werden dort als Rohwerte in Mikroampere behandelt und nur gegen Sentinelwerte,
+Nullwerte und unrealistische Größen validiert. Ein früherer Ampere-
+Skalenheuristikschritt multiplizierte dagegen einen einzelnen plausiblen
+Messwert so lange, bis eine angenommene typische Lade- oder Entladerate
+erreicht war. Das konnte einen echten kleinen Entladestrom als 10x zu hoch
+anzeigen. Diese Hochskalierung ist in `0.279` entfernt; eine unbekannte
+Einheit wird nicht aus einer erwarteten Nutzungssituation erfunden.
+
 Der aktuelle App-Verbrauchsvergleich wurde anschließend weiter geschärft:
 Ein exakter Usage-Events-Stream mit kurzen Sitzungen darf nicht durch einen
 gröberen Tages-Bucket ersetzt werden, und ein veralteter Telemetriepunkt wird
@@ -104,18 +114,15 @@ Vordergrundzeit verteilt. Beide Pfade bleiben in der Oberfläche mit `~` bzw.
 übernommen.
 
 Battery Monitor 1.4 dokumentiert außerdem einen separaten
-`BatteryCurrentMultiplierDetector`: Manche OEMs liefern Stromwerte in einer
-falsch skalierten Größenordnung. Die dortige Regel prüft typische
-Mindestbereiche getrennt für Laden und Entladen und ignoriert den niedrigen
-Strom kurz vor Ladeende. Ampere implementiert dieselbe fachliche Idee als
-eigene Java-Regel in `BatteryCurrentMultiplierDetector`: nur die Faktoren
-1/10/100/1000 sind möglich, ungültige Werte bleiben unverändert, und die
-Richtung wird weiterhin ausschließlich aus Androids Ladezustand abgeleitet.
-Es wurde kein GPL-Code kopiert. Die exakte Referenz multipliziert auch sehr
-kleine Werte bis zur typischen Schwelle; Ampere weicht hier bewusst defensiv
-ab: plausible Basiswerte unter 10 mA bleiben unverändert, weil sie bei
-Tiefschlaf realistisch sind und aus einem Einzelwert kein Skalenfehler
-bewiesen werden kann. Dieser Grenzfall ist als Regressionstest abgesichert.
+`BatteryCurrentMultiplierDetector`, der mögliche OEM-Skalierungsfehler über
+angenommene typische Lade- und Entladeraten korrigiert. Diese fachliche Idee
+wurde bei Ampere in `0.279` bewusst verworfen: Androids
+`BatteryManager`-Eigenschaften werden als Mikroampere gelesen, und auch die
+ausgewählten Linux-`power_supply`-Knoten werden mit derselben dokumentierten
+Einheit konvertiert. Ohne expliziten Einheitenbeleg darf ein einzelner
+plausibler Messwert nicht mit 10, 100 oder 1000 multipliziert werden. So bleibt
+ein echter kleiner Entladestrom ein kleiner Entladestrom; nicht belegbare
+Messungen bleiben stattdessen nicht verfügbar. Es wurde kein GPL-Code kopiert.
 
 Der gleiche Battery-Monitor-Vergleich zeigt beim Ladeziel einen persistenten
 `TargetAlarmEvaluator`: Er merkt sich den letzten Prozentwert, feuert nur beim
