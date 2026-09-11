@@ -275,6 +275,12 @@ public class MainActivity extends Activity {
             }
             editor.apply();
             telemetryEditor.apply();
+            SharedPreferences restoredTelemetryPrefs = getSharedPreferences(TELEMETRY_PREFS, MODE_PRIVATE);
+            String restoredTelemetry = restoredTelemetryPrefs.getString("telemetrySamples", "");
+            String normalizedTelemetry = BatteryExportRules.normalizeTelemetry(restoredTelemetry);
+            if (!restoredTelemetry.equals(normalizedTelemetry)) {
+                restoredTelemetryPrefs.edit().putString("telemetrySamples", normalizedTelemetry).apply();
+            }
             BackupManager.dataChanged(getPackageName());
             dashboard.reloadStoredData();
             Intent battery = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
@@ -318,15 +324,19 @@ public class MainActivity extends Activity {
     static void migrateTelemetryPrefs(Context context) {
         SharedPreferences oldPrefs = context.getSharedPreferences(DATA_PREFS, Context.MODE_PRIVATE);
         SharedPreferences newPrefs = context.getSharedPreferences(TELEMETRY_PREFS, Context.MODE_PRIVATE);
-        if (newPrefs.contains("telemetrySamples") || !oldPrefs.contains("telemetrySamples")) return;
-        SharedPreferences.Editor migration = newPrefs.edit()
-                .putString("telemetrySamples", oldPrefs.getString("telemetrySamples", ""));
-        if (oldPrefs.contains("telemetryLastSampleAt")) {
-            migration.putLong("telemetryLastSampleAt", oldPrefs.getLong("telemetryLastSampleAt", 0L));
+        if (!newPrefs.contains("telemetrySamples") && oldPrefs.contains("telemetrySamples")) {
+            SharedPreferences.Editor migration = newPrefs.edit()
+                    .putString("telemetrySamples", oldPrefs.getString("telemetrySamples", ""));
+            if (oldPrefs.contains("telemetryLastSampleAt")) {
+                migration.putLong("telemetryLastSampleAt", oldPrefs.getLong("telemetryLastSampleAt", 0L));
+            }
+            if (migration.commit()) {
+                oldPrefs.edit().remove("telemetrySamples").remove("telemetryLastSampleAt").commit();
+            }
         }
-        if (migration.commit()) {
-            oldPrefs.edit().remove("telemetrySamples").remove("telemetryLastSampleAt").commit();
-        }
+        String saved = newPrefs.getString("telemetrySamples", "");
+        String normalized = BatteryExportRules.normalizeTelemetry(saved);
+        if (!saved.equals(normalized)) newPrefs.edit().putString("telemetrySamples", normalized).commit();
     }
 
     void createResearchExport() {
@@ -750,7 +760,7 @@ class BatteryDashboard extends View {
 
     private int healthPercent() {
         int design = designCapacityMah();
-        return BatteryHealth.percent(getContext(), prefs, design);
+        return BatteryHealth.displayPercent(BatteryHealth.percent(getContext(), prefs, design));
     }
 
     private int healthMeasurementMah() {

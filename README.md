@@ -132,6 +132,9 @@ Telemetrie. Das automatische Android-Backup sichert ebenfalls Verlauf, Einstellu
 lokale Telemetrie und wird für Cloud-Backups ohne Verschlüsselungsmöglichkeit nicht
 freigegeben. Bei einer Deinstallation sollte vorab trotzdem ein sichtbares Backup erzeugt
 werden, weil Verfügbarkeit und Aufbewahrung des Android-Backups vom Gerät und Konto abhängen.
+Beim Restore und bei der Migration werden Telemetriezeilen sofort mit derselben
+Plausibilitätsprüfung wie Live-Auswertungen bereinigt; unmögliche Gesundheitswerte wie
+`110 %` werden verworfen und nicht angezeigt.
 
 GitHub Actions kann die Release-APK bei einem `v*`-Tag reproduzierbar bauen. Die privaten
 Schlüssel liegen ausschließlich in `AMPERE_ROTATED_KEYSTORE_BASE64` und

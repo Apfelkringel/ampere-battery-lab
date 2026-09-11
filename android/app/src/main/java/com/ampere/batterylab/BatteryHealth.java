@@ -17,13 +17,16 @@ final class BatteryHealth {
 
     static int percent(int measuredMah, int designMah) {
         if (!isPlausibleCapacity(measuredMah) || !isPlausibleCapacity(designMah)) return 0;
+        // A measured capacity can be slightly above the nominal value because
+        // the nominal value is rounded. That is a valid measurement, but the
+        // health scale itself must still stop at 100%.
         return Math.max(1, Math.min(100, Math.round(measuredMah * 100f / designMah)));
     }
 
     /** Uses Android's system-reported SoH when the running platform exposes it. */
     static int percent(Context context, SharedPreferences prefs, int designMah) {
         int reported = reportedStateOfHealth(context);
-        return reported > 0 ? reported : percent(measurementMah(context, prefs), designMah);
+        return displayPercent(reported > 0 ? reported : percent(measurementMah(context, prefs), designMah));
     }
 
     static boolean isPlausibleCapacity(int mah) {
@@ -35,6 +38,14 @@ final class BatteryHealth {
         // value above the physical 100% ceiling. Do not silently turn an
         // impossible reading such as 110 into a seemingly valid 100: reject
         // it so the caller can use a local measurement or show unavailable.
+        return displayPercent(value);
+    }
+
+    /**
+     * Single output gate for every health percentage shown by the app.
+     * Invalid values are unavailable, not rounded into a misleading result.
+     */
+    static int displayPercent(int value) {
         return value >= 1 && value <= 100 ? value : 0;
     }
 

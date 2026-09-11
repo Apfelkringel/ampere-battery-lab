@@ -55,4 +55,14 @@ final class BatteryExportRules {
         }
         return rows;
     }
+
+    /** Serializes only rows that are safe to keep after backup restore/migration. */
+    static String normalizeTelemetry(String serialized) {
+        StringBuilder normalized = new StringBuilder();
+        for (String row : validTelemetryRows(serialized)) {
+            if (normalized.length() > 0) normalized.append('\n');
+            normalized.append(row);
+        }
+        return normalized.toString();
+    }
 }

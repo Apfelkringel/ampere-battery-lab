@@ -59,6 +59,14 @@ public class BatteryRulesTest {
         assertEquals(0, BatteryHealth.capacityFromReportedPercent(90, 0));
     }
 
+    @Test public void displayedHealthRejectsImpossibleValues() {
+        assertEquals(1, BatteryHealth.displayPercent(1));
+        assertEquals(100, BatteryHealth.displayPercent(100));
+        assertEquals(0, BatteryHealth.displayPercent(0));
+        assertEquals(0, BatteryHealth.displayPercent(101));
+        assertEquals(0, BatteryHealth.displayPercent(110));
+    }
+
     @Test public void automaticHealthSamplesRequireAStableNearFullCharge() {
         assertTrue(BatteryHealthSampleRules.isEligible(30, 96, 4200, 20));
         assertFalse(BatteryHealthSampleRules.isEligible(30, 94, 4200, 20));
@@ -137,6 +145,13 @@ public class BatteryRulesTest {
         java.util.ArrayList<String> rows = BatteryExportRules.validTelemetryRows(valid + "\n" + invalid);
         assertEquals(1, rows.size());
         assertEquals(valid, rows.get(0));
+    }
+
+    @Test public void restoredTelemetryIsImmediatelyNormalized() {
+        String valid = "1700000000000,46,1,900,25.0,4.20,6600,0,,12,2";
+        String invalid = "1700000000001,110,1,900,25.0,4.20,6600,0,,12,2";
+        assertEquals(valid, BatteryExportRules.normalizeTelemetry(valid + "\n" + invalid + "\n"));
+        assertEquals("", BatteryExportRules.normalizeTelemetry(invalid));
     }
 
     @Test public void telemetryExportRejectsContradictoryCurrentDirection() {
