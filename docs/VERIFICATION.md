@@ -4,7 +4,9 @@ Last verified: 2026-09-11 (Europe/Berlin)
 
 ## Current development change
 
-Version `0.267` additionally reserves already attributed direct app drain
+Version `0.268` additionally caps monitoring and screen-time integration after
+a service outage and prevents the separately measured suspend time from being
+counted a second time. Version `0.267` additionally reserves already attributed direct app drain
 before distributing the remaining observed energy to apps without a direct
 telemetry sample, so displayed app estimates cannot add up beyond the observed
 discharge. Version `0.266` additionally preserves Android activity class names across the

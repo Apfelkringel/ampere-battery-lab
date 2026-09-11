@@ -578,16 +578,21 @@ public class BatteryMonitorService extends Service {
         PowerManager power = (PowerManager) getSystemService(POWER_SERVICE);
         boolean interactive = power == null || power.isInteractive();
         long lastMonitorSample = prefs.getLong("monitorSampleAt", now);
-        long elapsed = lastMonitorSample > 0L ? Math.max(0L, now - lastMonitorSample) : 0L;
+        // A killed/restarted service must not turn its whole outage into
+        // observed monitoring or screen time. All accounting paths use the
+        // same bounded interval policy.
+        long elapsed = BatteryTimelineRules.cappedElapsed(
+                lastMonitorSample, now, accountingIntervalCapMs());
         long monitoringMs = prefs.getLong("monitoringMs", 0L) + elapsed;
-        long deepSleepMs = prefs.getLong("deepSleepMs", 0L) + (!interactive ? elapsed : 0L);
         long lastScreenSample = prefs.getLong("screenSampleAt", now);
         long screenOnMs = prefs.getLong("screenOnMs", 0L);
-        if (interactive && lastScreenSample > 0L) screenOnMs += Math.max(0L, now - lastScreenSample);
+        long screenElapsed = BatteryTimelineRules.cappedElapsed(
+                lastScreenSample, now, accountingIntervalCapMs());
+        if (interactive) screenOnMs += screenElapsed;
         prefs.edit().putInt("cycleLastLevel", level).putFloat("dischargePercent", dischargePercent)
                 .putInt("chargeCycles", cycles).putLong("screenOnMs", screenOnMs)
                 .putLong("screenSampleAt", now).putLong("monitoringMs", monitoringMs)
-                .putLong("deepSleepMs", deepSleepMs).putLong("monitorSampleAt", now).apply();
+                .putLong("monitorSampleAt", now).apply();
     }
 
     /** Tracks battery use after the most recent full charge or unplug event. */

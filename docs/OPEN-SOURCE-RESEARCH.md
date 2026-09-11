@@ -16,6 +16,12 @@ zeitbasiert an Apps ohne direkten Telemetriepunkt verteilt. Dadurch kann die
 Summe der angezeigten Schätzungen nicht mehr über die beobachtete Entladung
 hinaus anwachsen.
 
+Die Zeitbuchhaltung wurde zusätzlich gegen den eigenen Watchdog-Datenfluss
+geprüft: Nach einem Dienst-Aussetzer werden Monitoring- und Bildschirmzeiten
+nicht über die gemeinsame Accounting-Grenze hinaus fortgeschrieben. Der
+separat aus `elapsedRealtime`/`uptimeMillis` bestimmte Tiefschlafanteil wird
+nicht nochmals in die grobe Monitoring-Zeit eingerechnet.
+
 Beim Activity-Wechsel wurde außerdem die Event-Kollision von Androids altem
 `MOVE_TO_BACKGROUND` und `ACTIVITY_PAUSED` berücksichtigt: Der Klassenname
 bleibt erhalten, wenn Android ihn liefert, sodass ein Wechsel innerhalb einer
