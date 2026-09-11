@@ -17,6 +17,9 @@ public class BootReceiver extends BroadcastReceiver {
         } catch (IllegalStateException ignored) {
             // Some OEMs defer background service starts; the next app launch repairs this state.
         }
+        // Schedule recovery even when the OEM rejected the initial background
+        // start; without a heartbeat the watchdog will retry later.
+        BatteryMonitorWatchdog.schedule(context);
         // SystemUI can keep an existing tile entry across an APK update while
         // dropping the old TileService binding. Ask it to bind the new service
         // again without requiring the user to remove and re-add the tile.

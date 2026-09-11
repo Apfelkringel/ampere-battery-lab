@@ -70,19 +70,9 @@ public class BatteryWidgetProvider extends AppWidgetProvider {
 
     private static WidgetState readState(Context context) {
         Intent battery = context.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
-        int rawLevel = battery == null ? -1 : battery.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
-        int scale = battery == null ? 100 : battery.getIntExtra(BatteryManager.EXTRA_SCALE, 100);
-        int level = BatteryLevel.percent(rawLevel, scale);
-        int status = battery == null ? BatteryManager.BATTERY_STATUS_UNKNOWN
-                : battery.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN);
-        int plugged = battery == null ? 0 : battery.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0);
-        boolean charging = BatteryState.isCharging(status, plugged);
-        int temperatureTenths = battery == null ? 0 : BatteryTemperature.normalizeTenths(
-                battery.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0));
-        int voltageMv = battery == null ? 0 : BatteryVoltage.normalizeMilliVolts(
-                battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0));
-        int currentMa = readCurrentMa(context);
-        return new WidgetState(level, status, charging, temperatureTenths, voltageMv, currentMa);
+        BatteryReading reading = BatteryReading.read(context, battery);
+        return new WidgetState(reading.level, reading.status, reading.charging,
+                reading.temperatureTenths, reading.voltageMv, reading.currentMa);
     }
 
     private static RemoteViews populateViews(Context context, int layoutType, WidgetState state) {
@@ -126,11 +116,6 @@ public class BatteryWidgetProvider extends AppWidgetProvider {
             this.voltageMv = voltageMv;
             this.currentMa = currentMa;
         }
-    }
-
-    private static int readCurrentMa(Context context) {
-        BatteryManager manager = (BatteryManager) context.getSystemService(Context.BATTERY_SERVICE);
-        return BatteryCurrent.milliAmps(manager);
     }
 
     private static String statusText(int status, boolean charging) {

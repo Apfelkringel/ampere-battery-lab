@@ -105,18 +105,12 @@ public class BatteryOverlayService extends Service {
         if (overlay == null) return;
         Intent battery = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         if (battery == null) return;
-        int raw = battery.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
-        int scale = battery.getIntExtra(BatteryManager.EXTRA_SCALE, 100);
-        int level = BatteryLevel.percent(raw, scale);
-        int temperature = BatteryTemperature.normalizeTenths(
-                battery.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0));
-        int voltage = BatteryVoltage.normalizeMilliVolts(
-                battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0));
-        int status = battery.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN);
-        int plugged = battery.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0);
-        boolean charging = BatteryState.isCharging(status, plugged);
-        BatteryManager manager = (BatteryManager) getSystemService(BATTERY_SERVICE);
-        int current = BatteryCurrent.milliAmps(manager);
+        BatteryReading reading = BatteryReading.read(this, battery);
+        int level = reading.level;
+        int temperature = reading.temperatureTenths;
+        int voltage = reading.voltageMv;
+        boolean charging = reading.charging;
+        int current = reading.currentMa;
         String currentText = current > 0 ? (charging ? "+" : "−") + current + " mA" : "—";
         int coreCpu = readCpuPercent();
         String topPackage = topAppPackage();

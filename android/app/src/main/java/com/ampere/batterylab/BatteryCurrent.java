@@ -28,6 +28,22 @@ final class BatteryCurrent {
         return fromSysfs();
     }
 
+    /**
+     * Applies the conservative OEM scale detector after the normal source
+     * hierarchy has produced a magnitude. This keeps all callers on the same
+     * validated source path while fixing the common 10x/100x/1000x mismatch.
+     */
+    static int milliAmps(BatteryManager manager, boolean charging, int batteryPercent) {
+        int base = milliAmps(manager);
+        if (base <= 0) return 0;
+        int status = charging
+                ? BatteryCurrentMultiplierDetector.STATUS_CHARGING
+                : BatteryCurrentMultiplierDetector.STATUS_DISCHARGING;
+        int multiplier = BatteryCurrentMultiplierDetector.detect(base, status, batteryPercent);
+        long corrected = (long) base * multiplier;
+        return corrected > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) corrected;
+    }
+
     static int fromMicroamps(long raw) {
         long magnitude = Math.abs(raw);
         if (raw == Integer.MIN_VALUE || magnitude < MIN_MICROAMPS || magnitude > MAX_MICROAMPS) return 0;

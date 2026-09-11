@@ -2,6 +2,9 @@ package com.ampere.batterylab;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.BatteryManager;
 import android.os.SystemClock;
 import java.io.BufferedReader;
 import java.io.File;
@@ -64,12 +67,12 @@ final class BatteryCapacity {
 
     /** Current full-charge capacity reported by an OEM battery driver, if exposed. */
     static int fullChargeCapacityMah(Context context) {
-        Reading reading = automaticFullChargeReading();
+        Reading reading = automaticFullChargeReading(context);
         return reading.isAvailable() ? reading.mah : 0;
     }
 
     static String fullChargeCapacitySource(Context context) {
-        Reading reading = automaticFullChargeReading();
+        Reading reading = automaticFullChargeReading(context);
         return reading.isAvailable() ? reading.source : "Nicht verfügbar";
     }
 
@@ -125,7 +128,7 @@ final class BatteryCapacity {
         return new Reading(0, "Nicht verfügbar");
     }
 
-    private static Reading automaticFullChargeReading() {
+    private static Reading automaticFullChargeReading(Context context) {
         Reading cached = cachedFullChargeReading;
         long now = SystemClock.elapsedRealtime();
         if (cached != null && isCacheFresh(cachedFullChargeReadingAt, now)) return cached;
@@ -135,7 +138,7 @@ final class BatteryCapacity {
                 // Full-charge capacity is learned by the fuel gauge and can
                 // change after a charge cycle; do not freeze it for the
                 // lifetime of the foreground monitor process.
-                cachedFullChargeReading = detectFullCharge();
+                cachedFullChargeReading = detectFullCharge(context);
                 cachedFullChargeReadingAt = now;
             }
             return cachedFullChargeReading;
@@ -160,7 +163,7 @@ final class BatteryCapacity {
         return cachedAt > 0L && now >= cachedAt && now - cachedAt < CACHE_REFRESH_MS;
     }
 
-    private static Reading detectFullCharge() {
+    private static Reading detectFullCharge(Context context) {
         try {
             File root = new File("/sys/class/power_supply");
             File[] supplies = root.listFiles();
@@ -177,7 +180,31 @@ final class BatteryCapacity {
         } catch (Exception ignored) { }
         Reading oplus = readVendorFullChargeCapacity();
         if (oplus != null) return oplus;
+        Reading counterEstimate = readChargeCounterEstimate(context);
+        if (counterEstimate != null) return counterEstimate;
         return new Reading(0, "Nicht verfügbar");
+    }
+
+    /**
+     * Last-resort estimate used when no fuel-gauge full-capacity node exists.
+     * The Android charge counter is remaining charge in µAh; dividing it by
+     * the current level fraction gives an approximate full-charge value.
+     */
+    private static Reading readChargeCounterEstimate(Context context) {
+        if (context == null) return null;
+        try {
+            Intent battery = context.registerReceiver(null,
+                    new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+            if (battery == null) return null;
+            int rawLevel = battery.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+            int scale = battery.getIntExtra(BatteryManager.EXTRA_SCALE, 100);
+            BatteryManager manager = (BatteryManager) context.getSystemService(Context.BATTERY_SERVICE);
+            int estimate = BatteryFullChargeEstimate.fromCounter(
+                    BatteryChargeCounter.readMicroampereHours(manager), rawLevel, scale);
+            return estimate > 0 ? new Reading(estimate, "Android-Charge-Counter (geschätzt)") : null;
+        } catch (RuntimeException ignored) {
+            return null;
+        }
     }
 
     private static PercentReading detectStateOfHealth() {

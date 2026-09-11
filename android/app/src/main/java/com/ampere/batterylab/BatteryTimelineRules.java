@@ -20,6 +20,12 @@ final class BatteryTimelineRules {
         return Math.max(1L, (end - start) / 60000L);
     }
 
+    /** Caps an integration interval so a stopped monitor cannot invent activity. */
+    static long cappedElapsed(long previous, long current, long capMs) {
+        if (!isForward(previous, current) || capMs <= 0L) return 0L;
+        return Math.min(capMs, current - previous);
+    }
+
     /** Returns true when a chart must leave a gap for missing measurements. */
     static boolean isSamplingGap(long previous, long current, long intervalMs) {
         if (!isForward(previous, current) || intervalMs <= 0L) return false;

@@ -2,6 +2,230 @@
 
 Stand: 11. September 2026
 
+Die konfigurierbare Tiefstandwarnung ist von den Alarmfunktionen des GPL-3.0-
+Projekts [Battery Monitor](https://github.com/tswistak/Battery-Monitor) inspiriert.
+Es wurde kein Code übernommen: Die Implementierung in `BatteryDischargeAlarm`
+ist eine eigene, kleine Regelklasse mit validierten Grenzwerten von 5–50 %,
+Einmal-Auslösung und 3-%-Hysterese. Damit bleibt das Verhalten lokal, testbar
+und kompatibel mit der bestehenden Lade- und Temperaturwarnung, ohne GPL-Code
+in die App zu kopieren.
+
+Der optionale Ladebildschirm orientiert sich am Apache-2.0-Projekt
+[Dock](https://github.com/Mobinshahidi/Dock). Dock zeigt, wie ein Android-
+`DreamService` als systemweiter, während des Ladens aktivierbarer
+Screensaver registriert wird. Ampere übernimmt weder dessen UI-Code noch
+Assets: `BatteryDreamService` zeichnet eine eigene, minimalistische Canvas-
+Ansicht und liest ausschließlich die bereits vorhandenen Android-
+`BatteryManager`-Signale. Der Dienst startet nicht selbst, fordert keine neue
+Berechtigung an und wird vom Nutzer in den Android-Bildschirmschoner-
+Einstellungen aktiviert.
+
+Beim Vergleich mit ABattery wurde außerdem ein konkreter OEM-Randfall
+geschärft: ABattery wertet `EXTRA_PLUGGED` mit Bitmasken aus (`and`), während
+Ampere die Quelle bisher per Gleichheitsvergleich auswählte. Ampere verwendet
+jetzt `BatteryPlugType` als gemeinsame Bitfeld-Regel für Live-Anzeige und
+Sitzungsexport; kombinierte oder OEM-erweiterte Werte fallen nicht mehr fälschlich
+auf „Externe Stromquelle“ zurück.
+
+Für die Tiefstandwarnung wurde zusätzlich der Alarmpfad aus Battery Monitor
+gegen Ampere geprüft: Battery Monitor löst Grenzwert-Alarme beim Übergang über
+den Schwellenwert aus. Ampere speichert deshalb nun `dischargeAlarmLastLevel`
+und löst nur beim Eintritt in den konfigurierten Bereich aus; die bestehende
+3-%-Hysterese verhindert nach dem Reset ein Flattern.
+
+PlusPlusBattery wurde für die Zyklus-Historie zusätzlich bis zur Datenablage
+verglichen: Die App führt pro Datum einen Tageswert und aktualisiert einen
+bestehenden Tag nur mit einem stärkeren beziehungsweise höheren Messwert. Ampere
+übernimmt dieses Verhalten als eigene `BatteryCycleHistory`: 90 Tage werden in
+`SharedPreferences` gehalten, ein gemeldeter Android-/BMS-Zähler ersetzt eine
+frühere EFC-Schätzung desselben Tages, und rückwärts laufende Werte werden nicht
+übernommen. Die Historie erscheint in der Gesundheitsansicht sowie in CSV und
+Research-JSON; fremder Code und eine zusätzliche Datenbank wurden nicht übernommen.
+
+ABattery dokumentiert außerdem einen konkreten Full-Charge-Fallback: Wenn kein
+`charge_full`-Treiberwert existiert, wird der verbleibende Charge-Counter durch
+den aktuellen Ladezustandsanteil geteilt. Ampere prüft diese Implementierung
+gegen die eigene Einheiten- und Plausibilitätslogik und verwendet sie nun erst
+nach Treiber-/OPlus-Quellen als `Android-Charge-Counter (geschätzt)`. Unter 20 %
+Ladezustand wird wegen der starken Fehlerverstärkung nicht hochgerechnet; eine
+Schätzung überschreibt nie einen besseren gemeldeten Wert.
+
+Die Vergleichsimplementierung verwendet dafür den Rohanteil `level / scale`,
+nicht den bereits auf ganze Prozent gerundeten Wert. Ampere folgt diesem Detail
+jetzt ebenfalls in `BatteryFullChargeEstimate`; die bestehende öffentliche
+Prozentanzeige darf weiterhin runden, die interne Kapazitätsrechnung verliert
+dadurch aber keine zusätzliche Präzision.
+
+Für die „seit Ladung“-Statistik wurde die reine Zustandslogik aus dem GPL-3.0-
+Projekt [Device Watch](https://github.com/jrs8205/Device-Watch) separat geprüft:
+Device Watch unterscheidet zwischen einem einmaligen Voll-Ladeanker pro
+Steckersitzung und einem Absteck-Anker, wenn vor dem Vollwerden getrennt wird.
+Ampere bildet dieses Verhalten in der eigenen `BatteryChargeAnchor` nach und
+persistiert den Ankertyp, den Zeitpunkt und den Akkustand. Die vorhandenen
+Messwerte werden beim Ankerwechsel sauber auf null gesetzt; GPL-Code, Compose-
+UI oder dessen Speicherarchitektur wurden nicht übernommen.
+
+Beim App-Verbrauch wurde [OpenMonitor](https://github.com/1orz/OpenMonitor)
+gegen Ampere abgegrenzt: OpenMonitor weist den Verbrauch pro App als
+geschätzten Drain aus und kombiniert Nutzungsdaten mit Akkuverlauf, nicht als
+vom Android-System gemessenen Pro-App-Akkuwert. Device Watch beschreibt die
+gleiche Plattformgrenze ausdrücklich. Ampere berechnet deshalb zuerst direkte
+Zuordnungen aus lokalen Telemetrieintervallen; wenn deren Summe größer als die
+beobachtete Entladeenergie ist, werden alle direkten Werte proportional skaliert.
+Für Apps ohne direkte Telemetrie wird die beobachtete Entladung nur nach
+Vordergrundzeit verteilt. Beide Pfade bleiben in der Oberfläche mit `~` bzw.
+„geschätzt“ gekennzeichnet. Es wurde kein Code aus OpenMonitor oder Device Watch
+übernommen.
+
+Battery Monitor 1.4 dokumentiert außerdem einen separaten
+`BatteryCurrentMultiplierDetector`: Manche OEMs liefern Stromwerte in einer
+falsch skalierten Größenordnung. Die dortige Regel prüft typische
+Mindestbereiche getrennt für Laden und Entladen und ignoriert den niedrigen
+Strom kurz vor Ladeende. Ampere implementiert dieselbe fachliche Idee als
+eigene Java-Regel in `BatteryCurrentMultiplierDetector`: nur die Faktoren
+1/10/100/1000 sind möglich, ungültige Werte bleiben unverändert, und die
+Richtung wird weiterhin ausschließlich aus Androids Ladezustand abgeleitet.
+Es wurde kein GPL-Code kopiert.
+
+Der gleiche Battery-Monitor-Vergleich zeigt beim Ladeziel einen persistenten
+`TargetAlarmEvaluator`: Er merkt sich den letzten Prozentwert, feuert nur beim
+Überschreiten und hält den Alarmzustand getrennt vom aktuellen UI-Schalter.
+Ampere bildet diese Zustandsmaschine als `BatteryChargeAlarm` nach, speichert
+`chargeAlarmLastLevel` im Backup und verwendet eine eigene 3-%-Hysterese. Die
+erste gültige Messung oberhalb des Ziels bleibt bewusst sofort benachrichtigbar;
+danach ist ein echter Aufwärtssprung erforderlich. Der GPL-Code wurde nicht
+übernommen.
+
+Für die Hintergrundzuverlässigkeit wurde Battery Monitors
+`BackgroundServiceWatchdog` separat verglichen: Ein periodischer
+`AlarmManager.setAndAllowWhileIdle`-Termin prüft einen monotonen
+`elapsedRealtime`-Heartbeat und fordert nur bei einem veralteten Heartbeat den
+Foreground-Service erneut an. Ampere übernimmt dieses Architekturprinzip als
+eigene `BatteryMonitorWatchdog`: Der Dienst schreibt alle zehn Minuten, die
+Prüfung läuft alle zwanzig Minuten, und erst nach dreißig Minuten ohne
+Lebenszeichen wird der Dienst einmalig neu gestartet. Wall-Clock-Sprünge können
+die Prüfung nicht täuschen; es wird kein fremder Code übernommen.
+
+Die Spannungsauflösung wurde mit Battery Monitors separatem
+[`BatteryVoltageResolver`](https://github.com/tswistak/Battery-Monitor/blob/master/app/src/main/kotlin/codes/swistak/batterymonitor/monitoring/batteryvoltage/BatteryVoltageResolver.kt)
+und [`BatteryVoltageValidator`](https://github.com/tswistak/Battery-Monitor/blob/master/app/src/main/kotlin/codes/swistak/batterymonitor/monitoring/batteryvoltage/BatteryVoltageValidator.kt)
+verglichen. Der Android-Broadcast bleibt die bevorzugte Quelle; wenn er fehlt
+oder außerhalb des plausiblen Bereichs liegt, prüft Ampere nun priorisierte
+read-only `voltage_now`-Dateien von Batterie, BMS und Fuel-Gauge-Knoten. Werte
+werden sowohl in mV als auch in µV erkannt, der erfolgreiche Pfad wird bis zu
+seinem nächsten ungültigen Wert zwischengespeichert, und USB-Eingangsknoten
+bleiben ausgeschlossen. Die Java-Implementierung ist eigenständig und kopiert
+keinen GPL-Code.
+
+Beam bündelt die Live-Messung in [`Battery.kt`](https://github.com/montafra/beam/blob/master/app/src/main/java/montafra/beam/Battery.kt)
+und leitet die Einheiten, Vorzeichen und Leistung in einem unveränderlichen
+[`BatterySnapshot`](https://github.com/montafra/beam/blob/master/app/src/main/java/montafra/beam/BatterySnapshot.kt)
+ab. Ampere übernimmt dieses Architekturprinzip als eigenen `BatteryReading`:
+Widget, Quick-Settings-Kachel, Overlay und Dream lesen jetzt denselben
+validierten Snapshot statt Status, Strom, Temperatur und Spannung separat zu
+parsen. Wie Beam unterscheidet Ampere dabei einen fehlenden Plug-Wert von einem
+expliziten Wert `0`: Der Status `CHARGING`/`FULL` darf bei einem unvollständigen
+OEM-Broadcast weiterleben, ein tatsächlich gemeldetes Abstecken bleibt
+maßgeblich. Der Foreground-Monitor und das Dashboard behalten ihre zusätzliche
+Ladezustands-Stabilisierung für Kabel-Events; sie verwenden danach weiterhin
+dieselben zentralen Einheiten- und OEM-Validierer. Es wurde kein Beam-Code
+übernommen.
+
+Beams [`BatterySnapshot.secondsUntilCharged`](https://github.com/montafra/beam/blob/master/app/src/main/java/montafra/beam/BatterySnapshot.kt)
+verwirft ebenfalls ungültige oder nicht berechenbare Ladezeitwerte und fällt
+bei fehlender Systemprognose nur mit ausreichender Energie-, Leistungs- und
+Ladezustandsbasis zurück. Ampere nutzt dafür jetzt die eigene, getestete
+`BatteryTimeEstimate`: Eine unbekannte Kapazität oder eine nicht endliche Rate
+bleibt „Nicht verfügbar“, und Zeit bis zum Vollstand sowie bis zum konfigurierten
+Ladeziel teilen dieselbe Begrenzungsregel. Zusätzlich wird ein plausibler
+historischer Ladesatz gegenüber einem einzelnen Stromausreißer bevorzugt. Es
+wurde kein Beam-Code übernommen.
+
+Für die verbleibende Lade- und Nutzungszeit wurde außerdem [BatteryLog](https://github.com/The412Banner/BatteryLog)
+exakt gegen Ampere geprüft. BatteryLog liest im Fuel-Gauge-Fallback
+`time_to_full_now`, ersatzweise `time_to_full_avg`, sowie
+`time_to_empty_avg` aus dem read-only Power-Supply-Sysfs und verwirft
+Sentinelwerte bzw. unrealistische Zeiträume. Ampere übernimmt davon nicht den
+Code und benötigt keinen Root-Zugriff: `BatteryFuelGaugeTime` priorisiert
+dieselben semantischen Felder über die zentrale Batterie-/BMS-Rangfolge,
+normalisiert Sekunden in Minuten, begrenzt auf 48 Stunden und verwendet den
+Fallback auch dann, wenn die Android-API für Systemprognosen noch nicht
+vorhanden ist. Androids eigene Prognose bleibt die erste Quelle, der Fuel-Gauge
+Wert ist klar als solche Quelle gekennzeichnet. Verglichen wurden insbesondere
+[`Estimates.kt`](https://github.com/The412Banner/BatteryLog/blob/main/app/src/main/java/com/the412banner/batterylog/Estimates.kt)
+und [`BatteryInfo.kt`](https://github.com/The412Banner/BatteryLog/blob/main/app/src/main/java/com/the412banner/batterylog/BatteryInfo.kt).
+
+HeyBattery wurde für die Laufzeitprognose ebenfalls auf Implementierungsebene
+geprüft. Die README nennt ein 40/60-Hybridmodell, der aktuelle Code in
+[`BatteryDataManager.java`](https://github.com/ghostyapps/HeyBattery/blob/main/app/src/main/java/com/ghostyapps/heybattery/BatteryDataManager.java)
+bildet jedoch den Mittelwert der letzten bis zu zehn abgeschlossenen Zyklen;
+[`ChargeCycle.java`](https://github.com/ghostyapps/HeyBattery/blob/main/app/src/main/java/com/ghostyapps/heybattery/ChargeCycle.java)
+berechnet dafür nur Start-/End-Prozent geteilt durch die Dauer. Ampere kopiert
+diesen Code nicht. Stattdessen nutzt `BatteryRuntimeEstimate` die sinnvolle
+Idee einer aktuellen Sitzungsgewichtung, ramped sie aber erst nach zehn
+Minuten belastbarer Daten hoch und begrenzt sie nach 30 Minuten auf 60 %.
+Ein Charge-Counter-Energieabfall kann dabei einen flachen Prozentwert ergänzen;
+ungültige oder zu kurze Phasen bleiben unberücksichtigt.
+
+Für Thermik wurde [OpenMonitor](https://github.com/1orz/OpenMonitor) geprüft.
+OpenMonitor sammelt mit seinem privilegierten Daemon detaillierte Linux-
+Thermal-Zonen; das ist für eine lokale App ohne Root, Shizuku oder ADB nicht
+gleichwertig verfügbar. Ampere ergänzt daher bewusst nur den öffentlichen
+Android-Status `PowerManager.getCurrentThermalStatus()` ab Android 10 und hält
+ihn getrennt von der Akku-Sensortemperatur: „Thermik Hoch“ ist kein behaupteter
+Akkuwert. Unbekannte API-/OEM-Werte werden nicht ersetzt und es wurde kein
+privilegierter OpenMonitor-Code übernommen.
+
+Das Ladeziel wurde anschließend gegen BatteryLogs [Charge-Control-Beschreibung](https://github.com/The412Banner/BatteryLog)
+und das Linux-[power-supply-ABI](https://github.com/torvalds/linux/blob/master/Documentation/ABI/testing/sysfs-class-power)
+abgegrenzt. `charge_control_limit` ist dort ein Stromlimit in µA; es darf
+nicht als Prozentziel angezeigt werden. Das Prozent-Limit kommt aus
+`charge_control_end_threshold`, optional ergänzt durch
+`charge_control_start_threshold`. Ampere liest beide Werte über die
+priorisierte Batterie-/BMS-Quelle, cached sie kurz und zeigt ein gültiges
+Start–Ende-Paar als „OEM-Ladefenster“ neben dem eigenen Alarmziel. Es gibt
+keinen Schreibpfad, keinen Root-Fallback und keine automatische Übernahme in
+die Alarmregel.
+
+BatteryLogs [`ReportGenerator.kt`](https://github.com/The412Banner/BatteryLog/blob/main/app/src/main/java/com/the412banner/batterylog/ReportGenerator.kt)
+führt außerdem eine kompakte Anomalie-Sektion: abgeschlossenes Logging über
+dem Nullpunkt wird als „Early Cutoff“ markiert, ein AYANEO-2S-Wert bis etwa
+6,2 V oberhalb 5 % als möglicher Spannungseinbruch, und mindestens 48 °C als
+hohe Temperatur. Ampere übernimmt die Idee einer reproduzierbaren Diagnose,
+aber nicht diese gerätespezifischen Schlussfolgerungen: Unsere Telemetrie wird
+vorher validiert und chronologisch sortiert; `BatteryTelemetryDiagnostics`
+meldet nur beobachtbare Minimalspannung, Spitzen-Entladestrom,
+Maximaltemperatur und echte Sampling-Lücken. Ein laufender Entladevorgang ist
+kein „Early Cutoff“, und es gibt keine feste 2S-Spannungsgrenze für
+1S-Smartphones. Dieselbe Zusammenfassung erscheint lokal im Verlauf und wird
+im Research-JSON mit exportiert.
+
+Zusätzlich bietet Ampere daraus einen eigenen lesbaren TXT-Bericht über den
+bestehenden Exportdialog an. Das folgt BatteryLogs Report-Idee, verwendet aber
+keine gerätespezifischen Designkapazitäten oder festen Packgrenzen und erzeugt
+keine neue Messung beim Export. Bericht, CSV und Research-JSON greifen auf
+dieselbe validierte Datenbasis zu.
+
+ABattery liest im [`BatteryDataSource`](https://github.com/abanana84/abattery/blob/main/app/src/main/java/com/abanana/abattery/data/battery/BatteryDataSource.kt)
+die öffentliche `EXTRA_TECHNOLOGY`-Angabe aus `ACTION_BATTERY_CHANGED` und
+führt sie im Akku-Modell. Ampere übernimmt nur dieses standardisierte
+Eingangssignal als eigenen `BatteryTechnology`-Adapter, validiert Länge und
+Steuerzeichen und zeigt den Wert in der Gesundheitsansicht sowie im
+Research-JSON. Herstellungsdatum und Erstnutzung werden dagegen nicht aus
+den geschützten AOSP-BatteryManager-Properties behauptet: Diese verlangen
+`BATTERY_STATS` und bleiben ohne passende Berechtigung korrekt nicht verfügbar.
+
+Bei der Vordergrund-App-Zeit wurde [Device Watchs
+`UsageEventAggregator`](https://github.com/jrs8205/Device-Watch/blob/main/app/src/main/java/org/jarsi/devicewatch/data/UsageEventAggregator.kt)
+exakt gegen Ampere geprüft. Device Watch führt pro Paket ein Set aktiver
+Activity-Klassen, weil manche Geräte `PAUSED` auslassen und andere sowohl
+`PAUSED` als auch `STOPPED` für dieselbe Activity liefern. Ampere verwendet
+jetzt dieselbe fachliche Zustandsgrenze in `UsageEventAccumulator`: Ein Wechsel
+von Activity A zu B bleibt eine zusammenhängende Vordergrundsitzung, doppelte
+Schließereignisse sind idempotent, und `SCREEN_NON_INTERACTIVE` schließt alle
+offenen Pakete. Die Implementierung ist eigener Java-Code; Device-Watch-Code
+wurde nicht kopiert.
+
 Die Akku-Datenlogik wurde gegen mehrere fertige Open-Source-Apps geprüft. In
 Ampere Battery Lab wurden nur allgemeine, nachgebaut getestete Muster aus
 Apache-2.0- und MIT-Projekten verwendet; GPL-Code wurde nicht übernommen.
@@ -221,15 +445,93 @@ nur angezeigt, wenn er gültig vorhanden ist.
 
 Die optionalen AOSP-Felder `max_charging_current` und `max_charging_voltage`
 werden nach dem von Androids eigener `BatteryStatus`-Logik verwendeten
-Strom-mal-Spannung-Prinzip in Milliwatt umgerechnet. Ampere zeigt das Ergebnis
-nur mit engen Spannungs-, Strom- und Leistungsgrenzen als „Max. … W“; der
-aktuelle Batteriefluss bleibt davon unabhängig.
+Strom-mal-Spannung-Prinzip in Milliwatt umgerechnet. ABattery liest dieselben
+Felder mit den literalen Schlüsseln, weil SDK-Stubs die Konstanten nicht immer
+bereitstellen; Ampere folgt diesem Kompatibilitätsdetail in einem eigenen
+Reader. Die Rohwerte für maximalen Strom und maximale Spannung werden nun
+getrennt vom abgeleiteten Leistungswert validiert und im Ladeprofil angezeigt.
+Bei einem fehlenden Teilpaar bleibt nur der einzeln plausible Wert sichtbar;
+die Leistung wird ausschließlich aus einem vollständigen plausiblen Paar
+berechnet. Der aktuelle Batteriefluss bleibt davon unabhängig.
+
+Als separaten Fallback wurde außerdem Capacity Info auf Implementierungsebene
+verglichen: Die App liest `constant_charge_current_max` aus dem Batterie-Kernel
+und bezeichnet ihn als „Charging Current Limit“. BatteryLog und das Linux-
+[power-supply-ABI](https://github.com/torvalds/linux/blob/master/Documentation/ABI/testing/sysfs-class-power)
+unterscheiden dieses Hardware-/Reglerlimit jedoch von der externen
+Adapterleistung und vom momentanen Strom. Ampere liest deshalb nur den
+read-only Knoten aus priorisierten Batterie-/BMS-Versorgungen, cached den
+erfolgreichen Pfad kurz und zeigt ihn als „Ladehardware max.“. Das ähnliche
+`charge_control_limit_max` wird bewusst nicht als Stromwert verwendet, weil
+OEMs dort auch Stufen-/Indexwerte veröffentlichen können. Es gibt keinen
+Schreibpfad und keinen Root-Zwang. Verglichen wurden [Capacity Info](https://github.com/Ph03niX-X/CapacityInfo)
+und [BatteryLog](https://github.com/The412Banner/BatteryLog).
+
+Ein weiterer ABI-Vergleich betrifft `internal_resistance`: Die aktuelle Linux-
+[power-supply-Definition](https://github.com/torvalds/linux/blob/master/Documentation/ABI/testing/sysfs-class-power)
+führt diesen Wert als dynamischen Equivalent Series Resistance in µΩ und weist
+ausdrücklich auf seine Abhängigkeit von Ladezustand, Temperatur und Lade-
+ beziehungsweise Entladezustand hin. Die untersuchten Android-Apps lösen das
+meist nur über Root-, Shizuku- oder Herstellerpfade. Ampere liest den
+standardisierten Knoten, wenn er als read-only Batterie-/BMS-Attribut vorhanden
+ist, validiert ihn streng und zeigt ihn nur als ESR-Diagnose. Er wird weder als
+Akkugesundheits-Prozentwert noch für eine künstliche Kapazitätsrechnung benutzt.
+
+Die ABI definiert außerdem `capacity_error_margin` als maximale erwartete
+Messunsicherheit des Fuel-Gauges in Prozent: Werte nahe null gelten nach einer
+Kalibrierung als präziser, 100 % als praktisch unbrauchbar. Ampere liest diesen
+read-only Wert nur aus Batterie-/BMS-Knoten, behandelt 0 ausdrücklich als
+gültig und hält ihn getrennt von Akkualterung, SoH und Kapazitätsberechnung.
+Damit wird keine Genauigkeit erfunden, wenn ein Gerät das Attribut nicht
+bereitstellt.
+
+Capacity Info nennt außerdem Minimum, Durchschnitt und Maximum der Lade-/Entlade-
+ströme als eigenständige Messwerte. Ampere übernimmt dieses überprüfbare
+Produktmuster, berechnet die drei Kennzahlen aber aus der bereits validierten,
+richtungsgetrennten lokalen Zeitreihe und kapselt es in `BatteryCurrentStats`.
+Null-, Negativ- und fehlende Werte werden ausgelassen; es wird kein
+Momentanwert als Verlauf ausgegeben.
+
+Für die aktive Ladeart wurde ebenfalls die aktuelle Linux-ABI-Definition mit
+Implementierungen aus [BatteryLog](https://github.com/The412Banner/BatteryLog)
+und dem [AYANEO-Plattformtreiber](https://github.com/ShadowBlip/ayaneo-platform)
+verglichen. `charge_type` liefert dort einen einzelnen aktiven Algorithmus;
+`charge_types` liefert eine Liste mit dem aktiven Wert in eckigen Klammern.
+Ampere liest beide Attribute nur, akzeptiert ausschließlich bekannte Werte wie
+Fast, Standard, Trickle, Adaptive, Long Life und Bypass und hält das Ergebnis
+getrennt von Androids `EXTRA_CHARGING_STATUS`. Es werden keine Schreibpfade,
+Root- oder Herstellerbefehle übernommen.
+
+Das tatsächliche Ladeverhalten wurde separat gegen die Linux-ABI und den
+[AYANEO-Plattformtreiber](https://github.com/ShadowBlip/ayaneo-platform)
+verglichen. `charge_behaviour` ist nicht dasselbe wie `charge_type`: Es
+beschreibt, ob normal geladen, das Laden bei angeschlossenem Netzteil gesperrt
+oder die Entladung erzwungen wird. Die ABI nennt `auto`, `inhibit-charge`,
+`inhibit-charge-awake` und `force-discharge`; einige Treiber liefern den
+aktiven Wert als `[auto]`. Ampere akzeptiert ausschließlich diese vier Werte,
+zeigt sie read-only in Dashboard, Benachrichtigung und Research JSON und
+führt keine der im Linux-/Treiberbeispiel dokumentierten Schreiboperationen
+aus. Dadurch bleibt ein Bypass-/Inhibit-Zustand sichtbar, ohne eine
+Steuerfunktion zu versprechen.
+
+Als weiterer universeller Diagnosewert wurden die Linux-ABI-Felder
+`manufacture_year`, `manufacture_month` und `manufacture_day` gegen die
+Herstellungsdaten-Implementierungen in [MyBattery](https://github.com/Alyaqdhans/MyBattery)
+und [Samsung Battery Life Checker](https://github.com/tausifzaman/Samsung-Battery-Life-Checker)
+abgegrenzt. Die Samsung-Projekte benötigen dafür proprietäre `LLB MAN`-Logs;
+Ampere übernimmt diesen privilegierten bzw. herstellerspezifischen Pfad nicht,
+sondern liest nur die standardisierten Batterie-/BMS-Dateien. Alle drei
+Komponenten müssen einen gültigen Gregorianischen Tag ergeben, bevor Datum,
+Quelle oder Export sichtbar werden.
 
 Temperaturdaten folgen demselben Validierungsprinzip: Android liefert sie als
 Zehntelgrad Celsius, aber einzelne Geräte können fehlende oder unplausible
 Werte melden. `BatteryTemperature` verwirft deshalb Werte außerhalb von
 0,1–100,0 °C zentral, bevor sie in Dashboard, Widget, Overlay, Kachel,
-Telemetrie oder Alarm gelangen.
+Telemetrie oder Alarm gelangen. BatteryLog bildet aus gültigen Verlaufspunkten
+zusätzlich Min/Max/Ø; Ampere übernimmt dieses Auswertungsmuster in den
+gemeinsamen `BatteryTelemetryDiagnostics`-Pfad und nutzt es dadurch in UI und
+Research-Export, ohne einen einzelnen Live-Moment als Tagesstatistik auszugeben.
 
 Auch Batteriespannung wird vor Anzeige und Leistungsberechnung zentral als
 Millivolt validiert. Der Bereich 1.000–10.000 mV deckt die üblichen ein- und

@@ -2,6 +2,148 @@
 
 Last verified: 2026-09-11 (Europe/Berlin)
 
+## Current development change
+
+Version `0.260` additionally reads Android's optional
+`BATTERY_PROPERTY_ENERGY_COUNTER` as remaining battery energy in nWh and Wh.
+The value is validated against a conservative physical range, displayed in the
+live dashboard and monitor notification, and exported separately from the
+charge counter; unsupported or implausible device values remain unavailable.
+Version `0.259` additionally computes minimum, average and maximum from the
+same validated temperature telemetry used by the diagnostic report. The
+statistics are shown together in the health view, history diagnosis and
+Research JSON; missing/zero values are excluded. Version `0.258` additionally
+reads the optional read-only Linux/OEM
+`manufacture_year`, `manufacture_month` and `manufacture_day` fields. Only a
+complete valid Gregorian date is accepted, then shown in the health view and
+Research JSON; Samsung-specific `LLB MAN` log parsing and privileged access
+remain intentionally outside the universal no-root path. Version `0.257`
+additionally preserves and exports both optional read-only
+Linux/OEM `charge_control_start_threshold` and `charge_control_end_threshold`
+values. When both are valid, the UI reports the actual OEM charging window
+as start–end percentage instead of silently discarding the lower threshold.
+The OEM window remains separate from the app's own target and no sysfs write
+is performed. Version `0.256` additionally reads the optional read-only Linux/OEM
+`charge_behaviour` attribute. The four ABI states (`auto`, `inhibit-charge`,
+`inhibit-charge-awake`, `force-discharge`) are normalized exactly, including
+the bracketed active-value format used by some sysfs drivers. The dashboard,
+notification and Research JSON explain the active charging behaviour without
+writing to sysfs or conflating it with the separate charging algorithm.
+Version `0.255` additionally reports minimum, average and maximum current for
+the visible, direction-filtered telemetry window. Zero, negative and missing
+values are excluded before aggregation; the statistic is computed by a pure
+tested helper and the chart no longer hides the minimum. Version `0.254` additionally reads the optional read-only Linux/OEM
+`capacity_error_margin` value. Zero through 100 percent are accepted, including
+zero after a calibration; the value is presented as Fuel-Gauge-
+Messunsicherheit and never as battery wear or health. It is shown alongside
+the dynamic ESR diagnostic and included in Research JSON. Version `0.253` additionally reads the optional read-only Linux/OEM
+`charge_type`/`charge_types` value and keeps it separate from Android's
+qualitative `EXTRA_CHARGING_STATUS`. Only the ABI's known algorithms are
+accepted; the active bracketed value from `charge_types` is supported as a
+fallback. The dashboard, notification and Research JSON label it as the
+kernel charging algorithm. Version `0.252` additionally reads the optional read-only Linux/OEM
+`internal_resistance` value in µΩ from ranked battery/BMS supplies and shows
+it as a dynamic ESR diagnostic in the health view and Research JSON. The value
+is range-checked, briefly cached and explicitly not converted into a health
+percentage because it varies with state of charge and temperature. Version
+`0.251` additionally falls back to the read-only Linux/OEM
+`constant_charge_current_max` node when Android exposes no charger capability
+pair. This value is labeled as a hardware charging ceiling, never as the
+instantaneous battery current or the external adapter power; the reader ranks
+battery/BMS supplies, caches only a readable path briefly and rejects invalid
+units and sentinels. Version `0.250` additionally keeps Android's optional charger capability pair
+as separate validated maximum current, maximum voltage and derived power values.
+The UI, monitor notification and Research JSON label these as the charger
+profile, never as the instantaneous battery current. Missing half-pairs remain
+partially visible only when the individual value is plausible; invalid units,
+sentinels and implausible ranges stay unavailable.
+Version `0.249` additionally validates and displays the public Android battery
+technology string (for example `Li-ion`) in the health view and Research JSON;
+control characters and oversized OEM strings remain unavailable. Version
+`0.248` additionally exports a human-readable local TXT diagnostic
+report from the same validated telemetry summary, alongside the existing CSV
+and Research-JSON choices. Version `0.247` additionally adds a conservative local telemetry diagnosis:
+maximum battery temperature, peak discharge current, minimum discharge voltage
+and sampling gaps are calculated from validated chronological rows. The
+research JSON carries the same structured summary; no fixed 2S-pack voltage
+threshold and no live "early cutoff" claim are used. This keeps the
+BatteryLog-inspired report useful on ordinary 1S phones as well as multi-cell
+devices. Version `0.246` additionally reads an optional read-only OEM charge end
+threshold from battery/BMS power-supply nodes and displays it separately from
+Ampere's user alarm target. It never writes charge-control files. Version
+`0.245` additionally surfaces Android's public device-wide thermal
+status separately from the battery sensor temperature in the charging view and
+monitor notification. Version `0.244` additionally blends a sufficiently observed current discharge
+phase with the local seven-day history. The current phase reaches at most 60%
+weight after 30 minutes; charge-counter energy can support the rate when the
+displayed percentage is flat. Observed charging and discharging intervals are
+also capped, so a stopped monitor cannot inflate the session duration.
+Version `0.243` additionally uses optional read-only Fuel-Gauge estimates for
+time-to-full and time-to-empty when Android's system prediction is unavailable.
+The `now` value is preferred over the averaged full-charge value, Linux
+sentinels and values beyond 48 hours are rejected, and the fallback remains
+available on older supported Android versions. Version `0.242` additionally rejects non-finite and physically implausible
+local charge rates while preserving a valid historical rate when the current
+sample is an outlier. Version `0.241` additionally bounds local time-to-full
+and time-to-target
+estimates: unknown capacity, non-finite rates and insufficient current now
+remain unavailable instead of producing a synthetic one-minute result.
+Version `0.240` additionally distinguishes a missing OEM `EXTRA_PLUGGED` field
+from an explicit `EXTRA_PLUGGED=0`, so a status-first `CHARGING`/`FULL` reading
+survives incomplete broadcasts without weakening explicit unplug detection.
+Version `0.239` additionally centralizes the validated battery snapshot used by
+the widget, Quick-Settings tile, overlay and Dream/screensaver. Version `0.238`
+additionally validates battery voltage through a read-only
+`voltage_now` fallback when Android's broadcast value is missing or implausible.
+Battery and BMS nodes are ranked before other supported fuel-gauge names, both
+mV and µV are normalized, and the working path is cached until it stops
+producing a plausible value. Version `0.237` additionally makes foreground
+usage aggregation activity-aware.
+It keeps a set of active Activity classes per package, ignores duplicate
+PAUSED/STOPPED closes, preserves an in-app Activity switch, and force-closes
+all open sessions on Android's `SCREEN_NON_INTERACTIVE` event. Version `0.236`
+additionally adds a local background watchdog. The foreground
+service records a 10-minute elapsed-realtime heartbeat, while an
+`AlarmManager.setAndAllowWhileIdle` check runs every 20 minutes and restarts
+the service only after 30 minutes without a heartbeat. Rewound or missing
+elapsed times are treated as stale. Version `0.235` additionally makes the
+charge-target alarm edge-triggered and
+persisted: it fires on an upward crossing, resets only after unplugging or a
+3-percent drop below the target, and keeps the last level in backup data.
+This follows the stateful target evaluator pattern in Battery Monitor while
+retaining Ampere's first-valid-sample behavior. Version `0.234` additionally
+uses Android's unrounded `level / scale` fraction
+for the charge-counter full-capacity fallback, avoiding a needless whole-percent
+rounding step while retaining the 20–100% and 500–30,000 mAh bounds. Version
+`0.232` additionally applies a conservative OEM current-scale detector
+to Android and battery-supply current readings. It only considers factors
+1/10/100/1000, uses separate typical charging/discharging thresholds, and
+does not amplify a low current during charging taper at 90% or above. Version
+`0.231` additionally bounds per-app drain attribution by the observed
+discharge energy. Direct local telemetry is scaled down when its sum would
+exceed that energy; apps without direct telemetry use a time-weighted estimate,
+and the UI labels both paths as estimates. This follows the same measurement
+honesty boundary used by OpenMonitor and Device Watch. Version `0.230`
+additionally adds an Android charge-counter fallback for
+full-charge capacity when no driver/OEM value is exposed. It only estimates
+from a validated 20–100% level and marks the provenance explicitly. Version
+`0.229` additionally adds a persisted hybrid charge anchor: a new
+full-charge anchor is created once per plug session, while unplugging below
+99% creates an explicit unplugged baseline. This prevents later charge cycles
+from being merged into an old "since full" statistic. Version `0.228` added a
+monotone 90-day daily full-cycle history, exported in CSV and Research JSON,
+plus the Research JSON now also carries the validated since-charge anchor
+state. Version `0.227` added the system-selectable charging Dream/screensaver inspired
+by the Apache-2.0 Dock project, plus the local low-battery notification from
+version `0.226` inspired by the
+configurable battery alarms documented by the open-source Battery Monitor
+project. The daily history follows the same daily upsert/monotonicity idea as
+PlusPlusBattery, but uses an own compact SharedPreferences format and tested
+source precedence. The implementation is original and uses a 3-percent reset
+hysteresis; the Dream uses only existing Android battery signals and adds no
+runtime permission. Unit tests cover the cycle-history retention, source
+precedence, threshold normalization, charging suppression and one-shot behavior.
+
 ## Release artifact
 
 - Package: `com.ampere.batterylab`

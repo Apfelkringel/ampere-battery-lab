@@ -9,11 +9,18 @@ final class BatteryState {
     private BatteryState() { }
 
     static boolean isCharging(int status, int plugged) {
-        // A CHARGING status without a reported power source is a transient
-        // broadcast state on some devices. Do not start a session until both
-        // pieces of Android's battery state agree.
-        return plugged != 0 && (status == BatteryManager.BATTERY_STATUS_CHARGING
-                || status == BatteryManager.BATTERY_STATUS_FULL);
+        return isCharging(status, plugged, true);
+    }
+
+    /**
+     * Resolves status without confusing a missing OEM field with an explicit unplugged value.
+     * A present zero remains authoritative; a missing plug field lets Android's charging/full
+     * status speak for itself, matching the robust status-first strategy used by Beam.
+     */
+    static boolean isCharging(int status, int plugged, boolean plugValuePresent) {
+        if (status != BatteryManager.BATTERY_STATUS_CHARGING
+                && status != BatteryManager.BATTERY_STATUS_FULL) return false;
+        return !plugValuePresent || plugged != 0;
     }
 
     static boolean resolveUiCharging(boolean detectedCharging, boolean hasRecentMonitorSample,

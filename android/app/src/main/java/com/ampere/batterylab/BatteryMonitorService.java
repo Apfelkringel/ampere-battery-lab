@@ -33,6 +33,7 @@ public class BatteryMonitorService extends Service {
     private static final String CHANNEL_ID = "ampere-monitor";
     private static final String ALARM_CHANNEL_ID = "ampere-charge-alarm";
     private static final long CHARGING_STATE_CONFIRMATION_MS = 2500L;
+    private static final long HEARTBEAT_INTERVAL_MS = 10L * 60L * 1000L;
     private Handler handler;
     private HandlerThread monitorThread;
     private boolean transitionCheckScheduled;
@@ -78,6 +79,14 @@ public class BatteryMonitorService extends Service {
             handler.postDelayed(this, sampleInterval());
         }
     };
+    private final Runnable heartbeatTask = new Runnable() {
+        @Override public void run() {
+            if (handler == null) return;
+            BatteryMonitorWatchdog.recordHeartbeat(BatteryMonitorService.this);
+            BatteryMonitorWatchdog.schedule(BatteryMonitorService.this);
+            handler.postDelayed(this, HEARTBEAT_INTERVAL_MS);
+        }
+    };
 
     @Override public void onCreate() {
         super.onCreate();
@@ -85,6 +94,9 @@ public class BatteryMonitorService extends Service {
         monitorThread = new HandlerThread("ampere-battery-monitor", android.os.Process.THREAD_PRIORITY_BACKGROUND);
         monitorThread.start();
         handler = new Handler(monitorThread.getLooper());
+        BatteryMonitorWatchdog.recordHeartbeat(this);
+        BatteryMonitorWatchdog.schedule(this);
+        handler.postDelayed(heartbeatTask, HEARTBEAT_INTERVAL_MS);
         createChannel();
         startForeground(7, notification());
         IntentFilter batteryFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
@@ -116,12 +128,13 @@ public class BatteryMonitorService extends Service {
     }
 
     private Notification notification() {
-        return statusNotification(-1, false, 0, 0, 0, BatteryManager.BATTERY_HEALTH_UNKNOWN, -1, 0, 0);
+        return statusNotification(-1, false, 0, 0, 0, BatteryManager.BATTERY_HEALTH_UNKNOWN, -1, 0,
+                BatteryChargerCapability.Reading.empty(), BatteryThermalStatus.UNKNOWN);
     }
 
     private Notification statusNotification(int value, boolean isCharging, int currentMa, int temperatureTenths,
                                             int voltageMv, int platformHealth, int capacityLevel, int chargingStatus,
-                                            int maxChargingPowerMilliwatts) {
+                                            BatteryChargerCapability.Reading chargerCapability, int thermalStatus) {
         Intent launch = new Intent(this, MainActivity.class);
         PendingIntent pending = PendingIntent.getActivity(this, 0, launch, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? new Notification.Builder(this, CHANNEL_ID) : new Notification.Builder(this);
@@ -131,19 +144,35 @@ public class BatteryMonitorService extends Service {
                 ? String.format(Locale.US, "%.1f°C", temperatureTenths / 10f)
                 : "Temperatur nicht verfügbar";
         String details = value >= 0 ? (currentMagnitudeMa > 0 ? currentMagnitudeMa + " mA" : "Strom nicht verfügbar") + " · " + temperatureText + (voltageMv > 0 ? " · " + String.format(Locale.US, "%.2f V", voltageMv / 1000f) : "") : "Akkumesswerte werden auf diesem Gerät gespeichert";
+        long remainingEnergyNanoWattHours = BatteryEnergy.readNanoWattHours(
+                (BatteryManager) getSystemService(BATTERY_SERVICE));
+        if (remainingEnergyNanoWattHours > 0L) {
+            details += " · Restenergie " + BatteryEnergy.label(remainingEnergyNanoWattHours);
+        }
         if (value >= 0) {
             android.content.SharedPreferences prefs = getSharedPreferences("ampere-data", MODE_PRIVATE);
             int design = BatteryCapacity.designCapacityMah(this);
             int health = BatteryHealth.percent(this, prefs, design);
             int capacity = BatteryHealth.estimatedCapacityMah(this, prefs, design);
+            BatteryChargeControl.Reading oemChargeControl = BatteryChargeControl.read();
+            BatteryChargeType.Reading kernelChargeType = BatteryChargeType.read();
+            BatteryChargeBehaviour.Reading kernelChargeBehaviour = BatteryChargeBehaviour.read();
             details += "\n" + (isCharging ? "Laden erkannt" : "Bildschirm- und Hintergrundverbrauch lokal erfasst")
                     + " · Android-Zustand " + BatteryPlatformHealth.label(platformHealth)
                     + (BatteryCapacityLevel.isAvailable(capacityLevel)
                     ? " · Kapazitätsniveau " + BatteryCapacityLevel.label(capacityLevel) : "")
                     + (isCharging && BatteryChargingState.isSpecial(chargingStatus)
                     ? " · Ladeprofil " + BatteryChargingState.label(chargingStatus) : "")
-                    + (isCharging && maxChargingPowerMilliwatts > 0
-                    ? " · " + BatteryChargerCapability.label(maxChargingPowerMilliwatts) : "")
+                    + (isCharging && kernelChargeType.isAvailable()
+                    ? " · Ladealgorithmus " + kernelChargeType.label() : "")
+                    + (kernelChargeBehaviour.isAvailable()
+                    ? " · Ladeverhalten " + kernelChargeBehaviour.label() : "")
+                    + (isCharging && chargerCapability != null && chargerCapability.isAvailable()
+                    ? " · " + chargerCapability.label() : "")
+                    + (BatteryThermalStatus.isAvailable(thermalStatus)
+                    ? " · Thermik " + BatteryThermalStatus.label(thermalStatus) : "")
+                    + (oemChargeControl.isAvailable()
+                    ? " · " + oemChargeControl.label() : "")
                     + (health > 0 ? " · Gesundheit " + health + "%" : "")
                     + (capacity > 0 ? " · Schätzung " + capacity + " mAh" : "");
         }
@@ -182,7 +211,8 @@ public class BatteryMonitorService extends Service {
             powerConnectedHintAt = 0L;
         }
         boolean detectedCharging = freshPowerHint && powerConnectedHint != null
-                ? powerConnectedHint : BatteryState.isCharging(status, plugged);
+                ? powerConnectedHint : BatteryState.isCharging(status, plugged,
+                battery.hasExtra(BatteryManager.EXTRA_PLUGGED));
         Boolean stableCharging;
         if (freshPowerHint && powerConnectedHint != null) {
             prefs.edit().remove("pendingChargingState").remove("pendingChargingSince").apply();
@@ -193,7 +223,7 @@ public class BatteryMonitorService extends Service {
         if (stableCharging == null) return;
         boolean isCharging = stableCharging;
         BatteryManager batteryManager = (BatteryManager) getSystemService(BATTERY_SERVICE);
-        int currentMa = BatteryCurrent.milliAmps(batteryManager);
+        int currentMa = BatteryCurrent.milliAmps(batteryManager, isCharging, value);
         int signedCurrentMa = currentMa == 0 ? 0 : (isCharging ? currentMa : -currentMa);
         if (isCharging && currentMa > 0) {
             int previousChargingCurrent = prefs.getInt("lastChargingCurrentMa", 0);
@@ -205,8 +235,7 @@ public class BatteryMonitorService extends Service {
         }
         int temperature = BatteryTemperature.normalizeTenths(
                 battery.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0));
-        int voltageMv = BatteryVoltage.normalizeMilliVolts(
-                battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0));
+        int voltageMv = BatteryVoltage.readMilliVolts(battery);
         long rawChargeCounterUah = readChargeCounterUah(batteryManager);
         int chargeCounterMah = rawChargeCounterUah > 0
                 ? (int) Math.min(Integer.MAX_VALUE, Math.round(rawChargeCounterUah / 1000d)) : 0;
@@ -226,10 +255,12 @@ public class BatteryMonitorService extends Service {
                 battery.getIntExtra(BatteryManager.EXTRA_HEALTH, BatteryManager.BATTERY_HEALTH_UNKNOWN),
                 BatteryCapacityLevel.fromIntent(battery),
                 BatteryChargingState.fromIntent(battery),
-                BatteryChargerCapability.maxPowerMilliwatts(battery)));
+                BatteryChargerCapability.read(battery),
+                BatteryThermalStatus.read(this)));
         BatteryWidgetProvider.updateAll(this);
         BatteryQuickSettingsService.requestRefresh(this);
-        updateSinceFullStats(prefs, value, isCharging, chargeCounterMah, currentMa, now, interactive, deepSleepDeltaMs);
+        updateSinceFullStats(prefs, value, isCharging, chargeCounterMah, currentMa, now, interactive,
+                deepSleepDeltaMs, plugged);
         updateDischargeStats(prefs, value, isCharging, chargeCounterMah, currentMa, now, interactive, deepSleepDeltaMs);
         updateChargeStats(prefs, value, isCharging, chargeCounterMah, currentMa, now, interactive, plugged);
         recordSession(prefs, value, isCharging, chargeCounterMah, now, previousMonitorSampleAt);
@@ -243,15 +274,19 @@ public class BatteryMonitorService extends Service {
         if (storedLimit != limit) prefs.edit().putInt("chargeLimit", limit).apply();
         boolean alarmEnabled = prefs.getBoolean("chargeAlarm", true);
         boolean alarmSent = prefs.getBoolean("chargeAlarmSent", false);
-        if (alarmEnabled && isCharging && value >= limit && !alarmSent) {
+        int previousChargeAlarmLevel = BatteryLevel.normalizePercent(
+                prefs.getInt("chargeAlarmLastLevel", -1));
+        if (alarmEnabled && BatteryChargeAlarm.shouldAlert(value, isCharging, limit, alarmSent,
+                previousChargeAlarmLevel)) {
             NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
             if (manager != null) manager.notify(8, alarmNotification(value, limit));
             prefs.edit().putBoolean("chargeAlarmSent", true).apply();
-        } else if (!alarmEnabled || !isCharging || value < limit) {
+        } else if (!alarmEnabled || BatteryChargeAlarm.shouldReset(value, isCharging, limit)) {
             NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
             if (manager != null) manager.cancel(8);
             if (alarmSent) prefs.edit().putBoolean("chargeAlarmSent", false).apply();
         }
+        prefs.edit().putInt("chargeAlarmLastLevel", value).apply();
         boolean temperatureAlarm = prefs.getBoolean("temperatureAlarm", true);
         int temperatureThreshold = BatteryTemperatureAlarm.normalizeThreshold(
                 prefs.getInt("temperatureAlarmThresholdTenths", BatteryTemperatureAlarm.DEFAULT_THRESHOLD_TENTHS));
@@ -265,6 +300,23 @@ public class BatteryMonitorService extends Service {
             if (manager != null) manager.cancel(9);
             if (temperatureSent) prefs.edit().putBoolean("temperatureAlarmSent", false).apply();
         }
+        boolean dischargeAlarm = prefs.getBoolean("dischargeAlarm", true);
+        int dischargeThreshold = BatteryDischargeAlarm.normalizeThreshold(
+                prefs.getInt("dischargeAlarmThreshold", BatteryDischargeAlarm.DEFAULT_THRESHOLD));
+        boolean dischargeSent = prefs.getBoolean("dischargeAlarmSent", false);
+        int previousDischargeAlarmLevel = BatteryLevel.normalizePercent(
+                prefs.getInt("dischargeAlarmLastLevel", -1));
+        if (BatteryDischargeAlarm.shouldAlert(value, isCharging, dischargeThreshold, dischargeSent,
+                previousDischargeAlarmLevel)) {
+            NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            if (manager != null) manager.notify(10, dischargeAlarmNotification(value, dischargeThreshold));
+            prefs.edit().putBoolean("dischargeAlarmSent", true).apply();
+        } else if (!dischargeAlarm || BatteryDischargeAlarm.shouldReset(value, isCharging, dischargeThreshold)) {
+            NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            if (manager != null) manager.cancel(10);
+            if (dischargeSent) prefs.edit().putBoolean("dischargeAlarmSent", false).apply();
+        }
+        prefs.edit().putInt("dischargeAlarmLastLevel", value).apply();
         long lastSampleAt = prefs.getLong("lastSample", 0L);
         // Wall-clock changes must not block sampling forever. The next sample
         // establishes a new baseline; persisted points are never rewritten.
@@ -293,6 +345,7 @@ public class BatteryMonitorService extends Service {
         prefs.edit().putString("history", output.toString()).putString("historyLong", longOutput.toString()).putLong("lastSample", now).apply();
         updateUsageCounters(prefs, value, isCharging, now);
         updateEstimatedCycles(prefs, rawChargeCounterUah, isCharging);
+        recordDailyCycleHistory(prefs, now, systemCycleCount);
     }
 
     private long readChargeCounterUah(BatteryManager batteryManager) {
@@ -312,6 +365,27 @@ public class BatteryMonitorService extends Service {
         prefs.edit().putLong("estimatedCycleLastCounterUah", currentCounterUah)
                 .putFloat("estimatedCycleFraction", BatteryCycleEstimator.remainder(updated))
                 .putInt("estimatedCycleCount", cycles).apply();
+    }
+
+    private void recordDailyCycleHistory(android.content.SharedPreferences prefs, long now,
+                                         int systemCycleCount) {
+        String source;
+        float cycles;
+        if (BatteryCycleCount.isPlausible(systemCycleCount)) {
+            source = BatteryCycleHistory.REPORTED;
+            cycles = systemCycleCount;
+        } else {
+            int estimated = Math.max(0, prefs.getInt("estimatedCycleCount", 0));
+            float remainder = prefs.getFloat("estimatedCycleFraction", 0f);
+            if (!Float.isFinite(remainder) || remainder < 0f || remainder >= 1f
+                    || (estimated <= 0 && remainder <= 0f)) return;
+            source = BatteryCycleHistory.ESTIMATED;
+            cycles = estimated + remainder;
+        }
+        String date = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date(now));
+        String current = prefs.getString("cycleHistory", "");
+        String updated = BatteryCycleHistory.record(current, date, cycles, source);
+        if (!current.equals(updated)) prefs.edit().putString("cycleHistory", updated).apply();
     }
 
     /**
@@ -516,26 +590,31 @@ public class BatteryMonitorService extends Service {
                 .putLong("deepSleepMs", deepSleepMs).putLong("monitorSampleAt", now).apply();
     }
 
-    /** Tracks battery use after the most recent observed full charge. */
+    /** Tracks battery use after the most recent full charge or unplug event. */
     private void updateSinceFullStats(android.content.SharedPreferences prefs, int level, boolean charging,
                                       int counterMah, int currentMa, long now, boolean interactive,
-                                      long deepSleepDeltaMs) {
+                                      long deepSleepDeltaMs, int plugged) {
+        boolean previousCharging = prefs.getBoolean("monitorLastCharging", charging);
+        BatteryChargeAnchor.State before = readChargeAnchor(prefs);
+        BatteryChargeAnchor.State state = before;
+        if (!previousCharging && charging) state = BatteryChargeAnchor.onPowerConnected(state);
+        state = BatteryChargeAnchor.onBatteryChanged(state, level, plugged != 0,
+                charging && level >= 99, now);
+        if (previousCharging && !charging) {
+            state = BatteryChargeAnchor.onPowerDisconnected(state, level, now);
+        }
+        persistChargeAnchor(prefs, state);
         boolean active = prefs.getBoolean("sinceFullActive", false);
-        if (charging && level >= 99 && !active) {
-            prefs.edit().putBoolean("sinceFullActive", true).putLong("sinceFullStartAt", now)
-                    .putInt("sinceFullStartLevel", level).putInt("sinceFullLastLevel", level)
-                    .putInt("sinceFullLastCounterMah", counterMah).putLong("sinceFullLastAt", now)
-                    .putFloat("sinceFullPercent", 0f).putInt("sinceFullMah", 0)
-                    .putLong("sinceFullScreenOnMs", 0L).putLong("sinceFullScreenOffMs", 0L)
-                    .putLong("sinceFullDeepSleepMs", 0L).putInt("sinceFullWakeups", 0).apply();
+        if (!state.hasAnchor()) return;
+        if (!active || !BatteryChargeAnchor.sameAnchor(before, state)) {
+            startSinceChargeStats(prefs, state, counterMah, now);
             return;
         }
-        if (!active) return;
         int previousLevel = BatteryLevel.normalizePercent(prefs.getInt("sinceFullLastLevel", level));
         if (previousLevel < 0) previousLevel = level;
         int previousCounter = prefs.getInt("sinceFullLastCounterMah", counterMah);
         long lastAt = prefs.getLong("sinceFullLastAt", now);
-        long elapsed = Math.min(accountingIntervalCapMs(), Math.max(0L, now - lastAt));
+        long elapsed = BatteryTimelineRules.cappedElapsed(lastAt, now, accountingIntervalCapMs());
         float usedPercent = BatteryPercentage.normalizeCumulative(prefs.getFloat("sinceFullPercent", 0f));
         if (!charging && level < previousLevel) usedPercent += previousLevel - level;
         int usedMah = prefs.getInt("sinceFullMah", 0);
@@ -551,6 +630,41 @@ public class BatteryMonitorService extends Service {
                 .putLong("sinceFullLastAt", now).putFloat("sinceFullPercent", usedPercent)
                 .putInt("sinceFullMah", usedMah).putLong("sinceFullScreenOnMs", screenOnMs)
                 .putLong("sinceFullScreenOffMs", screenOffMs).putLong("sinceFullDeepSleepMs", deepSleepMs).apply();
+    }
+
+    private BatteryChargeAnchor.State readChargeAnchor(android.content.SharedPreferences prefs) {
+        long anchorAt = prefs.getLong("chargeAnchorAt", 0L);
+        int anchorLevel = BatteryLevel.normalizePercent(prefs.getInt("chargeAnchorLevel", -1));
+        String anchorType = prefs.getString("chargeAnchorType", "");
+        boolean fullReached = prefs.getBoolean("chargeAnchorFullReachedThisPlug",
+                prefs.getBoolean("sinceFullActive", false));
+        if (anchorAt <= 0L && prefs.getBoolean("sinceFullActive", false)) {
+            anchorAt = prefs.getLong("sinceFullStartAt", 0L);
+            anchorLevel = BatteryLevel.normalizePercent(prefs.getInt("sinceFullStartLevel", 100));
+            anchorType = BatteryChargeAnchor.FULL;
+            fullReached = true;
+        }
+        return new BatteryChargeAnchor.State(anchorAt, anchorLevel, anchorType, fullReached);
+    }
+
+    private void persistChargeAnchor(android.content.SharedPreferences prefs,
+                                     BatteryChargeAnchor.State state) {
+        prefs.edit().putLong("chargeAnchorAt", state.anchorAt)
+                .putInt("chargeAnchorLevel", state.anchorLevel)
+                .putString("chargeAnchorType", state.anchorType)
+                .putBoolean("chargeAnchorFullReachedThisPlug", state.fullReachedThisPlug)
+                .apply();
+    }
+
+    private void startSinceChargeStats(android.content.SharedPreferences prefs,
+                                       BatteryChargeAnchor.State state, int counterMah, long now) {
+        prefs.edit().putBoolean("sinceFullActive", true).putLong("sinceFullStartAt", state.anchorAt)
+                .putInt("sinceFullStartLevel", state.anchorLevel)
+                .putInt("sinceFullLastLevel", state.anchorLevel)
+                .putInt("sinceFullLastCounterMah", counterMah).putLong("sinceFullLastAt", now)
+                .putFloat("sinceFullPercent", 0f).putInt("sinceFullMah", 0)
+                .putLong("sinceFullScreenOnMs", 0L).putLong("sinceFullScreenOffMs", 0L)
+                .putLong("sinceFullDeepSleepMs", 0L).putInt("sinceFullWakeups", 0).apply();
     }
 
     private void recordSession(android.content.SharedPreferences prefs, int level, boolean charging, int counterMah,
@@ -766,7 +880,7 @@ public class BatteryMonitorService extends Service {
         if (previousLevel < 0) previousLevel = level;
         int previousCounter = prefs.getInt("dischargeLastCounterMah", counterMah);
         long lastAt = prefs.getLong("dischargeLastAt", now);
-        long elapsed = Math.max(0L, now - lastAt);
+        long elapsed = BatteryTimelineRules.cappedElapsed(lastAt, now, accountingIntervalCapMs());
         float onPercent = BatteryPercentage.normalizePhase(prefs.getFloat("dischargeScreenOnPercent", 0f));
         float offPercent = BatteryPercentage.normalizePhase(prefs.getFloat("dischargeScreenOffPercent", 0f));
         if (level < previousLevel) {
@@ -839,7 +953,7 @@ public class BatteryMonitorService extends Service {
         }
         int previousCounter = prefs.getInt("chargeLastCounterMah", counterMah);
         long lastAt = prefs.getLong("chargeLastAt", now);
-        long elapsed = Math.max(0L, now - lastAt);
+        long elapsed = BatteryTimelineRules.cappedElapsed(lastAt, now, accountingIntervalCapMs());
         int added;
         if (counterMah > 0 && previousCounter > 0) {
             added = counterMah > previousCounter ? counterMah - previousCounter : 0;
@@ -871,10 +985,7 @@ public class BatteryMonitorService extends Service {
     }
 
     private String chargerLabel(int plugged) {
-        if (plugged == BatteryManager.BATTERY_PLUGGED_AC) return "Netzteil";
-        if (plugged == BatteryManager.BATTERY_PLUGGED_USB) return "USB";
-        if (plugged == BatteryManager.BATTERY_PLUGGED_WIRELESS) return "Kabellos";
-        return "Externe Stromquelle";
+        return BatteryPlugType.label(plugged);
     }
 
     private String duration(long minutes) {
@@ -900,6 +1011,18 @@ public class BatteryMonitorService extends Service {
         return builder.setSmallIcon(com.ampere.batterylab.R.drawable.ic_launcher)
                 .setContentTitle("Hohe Akkutemperatur")
                 .setContentText(String.format(Locale.GERMANY, "Akku bei %.1f °C · Grenzwert %.1f °C", temperatureTenths / 10f, thresholdTenths / 10f))
+                .setContentIntent(pending)
+                .setAutoCancel(false)
+                .build();
+    }
+
+    private Notification dischargeAlarmNotification(int value, int threshold) {
+        Intent launch = new Intent(this, MainActivity.class);
+        PendingIntent pending = PendingIntent.getActivity(this, 4, launch, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? new Notification.Builder(this, ALARM_CHANNEL_ID) : new Notification.Builder(this);
+        return builder.setSmallIcon(com.ampere.batterylab.R.drawable.ic_launcher)
+                .setContentTitle("Akku fast leer")
+                .setContentText("Akku bei " + value + "% · Grenzwert " + threshold + "%")
                 .setContentIntent(pending)
                 .setAutoCancel(false)
                 .build();

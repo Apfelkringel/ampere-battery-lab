@@ -5,6 +5,7 @@ import android.app.DownloadManager;
 import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Arrays;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
@@ -12,11 +13,24 @@ import static org.junit.Assert.assertTrue;
 
 /** Pure rules shared by the visible dashboard and background monitor. */
 public class BatteryRulesTest {
+    @Test public void remainingEnergyUsesAndroidNanoWattHourUnitAndRejectsSentinels() {
+        assertEquals(2_500_000_000L, BatteryEnergy.normalizeNanoWattHours(2_500_000_000L));
+        assertEquals(2.5d, BatteryEnergy.wattHours(2_500_000_000L), 0.0001d);
+        assertEquals("2,50 Wh", BatteryEnergy.label(2_500_000_000L));
+        assertEquals(0L, BatteryEnergy.normalizeNanoWattHours(0L));
+        assertEquals(0L, BatteryEnergy.normalizeNanoWattHours(Long.MIN_VALUE));
+        assertEquals(0L, BatteryEnergy.normalizeNanoWattHours(100_000_000_000_001L));
+        assertEquals("—", BatteryEnergy.label(-1L));
+    }
+
     @Test public void chargingRequiresAReportedPowerSource() {
         assertFalse(BatteryState.isCharging(BatteryManager.BATTERY_STATUS_CHARGING, 0));
         assertTrue(BatteryState.isCharging(BatteryManager.BATTERY_STATUS_CHARGING, BatteryManager.BATTERY_PLUGGED_USB));
         assertTrue(BatteryState.isCharging(BatteryManager.BATTERY_STATUS_FULL, BatteryManager.BATTERY_PLUGGED_AC));
         assertFalse(BatteryState.isCharging(BatteryManager.BATTERY_STATUS_DISCHARGING, BatteryManager.BATTERY_PLUGGED_AC));
+        assertTrue(BatteryState.isCharging(BatteryManager.BATTERY_STATUS_CHARGING, 0, false));
+        assertTrue(BatteryState.isCharging(BatteryManager.BATTERY_STATUS_FULL, 0, false));
+        assertFalse(BatteryState.isCharging(BatteryManager.BATTERY_STATUS_CHARGING, 0, true));
     }
 
     @Test public void pageAccessibilityControlsFollowTheActivePage() {
@@ -108,6 +122,87 @@ public class BatteryRulesTest {
         assertEquals(4, BatterySupplyRules.rank("main-fuelgauge", ""));
         assertEquals(BatterySupplyRules.UNSUPPORTED, BatterySupplyRules.rank("usb", "USB"));
         assertEquals(BatterySupplyRules.UNSUPPORTED, BatterySupplyRules.rank("usb_battery", "USB"));
+    }
+
+    @Test public void chargerSourceTreatsAndroidPlugValueAsBitField() {
+        assertEquals("Netzteil", BatteryPlugType.label(BatteryManager.BATTERY_PLUGGED_AC));
+        assertEquals("USB", BatteryPlugType.label(BatteryManager.BATTERY_PLUGGED_USB));
+        assertEquals("Kabellos", BatteryPlugType.label(BatteryManager.BATTERY_PLUGGED_WIRELESS));
+        assertEquals("Netzteil", BatteryPlugType.label(
+                BatteryManager.BATTERY_PLUGGED_AC | BatteryManager.BATTERY_PLUGGED_USB));
+    }
+
+    @Test public void dailyCycleHistoryKeepsTheStrongestMonotoneReadingPerDay() {
+        String history = BatteryCycleHistory.record("", "2026-09-11", 12f, BatteryCycleHistory.ESTIMATED);
+        history = BatteryCycleHistory.record(history, "2026-09-11", 11f, BatteryCycleHistory.ESTIMATED);
+        assertEquals("2026-09-11|12.000|estimated", history);
+
+        history = BatteryCycleHistory.record(history, "2026-09-11", 8f, BatteryCycleHistory.REPORTED);
+        assertEquals("2026-09-11|8.000|reported", history);
+        history = BatteryCycleHistory.record(history, "2026-09-11", 7f, BatteryCycleHistory.REPORTED);
+        assertEquals("2026-09-11|8.000|reported", history);
+    }
+
+    @Test public void dailyCycleHistoryRejectsCorruptRowsAndCapsRetention() {
+        String history = "bad;2026-09-11|NaN|reported;2026-09-11|4|reported";
+        assertEquals("2026-09-11|4.000|reported", BatteryCycleHistory.serialize(
+                BatteryCycleHistory.parse(history)));
+        for (int i = 0; i < BatteryCycleHistory.MAX_POINTS + 5; i++) {
+            history = BatteryCycleHistory.record(history, String.format("%04d-%02d-01", 2020 + i / 12, (i % 12) + 1),
+                    i, BatteryCycleHistory.REPORTED);
+        }
+        assertEquals(BatteryCycleHistory.MAX_POINTS, BatteryCycleHistory.parse(history).size());
+    }
+
+    @Test public void chargeAnchorUsesFullChargeOncePerPlugSession() {
+        BatteryChargeAnchor.State empty = new BatteryChargeAnchor.State(0L, -1, "", false);
+        BatteryChargeAnchor.State connected = BatteryChargeAnchor.onPowerConnected(empty);
+        BatteryChargeAnchor.State full = BatteryChargeAnchor.onBatteryChanged(
+                connected, 100, true, true, 1000L);
+        BatteryChargeAnchor.State repeated = BatteryChargeAnchor.onBatteryChanged(
+                full, 100, true, true, 2000L);
+        assertEquals(1000L, repeated.anchorAt);
+        assertEquals(BatteryChargeAnchor.FULL, repeated.anchorType);
+        assertTrue(repeated.fullReachedThisPlug);
+
+        BatteryChargeAnchor.State unplugged = BatteryChargeAnchor.onPowerDisconnected(
+                repeated, 90, 3000L);
+        assertEquals(1000L, unplugged.anchorAt);
+        assertFalse(unplugged.fullReachedThisPlug);
+
+        BatteryChargeAnchor.State nextPlug = BatteryChargeAnchor.onPowerConnected(unplugged);
+        BatteryChargeAnchor.State nextFull = BatteryChargeAnchor.onBatteryChanged(
+                nextPlug, 99, true, true, 4000L);
+        assertEquals(4000L, nextFull.anchorAt);
+        assertEquals(BatteryChargeAnchor.FULL, nextFull.anchorType);
+    }
+
+    @Test public void chargeAnchorUsesUnplugPointWhenChargeStopsBeforeFull() {
+        BatteryChargeAnchor.State connected = BatteryChargeAnchor.onPowerConnected(
+                new BatteryChargeAnchor.State(0L, -1, "", false));
+        BatteryChargeAnchor.State unplugged = BatteryChargeAnchor.onPowerDisconnected(
+                connected, 76, 5000L);
+        assertEquals(5000L, unplugged.anchorAt);
+        assertEquals(76, unplugged.anchorLevel);
+        assertEquals(BatteryChargeAnchor.UNPLUGGED, unplugged.anchorType);
+    }
+
+    @Test public void fullChargeEstimateUsesRemainingCounterAndRejectsUncertainLevels() {
+        assertEquals(5000, BatteryFullChargeEstimate.fromCounterAtLevel(2_500_000L, 50));
+        assertEquals(5000, BatteryFullChargeEstimate.fromCounter(2_500_000L, 50, 100));
+        assertEquals(4950, BatteryFullChargeEstimate.fromCounter(2_500_000L, 505, 1000));
+        assertEquals(4941, BatteryFullChargeEstimate.fromCounterFraction(2_500_000L, 0.506));
+        assertEquals(0, BatteryFullChargeEstimate.fromCounterAtLevel(500_000L, 10));
+        assertEquals(0, BatteryFullChargeEstimate.fromCounter(2_500_000L, 199, 1000));
+        assertEquals(0, BatteryFullChargeEstimate.fromCounterAtLevel(50_000_000L, 50));
+        assertEquals(0, BatteryFullChargeEstimate.fromCounterAtLevel(2_500_000L, 101));
+    }
+
+    @Test public void appAttributionNeverExceedsObservedEnergyWhenDirectTelemetryRunsHot() {
+        assertEquals(320, BatteryAppAttribution.estimateMah(400, 1000, 800, 0L, 0L));
+        assertEquals(400, BatteryAppAttribution.estimateMah(400, 800, 1000, 0L, 0L));
+        assertEquals(300, BatteryAppAttribution.estimateMah(0, 0, 1200, 15L, 60L));
+        assertEquals(0, BatteryAppAttribution.estimateMah(0, 0, 0, 15L, 60L));
     }
 
     @Test public void healthCannotExceedOneHundredPercent() {
@@ -308,12 +403,167 @@ public class BatteryRulesTest {
         assertEquals(0, BatteryTemperature.normalizeTenths(1001));
     }
 
+    @Test public void dischargeAlarmUsesSafeThresholdAndOnlyAlertsOnce() {
+        assertEquals(5, BatteryDischargeAlarm.normalizeThreshold(1));
+        assertEquals(15, BatteryDischargeAlarm.normalizeThreshold(15));
+        assertEquals(50, BatteryDischargeAlarm.normalizeThreshold(90));
+        assertTrue(BatteryDischargeAlarm.shouldAlert(15, false, 15, false, 16));
+        assertTrue(BatteryDischargeAlarm.shouldAlert(15, false, 15, false, -1));
+        assertFalse(BatteryDischargeAlarm.shouldAlert(15, false, 15, false, 15));
+        assertFalse(BatteryDischargeAlarm.shouldAlert(16, false, 15, false, 17));
+        assertFalse(BatteryDischargeAlarm.shouldAlert(15, true, 15, false, 16));
+        assertFalse(BatteryDischargeAlarm.shouldAlert(10, false, 15, true, 16));
+    }
+
+    @Test public void dischargeAlarmResetsOnChargingOrHysteresis() {
+        assertTrue(BatteryDischargeAlarm.shouldReset(19, false, 15));
+        assertFalse(BatteryDischargeAlarm.shouldReset(18, false, 15));
+        assertTrue(BatteryDischargeAlarm.shouldReset(10, true, 15));
+        assertTrue(BatteryDischargeAlarm.shouldReset(-1, false, 15));
+    }
+
+    @Test public void chargeAlarmOnlyFiresOnTargetCrossingAndUsesHysteresis() {
+        assertTrue(BatteryChargeAlarm.shouldAlert(80, true, 80, false, -1));
+        assertFalse(BatteryChargeAlarm.shouldAlert(80, true, 80, true, 79));
+        assertTrue(BatteryChargeAlarm.shouldAlert(80, true, 80, false, 79));
+        assertFalse(BatteryChargeAlarm.shouldAlert(80, true, 80, false, 80));
+        assertFalse(BatteryChargeAlarm.shouldReset(79, true, 80));
+        assertTrue(BatteryChargeAlarm.shouldReset(77, true, 80));
+        assertTrue(BatteryChargeAlarm.shouldReset(80, false, 80));
+    }
+
+    @Test public void monitorWatchdogTreatsMissingAndRewoundHeartbeatsAsStale() {
+        assertTrue(BatteryMonitorWatchdog.isHeartbeatStale(0L, 10_000L));
+        assertTrue(BatteryMonitorWatchdog.isHeartbeatStale(50_000L, 49_999L));
+        assertTrue(BatteryMonitorWatchdog.isHeartbeatStale(0L, 0L));
+        assertFalse(BatteryMonitorWatchdog.isHeartbeatStale(100_000L,
+                100_000L + BatteryMonitorWatchdog.STALE_AFTER_MS - 1L));
+        assertTrue(BatteryMonitorWatchdog.isHeartbeatStale(100_000L,
+                100_000L + BatteryMonitorWatchdog.STALE_AFTER_MS));
+    }
+
     @Test public void voltageRejectsMissingAndImplausibleValues() {
         assertEquals(4200, BatteryVoltage.normalizeMilliVolts(4200));
-        assertEquals(1000, BatteryVoltage.normalizeMilliVolts(1000));
+        assertEquals(500, BatteryVoltage.normalizeMilliVolts(500));
         assertEquals(0, BatteryVoltage.normalizeMilliVolts(0));
         assertEquals(0, BatteryVoltage.normalizeMilliVolts(-1));
-        assertEquals(0, BatteryVoltage.normalizeMilliVolts(10001));
+        assertEquals(0, BatteryVoltage.normalizeMilliVolts(20001));
+        assertEquals(4200, BatteryVoltage.normalizeSysfsVoltage(4200));
+        assertEquals(4200, BatteryVoltage.normalizeSysfsVoltage(4_200_000));
+        assertEquals(0, BatteryVoltage.normalizeSysfsVoltage(400));
+        assertEquals(0, BatteryVoltage.normalizeSysfsVoltage(20_000_001));
+    }
+
+    @Test public void sharedBatteryReadingKeepsValidatedBroadcastFieldsTogether() {
+        BatteryReading reading = BatteryReading.fromValidatedValues(
+                80, BatteryManager.BATTERY_STATUS_CHARGING,
+                BatteryManager.BATTERY_PLUGGED_USB, 275, 4200, 0);
+        assertEquals(80, reading.level);
+        assertEquals(BatteryManager.BATTERY_STATUS_CHARGING, reading.status);
+        assertEquals(BatteryManager.BATTERY_PLUGGED_USB, reading.plugged);
+        assertTrue(reading.charging);
+        assertEquals(275, reading.temperatureTenths);
+        assertEquals(4200, reading.voltageMv);
+        assertEquals(0, reading.currentMa);
+        BatteryReading unavailable = BatteryReading.fromValidatedValues(
+                -1, BatteryManager.BATTERY_STATUS_UNKNOWN, 0, 0, 0, 0);
+        assertEquals(-1, unavailable.level);
+        assertFalse(unavailable.charging);
+    }
+
+    @Test public void chargeTimeEstimateNeverInventsDurationWithoutCapacity() {
+        assertEquals(30L, BatteryTimeEstimate.minutesToTarget(50, 100,
+                3000, 3000f, 0));
+        assertEquals(30L, BatteryTimeEstimate.minutesToTarget(50, 100,
+                3000, 0f, 3000));
+        assertEquals(0L, BatteryTimeEstimate.minutesToTarget(50, 100,
+                0, 3000f, 3000));
+        assertEquals(0L, BatteryTimeEstimate.minutesToTarget(50, 100,
+                3000, Float.NaN, 49));
+        assertEquals(0L, BatteryTimeEstimate.minutesToTarget(50, 100,
+                3000, 49f, 0));
+        assertEquals(0L, BatteryTimeEstimate.minutesToTarget(50, 100,
+                3000, Float.POSITIVE_INFINITY, 100_001));
+        assertEquals(0L, BatteryTimeEstimate.minutesToTarget(100, 100,
+                3000, 3000f, 3000));
+    }
+
+    @Test public void fuelGaugeTimeRejectsSentinelsAndPrefersValidFullEstimate() {
+        assertEquals(60, BatteryFuelGaugeTime.normalizeSeconds(3600));
+        assertEquals(1, BatteryFuelGaugeTime.normalizeSeconds(61));
+        assertEquals(0, BatteryFuelGaugeTime.normalizeSeconds(0));
+        assertEquals(0, BatteryFuelGaugeTime.normalizeSeconds(-1));
+        assertEquals(0, BatteryFuelGaugeTime.normalizeSeconds(48L * 60L * 60L + 1L));
+        assertEquals(90, BatteryFuelGaugeTime.fullMinutes(5400, 7200));
+        assertEquals(120, BatteryFuelGaugeTime.fullMinutes(0, 7200));
+        assertEquals(0, BatteryFuelGaugeTime.fullMinutes(-1, 0));
+    }
+
+    @Test public void runtimeEstimateBlendsCurrentSessionOnlyAfterEnoughEvidence() {
+        assertEquals(10f, BatteryRuntimeEstimate.blendRate(10f, 20f, 5L * 60L * 1000L), 0.001f);
+        assertEquals(16f, BatteryRuntimeEstimate.blendRate(10f, 20f, 30L * 60L * 1000L), 0.001f);
+        assertEquals(20f, BatteryRuntimeEstimate.blendRate(0f, 20f, 30L * 60L * 1000L), 0.001f);
+        assertEquals(0f, BatteryRuntimeEstimate.blendRate(Float.NaN, Float.POSITIVE_INFINITY,
+                30L * 60L * 1000L), 0.001f);
+    }
+
+    @Test public void runtimeEstimateUsesChargeCounterEnergyWhenPercentIsFlat() {
+        assertEquals(10f, BatteryRuntimeEstimate.rateFromObserved(0f, 300, 3000,
+                60L * 60L * 1000L), 0.001f);
+        assertEquals(5f, BatteryRuntimeEstimate.rateFromObserved(5f, 0, 3000,
+                60L * 60L * 1000L), 0.001f);
+        assertEquals(0f, BatteryRuntimeEstimate.rateFromObserved(1f, 0, 3000,
+                5L * 60L * 1000L), 0.001f);
+    }
+
+    @Test public void timelineCapsUnobservedIntegrationGaps() {
+        assertEquals(30L * 60L * 1000L,
+                BatteryTimelineRules.cappedElapsed(1_000L, 4_000_000L, 30L * 60L * 1000L));
+        assertEquals(5_000L, BatteryTimelineRules.cappedElapsed(1_000L, 6_000L, 30L * 60L * 1000L));
+        assertEquals(0L, BatteryTimelineRules.cappedElapsed(6_000L, 1_000L, 30L * 60L * 1000L));
+    }
+
+    @Test public void thermalStatusKeepsOnlyAndroidsKnownRange() {
+        assertEquals(android.os.PowerManager.THERMAL_STATUS_NONE,
+                BatteryThermalStatus.normalize(android.os.PowerManager.THERMAL_STATUS_NONE));
+        assertEquals(android.os.PowerManager.THERMAL_STATUS_SEVERE,
+                BatteryThermalStatus.normalize(android.os.PowerManager.THERMAL_STATUS_SEVERE));
+        assertEquals(BatteryThermalStatus.UNKNOWN, BatteryThermalStatus.normalize(-2));
+        assertEquals(BatteryThermalStatus.UNKNOWN, BatteryThermalStatus.normalize(99));
+        assertEquals("Kritisch", BatteryThermalStatus.label(
+                android.os.PowerManager.THERMAL_STATUS_CRITICAL));
+        assertEquals("Nicht verfügbar", BatteryThermalStatus.label(BatteryThermalStatus.UNKNOWN));
+    }
+
+    @Test public void batteryTechnologyKeepsOnlyShortPrintableBroadcastValues() {
+        assertEquals("Li-ion", BatteryTechnology.normalize("  Li-ion "));
+        assertEquals("", BatteryTechnology.normalize("\u0000Li-ion"));
+        assertEquals("", BatteryTechnology.normalize("123456789012345678901234567890123"));
+        assertEquals("", BatteryTechnology.normalize(null));
+    }
+
+    @Test public void oemChargeThresholdRejectsDisabledAndImpossibleValues() {
+        assertEquals(1, BatteryChargeControl.normalizeThreshold(1));
+        assertEquals(100, BatteryChargeControl.normalizeThreshold(100));
+        assertEquals(0, BatteryChargeControl.normalizeThreshold(0));
+        assertEquals(0, BatteryChargeControl.normalizeThreshold(-1));
+        assertEquals(0, BatteryChargeControl.normalizeThreshold(101));
+        assertEquals("OEM-Ladefenster 40–80%",
+                new BatteryChargeControl.Reading(80, 40, "test").label());
+        assertEquals("OEM-Limit 80%",
+                new BatteryChargeControl.Reading(80, 0, "test").label());
+    }
+
+    @Test public void manufactureDateRequiresARealCompleteCalendarDate() {
+        assertTrue(BatteryManufactureDate.isValidDate(2024, 2, 29));
+        assertFalse(BatteryManufactureDate.isValidDate(2023, 2, 29));
+        assertFalse(BatteryManufactureDate.isValidDate(2024, 4, 31));
+        assertFalse(BatteryManufactureDate.isValidDate(1969, 12, 31));
+        assertFalse(BatteryManufactureDate.isValidDate(2101, 1, 1));
+        assertEquals("2024-02-29", BatteryManufactureDate.fromParts(
+                2024, 2, 29, "test").label());
+        assertFalse(BatteryManufactureDate.fromParts(2024, 2, 30, "test").isAvailable());
+        assertEquals("—", BatteryManufactureDate.Reading.unavailable().label());
     }
 
     @Test public void batteryLevelRejectsImpossibleRawPairs() {
@@ -376,6 +626,38 @@ public class BatteryRulesTest {
         String[] discharging = {"1700000000000", "46", "0", "900", "25.0", "4.20", "6600", "0", "", "12", "0"};
         assertFalse(BatteryExportRules.isValidTelemetry(charging));
         assertFalse(BatteryExportRules.isValidTelemetry(discharging));
+    }
+
+    @Test public void telemetryDiagnosticsKeepVoltageDeviceAgnosticAndFlagOnlyMeasuredProblems() {
+        String rows = "1700000000000,80,0,-1200,44.0,4.18,6600,1,,12,0\n"
+                + "1700000060000,79,0,-1800,48.0,4.02,6500,1,,12,0\n"
+                + "1700010860000,78,0,-900,46.0,3.95,6400,1,,12,0";
+        BatteryTelemetryDiagnostics.Summary summary = BatteryTelemetryDiagnostics.analyze(
+                rows, 15L * 60L * 1000L);
+        assertEquals(3, summary.sampleCount);
+        assertEquals(3, summary.dischargeSamples);
+        assertEquals(440, summary.minTemperatureTenths);
+        assertEquals(460, summary.averageTemperatureTenths);
+        assertEquals(480, summary.maxTemperatureTenths);
+        assertEquals(3950, summary.minDischargeVoltageMv);
+        assertEquals(78, summary.minDischargeVoltageLevel);
+        assertEquals(1800, summary.peakDischargeMa);
+        assertTrue(summary.hasHighTemperature());
+        assertTrue(summary.samplingGap);
+        assertEquals(0, BatteryTelemetryDiagnostics.analyze(
+                "1700000000000,80,1,900,25.0,8.40,6600,1,,12,1", 900000L).minDischargeVoltageMv);
+    }
+
+    @Test public void diagnosticReportExplainsMeasuredFlagsWithoutInventingEarlyCutoff() {
+        String rows = "1700000000000,80,0,-1200,48.0,4.18,6600,1,,12,0\n"
+                + "1700010860000,78,0,-900,46.0,3.95,6400,1,,12,0";
+        String report = BatteryDiagnosticReport.build(rows, 15L * 60L * 1000L, 123L);
+        assertTrue(report.contains("Max. Akkutemperatur: 48.0 °C"));
+        assertTrue(report.contains("Min. Entladespannung: 3.950 V bei 78 %"));
+        assertTrue(report.contains("WARNUNG: Akku erreichte mindestens 48 °C."));
+        assertTrue(report.contains("Sampling-Lücke"));
+        assertTrue(report.contains("nicht als Early Cutoff"));
+        assertFalse(report.contains("6.200 V"));
     }
 
     @Test public void chargeCounterRejectsSentinelsAndUnknownUnits() {
@@ -542,6 +824,93 @@ public class BatteryRulesTest {
         assertEquals("Max. 7,5 W", BatteryChargerCapability.label(7500));
     }
 
+    @Test public void chargerCapabilityKeepsValidatedRawLimitsSeparateFromPower() {
+        BatteryChargerCapability.Reading reading = BatteryChargerCapability.Reading.fromRaw(
+                1_500_000L, 5_000_000L);
+        assertEquals(1500, reading.maxCurrentMa);
+        assertEquals(5000, reading.maxVoltageMv);
+        assertEquals(7500, reading.maxPowerMilliwatts);
+        assertEquals("Ladegerät max. 1,50 A · 5,00 V · 7,5 W", reading.label());
+
+        BatteryChargerCapability.Reading currentOnly = BatteryChargerCapability.Reading.fromRaw(
+                900_000L, 0L);
+        assertEquals(900, currentOnly.maxCurrentMa);
+        assertEquals(0, currentOnly.maxVoltageMv);
+        assertEquals(0, currentOnly.maxPowerMilliwatts);
+        assertEquals("Ladegerät max. 0,90 A", currentOnly.label());
+
+        BatteryChargerCapability.Reading hardware =
+                BatteryChargerCapability.Reading.fromHardwareCurrentLimit(5_000_000L);
+        assertEquals(5000, hardware.maxCurrentMa);
+        assertEquals(0, hardware.maxVoltageMv);
+        assertEquals(0, hardware.maxPowerMilliwatts);
+        assertEquals("Ladehardware max. 5,00 A", hardware.label());
+        assertEquals("", BatteryChargerCapability.Reading.fromHardwareCurrentLimit(0L).label());
+    }
+
+    @Test public void internalResistanceAcceptsOnlyPlausibleMicroOhms() {
+        assertEquals(42, BatteryInternalResistance.normalizeMilliOhms(42_000L));
+        assertEquals(1, BatteryInternalResistance.normalizeMilliOhms(500L));
+        assertEquals(0, BatteryInternalResistance.normalizeMilliOhms(0L));
+        assertEquals(0, BatteryInternalResistance.normalizeMilliOhms(-1L));
+        assertEquals(0, BatteryInternalResistance.normalizeMilliOhms(10_000_001L));
+        BatteryInternalResistance.Reading reading = BatteryInternalResistance.fromRaw(
+                42_000L, "test");
+        assertTrue(reading.isAvailable());
+        assertEquals("42 mΩ", reading.label());
+        assertEquals("0,5 mΩ", BatteryInternalResistance.fromRaw(500L, "test").label());
+        assertEquals("—", BatteryInternalResistance.fromRaw(0L, "test").label());
+    }
+
+    @Test public void kernelChargeTypeParsesOnlyKnownReadOnlyAlgorithms() {
+        assertEquals(1, BatteryChargeType.normalize("Trickle"));
+        assertEquals(2, BatteryChargeType.normalize("FAST"));
+        assertEquals(4, BatteryChargeType.normalize("Adaptive"));
+        assertEquals(6, BatteryChargeType.normalize("Long_Life"));
+        assertEquals(0, BatteryChargeType.normalize("Unknown"));
+        assertEquals(0, BatteryChargeType.normalize("inhibit-charge"));
+        assertEquals(3, BatteryChargeType.fromTypes(
+                "Fast [Standard] Long_Life", "test").type);
+        assertEquals(0, BatteryChargeType.fromTypes("Fast Standard", "test").type);
+        assertEquals("Benutzerdefiniert", BatteryChargeType.label(5));
+    }
+
+    @Test public void kernelChargeBehaviourParsesOnlyKnownReadOnlyStates() {
+        assertEquals("auto", BatteryChargeBehaviour.normalize("[auto]"));
+        assertEquals("inhibit-charge", BatteryChargeBehaviour.normalize("INHIBIT-CHARGE"));
+        assertEquals("inhibit-charge-awake", BatteryChargeBehaviour.normalize("inhibit-charge-awake"));
+        assertEquals("force-discharge", BatteryChargeBehaviour.normalize("force-discharge"));
+        assertEquals("", BatteryChargeBehaviour.normalize("bypass"));
+        assertEquals("", BatteryChargeBehaviour.normalize("Unknown"));
+        assertEquals("Laden gesperrt", BatteryChargeBehaviour.label("inhibit-charge"));
+        assertEquals("Entladung erzwungen", BatteryChargeBehaviour.label("force-discharge"));
+        assertTrue(BatteryChargeBehaviour.fromText("[auto]", "test").isAvailable());
+        assertEquals("", BatteryChargeBehaviour.fromText("charge", "test").behaviour);
+    }
+
+    @Test public void capacityErrorMarginAllowsZeroButRejectsInvalidSentinels() {
+        assertEquals(0, BatteryCapacityErrorMargin.normalize(0L));
+        assertEquals(100, BatteryCapacityErrorMargin.normalize(100L));
+        assertEquals(-1, BatteryCapacityErrorMargin.normalize(-1L));
+        assertEquals(-1, BatteryCapacityErrorMargin.normalize(101L));
+        BatteryCapacityErrorMargin.Reading reading =
+                BatteryCapacityErrorMargin.fromRaw(7L, "test");
+        assertTrue(reading.isAvailable());
+        assertEquals("±7 %", reading.label());
+        assertEquals("±0 %", BatteryCapacityErrorMargin.fromRaw(0L, "test").label());
+        assertEquals("—", BatteryCapacityErrorMargin.fromRaw(-1L, "test").label());
+    }
+
+    @Test public void currentStatisticsExposeMinimumAverageAndMaximum() {
+        BatteryCurrentStats.Summary summary = BatteryCurrentStats.summarize(
+                Arrays.asList(120, 300, 180, 0, -5, null));
+        assertEquals(120, summary.minimumMa);
+        assertEquals(200, summary.averageMa);
+        assertEquals(300, summary.maximumMa);
+        assertEquals(3, summary.sampleCount);
+        assertFalse(BatteryCurrentStats.summarize(Arrays.asList(0, -1)).isAvailable());
+    }
+
     @Test public void batteryPowerUsesValidatedCurrentAndVoltage() {
         assertEquals(4500, BatteryPower.milliWatts(900, 5000));
         assertEquals(4500, BatteryPower.milliWatts(-900, 5000));
@@ -559,6 +928,14 @@ public class BatteryRulesTest {
         assertEquals(0, BatteryCurrent.fromMicroamps(Integer.MIN_VALUE));
         assertEquals(0, BatteryCurrent.fromMicroamps(100_000_001));
         assertEquals(0, BatteryCurrent.fromMicroamps(-100_000_001));
+    }
+
+    @Test public void currentMultiplierDetectorCorrectsOnlyTypicalScaleErrors() {
+        assertEquals(1, BatteryCurrentMultiplierDetector.detect(900, BatteryCurrentMultiplierDetector.STATUS_CHARGING, 50));
+        assertEquals(10, BatteryCurrentMultiplierDetector.detect(90, BatteryCurrentMultiplierDetector.STATUS_CHARGING, 50));
+        assertEquals(100, BatteryCurrentMultiplierDetector.detect(1, BatteryCurrentMultiplierDetector.STATUS_DISCHARGING, 50));
+        assertEquals(1, BatteryCurrentMultiplierDetector.detect(100, BatteryCurrentMultiplierDetector.STATUS_CHARGING, 95));
+        assertEquals(1, BatteryCurrentMultiplierDetector.detect(Double.NaN, BatteryCurrentMultiplierDetector.STATUS_DISCHARGING, 50));
     }
 
     @Test public void temperatureAlarmUsesThresholdAndHysteresis() {
@@ -621,11 +998,33 @@ public class BatteryRulesTest {
 
     @Test public void usageEventsCountOnlyForegroundIntervalsInsideTheWindow() {
         Map<String, Long> totals = new HashMap<>();
-        Map<String, Long> active = new HashMap<>();
-        UsageEventAccumulator.apply(totals, active, "app.one", 90L, 100L, 500L, true, false);
-        UsageEventAccumulator.apply(totals, active, "app.one", 250L, 100L, 500L, false, true);
-        UsageEventAccumulator.apply(totals, active, "app.one", 300L, 100L, 500L, true, false);
+        Map<String, UsageEventAccumulator.State> active = new HashMap<>();
+        UsageEventAccumulator.apply(totals, active, "app.one", "Main", 90L, 100L, 500L, true, false);
+        UsageEventAccumulator.apply(totals, active, "app.one", "Main", 250L, 100L, 500L, false, true);
+        UsageEventAccumulator.apply(totals, active, "app.one", "Main", 300L, 100L, 500L, true, false);
         UsageEventAccumulator.closeActive(totals, active, 500L);
         assertEquals(Long.valueOf(350L), totals.get("app.one"));
+    }
+
+    @Test public void usageEventsKeepActivitySwitchOpenAndIgnoreDuplicateCloses() {
+        Map<String, Long> totals = new HashMap<>();
+        Map<String, UsageEventAccumulator.State> active = new HashMap<>();
+        UsageEventAccumulator.apply(totals, active, "app.one", "A", 100L, 100L, 500L, true, false);
+        UsageEventAccumulator.apply(totals, active, "app.one", "B", 150L, 100L, 500L, true, false);
+        UsageEventAccumulator.apply(totals, active, "app.one", "A", 200L, 100L, 500L, false, true);
+        UsageEventAccumulator.apply(totals, active, "app.one", "A", 210L, 100L, 500L, false, true);
+        UsageEventAccumulator.apply(totals, active, "app.one", "B", 300L, 100L, 500L, false, true);
+        assertEquals(Long.valueOf(200L), totals.get("app.one"));
+    }
+
+    @Test public void usageEventsScreenOffClosesEveryOpenPackage() {
+        Map<String, Long> totals = new HashMap<>();
+        Map<String, UsageEventAccumulator.State> active = new HashMap<>();
+        UsageEventAccumulator.apply(totals, active, "app.one", "A", 100L, 100L, 500L, true, false);
+        UsageEventAccumulator.apply(totals, active, "app.two", "B", 120L, 100L, 500L, true, false);
+        UsageEventAccumulator.closeAll(totals, active, 200L);
+        assertEquals(Long.valueOf(100L), totals.get("app.one"));
+        assertEquals(Long.valueOf(80L), totals.get("app.two"));
+        assertTrue(active.isEmpty());
     }
 }

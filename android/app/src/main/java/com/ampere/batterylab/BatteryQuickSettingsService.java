@@ -95,18 +95,13 @@ public class BatteryQuickSettingsService extends TileService {
     private void refreshTile(Intent battery) {
         Tile tile = getQsTile();
         if (tile == null) return;
-        int rawLevel = battery == null ? -1 : battery.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
-        int scale = battery == null ? 100 : battery.getIntExtra(BatteryManager.EXTRA_SCALE, 100);
-        int level = BatteryLevel.percent(rawLevel, scale);
-        int status = battery == null ? BatteryManager.BATTERY_STATUS_UNKNOWN
-                : battery.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN);
-        int plugged = battery == null ? 0 : battery.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0);
-        boolean charging = BatteryState.isCharging(status, plugged);
-        int temp = battery == null ? 0 : BatteryTemperature.normalizeTenths(
-                battery.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0));
-        int voltage = battery == null ? 0 : BatteryVoltage.normalizeMilliVolts(
-                battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0));
-        int current = readCurrentMa();
+        BatteryReading reading = BatteryReading.read(this, battery);
+        int level = reading.level;
+        int status = reading.status;
+        boolean charging = reading.charging;
+        int temp = reading.temperatureTenths;
+        int voltage = reading.voltageMv;
+        int current = reading.currentMa;
 
         // Keep the title stable so SystemUI does not cache a stale dynamic
         // label. Put the live value in the subtitle, like established battery
@@ -130,11 +125,6 @@ public class BatteryQuickSettingsService extends TileService {
         if (currentMa > 0) result.append(" · ").append(charging ? "+" : "−").append(formatCurrent(currentMa));
         if (temperatureTenths > 0) result.append(" · ").append(String.format(Locale.US, "%.1f°C", temperatureTenths / 10f));
         return result.toString();
-    }
-
-    private int readCurrentMa() {
-        BatteryManager manager = (BatteryManager) getSystemService(BATTERY_SERVICE);
-        return BatteryCurrent.milliAmps(manager);
     }
 
     private static String subtitle(int status, boolean charging, int currentMa, int temperatureTenths, int voltageMv) {

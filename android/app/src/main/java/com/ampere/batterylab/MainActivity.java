@@ -69,14 +69,16 @@ public class MainActivity extends Activity {
     private static final int RESTORE_BACKUP_REQUEST = 1202;
     private static final int RESEARCH_EXPORT_REQUEST = 1203;
     private static final int CSV_EXPORT_REQUEST = 1204;
+    private static final int DIAGNOSTIC_EXPORT_REQUEST = 1205;
     private static final int MAX_BACKUP_BYTES = 4 * 1024 * 1024;
     private static final String DATA_PREFS = "ampere-data";
     private static final String TELEMETRY_PREFS = "ampere-telemetry";
     private static final Set<String> RESTORABLE_DATA_KEYS = new HashSet<>(Arrays.asList(
             "history", "historyLong", "lastSample", "healthSamples", "sessions",
             "sessionStartedAt", "sessionStartLevel", "sessionStartChargeCounterMah", "lastCharging",
-            "chargeAlarm", "chargeAlarmSent", "chargeLimit", "benchmarkActive", "benchmarkCapacityMah",
+            "chargeAlarm", "chargeAlarmSent", "chargeAlarmLastLevel", "chargeLimit", "benchmarkActive", "benchmarkCapacityMah",
             "temperatureAlarm", "temperatureAlarmSent", "temperatureAlarmThresholdTenths",
+            "dischargeAlarm", "dischargeAlarmSent", "dischargeAlarmThreshold", "dischargeAlarmLastLevel",
             "benchmarkStartLevel", "benchmarkStartCounterMah", "benchmarkChargeLastCounterMah",
             "benchmarkChargeAddedMah", "benchmarkChargeStatsBaselineMah", "healthSampleSessionAt",
             "lastChargeHealthReason", "totalChargedMah", "chargeCycles", "cycleLastLevel",
@@ -98,7 +100,8 @@ public class MainActivity extends Activity {
             "sinceFullWakeups",
             "sinceFullLastCounterMah", "sinceFullLastLevel", "sinceFullMah", "sinceFullPercent",
             "sinceFullScreenOffMs", "sinceFullScreenOnMs", "sinceFullStartAt", "sinceFullStartLevel",
-            "systemCycleCount", "systemCycleCountSource", "estimatedCycleLastCounterUah", "estimatedCycleFraction", "estimatedCycleCount",
+            "chargeAnchorAt", "chargeAnchorLevel", "chargeAnchorType", "chargeAnchorFullReachedThisPlug",
+            "systemCycleCount", "systemCycleCountSource", "estimatedCycleLastCounterUah", "estimatedCycleFraction", "estimatedCycleCount", "cycleHistory",
             "monitorLastCharging", "monitorSampleAt", "monitorSessionStartCounterMah",
             "monitorSessionStartLevel", "monitorSessionStartedAt", "lastChargingCurrentMa", "monitoringMs", "screenOffDurationMin",
             "screenOnMs", "screenSampleAt"
@@ -230,6 +233,7 @@ public class MainActivity extends Activity {
         else if (requestCode == RESTORE_BACKUP_REQUEST) readBackup(uri);
         else if (requestCode == RESEARCH_EXPORT_REQUEST) writeResearchExport(uri);
         else if (requestCode == CSV_EXPORT_REQUEST) writeCsvExport(uri);
+        else if (requestCode == DIAGNOSTIC_EXPORT_REQUEST) writeDiagnosticExport(uri);
     }
 
     private void writeBackup(Uri uri) {
@@ -360,6 +364,14 @@ public class MainActivity extends Activity {
         startActivityForResult(intent, CSV_EXPORT_REQUEST);
     }
 
+    void createDiagnosticExport() {
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT)
+                .addCategory(Intent.CATEGORY_OPENABLE)
+                .setType("text/plain")
+                .putExtra(Intent.EXTRA_TITLE, "ampere-diagnosebericht.txt");
+        startActivityForResult(intent, DIAGNOSTIC_EXPORT_REQUEST);
+    }
+
     private void writeCsvExport(Uri uri) {
         try (OutputStream stream = getContentResolver().openOutputStream(uri)) {
             if (stream == null || dashboard == null) throw new IllegalStateException("No output stream");
@@ -369,6 +381,22 @@ public class MainActivity extends Activity {
             Toast.makeText(this, "CSV-Export gespeichert.", Toast.LENGTH_LONG).show();
         } catch (Exception ignored) {
             Toast.makeText(this, "CSV-Export konnte nicht gespeichert werden.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void writeDiagnosticExport(Uri uri) {
+        try (OutputStream stream = getContentResolver().openOutputStream(uri)) {
+            if (stream == null) throw new IllegalStateException("No output stream");
+            String telemetry = getSharedPreferences(TELEMETRY_PREFS, MODE_PRIVATE)
+                    .getString("telemetrySamples", "");
+            long interval = dashboard == null ? 15L * 60L * 1000L : dashboard.samplingIntervalMs();
+            byte[] output = BatteryDiagnosticReport.build(telemetry, interval,
+                    System.currentTimeMillis()).getBytes(StandardCharsets.UTF_8);
+            if (output.length > MAX_BACKUP_BYTES) throw new IllegalArgumentException("Report too large");
+            stream.write(output);
+            Toast.makeText(this, "Diagnosebericht gespeichert.", Toast.LENGTH_LONG).show();
+        } catch (Exception ignored) {
+            Toast.makeText(this, "Diagnosebericht konnte nicht gespeichert werden.", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -383,6 +411,23 @@ public class MainActivity extends Activity {
             root.put("androidApi", Build.VERSION.SDK_INT);
             root.put("deviceManufacturer", Build.MANUFACTURER);
             root.put("deviceModel", Build.MODEL);
+            root.put("batteryTechnology", dashboard == null ? "" : dashboard.technologyForExport());
+            root.put("chargerCapability", dashboard == null
+                    ? new JSONObject() : dashboard.chargerCapabilityForExport());
+            root.put("internalResistance", dashboard == null
+                    ? new JSONObject() : dashboard.internalResistanceForExport());
+            root.put("capacityErrorMargin", dashboard == null
+                    ? new JSONObject() : dashboard.capacityErrorMarginForExport());
+            root.put("kernelChargeType", dashboard == null
+                    ? new JSONObject() : dashboard.chargeTypeForExport());
+            root.put("kernelChargeBehaviour", dashboard == null
+                    ? new JSONObject() : dashboard.chargeBehaviourForExport());
+            root.put("oemChargeControl", dashboard == null
+                    ? new JSONObject() : dashboard.chargeControlForExport());
+            root.put("batteryManufactureDate", dashboard == null
+                    ? new JSONObject() : dashboard.manufactureDateForExport());
+            root.put("remainingBatteryEnergy", dashboard == null
+                    ? new JSONObject() : dashboard.remainingEnergyForExport());
             root.put("privacy", "Created after an explicit user export. No account, location, serial number or advertising identifier is included.");
 
             JSONArray sessionRows = new JSONArray();
@@ -414,6 +459,38 @@ public class MainActivity extends Activity {
             }
             root.put("sessions", sessionRows);
 
+            JSONArray cycleRows = new JSONArray();
+            if (dashboard != null) for (BatteryCycleHistory.Point point : dashboard.cycleHistoryForExport()) {
+                JSONObject row = new JSONObject();
+                row.put("date", point.date);
+                row.put("totalCycles", point.cycles);
+                row.put("source", point.source);
+                cycleRows.put(row);
+            }
+            root.put("cycleHistory", cycleRows);
+
+            SharedPreferences data = getSharedPreferences(DATA_PREFS, MODE_PRIVATE);
+            JSONObject sinceCharge = new JSONObject();
+            boolean sinceChargeActive = data.getBoolean("sinceFullActive", false);
+            sinceCharge.put("active", sinceChargeActive);
+            if (sinceChargeActive) {
+                String anchorType = data.getString("chargeAnchorType", BatteryChargeAnchor.FULL);
+                if (!BatteryChargeAnchor.FULL.equals(anchorType)
+                        && !BatteryChargeAnchor.UNPLUGGED.equals(anchorType)) {
+                    anchorType = BatteryChargeAnchor.FULL;
+                }
+                sinceCharge.put("anchorType", anchorType);
+                sinceCharge.put("anchorTimestampMs", data.getLong("sinceFullStartAt", 0L));
+                sinceCharge.put("anchorLevelPercent", BatteryLevel.normalizePercent(
+                        data.getInt("sinceFullStartLevel", -1)));
+                sinceCharge.put("currentLevelPercent", BatteryLevel.normalizePercent(
+                        data.getInt("sinceFullLastLevel", -1)));
+                sinceCharge.put("usedPercent", BatteryPercentage.normalizeCumulative(
+                        data.getFloat("sinceFullPercent", 0f)));
+                sinceCharge.put("usedMah", Math.max(0, data.getInt("sinceFullMah", 0)));
+            }
+            root.put("sinceCharge", sinceCharge);
+
             JSONArray telemetryRows = new JSONArray();
             String telemetry = getSharedPreferences(TELEMETRY_PREFS, MODE_PRIVATE).getString("telemetrySamples", "");
             for (String sample : BatteryExportRules.validTelemetryRows(telemetry)) {
@@ -433,6 +510,22 @@ public class MainActivity extends Activity {
                 telemetryRows.put(row);
             }
             root.put("telemetry", telemetryRows);
+            BatteryTelemetryDiagnostics.Summary diagnostics = BatteryTelemetryDiagnostics.analyze(
+                    telemetry, dashboard == null ? 15L * 60L * 1000L : dashboard.samplingIntervalMs());
+            JSONObject diagnosticJson = new JSONObject();
+            diagnosticJson.put("sampleCount", diagnostics.sampleCount);
+            diagnosticJson.put("dischargeSamples", diagnostics.dischargeSamples);
+            diagnosticJson.put("minTemperatureC", diagnostics.minTemperatureTenths / 10.0);
+            diagnosticJson.put("averageTemperatureC", diagnostics.averageTemperatureTenths / 10.0);
+            diagnosticJson.put("maxTemperatureC", diagnostics.maxTemperatureTenths / 10.0);
+            diagnosticJson.put("minDischargeVoltageV", diagnostics.minDischargeVoltageMv / 1000.0);
+            diagnosticJson.put("minDischargeVoltageLevelPercent", diagnostics.minDischargeVoltageLevel);
+            diagnosticJson.put("peakDischargeMa", diagnostics.peakDischargeMa);
+            diagnosticJson.put("largestGapMs", diagnostics.largestGapMs);
+            diagnosticJson.put("samplingGapDetected", diagnostics.samplingGap);
+            diagnosticJson.put("highTemperatureDetected", diagnostics.hasHighTemperature());
+            diagnosticJson.put("voltageRule", "reported only; no fixed pack-voltage sag threshold");
+            root.put("telemetryDiagnostics", diagnosticJson);
             byte[] output = root.toString(2).getBytes(StandardCharsets.UTF_8);
             if (output.length > MAX_BACKUP_BYTES) throw new IllegalArgumentException("Research export too large");
             stream.write(output);
@@ -453,7 +546,18 @@ class BatteryDashboard extends View {
     private int platformHealth = BatteryManager.BATTERY_HEALTH_UNKNOWN;
     private int capacityLevel = -1;
     private int chargingStatus = 0;
-    private int maxChargingPowerMilliwatts = 0;
+    private int thermalStatus = BatteryThermalStatus.UNKNOWN;
+    private int oemChargeLimitPercent = 0;
+    private int oemChargeStartPercent = 0;
+    private BatteryChargeControl.Reading oemChargeControl = BatteryChargeControl.Reading.unavailable();
+    private BatteryManufactureDate.Reading manufactureDate = BatteryManufactureDate.Reading.unavailable();
+    private long remainingEnergyNanoWattHours = 0L;
+    private String technology = "";
+    private BatteryChargerCapability.Reading chargerCapability = BatteryChargerCapability.Reading.empty();
+    private BatteryInternalResistance.Reading internalResistance = BatteryInternalResistance.Reading.unavailable();
+    private BatteryCapacityErrorMargin.Reading capacityErrorMargin = BatteryCapacityErrorMargin.Reading.unavailable();
+    private BatteryChargeType.Reading kernelChargeType = BatteryChargeType.Reading.unavailable();
+    private BatteryChargeBehaviour.Reading kernelChargeBehaviour = BatteryChargeBehaviour.Reading.unavailable();
     private int currentMa = 0;
     private int signedCurrentMa = 0;
     private int chargeCounterMah = 0;
@@ -467,6 +571,7 @@ class BatteryDashboard extends View {
     private final ArrayList<Integer> history = new ArrayList<>();
     private final ArrayList<Integer> longHistory = new ArrayList<>();
     private final ArrayList<Integer> healthSamples = new ArrayList<>();
+    private final ArrayList<BatteryCycleHistory.Point> cycleHistory = new ArrayList<>();
     private final ArrayList<String> sessions = new ArrayList<>();
     private BatteryHealth.HealthReading healthReading = new BatteryHealth.HealthReading(0, 0, "");
     private boolean charging = false;
@@ -540,6 +645,7 @@ class BatteryDashboard extends View {
         history.clear();
         longHistory.clear();
         healthSamples.clear();
+        cycleHistory.clear();
         sessions.clear();
         loadStoredData();
         refreshHealthReading();
@@ -553,7 +659,7 @@ class BatteryDashboard extends View {
 
     private void updateLayoutHeight() {
         int rowCount = Math.min(150, sessions.size());
-        int contentDp = page == 4 ? Math.max(1320, 600 + rowCount * 44) : (page == 1 ? 1550 : 1320);
+        int contentDp = page == 4 ? Math.max(1320, 600 + rowCount * 44) : (page == 1 ? 1550 : (page == 3 ? 1500 : 1320));
         int contentPx = Math.round(contentDp * density);
         setMinimumHeight(contentPx);
         if (getLayoutParams() != null && getLayoutParams().height != contentPx) {
@@ -612,7 +718,8 @@ class BatteryDashboard extends View {
             return;
         }
         level = normalizedLevel;
-        boolean detectedCharging = BatteryState.isCharging(status, pluggedSource);
+        boolean detectedCharging = BatteryState.isCharging(status, pluggedSource,
+                intent.hasExtra(BatteryManager.EXTRA_PLUGGED));
         long now = System.currentTimeMillis();
         long monitorSampleAt = prefs.getLong("monitorSampleAt", 0L);
         boolean hasRecentMonitorSample = monitorSampleAt > 0L
@@ -635,14 +742,24 @@ class BatteryDashboard extends View {
                 intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -1));
         temperature = temp > 0 ? temp / 10f : 0f;
         platformHealth = intent.getIntExtra(BatteryManager.EXTRA_HEALTH, BatteryManager.BATTERY_HEALTH_UNKNOWN);
+        technology = BatteryTechnology.read(intent);
         capacityLevel = BatteryCapacityLevel.fromIntent(intent);
         chargingStatus = BatteryChargingState.fromIntent(intent);
-        maxChargingPowerMilliwatts = BatteryChargerCapability.maxPowerMilliwatts(intent);
-        int mv = BatteryVoltage.normalizeMilliVolts(
-                intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1));
+        thermalStatus = BatteryThermalStatus.read(getContext());
+        oemChargeControl = BatteryChargeControl.read();
+        oemChargeLimitPercent = oemChargeControl.endThresholdPercent;
+        oemChargeStartPercent = oemChargeControl.startThresholdPercent;
+        chargerCapability = BatteryChargerCapability.read(intent);
+        internalResistance = BatteryInternalResistance.read();
+        capacityErrorMargin = BatteryCapacityErrorMargin.read();
+        kernelChargeType = BatteryChargeType.read();
+        kernelChargeBehaviour = BatteryChargeBehaviour.read();
+        manufactureDate = BatteryManufactureDate.read();
+        int mv = BatteryVoltage.readMilliVolts(intent);
         voltage = mv > 0 ? mv / 1000f : 0f;
         BatteryManager manager = (BatteryManager) getContext().getSystemService(Context.BATTERY_SERVICE);
-        currentMa = BatteryCurrent.milliAmps(manager);
+        remainingEnergyNanoWattHours = BatteryEnergy.readNanoWattHours(manager);
+        currentMa = BatteryCurrent.milliAmps(manager, newCharging, level);
         signedCurrentMa = currentMa == 0 ? 0 : (newCharging ? currentMa : -currentMa);
         chargeCounterMah = BatteryChargeCounter.toMilliampereHours(
                 BatteryChargeCounter.readMicroampereHours(manager));
@@ -669,6 +786,8 @@ class BatteryDashboard extends View {
     private void reloadLiveCollections() {
         healthSamples.clear();
         loadAndCleanHealthSamples();
+        cycleHistory.clear();
+        cycleHistory.addAll(BatteryCycleHistory.parse(prefs.getString("cycleHistory", "")));
         sessions.clear();
         loadSessions(prefs.getString("sessions", ""));
         refreshHealthReading();
@@ -724,6 +843,7 @@ class BatteryDashboard extends View {
             prefs.edit().putString("history", canonicalHistory).putString("historyLong", canonicalLongHistory).apply();
         }
         loadAndCleanHealthSamples();
+        cycleHistory.addAll(BatteryCycleHistory.parse(prefs.getString("cycleHistory", "")));
         String savedSessions = prefs.getString("sessions", "");
         loadSessions(savedSessions);
         sessionStartedAt = prefs.getLong("sessionStartedAt", 0L);
@@ -778,7 +898,7 @@ class BatteryDashboard extends View {
         prefs.edit().putString("history", values.toString()).putString("historyLong", longValues.toString()).putLong("lastSample", now).apply();
     }
 
-    private long samplingIntervalMs() {
+    long samplingIntervalMs() {
         int minutes = prefs.getInt("samplingIntervalMin", 15);
         if (minutes != 5 && minutes != 15 && minutes != 30 && minutes != 60) minutes = 15;
         return minutes * 60L * 1000L;
@@ -835,14 +955,15 @@ class BatteryDashboard extends View {
     }
 
     private String chargerTypeDisplay() {
-        if (!charging) return "Nicht verbunden";
-        String source;
-        if (plugged == BatteryManager.BATTERY_PLUGGED_AC) source = "Netzteil";
-        else if (plugged == BatteryManager.BATTERY_PLUGGED_USB) source = "USB";
-        else if (plugged == BatteryManager.BATTERY_PLUGGED_WIRELESS) source = "Kabellos";
-        else source = "Externe Stromquelle";
-        return BatteryChargingState.isSpecial(chargingStatus)
-                ? source + " · " + BatteryChargingState.label(chargingStatus) : source;
+        String source = charging ? BatteryPlugType.label(plugged) : "Nicht verbunden";
+        if (charging && BatteryChargingState.isSpecial(chargingStatus)) {
+            source += " · " + BatteryChargingState.label(chargingStatus);
+        }
+        if (charging && kernelChargeType.isAvailable()) {
+            source += " · Algorithmus " + kernelChargeType.label();
+        }
+        return kernelChargeBehaviour.isAvailable()
+                ? source + " · Verhalten " + kernelChargeBehaviour.label() : source;
     }
 
     private int designCapacityMah() { return BatteryCapacity.designCapacityMah(getContext()); }
@@ -852,6 +973,102 @@ class BatteryDashboard extends View {
         return BatteryCapacity.hasAutomaticValue(getContext())
                 ? BatteryCapacity.automaticSource(getContext())
                 : "Nicht verfügbar · Nennkapazität manuell festlegen";
+    }
+
+    String technologyForExport() {
+        return technology;
+    }
+
+    JSONObject chargerCapabilityForExport() {
+        JSONObject value = new JSONObject();
+        try {
+            value.put("maxCurrentMa", chargerCapability.maxCurrentMa);
+            value.put("maxVoltageMv", chargerCapability.maxVoltageMv);
+            value.put("maxPowerMilliwatts", chargerCapability.maxPowerMilliwatts);
+            value.put("source", chargerCapability.source);
+        } catch (Exception ignored) { }
+        return value;
+    }
+
+    JSONObject internalResistanceForExport() {
+        JSONObject value = new JSONObject();
+        try {
+            value.put("microOhms", internalResistance.microOhms);
+            value.put("milliOhms", internalResistance.milliOhms);
+            value.put("source", internalResistance.source);
+            value.put("interpretation", "Dynamic ESR; varies with state of charge and temperature");
+        } catch (Exception ignored) { }
+        return value;
+    }
+
+    JSONObject chargeTypeForExport() {
+        JSONObject value = new JSONObject();
+        try {
+            value.put("type", kernelChargeType.type);
+            value.put("label", kernelChargeType.isAvailable() ? kernelChargeType.label() : "");
+            value.put("source", kernelChargeType.source);
+        } catch (Exception ignored) { }
+        return value;
+    }
+
+    JSONObject chargeBehaviourForExport() {
+        JSONObject value = new JSONObject();
+        try {
+            value.put("behaviour", kernelChargeBehaviour.behaviour);
+            value.put("label", kernelChargeBehaviour.isAvailable() ? kernelChargeBehaviour.label() : "");
+            value.put("source", kernelChargeBehaviour.source);
+            value.put("readOnly", true);
+        } catch (Exception ignored) { }
+        return value;
+    }
+
+    JSONObject chargeControlForExport() {
+        JSONObject value = new JSONObject();
+        try {
+            value.put("startThresholdPercent", oemChargeStartPercent);
+            value.put("endThresholdPercent", oemChargeLimitPercent);
+            value.put("label", oemChargeControl.label());
+            value.put("source", oemChargeControl.source);
+            value.put("readOnly", true);
+        } catch (Exception ignored) { }
+        return value;
+    }
+
+    JSONObject manufactureDateForExport() {
+        JSONObject value = new JSONObject();
+        try {
+            value.put("date", manufactureDate.isAvailable() ? manufactureDate.label() : "");
+            value.put("source", manufactureDate.source);
+            value.put("readOnly", true);
+        } catch (Exception ignored) { }
+        return value;
+    }
+
+    JSONObject remainingEnergyForExport() {
+        JSONObject value = new JSONObject();
+        try {
+            value.put("nanoWattHours", remainingEnergyNanoWattHours);
+            value.put("wattHours", BatteryEnergy.wattHours(remainingEnergyNanoWattHours));
+            value.put("label", BatteryEnergy.label(remainingEnergyNanoWattHours));
+            value.put("source", remainingEnergyNanoWattHours > 0L
+                    ? "Android BatteryManager ENERGY_COUNTER" : "");
+            value.put("interpretation", "Remaining battery energy, not charge counter");
+        } catch (Exception ignored) { }
+        return value;
+    }
+
+    JSONObject capacityErrorMarginForExport() {
+        JSONObject value = new JSONObject();
+        try {
+            value.put("percent", capacityErrorMargin.percent);
+            value.put("source", capacityErrorMargin.source);
+            value.put("interpretation", "Fuel-gauge capacity uncertainty, not battery wear");
+        } catch (Exception ignored) { }
+        return value;
+    }
+
+    private String internalResistanceDisplay() {
+        return internalResistance.isAvailable() ? internalResistance.label() : "—";
     }
 
     private int estimatedCapacityMah() {
@@ -939,11 +1156,9 @@ class BatteryDashboard extends View {
         if (level >= 99) return "Voll";
         long systemMinutes = systemChargeTimeRemainingMinutes();
         if (systemMinutes > 0L) return formatDuration(systemMinutes);
-        int missingMah = Math.round(calculationCapacityMah() * (100 - level) / 100f);
-        float historicalRate = averageChargeRateMahPerHour();
-        if (historicalRate > 0f) return formatDuration(Math.max(1, Math.round(missingMah * 60f / historicalRate)));
-        if (currentMa < 50) return "—";
-        return formatDuration(Math.max(1, Math.round(missingMah * 60f / currentMa)));
+        long localMinutes = BatteryTimeEstimate.minutesToTarget(level, 100,
+                calculationCapacityMah(), averageChargeRateMahPerHour(), currentMa);
+        return localMinutes > 0L ? formatDuration(localMinutes) : "—";
     }
 
     /**
@@ -952,28 +1167,36 @@ class BatteryDashboard extends View {
      * unavailable on devices that do not expose a charging estimate.
      */
     private long systemChargeTimeRemainingMinutes() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P || !charging || level < 0 || level >= 99) return 0L;
+        if (!charging || level < 0 || level >= 99) return 0L;
+        long androidMinutes = androidChargeTimeRemainingMinutes();
+        if (androidMinutes > 0L) return androidMinutes;
+        return BatteryFuelGaugeTime.readMinutes(true);
+    }
+
+    private long androidChargeTimeRemainingMinutes() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) return 0L;
         BatteryManager manager = (BatteryManager) getContext().getSystemService(Context.BATTERY_SERVICE);
-        if (manager == null) return 0L;
-        long remainingMs = manager.computeChargeTimeRemaining();
-        if (remainingMs <= 0L || remainingMs > 7L * 24L * 60L * 60L * 1000L) return 0L;
-        return Math.max(1L, Math.round(remainingMs / 60000f));
+        if (manager != null) {
+            long remainingMs = manager.computeChargeTimeRemaining();
+            if (remainingMs > 0L && remainingMs <= 7L * 24L * 60L * 60L * 1000L) {
+                return Math.max(1L, Math.round(remainingMs / 60000f));
+            }
+        }
+        return 0L;
     }
 
     private String chargeTimeEstimateLabel() {
-        if (systemChargeTimeRemainingMinutes() > 0L) return "Android-Systemschätzung";
+        if (androidChargeTimeRemainingMinutes() > 0L) return "Android-Systemschätzung";
+        if (BatteryFuelGaugeTime.readMinutes(true) > 0L) return "Fuel-Gauge-Schätzung";
         return averageChargeRateMahPerHour() > 0f ? "lokale 7-Tage-Schätzung" : "Momentanschätzung";
     }
 
     private String timeToLimit() {
         if (!charging || level < 0) return "—";
         if (level >= chargeLimit) return "Erreicht";
-        if (level < 0 || calculationCapacityMah() <= 0) return "—";
-        int missingMah = Math.round(calculationCapacityMah() * (chargeLimit - level) / 100f);
-        float historicalRate = averageChargeRateMahPerHour();
-        if (historicalRate > 0f) return formatDuration(Math.max(1, Math.round(missingMah * 60f / historicalRate)));
-        if (currentMa < 50) return "—";
-        return formatDuration(Math.max(1, Math.round(missingMah * 60f / currentMa)));
+        long localMinutes = BatteryTimeEstimate.minutesToTarget(level, chargeLimit,
+                calculationCapacityMah(), averageChargeRateMahPerHour(), currentMa);
+        return localMinutes > 0L ? formatDuration(localMinutes) : "—";
     }
 
     /** Calculates a weighted local seven-day charge rate from telemetry. */
@@ -1100,6 +1323,23 @@ class BatteryDashboard extends View {
         return screenOnRate * onRatio + screenOffRate * (1f - onRatio);
     }
 
+    private long currentDischargeDurationMs() {
+        if (charging) return 0L;
+        return Math.max(0L, prefs.getLong("dischargeScreenOnMs", 0L)
+                + prefs.getLong("dischargeScreenOffMs", 0L));
+    }
+
+    private float currentDischargeRate() {
+        if (charging) return 0f;
+        float observedPercent = BatteryPercentage.normalizePhase(
+                prefs.getFloat("dischargeScreenOnPercent", 0f))
+                + BatteryPercentage.normalizePhase(
+                prefs.getFloat("dischargeScreenOffPercent", 0f));
+        return BatteryRuntimeEstimate.rateFromObserved(observedPercent,
+                prefs.getInt("dischargeMah", 0), calculationCapacityMah(),
+                currentDischargeDurationMs());
+    }
+
     private String averageDischargeRateDisplay() {
         float rate = mixedDischargeRate();
         return rate > 0f ? String.format(Locale.US, "%.1f%%/h", rate) : "—";
@@ -1117,9 +1357,11 @@ class BatteryDashboard extends View {
             return rate > 0f ? formatDuration(Math.max(1, Math.round(historicalLevel * 60f / rate)))
                     : (used > 0f && minutes >= 5 ? formatDuration(Math.max(1, Math.round(historicalLevel * minutes / used))) : "—");
         }
-        if (calculationCapacityMah() <= 0) return "—";
-        float rate = mixedDischargeRate();
+        float historicalRate = mixedDischargeRate();
+        float rate = BatteryRuntimeEstimate.blendRate(historicalRate,
+                currentDischargeRate(), currentDischargeDurationMs());
         if (rate > 0f) return formatDuration(Math.max(1, Math.round(level * 60f / rate)));
+        if (calculationCapacityMah() <= 0) return "—";
         String systemPrediction = systemDischargePrediction();
         if (!"—".equals(systemPrediction)) return systemPrediction;
         if (currentMa < 50) return "—";
@@ -1134,7 +1376,10 @@ class BatteryDashboard extends View {
      * false precision.
      */
     private String systemDischargePrediction() {
-        if (charging || Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return "—";
+        if (charging) return "—";
+        long fuelGaugeMinutes = BatteryFuelGaugeTime.readMinutes(false);
+        if (fuelGaugeMinutes > 0L) return formatDuration(fuelGaugeMinutes);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return "—";
         PowerManager power = (PowerManager) getContext().getSystemService(Context.POWER_SERVICE);
         if (power == null) return "—";
         try {
@@ -1150,7 +1395,14 @@ class BatteryDashboard extends View {
 
     private String runtimeEstimateSource() {
         if (charging) return "Basierend auf letzter Entladephase";
-        if (mixedDischargeRate() > 0f) return "Basierend auf lokaler 7-Tage-Nutzung";
+        float historicalRate = mixedDischargeRate();
+        float currentRate = currentDischargeRate();
+        if (currentRate > 0f && historicalRate > 0f) {
+            return "Aktuelle Sitzung + lokale 7-Tage-Nutzung";
+        }
+        if (currentRate > 0f) return "Aktuelle Entladephase";
+        if (historicalRate > 0f) return "Basierend auf lokaler 7-Tage-Nutzung";
+        if (BatteryFuelGaugeTime.readMinutes(false) > 0L) return "Fuel-Gauge-Schätzung";
         if (!"—".equals(systemDischargePrediction())) return "Android-Systemschätzung";
         if (currentMa >= 50 && calculationCapacityMah() > 0) return "Momentanschätzung";
         return "Keine ausreichenden Daten";
@@ -1212,7 +1464,7 @@ class BatteryDashboard extends View {
     }
 
     private String sinceFullRange() {
-        if (!prefs.getBoolean("sinceFullActive", false)) return "Noch keine Voll-Ladung";
+        if (!prefs.getBoolean("sinceFullActive", false)) return "Noch keine Ladebasis";
         int start = storedLevelForDisplay("sinceFullStartLevel", 100);
         int end = storedLevelForDisplay("sinceFullLastLevel", level);
         return (start >= 0 ? start + "%" : "—") + " → " + (end >= 0 ? end + "%" : "—");
@@ -1226,12 +1478,18 @@ class BatteryDashboard extends View {
     }
 
     private String sinceFullUsageSummary() {
-        if (!prefs.getBoolean("sinceFullActive", false)) return "Noch keine Voll-Ladung";
+        if (!prefs.getBoolean("sinceFullActive", false)) return "Noch keine Ladebasis";
         float consumedPercent = BatteryPercentage.normalizeCumulative(prefs.getFloat("sinceFullPercent", 0f));
         String range = consumedPercent > 0f
                 ? String.format(Locale.US, "%.0f%% verbraucht", consumedPercent) : "Noch kein Verbrauch";
         int mah = prefs.getInt("sinceFullMah", 0);
         return range + " · " + sinceFullDuration() + " · " + (mah > 0 ? mah + " mAh" : "—");
+    }
+
+    private String sinceFullAnchorLabel() {
+        if (!prefs.getBoolean("sinceFullActive", false)) return "Seit Ladebasis";
+        return BatteryChargeAnchor.UNPLUGGED.equals(prefs.getString("chargeAnchorType", ""))
+                ? "Seit Abstecken" : "Seit voller Ladung";
     }
 
     private int dischargeMah() { return prefs.getInt(charging ? "lastDischargeMah" : "dischargeMah", 0); }
@@ -1443,6 +1701,16 @@ class BatteryDashboard extends View {
         return new ArrayList<>(rows.subList(first, rows.size()));
     }
 
+    ArrayList<BatteryCycleHistory.Point> cycleHistoryForExport() {
+        return new ArrayList<>(cycleHistory);
+    }
+
+    private String cycleHistorySourceDisplay() {
+        if (cycleHistory.isEmpty()) return "Quelle nicht verfügbar";
+        BatteryCycleHistory.Point latest = cycleHistory.get(cycleHistory.size() - 1);
+        return latest.isReported() ? "Quelle: Android/BMS-Zähler" : "Quelle: lokale EFC-Schätzung";
+    }
+
     private void setOverlayEnabled(boolean enabled) {
         if (enabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(getContext())) {
             try { getContext().startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getContext().getPackageName()))); } catch (Exception ignored) { getContext().startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)); }
@@ -1460,7 +1728,7 @@ class BatteryDashboard extends View {
     }
 
     private void showSettings() {
-        String[] options = {"Dunkles Design", "AMOLED-Schwarz", "Helles Design", "Benachrichtigungen", "Temperaturwarnung", "Overlay-Berechtigung", "Daten & Datenschutz", "Sicherung & Wiederherstellung", "Hintergrundüberwachung", "Datenerfassung", "Nach Updates suchen", "Kurzanleitung", "Gesundheitsbasis zurücksetzen", "Lokale Daten löschen"};
+        String[] options = {"Dunkles Design", "AMOLED-Schwarz", "Helles Design", "Benachrichtigungen", "Temperaturwarnung", "Tiefstandwarnung", "Overlay-Berechtigung", "Daten & Datenschutz", "Sicherung & Wiederherstellung", "Hintergrundüberwachung", "Datenerfassung", "Nach Updates suchen", "Kurzanleitung", "Gesundheitsbasis zurücksetzen", "Lokale Daten löschen"};
         LinearLayout titleBar = new LinearLayout(getContext());
         titleBar.setOrientation(LinearLayout.HORIZONTAL);
         titleBar.setGravity(Gravity.CENTER_VERTICAL);
@@ -1495,20 +1763,22 @@ class BatteryDashboard extends View {
             } else if (which == 4) {
                 showTemperatureAlarmSettings();
             } else if (which == 5) {
-                try { getContext().startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getContext().getPackageName()))); } catch (Exception ignored) { }
+                showDischargeAlarmSettings();
             } else if (which == 6) {
-                showDataPrivacy();
+                try { getContext().startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getContext().getPackageName()))); } catch (Exception ignored) { }
             } else if (which == 7) {
-                showBackupRestore();
+                showDataPrivacy();
             } else if (which == 8) {
-                requestBackgroundMonitoring();
+                showBackupRestore();
             } else if (which == 9) {
-                showDataCollection();
+                requestBackgroundMonitoring();
             } else if (which == 10) {
-                UpdateChecker.checkNow((Activity) getContext());
+                showDataCollection();
             } else if (which == 11) {
-                showTutorial(true);
+                UpdateChecker.checkNow((Activity) getContext());
             } else if (which == 12) {
+                showTutorial(true);
+            } else if (which == 13) {
                 confirmResetHealthBaseline();
             } else {
                 confirmDeleteData();
@@ -1566,6 +1836,32 @@ class BatteryDashboard extends View {
                 }).show();
     }
 
+    private void showDischargeAlarmSettings() {
+        final int[] thresholds = {0, 10, 15, 20, 25, 30};
+        final String[] labels = {"Aus", "Bei 10 % oder weniger", "Bei 15 % oder weniger (empfohlen)", "Bei 20 % oder weniger", "Bei 25 % oder weniger", "Bei 30 % oder weniger"};
+        boolean enabled = prefs.getBoolean("dischargeAlarm", true);
+        int current = enabled
+                ? BatteryDischargeAlarm.normalizeThreshold(prefs.getInt("dischargeAlarmThreshold", BatteryDischargeAlarm.DEFAULT_THRESHOLD))
+                : 0;
+        int selected = 0;
+        for (int i = 0; i < thresholds.length; i++) if (thresholds[i] == current) selected = i;
+        final int[] choice = {selected};
+        new AlertDialog.Builder(getContext())
+                .setTitle("Tiefstandwarnung · Rücksetzung mit 3 % Abstand")
+                .setSingleChoiceItems(labels, selected, (dialog, which) -> choice[0] = which)
+                .setNegativeButton("Abbrechen", null)
+                .setPositiveButton("Speichern", (dialog, which) -> {
+                    boolean alarmEnabled = thresholds[choice[0]] > 0;
+                    int threshold = alarmEnabled
+                            ? BatteryDischargeAlarm.normalizeThreshold(thresholds[choice[0]])
+                            : BatteryDischargeAlarm.DEFAULT_THRESHOLD;
+                    prefs.edit().putBoolean("dischargeAlarm", alarmEnabled)
+                            .putInt("dischargeAlarmThreshold", threshold)
+                            .remove("dischargeAlarmSent").remove("dischargeAlarmLastLevel").apply();
+                    Toast.makeText(getContext(), alarmEnabled ? labels[choice[0]] : "Tiefstandwarnung ausgeschaltet", Toast.LENGTH_LONG).show();
+                }).show();
+    }
+
     private void showDataCollection() {
         final int[] intervals = {5, 15, 30, 60};
         final String[] labels = {"Alle 5 Minuten", "Alle 15 Minuten (empfohlen)", "Alle 30 Minuten", "Alle 60 Minuten"};
@@ -1610,11 +1906,16 @@ class BatteryDashboard extends View {
     }
 
     private void showDataPrivacy() {
+        String[] exportChoices = {"CSV exportieren", "Forschungs-JSON", "Diagnosebericht"};
         new AlertDialog.Builder(getContext())
                 .setTitle("Daten & Datenschutz")
                 .setMessage("Ampere erfasst Messwerte lokal für Verlauf und Analyse: Zeit, Akkustand, Ladezustand, Strom, Temperatur, Spannung und Bildschirmstatus. Wenn du den Nutzungszugriff erlaubst, wird zusätzlich die aktive Vordergrund-App lokal gespeichert, um ihren Anteil am Verbrauch zu schätzen.\n\nEs werden keine Messwerte, Kontokennungen, Standortdaten oder Listen installierter Apps an einen Ampere-Server gesendet. Android-Sicherungen können Verlauf, Einstellungen und lokale Telemetrie über einen geeigneten verschlüsselten Sicherungsdienst enthalten; Gerät und Android bestimmen, ob und wann gesichert wird. Die Update-Prüfung ruft nur die konfigurierte Versionsdatei ab.\n\nCSV ist eine flache Tabelle. Der Forschungs-Export ist strukturiertes JSON und enthält Gerätemodell und Android-Version, aber keine Seriennummer oder Werbe-ID. Exporte starten erst, wenn du sie auswählst.")
-                .setPositiveButton("CSV exportieren", (dialog, which) -> exportHistory())
-                .setNeutralButton("Forschungs-JSON", (dialog, which) -> ((MainActivity) getContext()).createResearchExport())
+                .setItems(exportChoices, (dialog, which) -> {
+                    MainActivity activity = (MainActivity) getContext();
+                    if (which == 0) activity.createCsvExport();
+                    else if (which == 1) activity.createResearchExport();
+                    else activity.createDiagnosticExport();
+                })
                 .setNegativeButton("Schließen", null)
                 .show();
     }
@@ -1641,7 +1942,7 @@ class BatteryDashboard extends View {
     private void confirmResetHealthBaseline() {
         new AlertDialog.Builder(getContext())
                 .setTitle("Gesundheitsbasis zurücksetzen?")
-                .setMessage("Damit beginnen Akku-Gesundheit und Benchmark-Berechnung neu, zum Beispiel nach einem Akkutausch. Bestehende Sitzungen, Telemetrie, Einstellungen und Exporte bleiben erhalten.")
+                .setMessage("Damit beginnen Akku-Gesundheit, Benchmark-Berechnung und tägliche Zyklushistorie neu, zum Beispiel nach einem Akkutausch. Bestehende Sitzungen, Telemetrie, Einstellungen und Exporte bleiben erhalten.")
                 .setNegativeButton("Abbrechen", null)
                 .setPositiveButton("Basis zurücksetzen", (dialog, which) -> {
                     Context context = getContext();
@@ -1655,7 +1956,7 @@ class BatteryDashboard extends View {
                             .remove("totalChargedMah").remove("chargeCycles")
                             .remove("cycleLastLevel").remove("dischargePercent")
                             .remove("estimatedCycleLastCounterUah").remove("estimatedCycleFraction")
-                            .remove("estimatedCycleCount")
+                            .remove("estimatedCycleCount").remove("cycleHistory")
                             .apply();
                     BackupManager.dataChanged(context.getPackageName());
                     reloadStoredData();
@@ -2256,14 +2557,19 @@ class BatteryDashboard extends View {
         text(c, charging ? (chargeLimit >= 100 ? "Zeit bis voll" : "Zeit bis Ziel") : "Letzte Ladung", rightColumn, y + 96, 10, muted, false);
         text(c, charging ? (chargeLimit >= 100 ? timeToFull() : timeToLimit()) : lastChargeRange(), rightColumn, y + 126, 20, primary, true);
         text(c, charging ? (chargeLimit >= 100 ? chargeTimeEstimateLabel() : "lokale 7-Tage-Schätzung") : lastChargeDuration(), rightColumn, y + 145, 9, faint, false);
-        text(c, "Temp. " + temperatureDisplay() + " °C · Spannung " + voltageDisplay() + " V", narrowHeader ? 36 : 78, y + 151, 8, faint, false);
+        String thermalText = BatteryThermalStatus.isAvailable(thermalStatus)
+                ? " · Thermik " + BatteryThermalStatus.label(thermalStatus) : "";
+        String energyText = remainingEnergyNanoWattHours > 0L
+                ? " · Restenergie " + BatteryEnergy.label(remainingEnergyNanoWattHours) : "";
+        boundedText(c, "Temp. " + temperatureDisplay() + " °C · Spannung " + voltageDisplay() + " V" + thermalText + energyText,
+                narrowHeader ? 36 : 78, w - 36, y + 151, 8, faint, false);
         text(c, "Ladeziel", 36, y + 190, 10, muted, false);
-        text(c, chargeLimit + "%", w - 67, y + 190, 10, lime, true);
+        String oemLimit = oemChargeControl.isAvailable() ? " · " + oemChargeControl.label() : "";
+        boundedRightText(c, chargeLimit + "%" + oemLimit, w * .54f, w - 36, y + 190, 10, lime, true);
         float sourceLeft = narrowHeader ? 36f : 78f;
         float sourceRight = narrowHeader ? w * .58f : w * .54f;
         boundedText(c, "Quelle: " + chargerTypeDisplay(), sourceLeft, sourceRight, y + 169, 9, faint, false);
-        boundedRightText(c, maxChargingPowerMilliwatts > 0
-                        ? BatteryChargerCapability.label(maxChargingPowerMilliwatts) : "",
+        boundedRightText(c, chargerCapability.label(),
                 narrowHeader ? w * .62f : w * .60f, w - 36, y + 169, 9, faint, false);
         rounded(c, 36, y + 205, w - 36, y + 209, 3, border);
         rounded(c, 36, y + 205, 36 + (w - 72) * chargeLimit / 100f, y + 209, 3, lime);
@@ -2381,7 +2687,7 @@ class BatteryDashboard extends View {
         text(c, "An " + dischargePercent(true) + " · aus " + dischargePercent(false) + " · "
                 + (recordedDischargeMah > 0 ? recordedDischargeMah + " mAh" : "—"), 36, y + 486, 8, primary, false);
         text(c, "Tiefschlaf: " + deepSleepPercent() + " · " + deepSleepTime() + " · Bildschirm-Aufweckungen " + wakeupCount(), 36, y + 502, 8, primary, false);
-        text(c, "Seit voller Ladung: " + sinceFullUsageSummary(), 36, y + 518, 8, primary, false);
+        text(c, sinceFullAnchorLabel() + ": " + sinceFullUsageSummary(), 36, y + 518, 8, primary, false);
         rounded(c, 18, y + 540, w - 18, y + 715, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 540), u(w - 18), u(y + 715)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "Vordergrund-Apps", 36, y + 571, 13, primary, true);
         if (hasUsageAccess()) {
@@ -2448,7 +2754,7 @@ class BatteryDashboard extends View {
 
     private Map<String, Long> exactForegroundTimes(UsageStatsManager manager, long start, long end) {
         Map<String, Long> totals = new HashMap<>();
-        Map<String, Long> activeSince = new HashMap<>();
+        Map<String, UsageEventAccumulator.State> active = new HashMap<>();
         UsageEvents events = manager.queryEvents(Math.max(0L, start - 24L * 60L * 60L * 1000L), end);
         if (events == null) return totals;
         UsageEvents.Event event = new UsageEvents.Event();
@@ -2456,11 +2762,18 @@ class BatteryDashboard extends View {
             events.getNextEvent(event);
             String packageName = event.getPackageName();
             long timestamp = event.getTimeStamp();
+            if (isScreenOffEvent(event.getEventType())) {
+                UsageEventAccumulator.closeAll(totals, active, Math.min(end, timestamp));
+                continue;
+            }
             if (packageName == null || packageName.isEmpty() || timestamp > end) continue;
-            UsageEventAccumulator.apply(totals, activeSince, packageName, timestamp, start, end,
-                    isForegroundEvent(event.getEventType()), isBackgroundEvent(event.getEventType()));
+            String className = event.getEventType() == UsageEvents.Event.MOVE_TO_BACKGROUND
+                    ? "" : event.getClassName();
+            UsageEventAccumulator.apply(totals, active, packageName, className,
+                    timestamp, start, end, isForegroundEvent(event.getEventType()),
+                    isBackgroundEvent(event.getEventType()));
         }
-        UsageEventAccumulator.closeActive(totals, activeSince, end);
+        UsageEventAccumulator.closeActive(totals, active, end);
         return totals;
     }
 
@@ -2475,6 +2788,11 @@ class BatteryDashboard extends View {
                 && (type == UsageEvents.Event.ACTIVITY_PAUSED || type == UsageEvents.Event.ACTIVITY_STOPPED));
     }
 
+    private boolean isScreenOffEvent(int type) {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+                && type == UsageEvents.Event.SCREEN_NON_INTERACTIVE;
+    }
+
     private void drawUsageRows(Canvas c, float w, float y, int primary, int muted, int faint) {
         long end = System.currentTimeMillis();
         long start = prefs.getBoolean("sinceFullActive", false)
@@ -2485,6 +2803,9 @@ class BatteryDashboard extends View {
         long totalForegroundMs = 0L;
         for (AppUsageRow row : rows) totalForegroundMs += row.foregroundMs;
         int totalEnergy = dischargeMah();
+        Map<String, Integer> directMah = telemetryAppMahByPackage(start, end);
+        int directTotalMah = 0;
+        for (Integer value : directMah.values()) directTotalMah += Math.max(0, value);
         int row = 0;
         for (AppUsageRow usage : rows) {
             String app = usage.packageName;
@@ -2493,10 +2814,9 @@ class BatteryDashboard extends View {
             float infoWidth = Math.max(70f, Math.min(130f, (w - 72f) / 2f));
             float appWidth = Math.max(72f, w - 72f - infoWidth - 8f);
             text(c, fitText(app, appWidth, 10, true), 36, y + row * 27, 10, primary, true);
-            int appMah = telemetryAppMah(usage.packageName, start, end);
-            if (appMah <= 0 && totalForegroundMs > 0L) {
-                appMah = Math.round(totalEnergy * usage.foregroundMs / (float) totalForegroundMs);
-            }
+            int appMah = BatteryAppAttribution.estimateMah(
+                    directMah.containsKey(usage.packageName) ? directMah.get(usage.packageName) : 0,
+                    directTotalMah, totalEnergy, usage.foregroundMs, totalForegroundMs);
             rightText(c, fitText(minutes + " Min. · " + (appMah > 0 ? "~" + appMah : "—") + " mAh gesch.", infoWidth, 8, false), w - 36, y + row * 27, 8, muted, false);
             line(c, 36, y + row * 27 + 9, w - 36, y + row * 27 + 9, Color.rgb(43, 47, 56), 1);
             if (++row == 3) break;
@@ -2520,14 +2840,19 @@ class BatteryDashboard extends View {
         long totalForegroundMs = 0L;
         for (AppUsageRow row : rows) totalForegroundMs += row.foregroundMs;
         int totalEnergy = Math.max(0, dischargeMah());
-        StringBuilder details = new StringBuilder("Vordergrundzeit seit Beginn des aktuellen Entladevorgangs.\n\n");
+        Map<String, Integer> directMah = telemetryAppMahByPackage(start, end);
+        int directTotalMah = 0;
+        for (Integer value : directMah.values()) directTotalMah += Math.max(0, value);
+        StringBuilder details = new StringBuilder("Vordergrundzeit seit Beginn des aktuellen Entladevorgangs.\n"
+                + "mAh sind zeit-/telemetriebasierte Schätzungen, keine echten Android-Pro-App-Messungen.\n\n");
         int row = 0;
         for (AppUsageRow usage : rows) {
             String app = usage.packageName;
             try { app = getContext().getPackageManager().getApplicationLabel(getContext().getPackageManager().getApplicationInfo(usage.packageName, 0)).toString(); } catch (Exception ignored) { }
             long minutes = usage.foregroundMs / 60000L;
-            int appMah = telemetryAppMah(usage.packageName, start, end);
-            if (appMah <= 0 && totalForegroundMs > 0L) appMah = Math.round(totalEnergy * usage.foregroundMs / (float) totalForegroundMs);
+            int appMah = BatteryAppAttribution.estimateMah(
+                    directMah.containsKey(usage.packageName) ? directMah.get(usage.packageName) : 0,
+                    directTotalMah, totalEnergy, usage.foregroundMs, totalForegroundMs);
             details.append(app).append("\n").append(minutes).append(" Min. · ")
                     .append(appMah > 0 ? "~" + appMah + " mAh geschätzt" : "mAh nicht verfügbar")
                     .append("\n\n");
@@ -2538,15 +2863,15 @@ class BatteryDashboard extends View {
     }
 
     /** Estimate direct app-attributed drain from local telemetry intervals. */
-    private int telemetryAppMah(String packageName, long start, long end) {
+    private Map<String, Integer> telemetryAppMahByPackage(long start, long end) {
         String saved = telemetryPrefs.getString("telemetrySamples", "");
-        if (saved.isEmpty()) return 0;
+        Map<String, Integer> totals = new HashMap<>();
+        if (saved.isEmpty()) return totals;
         ArrayList<String> rows = BatteryExportRules.validTelemetryRows(saved);
-        int total = 0;
         for (int index = 0; index < rows.size(); index++) {
             String row = rows.get(index);
             String[] parts = row.split(",", 11);
-            if (parts.length < 9 || !packageName.equals(parts[8])) continue;
+            if (parts.length < 9 || parts[8].trim().isEmpty()) continue;
             try {
                 long timestamp = Long.parseLong(parts[0]);
                 if (timestamp < start || timestamp > end || "1".equals(parts[2])) continue;
@@ -2559,10 +2884,14 @@ class BatteryDashboard extends View {
                 }
                 if (intervalEnd <= timestamp) intervalEnd = timestamp + samplingIntervalMs();
                 intervalEnd = Math.min(end, Math.min(intervalEnd, timestamp + 2L * 60L * 60L * 1000L));
-                if (intervalEnd > timestamp) total += Math.round(current * (intervalEnd - timestamp) / 3600000f);
+                if (intervalEnd > timestamp) {
+                    int added = Math.round(current * (intervalEnd - timestamp) / 3600000f);
+                    totals.put(parts[8], totals.containsKey(parts[8])
+                            ? totals.get(parts[8]) + added : added);
+                }
             } catch (NumberFormatException ignored) { }
         }
-        return total;
+        return totals;
     }
 
     private void drawHealthPage(Canvas c, float w, float h, int panel, int raised, int border, int primary, int muted, int faint) {
@@ -2587,10 +2916,11 @@ class BatteryDashboard extends View {
         if (BatteryCapacityLevel.isAvailable(capacityLevel)) {
             platformLabel += " · " + BatteryCapacityLevel.label(capacityLevel);
         }
+        if (!technology.isEmpty()) platformLabel += " · " + technology;
         boundedRightText(c, platformLabel, w * .50f, w - 36, y + 257, 10,
                 BatteryPlatformHealth.isAvailable(platformHealth) ? lime : faint, true);
-        text(c, "Temperatur heute", 36, y + 282, 9, muted, false);
-        rightText(c, temperature > 0f ? String.format(Locale.US, "%.1f°C", temperature) : "—", w * .48f, y + 282, 9, amber, true);
+        text(c, "Telemetrie T min/Ø/max", 36, y + 282, 9, muted, false);
+        rightText(c, telemetryTemperatureDisplay(), w * .48f, y + 282, 9, amber, true);
         text(c, "Vollzyklen (EFC)", w * .55f, y + 282, 9, muted, false);
         rightText(c, totalEquivalentCycles(), w - 36, y + 282, 9, blue, true);
         drawStat(c, 18, y + 316, (w - 48) / 2f, 105, "Spannung", voltageDisplay(), voltage > 0f ? "V" : "", blue, primary, muted, border, panel, "bolt");
@@ -2601,6 +2931,9 @@ class BatteryDashboard extends View {
         text(c, "Messungen · letzter Ladevorgang " + lastChargeEquivalentCycles(), 36, y + 510, 9, primary, false);
         rightText(c, "Gesamt geladen: " + (totalChargedMah() > 0 ? totalChargedMah() + " mAh" : "—"), w - 30, y + 493, 8, blue, true);
         rightText(c, "Äquivalente Zyklen: " + totalEquivalentCycles(), w - 30, y + 512, 8, blue, true);
+        if (manufactureDate.isAvailable()) {
+            rightText(c, "Herstellung: " + manufactureDate.label(), w - 30, y + 530, 8, faint, false);
+        }
         rounded(c, 18, y + 548, w - 18, y + 615, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 548), u(w - 18), u(y + 615)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, benchmarkActive ? "Benchmark läuft" : "Manueller Benchmark", 36, y + 575, 11, primary, true);
         text(c, benchmarkActive ? "Zum Abschluss über 95 % laden" : "Für beste Ergebnisse unter 25 % starten", 36, y + 595, 9, muted, false);
@@ -2612,6 +2945,14 @@ class BatteryDashboard extends View {
         rightText(c, designCapacityDisplay(), w - 30, y + 667, 10, design > 0 ? lime : muted, true);
         rounded(c, 18, y + 710, w - 18, y + 850, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 710), u(w - 18), u(y + 850)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "Kapazitätsmessungen", 36, y + 740, 12, primary, true);
+        String gaugeDiagnostics = internalResistance.isAvailable()
+                ? "ESR " + internalResistanceDisplay() : "";
+        if (capacityErrorMargin.isAvailable()) {
+            gaugeDiagnostics += (gaugeDiagnostics.isEmpty() ? "" : " · ")
+                    + "Unsicherheit " + capacityErrorMargin.label();
+        }
+        boundedRightText(c, gaugeDiagnostics,
+                w * .48f, w - 36, y + 740, 8, blue, true);
         if (design <= 0) {
             text(c, "Nennkapazität festlegen, um den Trend zu normieren.", 36, y + 781, 9, muted, false);
         } else if (healthSamples.size() < 2) {
@@ -2635,13 +2976,43 @@ class BatteryDashboard extends View {
             text(c, healthSamples.get(healthSamples.size() - 1) + " mAh", w - 92, y + 835, 8, faint, false);
         }
         rounded(c, 18, y + 870, w - 18, y + 1045, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 870), u(w - 18), u(y + 1045)); c.drawRoundRect(rect, u(12), u(12), p);
-        text(c, "LADEVERSCHLEISS", 36, y + 900, 10, muted, true);
-        text(c, "Äquivalente Vollzyklen je Ladevorgang", 36, y + 922, 9, primary, false);
+        text(c, "TÄGLICHE VOLLZYKLEN", 36, y + 900, 10, muted, true);
+        text(c, "Gesamtzähler im Tagesverlauf", 36, y + 922, 9, primary, false);
+        if (cycleHistory.isEmpty()) {
+            text(c, "Noch keine täglichen Zykluswerte verfügbar.", 36, y + 975, 9, muted, false);
+            text(c, "Die Überwachung zeichnet sie ab dem nächsten Messpunkt auf.", 36, y + 995, 8, faint, false);
+        } else {
+            int first = Math.max(0, cycleHistory.size() - 30);
+            int count = cycleHistory.size() - first;
+            float minCycles = Float.MAX_VALUE;
+            float maxCycles = -Float.MAX_VALUE;
+            for (int i = first; i < cycleHistory.size(); i++) {
+                minCycles = Math.min(minCycles, cycleHistory.get(i).cycles);
+                maxCycles = Math.max(maxCycles, cycleHistory.get(i).cycles);
+            }
+            float chartX = 36, chartY = y + 938, chartW = w - 72, chartH = 54;
+            line(c, chartX, chartY + chartH, chartX + chartW, chartY + chartH, border, 1);
+            Path trend = new Path();
+            float range = Math.max(1f, maxCycles - minCycles);
+            for (int i = 0; i < count; i++) {
+                float normalized = (cycleHistory.get(first + i).cycles - minCycles) / range;
+                float px = chartX + chartW * i / Math.max(1, count - 1);
+                float py = chartY + chartH - normalized * chartH;
+                if (i == 0) trend.moveTo(u(px), u(py)); else trend.lineTo(u(px), u(py));
+            }
+            stroke(c, blue, 2); c.drawPath(trend, p);
+            text(c, cycleHistory.get(first).date, chartX, y + 1010, 7, faint, false);
+            text(c, cycleHistory.get(cycleHistory.size() - 1).date, w - 92, y + 1010, 7, faint, false);
+            rightText(c, cycleHistorySourceDisplay(), w - 30, y + 1030, 8, faint, false);
+        }
+        rounded(c, 18, y + 1065, w - 18, y + 1240, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 1065), u(w - 18), u(y + 1240)); c.drawRoundRect(rect, u(12), u(12), p);
+        text(c, "LADEVERSCHLEISS", 36, y + 1095, 10, muted, true);
+        text(c, "Äquivalente Vollzyklen je Ladevorgang", 36, y + 1117, 9, primary, false);
         ArrayList<String[]> wearRows = chargeWearRows();
         if (wearRows.isEmpty()) {
-            text(c, "Schließe einen Ladevorgang für den lokalen Trend ab.", 36, y + 980, 9, muted, false);
+            text(c, "Schließe einen Ladevorgang für den lokalen Trend ab.", 36, y + 1175, 9, muted, false);
         } else {
-            float chartX = 36, chartY = y + 938, chartW = w - 72, chartH = 74;
+            float chartX = 36, chartY = y + 1133, chartW = w - 72, chartH = 74;
             line(c, chartX, chartY + chartH, chartX + chartW, chartY + chartH, border, 1);
             float max = 0.01f;
             for (String[] parts : wearRows) try { max = Math.max(max, Float.parseFloat(parts[7])); } catch (NumberFormatException ignored) { }
@@ -2652,7 +3023,7 @@ class BatteryDashboard extends View {
                 float x = chartX + i * chartW / wearRows.size() + 3;
                 float top = chartY + chartH - chartH * Math.min(1f, value / max);
                 rounded(c, x, top, x + barW, chartY + chartH, 3, amber);
-                if (i == 0 || i == wearRows.size() - 1) text(c, wearRows.get(i)[3], x, y + 1030, 7, faint, false);
+                if (i == 0 || i == wearRows.size() - 1) text(c, wearRows.get(i)[3], x, y + 1225, 7, faint, false);
             }
         }
     }
@@ -2698,10 +3069,56 @@ class BatteryDashboard extends View {
         text(c, deepSleepTime(), w - 75, summaryY + 69, 11, Color.rgb(180, 154, 255), true);
         text(c, "Sitzungen: " + sessionCount("Charge") + " Laden · " + sessionCount("Discharge") + " Entladen", 36, summaryY + 99, 9, primary, true);
         text(c, "Energie: " + sessionEnergyDisplay("Charge", "+") + " / " + sessionEnergyDisplay("Discharge", "-"), 36, summaryY + 121, 9, blue, true);
+        BatteryTelemetryDiagnostics.Summary diagnostics = telemetryDiagnostics();
+        text(c, "Diagnose: " + telemetryDiagnosticDisplay(diagnostics), 36, summaryY + 187, 8,
+                diagnosticsColor(diagnostics), false);
         text(c, "Akkumesswerte bleiben auf diesem Gerät.", 36, summaryY + 143, 9, primary, true);
         text(c, "Export nur auf deine Auswahl; kein Konto/Abonnement.", 36, summaryY + 165, 8, muted, false);
         rounded(c, w - 136, panelBottom - 48, w - 36, panelBottom - 14, 8, lime);
         text(c, "CSV exportieren", w - 119, panelBottom - 26, 9, Color.rgb(23, 28, 16), true);
+    }
+
+    private BatteryTelemetryDiagnostics.Summary telemetryDiagnostics() {
+        return BatteryTelemetryDiagnostics.analyze(
+                telemetryPrefs.getString("telemetrySamples", ""), samplingIntervalMs());
+    }
+
+    private String telemetryDiagnosticDisplay(BatteryTelemetryDiagnostics.Summary summary) {
+        if (!summary.hasSamples()) return "noch keine Telemetrie";
+        StringBuilder result = new StringBuilder(summary.sampleCount + " Messwerte");
+        if (summary.maxTemperatureTenths > 0) {
+            result.append(" · T ");
+            if (summary.hasTemperatureData()) {
+                result.append(String.format(Locale.GERMANY, "%.1f/%.1f/%.1f°C",
+                        summary.minTemperatureTenths / 10f,
+                        summary.averageTemperatureTenths / 10f,
+                        summary.maxTemperatureTenths / 10f));
+            } else {
+                result.append("max ").append(String.format(Locale.GERMANY, "%.1f°C",
+                        summary.maxTemperatureTenths / 10f));
+            }
+        }
+        if (summary.hasVoltageData()) {
+            result.append(" · min ").append(String.format(Locale.GERMANY, "%.2fV",
+                    summary.minDischargeVoltageMv / 1000f));
+        }
+        if (summary.hasHighTemperature()) result.append(" · Wärme prüfen");
+        if (summary.samplingGap) result.append(" · Datenlücke");
+        return result.toString();
+    }
+
+    private int diagnosticsColor(BatteryTelemetryDiagnostics.Summary summary) {
+        return summary.hasHighTemperature() || summary.samplingGap
+                ? Color.rgb(242, 179, 106) : Color.rgb(157, 224, 106);
+    }
+
+    private String telemetryTemperatureDisplay() {
+        BatteryTelemetryDiagnostics.Summary summary = telemetryDiagnostics();
+        return summary.hasTemperatureData()
+                ? String.format(Locale.GERMANY, "%.1f/%.1f/%.1f°C",
+                summary.minTemperatureTenths / 10f,
+                summary.averageTemperatureTenths / 10f,
+                summary.maxTemperatureTenths / 10f) : "—";
     }
 
     private void exportHistory() {
@@ -2713,6 +3130,10 @@ class BatteryDashboard extends View {
         for (String session : sessions) appendCsvRow(csv, session.split(",", -1));
         csv.append("\nlevel_percent\n");
         for (Integer point : longHistory) appendCsvRow(csv, new String[]{String.valueOf(point)});
+        csv.append("\ncycle_date,total_cycles,source\n");
+        for (BatteryCycleHistory.Point point : cycleHistory) {
+            appendCsvRow(csv, new String[]{point.date, String.format(Locale.US, "%.3f", point.cycles), point.source});
+        }
         csv.append("\ntelemetry_timestamp_ms,level_percent,charging,current_ma,temperature_c,voltage_v,charge_counter_mah,screen_on,foreground_package,system_cycle_count,plugged\n");
         String telemetry = telemetryPrefs.getString("telemetrySamples", "");
         for (String row : BatteryExportRules.validTelemetryRows(telemetry)) {
@@ -2920,14 +3341,13 @@ class BatteryDashboard extends View {
             text(c, "Warte auf lokale Telemetrie.", chartX, chartY + 57, 10, faint, false);
             return;
         }
-        int min = Integer.MAX_VALUE, max = 0, total = 0;
+        ArrayList<Integer> magnitudes = new ArrayList<>();
         for (int i = first; i < points.size(); i++) {
             int current = points.get(i).magnitudeMa;
-            min = Math.min(min, current);
-            max = Math.max(max, current);
-            total += current;
+            magnitudes.add(current);
         }
-        int scaleMax = Math.max(100, max);
+        BatteryCurrentStats.Summary stats = BatteryCurrentStats.summarize(magnitudes);
+        int scaleMax = Math.max(100, stats.maximumMa);
         Path path = new Path();
         long startAt = points.get(first).timestamp;
         long endAt = points.get(points.size() - 1).timestamp;
@@ -2948,8 +3368,9 @@ class BatteryDashboard extends View {
         }
         stroke(c, chargingFilter ? lime : blue, 2);
         c.drawPath(path, p);
-        text(c, max + " mA Spitze", chartX, y + 181, 9, muted, false);
-        text(c, String.format(Locale.US, "Ø %d mA", Math.round(total / (float) count)), x + width - 92, y + 181, 9, muted, false);
+        boundedText(c, "Min " + stats.minimumMa + " · Ø " + stats.averageMa
+                        + " · Max " + stats.maximumMa + " mA",
+                chartX, x + width - 18, y + 181, 8, muted, false);
         text(c, "letzte " + count + " lokalen Messwerte", chartX, y + 199, 8, faint, false);
     }
 
@@ -3207,7 +3628,8 @@ class BatteryDashboard extends View {
             invalidate();
         } else if (virtualViewId == BatteryAccessibilityLayout.CHARGE_ALARM) {
             chargeAlarm = !chargeAlarm;
-            prefs.edit().putBoolean("chargeAlarm", chargeAlarm).apply();
+                    prefs.edit().putBoolean("chargeAlarm", chargeAlarm)
+                            .remove("chargeAlarmSent").remove("chargeAlarmLastLevel").apply();
             if (!chargeAlarm) {
                 android.app.NotificationManager manager = (android.app.NotificationManager)
                         getContext().getSystemService(Context.NOTIFICATION_SERVICE);
@@ -3232,7 +3654,8 @@ class BatteryDashboard extends View {
 
     private void setChargeLimitFromAccessibility(int requested) {
         chargeLimit = BatteryAccessibilityLayout.normalizeChargeLimit(requested);
-        prefs.edit().putInt("chargeLimit", chargeLimit).apply();
+        prefs.edit().putInt("chargeLimit", chargeLimit)
+                .remove("chargeAlarmSent").remove("chargeAlarmLastLevel").apply();
         if (level < chargeLimit) {
             android.app.NotificationManager manager = (android.app.NotificationManager)
                     getContext().getSystemService(Context.NOTIFICATION_SERVICE);
@@ -3519,7 +3942,8 @@ class BatteryDashboard extends View {
         }
         if (page == 1 && y > 455 && y < 510 && x > bodyW - 130) {
             chargeAlarm = !chargeAlarm;
-            prefs.edit().putBoolean("chargeAlarm", chargeAlarm).apply();
+            prefs.edit().putBoolean("chargeAlarm", chargeAlarm)
+                    .remove("chargeAlarmSent").remove("chargeAlarmLastLevel").apply();
             if (!chargeAlarm) {
                 android.app.NotificationManager manager = (android.app.NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
                 if (manager != null) manager.cancel(8);

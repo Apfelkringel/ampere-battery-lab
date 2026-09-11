@@ -40,6 +40,20 @@
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="user-enabled live battery and device telemetry overlay" />
         </service>
+        <service
+            android:name=".BatteryDreamService"
+            android:exported="true"
+            android:icon="@drawable/ic_launcher"
+            android:label="Ampere Ladeanzeige"
+            android:permission="android.permission.BIND_DREAM_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.dreams.DreamService" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.dream"
+                android:resource="@xml/battery_dream" />
+        </service>
         <receiver
             android:name=".BootReceiver"
             android:enabled="true"
@@ -49,6 +63,10 @@
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
+        <receiver
+            android:name=".BatteryMonitorWatchdog"
+            android:enabled="true"
+            android:exported="false" />
         <receiver
             android:name=".UpdateDownloadReceiver"
             android:enabled="true"
