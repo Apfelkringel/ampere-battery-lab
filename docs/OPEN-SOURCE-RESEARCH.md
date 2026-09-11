@@ -122,6 +122,18 @@ damit er nicht stillschweigend als `100` ausgegeben wird. Die Intent-Auswertung
 und die Trennung zwischen beiden Bedeutungen sind in `BatteryRulesTest`
 regressionsgesichert.
 
+Für den Live-Strom liest Ampere zuerst `BatteryManager.CURRENT_NOW` und
+`CURRENT_AVERAGE`. Wenn ein OEM dort keinen verwertbaren Wert liefert, folgt
+ein strikt lesender Fallback auf `current_now` beziehungsweise `current_avg`
+der Batterie-/BMS-Knoten unter `/sys/class/power_supply`. Die Linux-ABI
+definiert diese Werte in Mikroampere und mit einem Vorzeichen für Laden bzw.
+Entladen; Ampere verwendet hier nur den Betrag, weil die Sitzungsrichtung
+bereits aus dem bestätigten Android-Ladezustand stammt. USB-Knoten werden nicht
+als Akku-Stromquelle verwendet. Das folgt dem standardisierten
+[power_supply-ABI](https://github.com/torvalds/linux/blob/master/Documentation/ABI/testing/sysfs-class-power)
+und dem robusten „CURRENT_NOW, dann Durchschnitt“-Muster aus offenen
+Batteriemonitoren wie [Beam](https://github.com/montafra/beam).
+
 Sitzungen werden zusätzlich gegen das eigene gespeicherte Dauerformat und die
 Reihenfolge von Start-/Endzeitpunkt geprüft. Das folgt dem Session-Modell
 offener Akku-Tracker: unvollständige oder zeitlich rückwärts laufende Abschnitte

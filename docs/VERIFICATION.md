@@ -5,9 +5,14 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.195` (`versionCode 195`)
+- Version: `0.196` (`versionCode 196`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `3952c0c73ad41cba6be06090a5a354e76d84bf4c9a74e5998612af0dc4b8ea16`
+- Release APK SHA-256: wird nach dem signierten CI-Artefakt ergänzt
+
+Release `0.196` additionally adds a battery/BMS sysfs fallback for live
+`current_now`/`current_avg` when both Android current properties are absent or
+invalid. USB input supplies are excluded so battery-side power and sessions
+cannot be based on wall-input current.
 
 Release `0.195` additionally adds a read-only `state_of_health` fallback for
 Android 14–17 OEM battery/BMS nodes. Only explicit values from 1–100 are

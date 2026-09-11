@@ -311,6 +311,7 @@ public class BatteryRulesTest {
 
     @Test public void currentParserRejectsSentinelsAndUnrealisticSpikes() {
         assertEquals(900, BatteryCurrent.fromMicroamps(900_000));
+        assertEquals(900, BatteryCurrent.fromMicroamps(900_000L));
         assertEquals(900, BatteryCurrent.fromMicroamps(-900_000));
         assertEquals(0, BatteryCurrent.fromMicroamps(0));
         assertEquals(0, BatteryCurrent.fromMicroamps(Integer.MIN_VALUE));

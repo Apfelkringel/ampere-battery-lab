@@ -1,6 +1,11 @@
 package com.ampere.batterylab;
 
 import android.os.BatteryManager;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.util.Arrays;
+import java.util.Locale;
 
 /** Reads Android current properties once and rejects sentinels, bad units and spikes. */
 final class BatteryCurrent {
@@ -10,19 +15,67 @@ final class BatteryCurrent {
     private BatteryCurrent() { }
 
     static int milliAmps(BatteryManager manager) {
-        if (manager == null) return 0;
-        try {
-            int now = fromMicroamps(manager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW));
-            if (now > 0) return now;
-            return fromMicroamps(manager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_AVERAGE));
-        } catch (RuntimeException ignored) {
-            return 0;
+        if (manager != null) {
+            try {
+                int now = fromMicroamps(manager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW));
+                if (now > 0) return now;
+                int average = fromMicroamps(manager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_AVERAGE));
+                if (average > 0) return average;
+            } catch (RuntimeException ignored) {
+                // A missing or blocked BatteryManager property is a normal
+                // OEM variation; continue with the kernel-backed fallback.
+            }
         }
+        return fromSysfs();
     }
 
-    static int fromMicroamps(int raw) {
-        long magnitude = Math.abs((long) raw);
+    static int fromMicroamps(long raw) {
+        long magnitude = Math.abs(raw);
         if (raw == Integer.MIN_VALUE || magnitude < MIN_MICROAMPS || magnitude > MAX_MICROAMPS) return 0;
         return (int) (magnitude / 1_000L);
+    }
+
+    /**
+     * Reads the standard Linux power_supply current nodes when the Android
+     * property is unavailable. Only battery/BMS-like supplies are considered;
+     * USB input current is deliberately excluded because it is not battery
+     * current and would distort sessions and battery-side power.
+     */
+    private static int fromSysfs() {
+        try {
+            File root = new File("/sys/class/power_supply");
+            File[] supplies = root.listFiles();
+            if (supplies == null) return 0;
+            Arrays.sort(supplies, (left, right) -> Boolean.compare(!isBatteryNode(left), !isBatteryNode(right)));
+            for (File supply : supplies) {
+                if (!supply.isDirectory() || !isBatteryNode(supply)) continue;
+                int now = fromMicroamps(readLong(new File(supply, "current_now")));
+                if (now > 0) return now;
+                int average = fromMicroamps(readLong(new File(supply, "current_avg")));
+                if (average > 0) return average;
+            }
+        } catch (RuntimeException ignored) {
+            // Treat inaccessible sysfs as an honest unavailable reading.
+        }
+        return 0;
+    }
+
+    private static boolean isBatteryNode(File supply) {
+        String name = supply.getName().toLowerCase(Locale.US);
+        return name.contains("battery") || name.contains("bms") || name.contains("maxfg")
+                || name.contains("max170") || name.contains("fuelgauge")
+                || name.contains("fuel-gauge");
+    }
+
+    private static long readLong(File file) {
+        try {
+            if (!file.isFile() || !file.canRead()) return 0L;
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                String value = reader.readLine();
+                return value == null ? 0L : Long.parseLong(value.trim());
+            }
+        } catch (Exception ignored) {
+            return 0L;
+        }
     }
 }
