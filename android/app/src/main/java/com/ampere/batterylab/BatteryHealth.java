@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.os.BatteryManager;
 import android.os.Build;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /** Converts a measured capacity into a bounded battery-health percentage. */
@@ -67,11 +68,17 @@ final class BatteryHealth {
     static int averageRecentSamples(String serialized) {
         ArrayList<Integer> samples = parseSamples(serialized);
         int count = Math.min(5, samples.size());
-        long total = 0L;
-        for (int i = samples.size() - count; i < samples.size(); i++) {
-            total += samples.get(i);
-        }
-        return count > 0 ? Math.round(total / (float) count) : 0;
+        if (count == 0) return 0;
+        // A single noisy charge session must not pull the health estimate
+        // toward an impossible value. Use a robust median over the newest
+        // samples while keeping the existing five-sample horizon.
+        ArrayList<Integer> recent = new ArrayList<>(
+                samples.subList(samples.size() - count, samples.size()));
+        Collections.sort(recent);
+        int middle = count / 2;
+        return count % 2 == 1
+                ? recent.get(middle)
+                : Math.round((recent.get(middle - 1) + recent.get(middle)) / 2f);
     }
 
     /** Parses only plausible capacity samples and bounds legacy history size. */

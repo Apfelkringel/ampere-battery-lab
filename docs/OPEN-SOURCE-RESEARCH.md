@@ -103,6 +103,11 @@ Stroms: Laden muss positiv, Entladen negativ sein. Widersprüchliche Altzeilen
 werden einzeln ausgelassen, damit ein CSV-/JSON-Export keine umgekehrte
 Messung als reale Akkuaufnahme ausgibt.
 
+Lokale Kapazitätsproben werden wie bei einer vorsichtigen Health-Schätzung nicht
+mehr blind gemittelt: Ampere sortiert die letzten fünf gültigen Proben und nimmt
+den Median. Dadurch kann eine einzelne fehlerhafte oder besonders unruhige
+Ladesitzung den Gesundheitswert nicht unverhältnismäßig verschieben.
+
 Für die Laufzeitprognose bleibt der persönliche lokale 7-Tage-Verlauf die
 erste Wahl. Wenn dafür noch keine ausreichenden Daten vorliegen, verwendet
 Ampere auf Android 12+ als Fallback `PowerManager.getBatteryDischargePrediction()`
