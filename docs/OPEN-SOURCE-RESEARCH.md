@@ -2,13 +2,22 @@
 
 Stand: 11. September 2026
 
+Die vom Nutzer gelieferten Referenzen wurden als Layout-Grammatik gelesen,
+nicht als Asset- oder Codequelle: kompakte abgerundete Aktionsflächen,
+konsequente Icon-/Label-Ausrichtung, ein klarer Primärakzent und eine ruhige
+Flächenhierarchie. Ampere überträgt das in `0.281` auf eine blau-schwarze
+Instrumentenpalette mit Türkis als primärem Signal; Lade-/Entladerichtung und
+Temperatur behalten getrennte semantische Farben, damit die Daten nicht nur
+dekorativ, sondern eindeutig bleiben.
+
 Die Button- und Textflächen wurden anschließend auf 240 dp gegen die
 Material-Button-Geometrie und den eigenen Canvas-Hit-Test geprüft. Dabei wurde
 im Lade-Header ein echter Überlauf gefunden: Der Stromwert hatte dieselbe
 Schriftgröße wie auf breiteren Geräten, aber keine eigene Mindestbreite. In
-`0.280` erhält die schmale Variante deshalb eine explizite Messwertspur und
-einen Abstand zur Zeitspalte; die Touch-Geometrie und die größere Variante
-bleiben unverändert.
+`0.280` und `0.281` erhält die schmale Variante deshalb eine explizite
+Messwertspur und einen Abstand zur Zeitspalte; beide Textspalten werden so
+bemessen, dass weder `900 mA` noch `Erreicht` abgeschnitten werden. Die
+Touch-Geometrie und die größere Variante bleiben unverändert.
 
 Die Strommessung wurde nochmals gegen ABattery, FusionHUD und die Android-
 `BatteryManager`-Dokumentation geprüft. `CURRENT_NOW` und `CURRENT_AVERAGE`

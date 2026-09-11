@@ -4,6 +4,17 @@ Last verified: 2026-09-11 (Europe/Berlin)
 
 ## Current development change
 
+Version `0.281` additionally applies the supplied visual reference language to
+the Android Canvas UI: the primary signal color is now a cool blue-green,
+surfaces and borders move to a blue-black instrument palette, and selected
+navigation/actions use the same restrained turquoise cue. Temperature remains
+amber as a semantic exception; discharge remains blue so direction is still
+readable without relying on color alone.
+
+Version `0.281` additionally preserves the full right-hand charging result on
+the same 240-dp layout: the compact current lane ends before the time column,
+while the result column starts early enough that `Erreicht` remains readable.
+
 Version `0.280` additionally gives the charging header a dedicated compact
 layout below 270 dp. The current value keeps a measured text lane and a
 separate gutter before the time column, so a real value such as `900 mA` is

@@ -134,8 +134,8 @@ public class MainActivity extends Activity {
         super.onCreate(state);
         migrateTelemetryPrefs(this);
         Window window = getWindow();
-        window.setStatusBarColor(Color.rgb(11, 16, 17));
-        window.setNavigationBarColor(Color.rgb(11, 16, 17));
+        window.setStatusBarColor(Color.rgb(9, 18, 23));
+        window.setNavigationBarColor(Color.rgb(9, 18, 23));
         window.getDecorView().setSystemUiVisibility(0);
         dashboard = new BatteryDashboard(this);
         dashboard.applySystemBarTheme();
@@ -608,13 +608,15 @@ class BatteryDashboard extends View {
     private float layoutWidthDp;
     private float viewportWidthDp;
     private float viewportHeightDp;
-    private final int lime = Color.rgb(199, 243, 107);
-    private final int blue = Color.rgb(118, 184, 255);
+    // The reference language uses one assertive accent. Ampere uses a
+    // blue-green signal instead of the old yellow-green, with a darker
+    // accessible tone in light mode and a luminous tone on dark surfaces.
+    private int lime = Color.rgb(91, 213, 204);
+    private final int blue = Color.rgb(126, 190, 232);
     private final int amber = Color.rgb(242, 179, 106);
     // Secondary telemetry is context, not a competing alert. A quiet
-    // eucalyptus tone keeps it in the app's green-neutral material language
-    // instead of introducing a generic purple dashboard accent.
-    private final int secondaryTone = Color.rgb(159, 181, 171);
+    // blue-grey tone keeps it inside the same cool instrument palette.
+    private final int secondaryTone = Color.rgb(151, 188, 190);
 
     BatteryDashboard(Context context) {
         super(context);
@@ -643,7 +645,8 @@ class BatteryDashboard extends View {
 
     void applySystemBarTheme() {
         Window window = ((Activity) getContext()).getWindow();
-        int surface = light ? Color.rgb(246, 248, 243) : (amoled ? Color.BLACK : Color.rgb(11, 16, 17));
+        lime = light ? Color.rgb(13, 126, 132) : Color.rgb(91, 213, 204);
+        int surface = light ? Color.rgb(244, 248, 248) : (amoled ? Color.BLACK : Color.rgb(9, 18, 23));
         window.setStatusBarColor(surface);
         window.setNavigationBarColor(surface);
         int flags = 0;
@@ -2131,13 +2134,13 @@ class BatteryDashboard extends View {
         float bottom = b - inset;
         int surface = selected ? accentColor : baseColor;
         int topColor = mixColor(surface, Color.WHITE, selected ? .12f : (light ? .22f : .08f));
-        int bottomColor = mixColor(surface, Color.rgb(14, 20, 17), selected ? .08f : (light ? .045f : .18f));
+        int bottomColor = mixColor(surface, Color.rgb(7, 24, 30), selected ? .08f : (light ? .045f : .18f));
         if (pressed) {
-            topColor = mixColor(topColor, Color.rgb(14, 20, 17), selected ? .08f : .04f);
-            bottomColor = mixColor(bottomColor, Color.rgb(14, 20, 17), selected ? .10f : .06f);
+            topColor = mixColor(topColor, Color.rgb(7, 24, 30), selected ? .08f : .04f);
+            bottomColor = mixColor(bottomColor, Color.rgb(7, 24, 30), selected ? .10f : .06f);
         }
         gradientRounded(c, left, top, right, bottom, Math.max(7f, radius - (pressed ? 1f : 0f)), topColor, bottomColor);
-        stroke(c, selected ? mixColor(accentColor, Color.rgb(37, 55, 25), .3f) : borderColor, pressed ? 1.35f : 1f);
+        stroke(c, selected ? mixColor(accentColor, Color.rgb(20, 62, 65), .3f) : borderColor, pressed ? 1.35f : 1f);
         rect.set(u(left), u(top), u(right), u(bottom));
         c.drawRoundRect(rect, u(Math.max(7f, radius - (pressed ? 1f : 0f))), u(Math.max(7f, radius - (pressed ? 1f : 0f))), p);
         // A single hairline catches light at the top edge and replaces the
@@ -2146,7 +2149,7 @@ class BatteryDashboard extends View {
                 Color.argb(light ? 120 : 80, 255, 255, 255), .7f);
         if (selected) {
             rounded(c, left + 10f, bottom - 4f, right - 10f, bottom - 2f, 1f,
-                    mixColor(accentColor, Color.rgb(48, 70, 30), light ? .08f : .25f));
+                    mixColor(accentColor, Color.rgb(24, 77, 78), light ? .08f : .25f));
         }
     }
 
@@ -2159,10 +2162,10 @@ class BatteryDashboard extends View {
         rightText(c, status, r - 56, t + (b - t) / 2f + 4f, 9, enabled ? lime : muted, false);
         float switchLeft = r - 48f;
         float switchTop = t + (b - t - 24f) / 2f;
-        int trackTop = enabled ? Color.rgb(111, 137, 60) : mixColor(border, Color.WHITE, light ? .08f : .04f);
-        int trackBottom = enabled ? Color.rgb(73, 91, 40) : mixColor(border, Color.rgb(14, 20, 17), light ? .03f : .14f);
+        int trackTop = enabled ? Color.rgb(78, 148, 143) : mixColor(border, Color.WHITE, light ? .08f : .04f);
+        int trackBottom = enabled ? Color.rgb(45, 96, 98) : mixColor(border, Color.rgb(7, 24, 30), light ? .03f : .14f);
         gradientRounded(c, switchLeft, switchTop, r - 12f, switchTop + 24f, 12, trackTop, trackBottom);
-        stroke(c, enabled ? Color.rgb(77, 96, 43) : border, .8f);
+        stroke(c, enabled ? Color.rgb(45, 94, 94) : border, .8f);
         rect.set(u(switchLeft), u(switchTop), u(r - 12f), u(switchTop + 24f));
         c.drawRoundRect(rect, u(12), u(12), p);
         fill(c, enabled ? lime : muted);
@@ -2265,14 +2268,14 @@ class BatteryDashboard extends View {
         viewportWidthDp = visibleWindow.width() > 0 ? visibleWindow.width() / density : w;
         viewportHeightDp = visibleWindow.height() > 0 ? visibleWindow.height() / density : h;
         layoutWidthDp = w;
-        int bg = light ? Color.rgb(246, 248, 243) : (amoled ? Color.BLACK : Color.rgb(11, 16, 17));
-        int panel = light ? Color.WHITE : (amoled ? Color.rgb(5, 5, 5) : Color.rgb(20, 28, 25));
-        int raised = light ? Color.rgb(237, 242, 233) : (amoled ? Color.rgb(12, 12, 12) : Color.rgb(28, 39, 33));
-        int border = light ? Color.rgb(207, 218, 207) : (amoled ? Color.rgb(36, 36, 36) : Color.rgb(49, 66, 55));
-        int primary = light ? Color.rgb(23, 26, 29) : Color.rgb(242, 244, 239);
-        int muted = light ? Color.rgb(82, 95, 87) : Color.rgb(138, 145, 157);
-        int faint = light ? Color.rgb(103, 116, 106) : Color.rgb(102, 109, 121);
-        int bgTop = light ? Color.rgb(251, 252, 249) : (amoled ? Color.BLACK : Color.rgb(20, 30, 25));
+        int bg = light ? Color.rgb(244, 248, 248) : (amoled ? Color.BLACK : Color.rgb(9, 18, 23));
+        int panel = light ? Color.WHITE : (amoled ? Color.rgb(5, 10, 13) : Color.rgb(17, 30, 36));
+        int raised = light ? Color.rgb(231, 242, 241) : (amoled ? Color.rgb(11, 22, 27) : Color.rgb(24, 43, 50));
+        int border = light ? Color.rgb(199, 218, 218) : (amoled ? Color.rgb(31, 53, 61) : Color.rgb(44, 70, 78));
+        int primary = light ? Color.rgb(20, 35, 38) : Color.rgb(239, 247, 246);
+        int muted = light ? Color.rgb(77, 101, 105) : Color.rgb(151, 172, 177);
+        int faint = light ? Color.rgb(105, 126, 130) : Color.rgb(108, 131, 137);
+        int bgTop = light ? Color.rgb(252, 253, 253) : (amoled ? Color.BLACK : Color.rgb(16, 32, 38));
         p.setShader(new LinearGradient(0, 0, 0, u(Math.min(h, 520)), bgTop, bg, Shader.TileMode.CLAMP));
         fill(c, bg); c.drawRect(0, 0, getWidth(), getHeight(), p);
         p.setShader(null);
@@ -2297,7 +2300,7 @@ class BatteryDashboard extends View {
 
     private void drawHeader(Canvas c, float w, int primary, int muted, int border, int panel) {
         rounded(c, 18, 18, 54, 54, 14, lime);
-        drawBolt(c, 36, 36, Color.rgb(26, 32, 17), 1.1f);
+        drawBolt(c, 36, 36, Color.rgb(6, 34, 37), 1.1f);
         text(c, "Ampere", 62, 39, 17, primary, true);
         String buildLabel = w < 300f ? "v" + BuildConfig.VERSION_NAME : "LIVE-TELEMETRIE · v" + BuildConfig.VERSION_NAME;
         rounded(c, 62, 44, w < 300f ? 103 : 188, 62, 9, panel);
@@ -2358,14 +2361,14 @@ class BatteryDashboard extends View {
                 // The active state is an instrument rail, not another pill:
                 // the tonal wash gives context while the lime footmark gives
                 // a precise, color-plus-position cue for the selected page.
-                int activeSurface = light ? Color.rgb(239, 247, 222) : Color.rgb(35, 48, 29);
+                int activeSurface = light ? Color.rgb(225, 246, 243) : Color.rgb(23, 54, 57);
                 if (pressed) activeSurface = pressedFill(activeSurface, true);
                 rounded(c, x + 4, 124, x + cell - 4, 164, 10, activeSurface);
                 if (active) {
                     rounded(c, x + 13, 160, x + cell - 13, 163, 1.5f, lime);
                 }
             }
-            int activeTextColor = light ? Color.rgb(23, 28, 16) : lime;
+            int activeTextColor = light ? Color.rgb(13, 105, 108) : lime;
             int iconColor = active ? activeTextColor : muted;
             if (compactNav) {
                 // A fixed 24dp icon slot plus one shared label baseline is
@@ -2669,7 +2672,7 @@ class BatteryDashboard extends View {
         // "90…". Give the current value a measured 71-dp lane and keep a
         // deliberate 15-dp gutter before the time column.
         float dividerX = ultraCompactHeader ? w * .65f : (narrowHeader ? w * .58f : w * .54f);
-        float rightColumn = ultraCompactHeader ? w * .68f : (narrowHeader ? w * .62f : w * .6f);
+        float rightColumn = ultraCompactHeader ? w * .66f : (narrowHeader ? w * .62f : w * .6f);
         boundedText(c, charging && currentMa > 0 ? currentMa + " mA" : "—", 77, dividerX - 8,
                 y + 112, ultraCompactHeader ? 19 : (narrowHeader ? 27 : 31), primary, true);
         boundedText(c, charging ? liveCurrentSubLabel(narrowHeader) : (currentMa > 0 ? liveCurrentSubLabel(narrowHeader) : "getrennt · Verlaufsdaten"), 78, dividerX - 8,
@@ -3096,7 +3099,7 @@ class BatteryDashboard extends View {
                 benchmarkActive ? raised : lime, border, lime,
                 !benchmarkActive, isPressed(30));
         centeredText(c, benchmarkActive ? "Aktiv" : "Start", w - 84, y + 586, 10,
-                benchmarkActive ? lime : Color.rgb(23, 28, 16), true);
+                benchmarkActive ? lime : Color.rgb(6, 34, 37), true);
         rounded(c, 18, y + 630, w - 18, y + 697, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 630), u(w - 18), u(y + 697)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "Nennkapazität", 36, y + 659, 11, primary, true);
             text(c, designCapacitySource(), 36, y + 680, 9, muted, false);
@@ -3237,8 +3240,8 @@ class BatteryDashboard extends View {
         float exportTop = historyExportTop();
         smoothButton(c, w - 156, exportTop, w - 36, exportTop + 44, 14,
                 lime, lime, lime, true, isPressed(40));
-        drawArrow(c, w - 140, exportTop + 22, Color.rgb(23, 28, 16));
-        text(c, "CSV exportieren", w - 127, exportTop + 27, 9, Color.rgb(23, 28, 16), true);
+        drawArrow(c, w - 140, exportTop + 22, Color.rgb(6, 34, 37));
+        text(c, "CSV exportieren", w - 127, exportTop + 27, 9, Color.rgb(6, 34, 37), true);
     }
 
     private BatteryTelemetryDiagnostics.Summary telemetryDiagnostics() {
@@ -3284,7 +3287,7 @@ class BatteryDashboard extends View {
 
     private int diagnosticsColor(BatteryTelemetryDiagnostics.Summary summary) {
         return summary.hasHighTemperature() || summary.samplingGap
-                ? Color.rgb(242, 179, 106) : Color.rgb(157, 224, 106);
+                ? Color.rgb(242, 179, 106) : lime;
     }
 
     private String telemetryTemperatureDisplay() {
@@ -3446,8 +3449,8 @@ class BatteryDashboard extends View {
         smoothButton(c, x + width - 52, y + 10, x + width - 12, y + 42, 11,
                 panel, border, lime, historyDays == 30,
                 isPressed(BatteryAccessibilityLayout.OVERVIEW_30D));
-        centeredText(c, "7D", x + width - 80, y + 30, 8, historyDays == 7 ? Color.rgb(23, 28, 16) : muted, true);
-        centeredText(c, "30D", x + width - 32, y + 30, 8, historyDays == 30 ? Color.rgb(23, 28, 16) : muted, true);
+        centeredText(c, "7D", x + width - 80, y + 30, 8, historyDays == 7 ? Color.rgb(6, 34, 37) : muted, true);
+        centeredText(c, "30D", x + width - 32, y + 30, 8, historyDays == 30 ? Color.rgb(6, 34, 37) : muted, true);
         float chartX = x + 18, chartY = y + 51, chartW = width - 36, chartH = 94;
         for (int i = 0; i < 3; i++) line(c, chartX, chartY + i * 45, chartX + chartW, chartY + i * 45, border, 1);
         rightText(c, "100%", x + width - 18, chartY + 9, 7, faint, false);
