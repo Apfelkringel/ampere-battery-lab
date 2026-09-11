@@ -5,9 +5,9 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.180` (`versionCode 180`)
+- Version: `0.181` (`versionCode 181`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `d684a54b5678d9a719dbd2f2e98838138a907d045610fc9ac2baed343a52aeb1`
+- Release APK SHA-256: `c264040c8882e7812d4e06470dea7ba14d65ca723c4abfca0c712deaf7e6dbd6`
 - The same hash is published in the public update repository manifest.
 
 Release `0.181` additionally keeps a valid Android state-of-health reading as
