@@ -34,6 +34,7 @@ import android.os.Build;
 import android.app.AppOpsManager;
 import android.app.usage.UsageStats;
 import android.app.usage.UsageStatsManager;
+import android.app.usage.UsageEvents;
 import android.provider.Settings;
 import android.net.Uri;
 import android.view.Window;
@@ -52,6 +53,8 @@ import java.util.List;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -2159,34 +2162,100 @@ class BatteryDashboard extends View {
         return mode == AppOpsManager.MODE_ALLOWED;
     }
 
-    private void drawUsageRows(Canvas c, float w, float y, int primary, int muted, int faint) {
+    private static final class AppUsageRow {
+        final String packageName;
+        final long foregroundMs;
+
+        AppUsageRow(String packageName, long foregroundMs) {
+            this.packageName = packageName;
+            this.foregroundMs = foregroundMs;
+        }
+    }
+
+    /**
+     * UsageStats is aggregated to whole interval buckets, which can include
+     * time outside an active discharge. Prefer exact foreground/background
+     * events and keep the bucketed API only as a device-compatible fallback.
+     */
+    private List<AppUsageRow> appUsageRows(long start, long end) {
         UsageStatsManager manager = (UsageStatsManager) getContext().getSystemService(Context.USAGE_STATS_SERVICE);
-        if (manager == null) return;
+        if (manager == null || end <= start) return new ArrayList<>();
+        Map<String, Long> exact = exactForegroundTimes(manager, start, end);
+        ArrayList<AppUsageRow> rows = new ArrayList<>();
+        for (Map.Entry<String, Long> entry : exact.entrySet()) {
+            if (!entry.getKey().equals(getContext().getPackageName()) && entry.getValue() >= 60L * 1000L) {
+                rows.add(new AppUsageRow(entry.getKey(), entry.getValue()));
+            }
+        }
+        if (rows.isEmpty()) {
+            List<UsageStats> stats = manager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, start, end);
+            if (stats != null) {
+                for (UsageStats stat : stats) {
+                    if (!stat.getPackageName().equals(getContext().getPackageName())
+                            && stat.getTotalTimeInForeground() >= 60L * 1000L) {
+                        rows.add(new AppUsageRow(stat.getPackageName(), stat.getTotalTimeInForeground()));
+                    }
+                }
+            }
+        }
+        Collections.sort(rows, new Comparator<AppUsageRow>() {
+            @Override public int compare(AppUsageRow left, AppUsageRow right) {
+                return Long.compare(right.foregroundMs, left.foregroundMs);
+            }
+        });
+        return rows;
+    }
+
+    private Map<String, Long> exactForegroundTimes(UsageStatsManager manager, long start, long end) {
+        Map<String, Long> totals = new HashMap<>();
+        Map<String, Long> activeSince = new HashMap<>();
+        UsageEvents events = manager.queryEvents(Math.max(0L, start - 24L * 60L * 60L * 1000L), end);
+        if (events == null) return totals;
+        UsageEvents.Event event = new UsageEvents.Event();
+        while (events.hasNextEvent()) {
+            events.getNextEvent(event);
+            String packageName = event.getPackageName();
+            long timestamp = event.getTimeStamp();
+            if (packageName == null || packageName.isEmpty() || timestamp > end) continue;
+            UsageEventAccumulator.apply(totals, activeSince, packageName, timestamp, start, end,
+                    isForegroundEvent(event.getEventType()), isBackgroundEvent(event.getEventType()));
+        }
+        UsageEventAccumulator.closeActive(totals, activeSince, end);
+        return totals;
+    }
+
+    private boolean isForegroundEvent(int type) {
+        return type == UsageEvents.Event.MOVE_TO_FOREGROUND
+                || (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && type == UsageEvents.Event.ACTIVITY_RESUMED);
+    }
+
+    private boolean isBackgroundEvent(int type) {
+        return type == UsageEvents.Event.MOVE_TO_BACKGROUND
+                || (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+                && (type == UsageEvents.Event.ACTIVITY_PAUSED || type == UsageEvents.Event.ACTIVITY_STOPPED));
+    }
+
+    private void drawUsageRows(Canvas c, float w, float y, int primary, int muted, int faint) {
         long end = System.currentTimeMillis();
         long start = prefs.getBoolean("sinceFullActive", false)
                 ? prefs.getLong("sinceFullStartAt", end - 24 * 60 * 60 * 1000L)
                 : prefs.getLong(charging ? "lastDischargeStartAt" : "dischargeStartAt", end - 24 * 60 * 60 * 1000L);
         if (start >= end) start = end - 60 * 60 * 1000L;
-        List<UsageStats> stats = manager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, start, end);
-        if (stats == null) return;
-        Collections.sort(stats, new Comparator<UsageStats>() {
-            @Override public int compare(UsageStats left, UsageStats right) { return Long.compare(right.getTotalTimeInForeground(), left.getTotalTimeInForeground()); }
-        });
+        List<AppUsageRow> rows = appUsageRows(start, end);
         long totalForegroundMs = 0L;
-        for (UsageStats stat : stats) if (!stat.getPackageName().equals(getContext().getPackageName())) totalForegroundMs += stat.getTotalTimeInForeground();
+        for (AppUsageRow row : rows) totalForegroundMs += row.foregroundMs;
         int totalEnergy = dischargeMah();
         int row = 0;
-        for (UsageStats stat : stats) {
-            if (stat.getTotalTimeInForeground() < 60 * 1000L || stat.getPackageName().equals(getContext().getPackageName())) continue;
-            String app = stat.getPackageName();
-            try { app = getContext().getPackageManager().getApplicationLabel(getContext().getPackageManager().getApplicationInfo(stat.getPackageName(), 0)).toString(); } catch (Exception ignored) { }
-            long minutes = stat.getTotalTimeInForeground() / 60000L;
+        for (AppUsageRow usage : rows) {
+            String app = usage.packageName;
+            try { app = getContext().getPackageManager().getApplicationLabel(getContext().getPackageManager().getApplicationInfo(usage.packageName, 0)).toString(); } catch (Exception ignored) { }
+            long minutes = usage.foregroundMs / 60000L;
             float infoWidth = Math.max(70f, Math.min(130f, (w - 72f) / 2f));
             float appWidth = Math.max(72f, w - 72f - infoWidth - 8f);
             text(c, fitText(app, appWidth, 10, true), 36, y + row * 27, 10, primary, true);
-            int appMah = telemetryAppMah(stat.getPackageName(), start, end);
+            int appMah = telemetryAppMah(usage.packageName, start, end);
             if (appMah <= 0 && totalForegroundMs > 0L) {
-                appMah = Math.round(totalEnergy * stat.getTotalTimeInForeground() / (float) totalForegroundMs);
+                appMah = Math.round(totalEnergy * usage.foregroundMs / (float) totalForegroundMs);
             }
             rightText(c, fitText(minutes + " Min. · " + (appMah > 0 ? "~" + appMah : "—") + " mAh gesch.", infoWidth, 8, false), w - 36, y + row * 27, 8, muted, false);
             line(c, 36, y + row * 27 + 9, w - 36, y + row * 27 + 9, Color.rgb(43, 47, 56), 1);
@@ -2202,30 +2271,23 @@ class BatteryDashboard extends View {
             catch (Exception ignored) { getContext().startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)); }
             return;
         }
-        UsageStatsManager manager = (UsageStatsManager) getContext().getSystemService(Context.USAGE_STATS_SERVICE);
-        if (manager == null) return;
         long end = System.currentTimeMillis();
         long start = prefs.getBoolean("sinceFullActive", false)
                 ? prefs.getLong("sinceFullStartAt", end - 24 * 60 * 60 * 1000L)
                 : prefs.getLong(charging ? "lastDischargeStartAt" : "dischargeStartAt", end - 24 * 60 * 60 * 1000L);
         if (start >= end) start = end - 60 * 60 * 1000L;
-        List<UsageStats> stats = manager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, start, end);
-        if (stats == null) return;
-        Collections.sort(stats, new Comparator<UsageStats>() {
-            @Override public int compare(UsageStats left, UsageStats right) { return Long.compare(right.getTotalTimeInForeground(), left.getTotalTimeInForeground()); }
-        });
+        List<AppUsageRow> rows = appUsageRows(start, end);
         long totalForegroundMs = 0L;
-        for (UsageStats stat : stats) if (!stat.getPackageName().equals(getContext().getPackageName())) totalForegroundMs += stat.getTotalTimeInForeground();
+        for (AppUsageRow row : rows) totalForegroundMs += row.foregroundMs;
         int totalEnergy = Math.max(0, dischargeMah());
         StringBuilder details = new StringBuilder("Vordergrundzeit seit Beginn des aktuellen Entladevorgangs.\n\n");
         int row = 0;
-        for (UsageStats stat : stats) {
-            if (stat.getTotalTimeInForeground() < 60 * 1000L || stat.getPackageName().equals(getContext().getPackageName())) continue;
-            String app = stat.getPackageName();
-            try { app = getContext().getPackageManager().getApplicationLabel(getContext().getPackageManager().getApplicationInfo(stat.getPackageName(), 0)).toString(); } catch (Exception ignored) { }
-            long minutes = stat.getTotalTimeInForeground() / 60000L;
-            int appMah = telemetryAppMah(stat.getPackageName(), start, end);
-            if (appMah <= 0 && totalForegroundMs > 0L) appMah = Math.round(totalEnergy * stat.getTotalTimeInForeground() / (float) totalForegroundMs);
+        for (AppUsageRow usage : rows) {
+            String app = usage.packageName;
+            try { app = getContext().getPackageManager().getApplicationLabel(getContext().getPackageManager().getApplicationInfo(usage.packageName, 0)).toString(); } catch (Exception ignored) { }
+            long minutes = usage.foregroundMs / 60000L;
+            int appMah = telemetryAppMah(usage.packageName, start, end);
+            if (appMah <= 0 && totalForegroundMs > 0L) appMah = Math.round(totalEnergy * usage.foregroundMs / (float) totalForegroundMs);
             details.append(app).append("\n").append(minutes).append(" Min. · ")
                     .append(appMah > 0 ? "~" + appMah + " mAh geschätzt" : "mAh nicht verfügbar")
                     .append("\n\n");

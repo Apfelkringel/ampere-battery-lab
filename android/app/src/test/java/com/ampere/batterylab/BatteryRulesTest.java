@@ -2,6 +2,8 @@ package com.ampere.batterylab;
 
 import android.os.BatteryManager;
 import org.junit.Test;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
@@ -66,5 +68,15 @@ public class BatteryRulesTest {
         assertEquals(0f, BatteryCycleEstimator.addChargedFraction(0f, 20000000L, 5000000L,
                 true, 5000), 0.001f);
         assertEquals(1, BatteryCycleEstimator.completedCycles(1.2f));
+    }
+
+    @Test public void usageEventsCountOnlyForegroundIntervalsInsideTheWindow() {
+        Map<String, Long> totals = new HashMap<>();
+        Map<String, Long> active = new HashMap<>();
+        UsageEventAccumulator.apply(totals, active, "app.one", 90L, 100L, 500L, true, false);
+        UsageEventAccumulator.apply(totals, active, "app.one", 250L, 100L, 500L, false, true);
+        UsageEventAccumulator.apply(totals, active, "app.one", 300L, 100L, 500L, true, false);
+        UsageEventAccumulator.closeActive(totals, active, 500L);
+        assertEquals(Long.valueOf(350L), totals.get("app.one"));
     }
 }

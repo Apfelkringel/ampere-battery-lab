@@ -40,7 +40,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - Verlaufsgrafik nutzt für 7/30 Tage die tatsächlichen lokalen Telemetrie-Zeitpunkte und echte Datums-/Wochentagsachsen
 - relative Verschleißwirkung des gewählten Ladeziels mit erhöhter Gewichtung hoher Ladezustände
 - speichert auch lange Ladesitzungen bei unverändertem Prozentstand (z. B. OEM-Ladelimit) anhand geladener mAh
-- optionale lokale Zuordnung der Vordergrund-App zu Telemetriepunkten und geschätztem App-Verbrauch
+- optionale lokale Zuordnung der Vordergrund-App zu Telemetriepunkten und geschätztem App-Verbrauch; Vordergrundzeiten werden bevorzugt aus exakten Android-UsageEvents statt aus erweiterten Tages-Buckets berechnet
 - App-Verbrauchsschätzung berücksichtigt die tatsächlichen Zeitabstände der lokalen Messpunkte
 - strombasierte mAh-Fallbacks berücksichtigen auch gewählte 60-Minuten-Messintervalle
 - 30-Tage-History passt die gespeicherte Punktzahl automatisch an das gewählte Messintervall an

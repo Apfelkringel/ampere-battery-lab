@@ -64,6 +64,13 @@ unplausible Sprünge werden verworfen. Die Anzeige markiert diesen Fallback mit
 Die gemeinsam verwendeten Regeln sind in `BatteryRulesTest` gegen Androids
 Status-/Netzquellenregel und gegen ungültige Zyklusgrenzen abgesichert.
 
+Für die optionale App-Nutzungsansicht verwendet Ampere bevorzugt Androids
+`UsageStatsManager.queryEvents()`. Aggregierte `queryUsageStats()`-Tageswerte
+können laut Android-Dokumentation über den angefragten Zeitraum hinausreichen;
+deshalb bleibt diese API nur der Fallback, wenn keine auswertbaren Ereignisse
+vorliegen. Die reine Intervalllogik liegt in `UsageEventAccumulator` und wird
+ohne Android-Systemobjekte getestet.
+
 Das Startbildschirm-Widget ist eigenständig als `AppWidgetProvider` umgesetzt.
 Es liest den aktuellen Sticky-Akku-Broadcast und `BatteryManager` direkt, wird
 bei jedem laufenden Monitor-Sample aktualisiert und hat zusätzlich den von
