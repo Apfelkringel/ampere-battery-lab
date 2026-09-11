@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.140` (`versionCode 140`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `pending — wird nach dem signierten CI-Build ergänzt`
+- Release APK SHA-256: `8f221a370fc17de98b8f56add9d53f2acb587ef0a43f30086208f000f0096486`
 - The same hash is published in the public update repository manifest.
 
 Release `0.140` separates the compact landscape hero into clean horizontal
