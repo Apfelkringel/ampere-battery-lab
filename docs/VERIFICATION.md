@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.173` (`versionCode 173`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `d504aa70987a67f1c5982f658671b2578f03f81fad9dae7bef6d0593afcc1188`
+- Release APK SHA-256: `8dd9b1ad8e73bc7d622c429053fee7c3a9479a32cfb8089d2804262893398e12`
 - The same hash is published in the public update repository manifest.
 
 Release `0.173` additionally keeps the Entladen view empty until a real
