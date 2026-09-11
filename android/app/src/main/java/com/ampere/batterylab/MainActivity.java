@@ -985,7 +985,8 @@ class BatteryDashboard extends View {
                 try {
                     long timestamp = Long.parseLong(parts[0]);
                     if (timestamp < windowStart) continue;
-                    int sampleLevel = Integer.parseInt(parts[1]);
+                    int sampleLevel = BatteryLevel.normalizePercent(Integer.parseInt(parts[1]));
+                    if (sampleLevel < 0) continue;
                     boolean sampleCharging = "1".equals(parts[2]);
                     boolean sampleScreenOn = "1".equals(parts[7]);
                     if (previousAt > 0L && !sampleCharging && !previousCharging
@@ -1011,9 +1012,10 @@ class BatteryDashboard extends View {
             percentKey = "last" + Character.toUpperCase(percentKey.charAt(0)) + percentKey.substring(1);
             durationKey = "last" + Character.toUpperCase(durationKey.charAt(0)) + durationKey.substring(1);
         }
-        float consumed = prefs.getFloat(percentKey, 0f);
+        float consumed = BatteryPercentage.normalizePhase(prefs.getFloat(percentKey, 0f));
         long duration = prefs.getLong(durationKey, 0L);
-        return consumed > 0f && duration >= 5L * 60L * 1000L ? consumed * 3600000f / duration : 0f;
+        float rate = consumed > 0f && duration >= 5L * 60L * 1000L ? consumed * 3600000f / duration : 0f;
+        return Float.isFinite(rate) && rate > 0f ? rate : 0f;
     }
 
     private float mixedDischargeRate() {
@@ -1036,9 +1038,11 @@ class BatteryDashboard extends View {
     private String runtimeEstimate() {
         if (level < 0) return "—";
         if (charging) {
-            float used = prefs.getFloat("lastDischargeScreenOnPercent", 0f) + prefs.getFloat("lastDischargeScreenOffPercent", 0f);
+            float used = BatteryPercentage.normalizePhase(prefs.getFloat("lastDischargeScreenOnPercent", 0f))
+                    + BatteryPercentage.normalizePhase(prefs.getFloat("lastDischargeScreenOffPercent", 0f));
             long minutes = (prefs.getLong("lastDischargeScreenOnMs", 0L) + prefs.getLong("lastDischargeScreenOffMs", 0L)) / 60000L;
-            int historicalLevel = prefs.getInt("lastDischargeEndLevel", level);
+            int historicalLevel = lastDischargeEndLevel();
+            if (historicalLevel < 0) return "—";
             float rate = mixedDischargeRate();
             return rate > 0f ? formatDuration(Math.max(1, Math.round(historicalLevel * 60f / rate)))
                     : (used > 0f && minutes >= 5 ? formatDuration(Math.max(1, Math.round(historicalLevel * minutes / used))) : "—");
@@ -1095,12 +1099,15 @@ class BatteryDashboard extends View {
             percentKey = "last" + Character.toUpperCase(percentKey.charAt(0)) + percentKey.substring(1);
             durationKey = "last" + Character.toUpperCase(durationKey.charAt(0)) + durationKey.substring(1);
         }
-        float percent = prefs.getFloat(percentKey, 0f);
+        float percent = BatteryPercentage.normalizePhase(prefs.getFloat(percentKey, 0f));
         long minutes = prefs.getLong(durationKey, 0L) / 60000L;
-        if (percent > 0f && minutes >= 5) return String.format(Locale.US, "%.1f%%/h", percent * 60f / minutes);
+        float storedRate = percent > 0f && minutes >= 5 ? percent * 60f / minutes : 0f;
+        if (Float.isFinite(storedRate) && storedRate > 0f) return String.format(Locale.US, "%.1f%%/h", storedRate);
         int capacity = calculationCapacityMah();
         if (charging || currentMa < 50 || capacity <= 0) return "—";
-        return String.format(Locale.US, "%.1f%%/h", currentMa * 100f / capacity);
+        float liveRate = currentMa * 100f / capacity;
+        return Float.isFinite(liveRate) && liveRate > 0f
+                ? String.format(Locale.US, "%.1f%%/h", liveRate) : "—";
     }
 
     private String screenOnTime() {
@@ -1121,7 +1128,9 @@ class BatteryDashboard extends View {
         long deepMs = prefs.getLong(deepKey, 0L);
         long offMs = prefs.getLong(offKey, 0L);
         if (deepMs <= 0L || offMs <= 0L) return "—";
-        return String.format(Locale.US, "%.0f%%", Math.min(100f, deepMs * 100f / offMs));
+        float ratio = deepMs * 100f / offMs;
+        return Float.isFinite(ratio) && ratio >= 0f
+                ? String.format(Locale.US, "%.0f%%", Math.min(100f, ratio)) : "—";
     }
 
     private int wakeupCount() {
@@ -1130,7 +1139,9 @@ class BatteryDashboard extends View {
 
     private String sinceFullRange() {
         if (!prefs.getBoolean("sinceFullActive", false)) return "Noch keine Voll-Ladung";
-        return prefs.getInt("sinceFullStartLevel", 100) + "% → " + prefs.getInt("sinceFullLastLevel", level) + "%";
+        int start = storedLevelForDisplay("sinceFullStartLevel", 100);
+        int end = storedLevelForDisplay("sinceFullLastLevel", level);
+        return (start >= 0 ? start + "%" : "—") + " → " + (end >= 0 ? end + "%" : "—");
     }
 
     private String sinceFullDuration() {
@@ -1142,8 +1153,9 @@ class BatteryDashboard extends View {
 
     private String sinceFullUsageSummary() {
         if (!prefs.getBoolean("sinceFullActive", false)) return "Noch keine Voll-Ladung";
-        String range = prefs.getFloat("sinceFullPercent", 0f) > 0f
-                ? String.format(Locale.US, "%.0f%% verbraucht", prefs.getFloat("sinceFullPercent", 0f)) : "0% verbraucht";
+        float consumedPercent = BatteryPercentage.normalizeCumulative(prefs.getFloat("sinceFullPercent", 0f));
+        String range = consumedPercent > 0f
+                ? String.format(Locale.US, "%.0f%% verbraucht", consumedPercent) : "Noch kein Verbrauch";
         int mah = prefs.getInt("sinceFullMah", 0);
         return range + " · " + sinceFullDuration() + " · " + (mah > 0 ? mah + " mAh" : "—");
     }
@@ -1167,17 +1179,20 @@ class BatteryDashboard extends View {
     }
 
     private int chargeStartLevelForDisplay() {
-        return charging ? prefs.getInt("monitorSessionStartLevel", sessionStartLevel)
-                : prefs.getInt("lastChargeStartLevel", 0);
+        return charging ? storedLevelForDisplay("monitorSessionStartLevel", sessionStartLevel)
+                : storedLevelForDisplay("lastChargeStartLevel", 0);
     }
 
     private int chargeEndLevelForDisplay() {
-        return charging ? level : prefs.getInt("lastChargeEndLevel", 0);
+        return charging ? BatteryLevel.normalizePercent(level)
+                : storedLevelForDisplay("lastChargeEndLevel", 0);
     }
 
     private String chargeChangeForDisplay() {
-        int change = chargeEndLevelForDisplay() - chargeStartLevelForDisplay();
-        return change > 0 ? "+" + change + "%" : "—";
+        int start = chargeStartLevelForDisplay();
+        int end = chargeEndLevelForDisplay();
+        int change = start >= 0 && end >= 0 ? end - start : 0;
+        return change > 0 && change <= 100 ? "+" + change + "%" : "—";
     }
 
     private String chargeDurationForDisplay() {
@@ -1213,7 +1228,18 @@ class BatteryDashboard extends View {
     private String lastChargeRange() {
         long ended = prefs.getLong("lastChargeEndAt", 0L);
         if (ended <= 0L) return "—";
-        return prefs.getInt("lastChargeStartLevel", 0) + "% → " + prefs.getInt("lastChargeEndLevel", 0) + "%";
+        int start = storedLevelForDisplay("lastChargeStartLevel", 0);
+        int end = storedLevelForDisplay("lastChargeEndLevel", 0);
+        return start >= 0 && end >= 0 ? start + "% → " + end + "%" : "—";
+    }
+
+    private int storedLevelForDisplay(String key, int fallback) {
+        int value = BatteryLevel.normalizePercent(prefs.getInt(key, fallback));
+        return value >= 0 ? value : BatteryLevel.normalizePercent(fallback);
+    }
+
+    private int lastDischargeEndLevel() {
+        return BatteryLevel.normalizePercent(prefs.getInt("lastDischargeEndLevel", -1));
     }
 
     private String lastChargeDuration() {
@@ -1224,8 +1250,8 @@ class BatteryDashboard extends View {
     private String dischargePercent(boolean screenOn) {
         String key = screenOn ? "dischargeScreenOnPercent" : "dischargeScreenOffPercent";
         if (charging) key = "last" + Character.toUpperCase(key.charAt(0)) + key.substring(1);
-        float value = prefs.getFloat(key, 0f);
-        return String.format(Locale.US, "%.0f%%", value);
+        float value = BatteryPercentage.normalizePhase(prefs.getFloat(key, 0f));
+        return value > 0f ? String.format(Locale.US, "%.0f%%", value) : "—";
     }
 
     private String dischargeDuration(boolean screenOn) {
@@ -1243,9 +1269,10 @@ class BatteryDashboard extends View {
             percentKey = "last" + Character.toUpperCase(percentKey.charAt(0)) + percentKey.substring(1);
             durationKey = "last" + Character.toUpperCase(durationKey.charAt(0)) + durationKey.substring(1);
         }
-        float percent = prefs.getFloat(percentKey, 0f);
+        float percent = BatteryPercentage.normalizePhase(prefs.getFloat(percentKey, 0f));
         long minutes = prefs.getLong(durationKey, 0L) / 60000L;
-        int referenceLevel = charging ? prefs.getInt("lastDischargeEndLevel", level) : level;
+        int referenceLevel = charging ? lastDischargeEndLevel() : level;
+        if (referenceLevel < 0) return "—";
         if (percent > 0f && minutes >= 5) return formatDuration(Math.max(1, Math.round(referenceLevel * minutes / percent)));
         if (charging) return "—";
         float rate = averageDischargeRate(screenOn);
@@ -1275,9 +1302,10 @@ class BatteryDashboard extends View {
             percentKey = "last" + Character.toUpperCase(percentKey.charAt(0)) + percentKey.substring(1);
             durationKey = "last" + Character.toUpperCase(durationKey.charAt(0)) + durationKey.substring(1);
         }
-        float percent = prefs.getFloat(percentKey, 0f);
+        float percent = BatteryPercentage.normalizePhase(prefs.getFloat(percentKey, 0f));
         long minutes = prefs.getLong(durationKey, 0L) / 60000L;
-        return percent > 0f && minutes >= 5 ? percent * 60f / minutes : 0f;
+        float rate = percent > 0f && minutes >= 5 ? percent * 60f / minutes : 0f;
+        return Float.isFinite(rate) && rate > 0f ? rate : 0f;
     }
 
     private String chargeSpeed(boolean screenOn) {
@@ -2243,7 +2271,7 @@ class BatteryDashboard extends View {
         float y = 182;
         rounded(c, 18, y, w - 18, y + 300, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y), u(w - 18), u(y + 300)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "ENTLADEVORGANG", 36, y + 31, 10, muted, true);
-        int savedDischargeEnd = BatteryLevel.normalizePercent(prefs.getInt("lastDischargeEndLevel", -1));
+        int savedDischargeEnd = lastDischargeEndLevel();
         boolean hasDischargeHistory = savedDischargeEnd >= 0;
         text(c, charging ? (hasDischargeHistory ? "Letzter Entladevorgang" : "Noch keine Entladung") : "Akkuverbrauch",
                 36, y + 58, 18, primary, true);
@@ -2268,7 +2296,9 @@ class BatteryDashboard extends View {
         drawStat(c, 30 + (w - 48) / 2f, y + 316, (w - 48) / 2f, 105, "Verbrauch", dischargeMah() > 0 ? String.valueOf(dischargeMah()) : "—", "mAh", blue, primary, muted, border, panel, "arrow");
         rounded(c, 18, y + 438, w - 18, y + 536, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 438), u(w - 18), u(y + 536)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "Nutzungsübersicht", 36, y + 468, 10, muted, true);
-        text(c, "An " + dischargePercent(true) + " · aus " + dischargePercent(false) + " · " + dischargeMah() + " mAh", 36, y + 486, 8, primary, false);
+        int recordedDischargeMah = dischargeMah();
+        text(c, "An " + dischargePercent(true) + " · aus " + dischargePercent(false) + " · "
+                + (recordedDischargeMah > 0 ? recordedDischargeMah + " mAh" : "—"), 36, y + 486, 8, primary, false);
         text(c, "Tiefschlaf: " + deepSleepPercent() + " · " + deepSleepTime() + " · Bildschirm-Aufweckungen " + wakeupCount(), 36, y + 502, 8, primary, false);
         text(c, "Seit voller Ladung: " + sinceFullUsageSummary(), 36, y + 518, 8, primary, false);
         rounded(c, 18, y + 540, w - 18, y + 715, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 540), u(w - 18), u(y + 715)); c.drawRoundRect(rect, u(12), u(12), p);

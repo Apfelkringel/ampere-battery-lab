@@ -460,8 +460,8 @@ public class BatteryMonitorService extends Service {
     }
 
     private void updateUsageCounters(android.content.SharedPreferences prefs, int level, boolean charging, long now) {
-        int previousLevel = prefs.getInt("cycleLastLevel", -1);
-        float dischargePercent = prefs.getFloat("dischargePercent", 0f);
+        int previousLevel = BatteryLevel.normalizePercent(prefs.getInt("cycleLastLevel", -1));
+        float dischargePercent = BatteryPercentage.normalizeCumulative(prefs.getFloat("dischargePercent", 0f));
         int cycles = prefs.getInt("chargeCycles", 0);
         // Do not interpret an OEM recalibration or a brief counter reversal
         // while plugged in as battery wear. The last level is still persisted
@@ -470,6 +470,7 @@ public class BatteryMonitorService extends Service {
         int completedCycles = BatteryCycleAccumulator.completedCycles(dischargePercent);
         cycles += completedCycles;
         dischargePercent -= completedCycles * 100f;
+        dischargePercent = BatteryPercentage.normalizePhase(dischargePercent);
         PowerManager power = (PowerManager) getSystemService(POWER_SERVICE);
         boolean interactive = power == null || power.isInteractive();
         long lastMonitorSample = prefs.getLong("monitorSampleAt", now);
@@ -500,11 +501,12 @@ public class BatteryMonitorService extends Service {
             return;
         }
         if (!active) return;
-        int previousLevel = prefs.getInt("sinceFullLastLevel", level);
+        int previousLevel = BatteryLevel.normalizePercent(prefs.getInt("sinceFullLastLevel", level));
+        if (previousLevel < 0) previousLevel = level;
         int previousCounter = prefs.getInt("sinceFullLastCounterMah", counterMah);
         long lastAt = prefs.getLong("sinceFullLastAt", now);
         long elapsed = Math.min(accountingIntervalCapMs(), Math.max(0L, now - lastAt));
-        float usedPercent = prefs.getFloat("sinceFullPercent", 0f);
+        float usedPercent = BatteryPercentage.normalizeCumulative(prefs.getFloat("sinceFullPercent", 0f));
         if (!charging && level < previousLevel) usedPercent += previousLevel - level;
         int usedMah = prefs.getInt("sinceFullMah", 0);
         if (!charging && counterMah > 0 && previousCounter > 0 && previousCounter > counterMah) {
@@ -555,8 +557,8 @@ public class BatteryMonitorService extends Service {
             chargerSource = chargerLabel(prefs.getInt("lastChargePlugged", prefs.getInt("chargePlugged", 0)));
             if (energy <= 0) energy = screenOnValue + screenOffValue;
         } else {
-            float onPercent = prefs.getFloat("lastDischargeScreenOnPercent", 0f);
-            float offPercent = prefs.getFloat("lastDischargeScreenOffPercent", 0f);
+            float onPercent = BatteryPercentage.normalizePhase(prefs.getFloat("lastDischargeScreenOnPercent", 0f));
+            float offPercent = BatteryPercentage.normalizePhase(prefs.getFloat("lastDischargeScreenOffPercent", 0f));
             screenOnValue = Math.round(onPercent * 10f);
             screenOffValue = Math.round(offPercent * 10f);
             screenOnMs = prefs.getLong("lastDischargeScreenOnMs", 0L);
@@ -675,8 +677,8 @@ public class BatteryMonitorService extends Service {
             refreshDischargeDeepSleep(prefs);
             prefs.edit().putLong("lastDischargeScreenOnMs", prefs.getLong("dischargeScreenOnMs", 0L))
                     .putLong("lastDischargeScreenOffMs", prefs.getLong("dischargeScreenOffMs", 0L))
-                    .putFloat("lastDischargeScreenOnPercent", prefs.getFloat("dischargeScreenOnPercent", 0f))
-                    .putFloat("lastDischargeScreenOffPercent", prefs.getFloat("dischargeScreenOffPercent", 0f))
+                    .putFloat("lastDischargeScreenOnPercent", BatteryPercentage.normalizePhase(prefs.getFloat("dischargeScreenOnPercent", 0f)))
+                    .putFloat("lastDischargeScreenOffPercent", BatteryPercentage.normalizePhase(prefs.getFloat("dischargeScreenOffPercent", 0f)))
                     .putInt("lastDischargeMah", prefs.getInt("dischargeMah", 0))
                     .putInt("lastDischargeWakeups", prefs.getInt("dischargeWakeups", 0))
                     .putLong("lastDischargeDeepSleepMs", prefs.getLong("dischargeDeepSleepMs", 0L))
@@ -702,15 +704,18 @@ public class BatteryMonitorService extends Service {
             return;
         }
         if (charging) return;
-        int previousLevel = prefs.getInt("dischargeLastLevel", level);
+        int previousLevel = BatteryLevel.normalizePercent(prefs.getInt("dischargeLastLevel", level));
+        if (previousLevel < 0) previousLevel = level;
         int previousCounter = prefs.getInt("dischargeLastCounterMah", counterMah);
         long lastAt = prefs.getLong("dischargeLastAt", now);
         long elapsed = Math.max(0L, now - lastAt);
-        float onPercent = prefs.getFloat("dischargeScreenOnPercent", 0f);
-        float offPercent = prefs.getFloat("dischargeScreenOffPercent", 0f);
+        float onPercent = BatteryPercentage.normalizePhase(prefs.getFloat("dischargeScreenOnPercent", 0f));
+        float offPercent = BatteryPercentage.normalizePhase(prefs.getFloat("dischargeScreenOffPercent", 0f));
         if (level < previousLevel) {
             if (interactive) onPercent += previousLevel - level; else offPercent += previousLevel - level;
         }
+        onPercent = BatteryPercentage.normalizePhase(onPercent);
+        offPercent = BatteryPercentage.normalizePhase(offPercent);
         int energy = prefs.getInt("dischargeMah", 0);
         if (counterMah > 0 && previousCounter > 0 && previousCounter > counterMah) {
             energy += previousCounter - counterMah;
@@ -754,8 +759,8 @@ public class BatteryMonitorService extends Service {
                     .putLong("lastChargeScreenOffMs", prefs.getLong("chargeScreenOffMs", 0L))
                     .putInt("lastChargeScreenOnMah", prefs.getInt("chargeScreenOnMah", 0))
                     .putInt("lastChargeScreenOffMah", prefs.getInt("chargeScreenOffMah", 0))
-                    .putFloat("lastChargeScreenOnPercent", prefs.getFloat("chargeScreenOnPercent", 0f))
-                    .putFloat("lastChargeScreenOffPercent", prefs.getFloat("chargeScreenOffPercent", 0f))
+                    .putFloat("lastChargeScreenOnPercent", BatteryPercentage.normalizePhase(prefs.getFloat("chargeScreenOnPercent", 0f)))
+                    .putFloat("lastChargeScreenOffPercent", BatteryPercentage.normalizePhase(prefs.getFloat("chargeScreenOffPercent", 0f)))
                     .putInt("lastChargePlugged", prefs.getInt("chargePlugged", plugged))
                     .apply();
             return;
@@ -788,13 +793,16 @@ public class BatteryMonitorService extends Service {
         long offMs = prefs.getLong("chargeScreenOffMs", 0L) + (interactive ? 0L : elapsed);
         int onMah = prefs.getInt("chargeScreenOnMah", 0) + (interactive ? added : 0);
         int offMah = prefs.getInt("chargeScreenOffMah", 0) + (interactive ? 0 : added);
-        float onPercent = prefs.getFloat("chargeScreenOnPercent", 0f);
-        float offPercent = prefs.getFloat("chargeScreenOffPercent", 0f);
-        int previousLevel = prefs.getInt("chargeLastLevel", level);
+        float onPercent = BatteryPercentage.normalizePhase(prefs.getFloat("chargeScreenOnPercent", 0f));
+        float offPercent = BatteryPercentage.normalizePhase(prefs.getFloat("chargeScreenOffPercent", 0f));
+        int previousLevel = BatteryLevel.normalizePercent(prefs.getInt("chargeLastLevel", level));
+        if (previousLevel < 0) previousLevel = level;
         if (level > previousLevel) {
             float delta = level - previousLevel;
             if (interactive) onPercent += delta; else offPercent += delta;
         }
+        onPercent = BatteryPercentage.normalizePhase(onPercent);
+        offPercent = BatteryPercentage.normalizePhase(offPercent);
         prefs.edit().putInt("chargeLastCounterMah", counterMah).putLong("chargeLastAt", now)
                 .putInt("chargePlugged", plugged != 0 ? plugged : prefs.getInt("chargePlugged", 0))
                 .putLong("chargeScreenOnMs", onMs).putLong("chargeScreenOffMs", offMs)

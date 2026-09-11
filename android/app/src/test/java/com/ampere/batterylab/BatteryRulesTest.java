@@ -47,6 +47,18 @@ public class BatteryRulesTest {
         assertEquals(0, BatteryHealth.reportedPercentValue(-1));
     }
 
+    @Test public void persistedPercentagesRejectInvalidPhaseValues() {
+        assertTrue(BatteryPercentage.isValidPhase(0f));
+        assertTrue(BatteryPercentage.isValidPhase(100f));
+        assertFalse(BatteryPercentage.isValidPhase(110f));
+        assertFalse(BatteryPercentage.isValidPhase(-1f));
+        assertFalse(BatteryPercentage.isValidPhase(Float.NaN));
+        assertFalse(BatteryPercentage.isValidPhase(Float.POSITIVE_INFINITY));
+        assertEquals(0f, BatteryPercentage.normalizePhase(110f), 0.001f);
+        assertEquals(125f, BatteryPercentage.normalizeCumulative(125f), 0.001f);
+        assertEquals(0f, BatteryPercentage.normalizeCumulative(Float.NaN), 0.001f);
+    }
+
     @Test public void temperatureRejectsMissingAndImplausibleValues() {
         assertEquals(250, BatteryTemperature.normalizeTenths(250));
         assertEquals(1, BatteryTemperature.normalizeTenths(1));

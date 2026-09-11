@@ -5,10 +5,14 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.173` (`versionCode 173`)
+- Version: `0.174` (`versionCode 174`)
 - `minSdk 23`, `targetSdk 37`
 - Release APK SHA-256: `8dd9b1ad8e73bc7d622c429053fee7c3a9479a32cfb8089d2804262893398e12`
 - The same hash is published in the public update repository manifest.
+
+Release `0.174` additionally rejects invalid persisted phase percentages
+(including 110 %, NaN and infinity) in calculations and UI fallbacks; only
+real cumulative consumption since a full charge may exceed 100%.
 
 Release `0.173` additionally keeps the Entladen view empty until a real
 completed discharge exists; the current level is not shown as fake history.
