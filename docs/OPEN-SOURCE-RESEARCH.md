@@ -92,6 +92,12 @@ Zusätzlich nutzt Ampere den standardisierten Linux-
 als read-only OEM-Fallback. Die qualitative Datei `health` wird bewusst nicht
 als Prozent interpretiert; nur ein expliziter Integer von 1 bis 100 ist gültig.
 
+Für Widgets folgt Ampere dem offiziellen Android-12-Muster für responsive
+`RemoteViews`: Das MIT-lizenzierte [LYRIQ Battery Widget](https://github.com/omarzanji/lyriq-battery-widget)
+verwendet ebenfalls mehrere Größenpunkte mit `RemoteViews(Map<SizeF, RemoteViews>)`.
+Ampere übernimmt nur das allgemeine Android-API-Muster, nicht dessen Fahrzeug-,
+Smartcar- oder Home-Assistant-Code.
+
 Die gemeinsame `BatterySupplyRules`-Rangfolge prüft vor dem Dateinamen den
 deklarierten Power-Supply-Typ. Dadurch werden USB-/Netzeingänge auch dann
 ausgeschlossen, wenn ein OEM ihnen einen irreführenden Namen gibt; Batterie,

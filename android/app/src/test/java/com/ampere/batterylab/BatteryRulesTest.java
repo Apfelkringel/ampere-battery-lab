@@ -160,6 +160,19 @@ public class BatteryRulesTest {
                 BatteryWidgetLayoutRules.select(624, 276));
     }
 
+    @Test public void widgetResponsiveCutoffsCoverTheEntireDeclaredResizeRange() {
+        assertEquals(BatteryWidgetLayoutRules.SHORT,
+                BatteryWidgetLayoutRules.select(109, 56));
+        assertEquals(BatteryWidgetLayoutRules.SHORT,
+                BatteryWidgetLayoutRules.select(219, 71));
+        assertEquals(BatteryWidgetLayoutRules.COMPACT,
+                BatteryWidgetLayoutRules.select(109, 72));
+        assertEquals(BatteryWidgetLayoutRules.COMPACT,
+                BatteryWidgetLayoutRules.select(219, 276));
+        assertEquals(BatteryWidgetLayoutRules.STANDARD,
+                BatteryWidgetLayoutRules.select(220, 72));
+    }
+
     @Test public void persistedUpdateResumeTargetsOnlyCompletedDownloads() {
         assertTrue(UpdateChecker.shouldResumePersistedDownload(DownloadManager.STATUS_SUCCESSFUL));
         assertFalse(UpdateChecker.shouldResumePersistedDownload(DownloadManager.STATUS_PENDING));

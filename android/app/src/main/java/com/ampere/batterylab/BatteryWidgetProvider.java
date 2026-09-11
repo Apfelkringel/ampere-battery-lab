@@ -7,9 +7,13 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.BatteryManager;
+import android.util.SizeF;
 import android.widget.RemoteViews;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Locale;
 
 /** Small, local-only home-screen summary backed by Android's battery signals. */
@@ -45,6 +49,26 @@ public class BatteryWidgetProvider extends AppWidgetProvider {
     }
 
     private static RemoteViews buildViews(Context context, int widthDp, int heightDp) {
+        WidgetState state = readState(context);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            // Android 12+ can select among these layouts without waking the
+            // app again for every launcher size. The lower-left points are
+            // the exact cutoffs declared by the widget's resize range:
+            // short <72dp high, compact <220dp wide, standard otherwise.
+            Map<SizeF, RemoteViews> responsive = new LinkedHashMap<>();
+            responsive.put(new SizeF(109f, 56f), populateViews(context,
+                    BatteryWidgetLayoutRules.SHORT, state));
+            responsive.put(new SizeF(109f, 72f), populateViews(context,
+                    BatteryWidgetLayoutRules.COMPACT, state));
+            responsive.put(new SizeF(220f, 72f), populateViews(context,
+                    BatteryWidgetLayoutRules.STANDARD, state));
+            return new RemoteViews(responsive);
+        }
+        int layoutType = BatteryWidgetLayoutRules.select(widthDp, heightDp);
+        return populateViews(context, layoutType, state);
+    }
+
+    private static WidgetState readState(Context context) {
         Intent battery = context.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         int rawLevel = battery == null ? -1 : battery.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
         int scale = battery == null ? 100 : battery.getIntExtra(BatteryManager.EXTRA_SCALE, 100);
@@ -58,28 +82,50 @@ public class BatteryWidgetProvider extends AppWidgetProvider {
         int voltageMv = battery == null ? 0 : BatteryVoltage.normalizeMilliVolts(
                 battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0));
         int currentMa = readCurrentMa(context);
+        return new WidgetState(level, status, charging, temperatureTenths, voltageMv, currentMa);
+    }
 
-        int layoutType = BatteryWidgetLayoutRules.select(widthDp, heightDp);
+    private static RemoteViews populateViews(Context context, int layoutType, WidgetState state) {
         int layout = layoutType == BatteryWidgetLayoutRules.SHORT
                 ? R.layout.battery_widget_short
                 : layoutType == BatteryWidgetLayoutRules.COMPACT
                 ? R.layout.battery_widget_compact
                 : R.layout.battery_widget;
         RemoteViews views = new RemoteViews(context.getPackageName(), layout);
-        views.setTextViewText(R.id.widget_level, level >= 0 ? level + "%" : "—");
-        views.setTextViewText(R.id.widget_status, statusText(status, charging));
-        views.setTextViewText(R.id.widget_details, detailsText(charging, currentMa, temperatureTenths, voltageMv));
+        String statusText = statusText(state.status, state.charging);
+        String detailsText = detailsText(state.charging, state.currentMa, state.temperatureTenths, state.voltageMv);
+        views.setTextViewText(R.id.widget_level, state.level >= 0 ? state.level + "%" : "—");
+        views.setTextViewText(R.id.widget_status, statusText);
+        views.setTextViewText(R.id.widget_details, detailsText);
         views.setTextViewText(R.id.widget_caption, "Akku");
-        views.setTextColor(R.id.widget_status, context.getColor(charging ? R.color.widget_accent : R.color.widget_muted));
+        views.setTextColor(R.id.widget_status, context.getColor(state.charging ? R.color.widget_accent : R.color.widget_muted));
 
         Intent launch = new Intent(context, MainActivity.class);
         PendingIntent pending = PendingIntent.getActivity(context, REQUEST_CODE, launch,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         views.setOnClickPendingIntent(R.id.widget_root, pending);
-        String description = level >= 0 ? "Akkustand " + level + " Prozent, " : "Akkustand nicht verfügbar, ";
-        views.setContentDescription(R.id.widget_root, description + statusText(status, charging)
-                + ", " + detailsText(charging, currentMa, temperatureTenths, voltageMv));
+        String description = state.level >= 0 ? "Akkustand " + state.level + " Prozent, " : "Akkustand nicht verfügbar, ";
+        views.setContentDescription(R.id.widget_root, description + statusText + ", " + detailsText);
         return views;
+    }
+
+    private static final class WidgetState {
+        final int level;
+        final int status;
+        final boolean charging;
+        final int temperatureTenths;
+        final int voltageMv;
+        final int currentMa;
+
+        WidgetState(int level, int status, boolean charging, int temperatureTenths,
+                    int voltageMv, int currentMa) {
+            this.level = level;
+            this.status = status;
+            this.charging = charging;
+            this.temperatureTenths = temperatureTenths;
+            this.voltageMv = voltageMv;
+            this.currentMa = currentMa;
+        }
     }
 
     private static int readCurrentMa(Context context) {
