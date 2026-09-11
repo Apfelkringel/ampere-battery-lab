@@ -5,11 +5,15 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.130` (`versionCode 130`)
+- Version: `0.131` (`versionCode 131`)
 - `minSdk 23`, `targetSdk 37`
 - Release APK SHA-256: `a30a73fe8939c471d75e5e95e4eac8576312d66d84ae41930cc34109a4df1c21`
 - The same hash is published in the public update repository manifest.
 
+Release `0.131` downloads the APK through the pinned GitHub Contents API as
+raw bytes, avoiding a stale raw-CDN artifact after a manifest update. It keeps
+the `0.130` measurable EFC label instead of the misleading "Ladeeffizienz"
+percentage.
 Release `0.130` replaces the previous misleading "Ladeeffizienz" percentage
 with the measurable equivalent-full-cycle value (EFC). It keeps the
 `0.129` extended Android health states and the `0.128` history cleanup.

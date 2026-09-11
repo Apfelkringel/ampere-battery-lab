@@ -47,7 +47,8 @@ final class UpdateChecker {
     private static final String DOWNLOAD_VERSION_CODE = "downloadVersionCode";
     private static final String INSTALL_IN_PROGRESS = "installInProgress";
     private static final String EXPECTED_MANIFEST_PATH = "/repos/Apfelkringel/ampere-battery-lab-updates/contents/latest.json";
-    private static final String EXPECTED_APK_PATH = "/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk";
+    private static final String EXPECTED_APK_RAW_PATH = "/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk";
+    private static final String EXPECTED_APK_CONTENTS_PATH = "/repos/Apfelkringel/ampere-battery-lab-updates/contents/Ampere-Battery-Lab-release.apk";
     // Android's package installer enforces this signer too. Rechecking it here
     // rejects a changed public-repository artifact before showing the installer.
     private static final String EXPECTED_RELEASE_CERT_SHA256 = "301bed44b5cc342485b485b24baeea404dbdb216e6e3e134ad2ebd6b28d1dce3";
@@ -238,7 +239,20 @@ final class UpdateChecker {
     }
 
     private static boolean isAllowedApkUrl(URL url) {
-        return isAllowedUpdateUrl(url) && EXPECTED_APK_PATH.equals(url.getPath());
+        if (isAllowedUpdateUrl(url) && EXPECTED_APK_RAW_PATH.equals(url.getPath())) return true;
+        return isAllowedContentsApkUrl(url);
+    }
+
+    private static boolean isAllowedContentsApkUrl(URL url) {
+        if (!"https".equalsIgnoreCase(url.getProtocol())
+                || url.getPort() != -1
+                || url.getUserInfo() != null
+                || !"api.github.com".equalsIgnoreCase(url.getHost())
+                || !EXPECTED_APK_CONTENTS_PATH.equals(url.getPath())) return false;
+        String query = url.getQuery();
+        if (query == null) return false;
+        for (String parameter : query.split("&")) if ("ref=main".equals(parameter)) return true;
+        return false;
     }
 
     private static boolean isAllowedUpdateUrl(URL url) {
@@ -299,6 +313,11 @@ final class UpdateChecker {
             request.setAllowedOverRoaming(false);
             request.addRequestHeader("Cache-Control", "no-cache, no-store, max-age=0");
             request.addRequestHeader("Pragma", "no-cache");
+            // The GitHub Contents API returns the current binary for this
+            // fixed path when raw media is requested. This avoids the stale
+            // raw.githubusercontent.com CDN serving the previous APK after a
+            // manifest update.
+            request.addRequestHeader("Accept", "application/vnd.github.raw+json");
             request.setDestinationInExternalFilesDir(activity, Environment.DIRECTORY_DOWNLOADS, "ampere-update-" + update.versionCode + ".apk");
 
             long id = manager.enqueue(request);
