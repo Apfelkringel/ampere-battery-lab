@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.195` (`versionCode 195`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: wird nach dem signierten CI-Artefakt ergänzt
+- Release APK SHA-256: `3952c0c73ad41cba6be06090a5a354e76d84bf4c9a74e5998612af0dc4b8ea16`
 
 Release `0.195` additionally adds a read-only `state_of_health` fallback for
 Android 14–17 OEM battery/BMS nodes. Only explicit values from 1–100 are
