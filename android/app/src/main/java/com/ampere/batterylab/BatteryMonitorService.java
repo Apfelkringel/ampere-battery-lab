@@ -183,11 +183,7 @@ public class BatteryMonitorService extends Service {
         if (stableCharging == null) return;
         boolean isCharging = stableCharging;
         BatteryManager batteryManager = (BatteryManager) getSystemService(BATTERY_SERVICE);
-        int microamps = batteryManager == null ? 0 : batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW);
-        if (microamps == Integer.MIN_VALUE || microamps == 0) {
-            microamps = batteryManager == null ? 0 : batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_AVERAGE);
-        }
-        int currentMa = microamps == Integer.MIN_VALUE ? 0 : Math.abs(microamps) / 1000;
+        int currentMa = BatteryCurrent.milliAmps(batteryManager);
         int signedCurrentMa = currentMa == 0 ? 0 : (isCharging ? currentMa : -currentMa);
         int temperature = battery.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0);
         long rawChargeCounterUah = readChargeCounterUah(batteryManager);

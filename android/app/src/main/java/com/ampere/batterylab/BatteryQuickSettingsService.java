@@ -133,17 +133,7 @@ public class BatteryQuickSettingsService extends TileService {
 
     private int readCurrentMa() {
         BatteryManager manager = (BatteryManager) getSystemService(BATTERY_SERVICE);
-        if (manager == null) return 0;
-        int microamps;
-        try {
-            microamps = manager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW);
-            if (microamps == Integer.MIN_VALUE || microamps == 0) {
-                microamps = manager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_AVERAGE);
-            }
-        } catch (RuntimeException ignored) {
-            return 0;
-        }
-        return microamps == Integer.MIN_VALUE ? 0 : Math.abs(microamps) / 1000;
+        return BatteryCurrent.milliAmps(manager);
     }
 
     private static String subtitle(int status, boolean charging, int currentMa, int temperatureTenths, int voltageMv) {

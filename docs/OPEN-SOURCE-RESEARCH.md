@@ -104,6 +104,12 @@ erst nach deutlicher Abkühlung zurückgesetzt. Ampere speichert die Einstellung
 lokal, nutzt den Android-Akkusensor und verändert weder Ladeleistung noch
 Systemeinstellungen.
 
+Die Stromquelle wird nach demselben defensiven Prinzip behandelt: `CURRENT_NOW`
+wird zuerst gelesen, `CURRENT_AVERAGE` dient nur bei fehlendem/ungültigem
+Momentanwert als Fallback. Sentinelwerte und Rohwerte außerhalb eines plausiblen
+Bereichs werden vor Umrechnung und Anzeige verworfen. So bleiben Dashboard,
+Service, Widget, Overlay und Quick-Settings-Kachel konsistent.
+
 Für die optionale App-Nutzungsansicht verwendet Ampere bevorzugt Androids
 `UsageStatsManager.queryEvents()`. Aggregierte `queryUsageStats()`-Tageswerte
 können laut Android-Dokumentation über den angefragten Zeitraum hinausreichen;
