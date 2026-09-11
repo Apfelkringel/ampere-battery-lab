@@ -5,9 +5,9 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.188` (`versionCode 188`)
+- Version: `0.189` (`versionCode 189`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `13c376269905834eb83717a80d39d28377aadd4a52bd874dc70904092f712d8e`
+- Release APK SHA-256: `1623c795f7453fe6b3938a50749c18b09840c1be5c72e07a92ee14f4a6c4ae80`
 - The same hash is published in the public update repository manifest.
 
 Release `0.181` additionally keeps a valid Android state-of-health reading as
@@ -42,6 +42,11 @@ when it has measured energy or lasts at least five minutes.
 
 Release `0.188` additionally normalizes restored and persisted charge targets
 to 50–100 % before they reach the dashboard, progress bar or charge alarm.
+
+Release `0.189` additionally applies the health-percentage output gate to
+every dashboard and service path, rejecting impossible direct values such as
+`110 %`. Backup restore and telemetry migration now normalize persisted
+telemetry immediately instead of waiting for a later background sample.
 
 Release `0.180` additionally uses a robust median over the newest five valid
 local capacity samples, so one noisy charge cannot dominate the health result.
