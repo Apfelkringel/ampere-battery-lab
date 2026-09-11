@@ -5,11 +5,14 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.140` (`versionCode 140`)
+- Version: `0.141` (`versionCode 141`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `8f221a370fc17de98b8f56add9d53f2acb587ef0a43f30086208f000f0096486`
+- Release APK SHA-256: `pending — wird nach dem signierten CI-Build ergänzt`
 - The same hash is published in the public update repository manifest.
 
+Release `0.141` bases landscape selection on the visible ScrollView viewport,
+not the taller scroll content canvas. This keeps rotation and split-screen
+layouts on the compact composition reliably.
 Release `0.140` separates the compact landscape hero into clean horizontal
 lanes so its status, gauge and health line cannot overlap.
 Release `0.139` uses the actual Canvas dimensions for landscape selection on

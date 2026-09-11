@@ -1630,13 +1630,20 @@ class BatteryDashboard extends View {
         // short windows. Give that composition enough horizontal room while
         // retaining a readable max width everywhere else.
         float drawableWidth = getWidth() / density;
-        float drawableHeight = getHeight() / density;
+        float drawableHeight = visibleViewportHeight();
         if (page == 0 && drawableWidth >= 600f && drawableWidth > drawableHeight) {
             return Math.min(Math.max(0f, viewWidth - 48f), 960f);
         }
         return Math.min(viewWidth, 560f);
     }
     private float contentInset(float viewWidth) { return Math.max(0f, (viewWidth - contentWidth(viewWidth)) / 2f); }
+
+    private float visibleViewportHeight() {
+        android.view.ViewParent parent = getParent();
+        if (parent instanceof ScrollView && ((View) parent).getHeight() > 0) return ((View) parent).getHeight() / density;
+        if (viewportHeightDp > 0f) return viewportHeightDp;
+        return getHeight() / density;
+    }
 
     @Override protected void onDraw(Canvas c) {
         super.onDraw(c);
@@ -1795,7 +1802,7 @@ class BatteryDashboard extends View {
         // during an Android 16/17 rotation. The Canvas dimensions are the
         // authoritative geometry for this draw pass.
         float drawableWidth = getWidth() / density;
-        float drawableHeight = getHeight() / density;
+        float drawableHeight = visibleViewportHeight();
         boolean landscapeWindow = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE
                 || (drawableWidth >= 600f && drawableWidth > drawableHeight);
         if (landscapeWindow) {
