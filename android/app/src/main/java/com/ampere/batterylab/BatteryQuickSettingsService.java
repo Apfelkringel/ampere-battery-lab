@@ -97,8 +97,7 @@ public class BatteryQuickSettingsService extends TileService {
         if (tile == null) return;
         int rawLevel = battery == null ? -1 : battery.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
         int scale = battery == null ? 100 : battery.getIntExtra(BatteryManager.EXTRA_SCALE, 100);
-        int level = rawLevel >= 0 && scale > 0
-                ? Math.max(0, Math.min(100, Math.round(rawLevel * 100f / scale))) : -1;
+        int level = BatteryLevel.percent(rawLevel, scale);
         int status = battery == null ? BatteryManager.BATTERY_STATUS_UNKNOWN
                 : battery.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN);
         int plugged = battery == null ? 0 : battery.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0);

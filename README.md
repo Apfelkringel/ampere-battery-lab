@@ -67,6 +67,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - konfigurierbare Temperaturwarnung mit Hysterese informiert einmalig ab 40/45/50/55 °C und setzt sich erst 3 °C darunter zurück
 - Temperaturwarnungs-Dialog zeigt die auswählbaren Grenzwerte direkt als sichtbare Einzelauswahl
 - Android-Stromwerte werden zentral in allen Anzeigen validiert; Sentinelwerte und unrealistische Rohstromspitzen werden als nicht verfügbar behandelt
+- Android-Akkustand/Skalierung wird zentral validiert; unmögliche OEM-Paare werden nicht mehr stillschweigend auf 100 % gekappt, sondern als nicht verfügbar behandelt
 - responsive Kompaktansichten für schmale und breite Displays, zentrierter Inhaltsbereich auf Tablets/Foldables, 48-dp-Touch-Zonen und Screenreader-Zusammenfassung; Details in `docs/UI-UX.md`
 - Live-Overlay mit Akkustrom, CPU-Kernauslastung, Top-App und best-effort Prozessauslastung der Top-App
 - kein Konto und kein Upload an einen Ampere-Server; Android-Backup kann Verlauf, Einstellungen und lokale Telemetrie über den vom Gerät gewählten Backup-Transport sichern, wobei Cloud-Backups ohne Verschlüsselungsmöglichkeit ausgeschlossen werden; der sichtbare Export/Backup bleibt zusätzlich verfügbar

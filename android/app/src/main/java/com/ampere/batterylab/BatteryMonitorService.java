@@ -164,8 +164,8 @@ public class BatteryMonitorService extends Service {
         if (battery == null) return;
         int raw = battery.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
         int scale = battery.getIntExtra(BatteryManager.EXTRA_SCALE, 100);
-        if (raw < 0 || scale <= 0) return;
-        int value = Math.max(0, Math.min(100, Math.round(raw * 100f / scale)));
+        int value = BatteryLevel.percent(raw, scale);
+        if (value < 0) return;
         android.content.SharedPreferences prefs = getSharedPreferences("ampere-data", Context.MODE_PRIVATE);
         android.content.SharedPreferences telemetryPrefs = getSharedPreferences("ampere-telemetry", Context.MODE_PRIVATE);
         long now = System.currentTimeMillis();

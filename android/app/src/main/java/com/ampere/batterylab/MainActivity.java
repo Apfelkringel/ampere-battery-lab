@@ -571,7 +571,8 @@ class BatteryDashboard extends View {
         int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, 100);
         int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN);
         int pluggedSource = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0);
-        if (rawLevel >= 0 && scale > 0) level = Math.max(0, Math.min(100, Math.round(rawLevel * 100f / scale)));
+        int normalizedLevel = BatteryLevel.percent(rawLevel, scale);
+        if (normalizedLevel >= 0) level = normalizedLevel;
         boolean detectedCharging = BatteryState.isCharging(status, pluggedSource);
         long now = System.currentTimeMillis();
         long monitorSampleAt = prefs.getLong("monitorSampleAt", 0L);

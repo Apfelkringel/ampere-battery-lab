@@ -63,6 +63,16 @@ public class BatteryRulesTest {
         assertEquals(0, BatteryVoltage.normalizeMilliVolts(10001));
     }
 
+    @Test public void batteryLevelRejectsImpossibleRawPairs() {
+        assertEquals(46, BatteryLevel.percent(46, 100));
+        assertEquals(100, BatteryLevel.percent(100, 100));
+        assertEquals(0, BatteryLevel.percent(0, 100));
+        assertEquals(-1, BatteryLevel.percent(101, 100));
+        assertEquals(-1, BatteryLevel.percent(-1, 100));
+        assertEquals(-1, BatteryLevel.percent(1, 0));
+        assertEquals(-1, BatteryLevel.percent(1001, 1001));
+    }
+
     @Test public void chargeCounterRejectsSentinelsAndUnknownUnits() {
         assertEquals(6600000L, BatteryChargeCounter.normalizeMicroampereHours(6600000L));
         assertEquals(6600, BatteryChargeCounter.toMilliampereHours(6600000L));
