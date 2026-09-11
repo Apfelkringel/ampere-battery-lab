@@ -2814,6 +2814,10 @@ class BatteryDashboard extends View {
                 if (!pathStarted) {
                     path.moveTo(px, py);
                     pathStarted = true;
+                } else if (BatteryTimelineRules.isSamplingGap(
+                        points.get(i - 1).timestamp, point.timestamp, samplingIntervalMs())) {
+                    // Missing monitoring data is not a measured ramp.
+                    path.moveTo(px, py);
                 } else {
                     path.lineTo(px, py);
                 }
@@ -2883,8 +2887,8 @@ class BatteryDashboard extends View {
             float px = chartX + timeFraction * chartW;
             // A long collection gap is real missing data, not a slow ramp.
             // Keep the gap visible instead of drawing a misleading diagonal.
-            boolean gap = i > 0 && point.timestamp - points.get(first + i - 1).timestamp
-                    > Math.max(2L * 60L * 60L * 1000L, samplingIntervalMs() * 2L);
+            boolean gap = i > 0 && BatteryTimelineRules.isSamplingGap(
+                    points.get(first + i - 1).timestamp, point.timestamp, samplingIntervalMs());
             int current = point.magnitudeMa;
             float py = chartY + chartH - current * chartH / (float) scaleMax;
             if (i == 0 || gap) path.moveTo(u(px), u(py)); else path.lineTo(u(px), u(py));

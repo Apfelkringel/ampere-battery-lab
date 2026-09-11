@@ -240,6 +240,21 @@ public class BatteryRulesTest {
         assertFalse(BatteryTimelineRules.isRollback(0L, 1_699_999_999_000L));
     }
 
+    @Test public void chartsLeaveGapsForMissedSamplingWindows() {
+        long fifteenMinutes = 15L * 60L * 1000L;
+        assertFalse(BatteryTimelineRules.isSamplingGap(1_000L, 1_000L + fifteenMinutes, fifteenMinutes));
+        assertFalse(BatteryTimelineRules.isSamplingGap(2_000L, 1_000L, fifteenMinutes));
+        assertFalse(BatteryTimelineRules.isSamplingGap(1_000L,
+                1_000L + 2L * 60L * 60L * 1000L, fifteenMinutes));
+        assertTrue(BatteryTimelineRules.isSamplingGap(1_000L,
+                1_000L + 2L * 60L * 60L * 1000L + 1L, fifteenMinutes));
+        assertFalse(BatteryTimelineRules.isSamplingGap(1_000L,
+                1_000L + 31L * 60L * 1000L, fifteenMinutes));
+        long twoHours = 2L * 60L * 60L * 1000L;
+        assertTrue(BatteryTimelineRules.isSamplingGap(1_000L,
+                1_000L + 2L * twoHours + 1L, twoHours));
+    }
+
     @Test public void sessionChangeUsesMeasuredEnergyWhenLevelSnapshotIsNoisy() {
         assertEquals(10, BatterySessionRules.effectiveChange(0, 660, 6600, true));
         assertEquals(10, BatterySessionRules.effectiveChange(-2, 660, 6600, true));
