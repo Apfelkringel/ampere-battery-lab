@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.212` (`versionCode 212`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: wird nach dem signierten CI-Build ergänzt.
+- Release APK SHA-256: `87c2423973fccdcdcaa1d06b4cf6583b03ce83a25904068ad68654f524611392`
 
 Release `0.212` additionally makes the visible LIVE control functional: it
 refreshes the current Android battery broadcast immediately and keeps the
