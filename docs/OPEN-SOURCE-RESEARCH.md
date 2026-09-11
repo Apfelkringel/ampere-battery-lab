@@ -111,7 +111,7 @@ den Median. Dadurch kann eine einzelne fehlerhafte oder besonders unruhige
 Ladesitzung den Gesundheitswert nicht unverhältnismäßig verschieben.
 
 Automatische Proben werden zusätzlich nur nach einer Ladung bis mindestens 95 %
-und bei einem während der Sitzung beobachteten stabilen Ladestrom bis 25 mA
+und dem zuletzt gültigen Ladestrom bis 25 mA
 gespeichert. Teil- oder noch aktive Ladevorgänge werden nicht als
 Full-Charge-Kapazität umetikettiert; das folgt der vorsichtigen FCC-Aufzeichnung
 von [PlusPlusBattery](https://github.com/dijia1124/PlusPlusBattery). Der manuelle

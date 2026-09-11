@@ -35,7 +35,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - Health-Auswertung mit letztem Ladeverschleiß und äquivalenten Vollzyklen (EFC); Gesundheit wird fachlich auf maximal 100 % begrenzt, ungültige OEM-Werte über 100 % werden verworfen
 - Lokale Gesundheitsmessungen werden über die letzten fünf gültigen Ladevorgänge robust per Median ausgewertet, damit ein einzelner Ausreißer die Anzeige nicht verfälscht
 - Ein gültiger Android-SoH-Wert ist die gemeinsame Quelle für Prozent- und Kapazitätsanzeige; ungültige oder nicht plausible Quellen bleiben ausdrücklich nicht verfügbar
-- Automatische Gesundheitsproben entstehen nur nach einer nahezu vollständigen Ladung ab 95 % und einem stabil niedrigen Ladestrom bis 25 mA; der manuelle Benchmark bleibt separat
+- Automatische Gesundheitsproben entstehen nur nach einer nahezu vollständigen Ladung ab 95 % und dem zuletzt gültigen Ladestrom bis 25 mA; der manuelle Benchmark bleibt separat
 - Alle gespeicherten Phasen-Prozentwerte werden vor Berechnung und Anzeige auf endliche Werte zwischen 0 und 100 % geprüft; kumulativer Verbrauch seit voller Ladung darf fachlich über 100 % liegen
 - Temperaturwerte werden in Dashboard, Dienst, Widget, Overlay, Kachel und Alarm zentral auf Androids Zehntelgrad-Einheit und einen plausiblen Bereich geprüft
 - Batteriespannung wird in allen Oberflächen zentral als Millivolt validiert, bevor daraus Akku-Leistung oder Anzeige berechnet wird

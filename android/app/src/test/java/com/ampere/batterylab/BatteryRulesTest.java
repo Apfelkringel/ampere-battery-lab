@@ -60,6 +60,12 @@ public class BatteryRulesTest {
         assertEquals(0, BatteryHealthSampleRules.estimateCapacityMah(30, 94, 4200, 20));
     }
 
+    @Test public void healthSampleUsesLatestUsableChargingCurrent() {
+        assertEquals(20, BatteryHealthSampleRules.latestUsableCurrent(0, 20));
+        assertEquals(300, BatteryHealthSampleRules.latestUsableCurrent(20, 300));
+        assertEquals(300, BatteryHealthSampleRules.latestUsableCurrent(300, 0));
+    }
+
     @Test public void persistedPercentagesRejectInvalidPhaseValues() {
         assertTrue(BatteryPercentage.isValidPhase(0f));
         assertTrue(BatteryPercentage.isValidPhase(100f));

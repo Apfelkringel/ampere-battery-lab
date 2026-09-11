@@ -10,6 +10,11 @@ final class BatteryHealthSampleRules {
 
     private BatteryHealthSampleRules() { }
 
+    /** Keeps the latest usable charging reading; an unavailable sample cannot refresh it. */
+    static int latestUsableCurrent(int previousCurrentMa, int currentMa) {
+        return currentMa > 0 ? currentMa : Math.max(0, previousCurrentMa);
+    }
+
     static boolean isEligible(int startLevel, int endLevel, int energyMah, int currentMa) {
         return startLevel >= 0 && startLevel <= 100
                 && endLevel >= MIN_END_LEVEL && endLevel <= 100

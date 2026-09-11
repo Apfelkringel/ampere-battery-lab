@@ -19,6 +19,10 @@ near-full charge (at least 95 %) with a measured stable charging current of at
 most 25 mA; partial or still unstable charges are kept out of the health
 estimate.
 
+Release `0.183` additionally uses the latest valid charging-current sample at
+the session boundary instead of the lowest current seen anywhere in the
+session, so an early transient cannot qualify a later unstable charge.
+
 Release `0.180` additionally uses a robust median over the newest five valid
 local capacity samples, so one noisy charge cannot dominate the health result.
 

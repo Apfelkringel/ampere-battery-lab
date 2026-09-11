@@ -187,8 +187,10 @@ public class BatteryMonitorService extends Service {
         int signedCurrentMa = currentMa == 0 ? 0 : (isCharging ? currentMa : -currentMa);
         if (isCharging && currentMa > 0) {
             int previousChargingCurrent = prefs.getInt("lastChargingCurrentMa", 0);
-            if (previousChargingCurrent == 0 || currentMa < previousChargingCurrent) {
-                prefs.edit().putInt("lastChargingCurrentMa", currentMa).apply();
+            int latestChargingCurrent = BatteryHealthSampleRules.latestUsableCurrent(
+                    previousChargingCurrent, currentMa);
+            if (latestChargingCurrent != previousChargingCurrent) {
+                prefs.edit().putInt("lastChargingCurrentMa", latestChargingCurrent).apply();
             }
         }
         int temperature = BatteryTemperature.normalizeTenths(
