@@ -434,6 +434,7 @@ class BatteryDashboard extends View {
     private float temperature = 0f;
     private float voltage = 0f;
     private int platformHealth = BatteryManager.BATTERY_HEALTH_UNKNOWN;
+    private int capacityLevel = -1;
     private int currentMa = 0;
     private int signedCurrentMa = 0;
     private int chargeCounterMah = 0;
@@ -590,6 +591,7 @@ class BatteryDashboard extends View {
         int temp = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -1);
         temperature = temp > 0 ? temp / 10f : 0f;
         platformHealth = intent.getIntExtra(BatteryManager.EXTRA_HEALTH, BatteryManager.BATTERY_HEALTH_UNKNOWN);
+        capacityLevel = BatteryCapacityLevel.fromIntent(intent);
         int mv = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1);
         voltage = mv > 0 ? mv / 1000f : 0f;
         BatteryManager manager = (BatteryManager) getContext().getSystemService(Context.BATTERY_SERVICE);
@@ -2357,7 +2359,11 @@ class BatteryDashboard extends View {
         text(c, health > 0 ? (100 - Math.min(100, health)) + "%" : "—", w - 58, y + 211, 10, amber, true);
         line(c, 36, y + 232, w - 36, y + 232, border, 1);
         text(c, "Android-Zustand", 36, y + 257, 10, muted, false);
-        rightText(c, BatteryPlatformHealth.label(platformHealth), w - 36, y + 257, 10,
+        String platformLabel = BatteryPlatformHealth.label(platformHealth);
+        if (BatteryCapacityLevel.isAvailable(capacityLevel)) {
+            platformLabel += " · " + BatteryCapacityLevel.label(capacityLevel);
+        }
+        boundedRightText(c, platformLabel, w * .50f, w - 36, y + 257, 10,
                 BatteryPlatformHealth.isAvailable(platformHealth) ? lime : faint, true);
         text(c, "Temperatur heute", 36, y + 282, 9, muted, false);
         rightText(c, temperature > 0f ? String.format(Locale.US, "%.1f°C", temperature) : "—", w * .48f, y + 282, 9, amber, true);
@@ -2808,8 +2814,11 @@ class BatteryDashboard extends View {
 
     private void updateAccessibilitySummary() {
         String state = charging ? "Laden erkannt" : "Akkubetrieb";
+        String capacity = BatteryCapacityLevel.isAvailable(capacityLevel)
+                ? " Kapazitätsniveau " + BatteryCapacityLevel.label(capacityLevel) + "." : "";
         setContentDescription(pageName() + ". " + state + ". Akkustand " + level + " Prozent. "
-                + "Tabs: Übersicht, Laden, Entladen, Gesundheit, Verlauf. Aktiver Tab: " + pageName() + ".");
+                + "Android-Zustand " + BatteryPlatformHealth.label(platformHealth) + "." + capacity
+                + " Tabs: Übersicht, Laden, Entladen, Gesundheit, Verlauf. Aktiver Tab: " + pageName() + ".");
     }
 
     private void drawGauge(Canvas c, float cx, float cy, float radius, int value, int primary, int faint) {

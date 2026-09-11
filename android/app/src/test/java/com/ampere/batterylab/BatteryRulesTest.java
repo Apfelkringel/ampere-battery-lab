@@ -72,6 +72,15 @@ public class BatteryRulesTest {
         assertEquals("Nicht verfügbar", BatteryPlatformHealth.label(BatteryManager.BATTERY_HEALTH_UNKNOWN));
     }
 
+    @Test public void capacityLevelStaysSeparateFromHealthPercentage() {
+        assertEquals("Kritisch", BatteryCapacityLevel.label(1));
+        assertEquals("Normal", BatteryCapacityLevel.label(3));
+        assertEquals("Voll", BatteryCapacityLevel.label(5));
+        assertTrue(BatteryCapacityLevel.isAvailable(4));
+        assertFalse(BatteryCapacityLevel.isAvailable(0));
+        assertEquals("Nicht verfügbar", BatteryCapacityLevel.label(-1));
+    }
+
     @Test public void capacityUnitsNormalizeWithoutInventingAValue() {
         assertEquals(6600L, BatteryCapacity.normalizeCapacity(6600000L));
         assertEquals(6600L, BatteryCapacity.normalizeCapacity(6600L));

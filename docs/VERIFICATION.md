@@ -10,6 +10,9 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Release APK SHA-256: `a65f7d41e4248165ae5e1fb7f7d43443685c34dcdb58b002d0dddf439c200729`
 - The same hash is published in the public update repository manifest.
 
+Release `0.149` additionally reads Android 16+'s qualitative capacity-level
+signal separately from state-of-health, and exposes it only when the system
+provides it.
 Release `0.148` additionally resolves noisy charging/discharging level
 snapshots against measured energy before writing a session row. This preserves
 real charging sessions at OEM charge limits without creating zero-percent

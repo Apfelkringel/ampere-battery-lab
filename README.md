@@ -54,6 +54,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - Ladesitzungen nutzen bei verrauschten Akkustand-Snapshots die gemessene Energie als geprüfte Richtungsstütze, ohne 0-%-Sitzungen zu erzeugen
 - Backup-Dialog zeigt den letzten automatischen Backup-Anstoß; Baseline-Änderungen melden Android sofort eine Datenänderung
 - adaptive Darstellung ohne erzwungenes Hochformat für aktuelle Android-16/17-Geräte
+- Android 16/17: optionales qualitatives Kapazitätsniveau wird getrennt von Akkustand und Akkugesundheit angezeigt
 - responsive Kompaktansichten für schmale und breite Displays, zentrierter Inhaltsbereich auf Tablets/Foldables, 48-dp-Touch-Zonen und Screenreader-Zusammenfassung; Details in `docs/UI-UX.md`
 - Live-Overlay mit Akkustrom, CPU-Kernauslastung, Top-App und best-effort Prozessauslastung der Top-App
 - kein Konto und kein Upload an einen Ampere-Server; Android-Backup kann Verlauf, Einstellungen und lokale Telemetrie über den vom Gerät gewählten Backup-Transport sichern, wobei Cloud-Backups ohne Verschlüsselungsmöglichkeit ausgeschlossen werden; der sichtbare Export/Backup bleibt zusätzlich verfügbar
