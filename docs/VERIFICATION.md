@@ -5,11 +5,14 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.143` (`versionCode 143`)
+- Version: `0.144` (`versionCode 144`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `f203e9d706be3c0613d98de3ebb4f330eed264185108672995b2d6dd4cc9e27a`
+- Release APK SHA-256: `pending — wird nach dem signierten CI-Build ergänzt`
 - The same hash is published in the public update repository manifest.
 
+Release `0.144` additionally uses Android's runtime-available state-of-health
+property on Android 16/17, with strict 1–100 validation and local-capacity
+fallback on unsupported or restricted devices.
 Release `0.143` uses one shared measured-capacity hierarchy for dashboard,
 health page and background notification, including filtered recent samples.
 Release `0.142` rejects implausible health-capacity samples before averaging,

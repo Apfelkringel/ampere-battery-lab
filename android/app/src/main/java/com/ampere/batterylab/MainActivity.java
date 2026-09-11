@@ -722,9 +722,8 @@ class BatteryDashboard extends View {
     }
 
     private int healthPercent() {
-        int measured = healthMeasurementMah();
         int design = designCapacityMah();
-        return BatteryHealth.percent(measured, design);
+        return BatteryHealth.percent(getContext(), prefs, design);
     }
 
     private int healthMeasurementMah() {
@@ -769,13 +768,11 @@ class BatteryDashboard extends View {
     }
 
     private int estimatedCapacityMah() {
-        int measured = healthMeasurementMah();
-        int design = designCapacityMah();
-        if (measured <= 0) return 0;
-        return design > 0 ? Math.min(measured, design) : measured;
+        return BatteryHealth.estimatedCapacityMah(getContext(), prefs, designCapacityMah());
     }
 
     private String healthMeasurementSource() {
+        if (BatteryHealth.reportedStateOfHealth(getContext()) > 0) return "Android BatteryManager";
         String serialized = prefs.getString("healthSamples", "");
         if (BatteryHealth.averageRecentSamples(serialized) > 0) return "lokalen Lademessungen";
         if (prefs.getInt("benchmarkCapacityMah", 0) > 0) return "manuellem Benchmark";
