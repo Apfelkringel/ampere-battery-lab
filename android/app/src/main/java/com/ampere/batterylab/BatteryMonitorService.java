@@ -266,16 +266,7 @@ public class BatteryMonitorService extends Service {
     }
 
     private long readChargeCounterUah(BatteryManager batteryManager) {
-        if (batteryManager == null) return 0L;
-        long value = 0L;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            value = batteryManager.getLongProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER);
-        }
-        if (value <= 0L || value == Long.MIN_VALUE) {
-            int legacyValue = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER);
-            value = legacyValue > 0 ? legacyValue : 0L;
-        }
-        return value;
+        return BatteryChargeCounter.readMicroampereHours(batteryManager);
     }
 
     private void updateEstimatedCycles(android.content.SharedPreferences prefs, long currentCounterUah,

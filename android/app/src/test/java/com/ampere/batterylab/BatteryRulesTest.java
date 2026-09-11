@@ -63,6 +63,14 @@ public class BatteryRulesTest {
         assertEquals(0, BatteryVoltage.normalizeMilliVolts(10001));
     }
 
+    @Test public void chargeCounterRejectsSentinelsAndUnknownUnits() {
+        assertEquals(6600000L, BatteryChargeCounter.normalizeMicroampereHours(6600000L));
+        assertEquals(6600, BatteryChargeCounter.toMilliampereHours(6600000L));
+        assertEquals(0L, BatteryChargeCounter.normalizeMicroampereHours(10000L));
+        assertEquals(0L, BatteryChargeCounter.normalizeMicroampereHours(-1L));
+        assertEquals(0L, BatteryChargeCounter.normalizeMicroampereHours(30000001L));
+    }
+
     @Test public void sessionHistoryRejectsZeroAndWrongDirectionRowsInEveryFormat() {
         assertTrue(BatterySessionRules.isValid("Charge,+12%,18 Min.,11.09. 12:00"));
         assertTrue(BatterySessionRules.isValid("Discharge,-8%,42 Min.,11.09. 13:00,70,62,300,0.03"));

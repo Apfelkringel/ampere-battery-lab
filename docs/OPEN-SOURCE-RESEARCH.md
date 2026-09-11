@@ -106,6 +106,11 @@ Millivolt validiert. Der Bereich 1.000–10.000 mV deckt die üblichen ein- und
 mehrzelligen Smartphone-/Tablet-Akkus ab; fehlende oder darüberliegende Werte
 werden als nicht verfügbar behandelt.
 
+Der persistente Charge-Counter wird ebenfalls nur in der von Android
+dokumentierten Microampere-Stunden-Einheit akzeptiert. Werte außerhalb von
+500–30.000 mAh werden verworfen, statt einen Hersteller-Sentinel oder eine
+unbekannte Einheit in Sitzungen und EFC-Schätzungen einzubauen.
+
 Für die zusätzliche Live-Leistung orientiert sich Ampere an dem in offenen
 Batteriemonitoren üblichen, transparenten Modell `P = I × U`: Androids
 gemessener Akkustrom wird mit der Akkuspannung multipliziert. Die Implementierung

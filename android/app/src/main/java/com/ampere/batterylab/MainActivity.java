@@ -604,9 +604,9 @@ class BatteryDashboard extends View {
         BatteryManager manager = (BatteryManager) getContext().getSystemService(Context.BATTERY_SERVICE);
         currentMa = BatteryCurrent.milliAmps(manager);
         signedCurrentMa = currentMa == 0 ? 0 : (newCharging ? currentMa : -currentMa);
-        int chargeCounter = manager == null ? 0 : manager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER);
-        if (chargeCounter > 0) {
-            chargeCounterMah = chargeCounter / 1000;
+        chargeCounterMah = BatteryChargeCounter.toMilliampereHours(
+                BatteryChargeCounter.readMicroampereHours(manager));
+        if (chargeCounterMah > 0) {
             if (sessionStartChargeCounterMah <= 0) {
                 sessionStartChargeCounterMah = chargeCounterMah;
                 prefs.edit().putInt("sessionStartChargeCounterMah", sessionStartChargeCounterMah).apply();

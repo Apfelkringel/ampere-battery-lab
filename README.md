@@ -34,6 +34,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - Health-Auswertung mit letztem Ladeverschleiß und äquivalenten Vollzyklen (EFC); Gesundheit wird fachlich auf maximal 100 % begrenzt, ungültige OEM-Werte über 100 % werden verworfen
 - Temperaturwerte werden in Dashboard, Dienst, Widget, Overlay, Kachel und Alarm zentral auf Androids Zehntelgrad-Einheit und einen plausiblen Bereich geprüft
 - Batteriespannung wird in allen Oberflächen zentral als Millivolt validiert, bevor daraus Akku-Leistung oder Anzeige berechnet wird
+- Der persistente Charge-Counter wird zentral in Androids Microampere-Stunden-Einheit validiert, bevor Sitzungen oder EFC daraus berechnet werden
 - System-Ladezyklen werden aus Android oder unterstützten Batterie-/BMS-Treibern gelesen; fehlt beides, nutzt Ampere eine vorsichtige lokale EFC-Schätzung aus Androids persistentem Charge Counter und kennzeichnet sie mit `~`
 - transparente Anzeige, warum eine Ladesitzung noch nicht als Health-Kapazitätsprobe zählt
 - Bildschirmzeit, echte Android-Suspendzeit (Deep Sleep), Ladezyklen und optionale Vordergrund-App-Nutzung
