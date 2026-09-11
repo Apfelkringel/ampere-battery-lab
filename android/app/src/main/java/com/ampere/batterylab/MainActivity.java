@@ -2848,23 +2848,9 @@ class BatteryDashboard extends View {
                                     boolean chargingFilter) {
         frame(c, x, y, x + width, y + height, panel, border, chargingFilter ? lime : blue);
         text(c, chargingFilter ? "Ladestrom" : "Entladestrom", x + 18, y + 28, 15, primary, true);
-        String saved = telemetryPrefs.getString("telemetrySamples", "");
-        ArrayList<Integer> values = new ArrayList<>();
-        if (!saved.isEmpty()) {
-            for (String row : BatteryExportRules.validTelemetryRows(saved)) {
-                String[] parts = row.split(",", 11);
-                if (parts.length < 4 || !String.valueOf(chargingFilter ? 1 : 0).equals(parts[2])) continue;
-                try {
-                    int signedCurrent = Integer.parseInt(parts[3]);
-                    // Telemetry keeps direction explicit: charging is positive,
-                    // discharging is negative. The chart shows magnitude while
-                    // retaining the selected direction in its title/filter.
-                    boolean matchesDirection = chargingFilter ? signedCurrent > 0 : signedCurrent < 0;
-                    if (matchesDirection) values.add(Math.abs(signedCurrent));
-                } catch (NumberFormatException ignored) { }
-            }
-        }
-        int count = Math.min(48, values.size());
+        ArrayList<CurrentPoint> points = currentChartPoints(chargingFilter);
+        int first = Math.max(0, points.size() - 48);
+        int count = points.size() - first;
         float chartX = x + 18, chartY = y + 51, chartW = width - 36, chartH = 105;
         for (int i = 0; i < 3; i++) line(c, chartX, chartY + i * chartH / 2f, chartX + chartW, chartY + i * chartH / 2f, border, 1);
         rightText(c, "mA", x + width - 18, chartY + 9, 7, faint, false);
@@ -2874,25 +2860,68 @@ class BatteryDashboard extends View {
             return;
         }
         int min = Integer.MAX_VALUE, max = 0, total = 0;
-        for (int i = values.size() - count; i < values.size(); i++) {
-            int current = values.get(i);
+        for (int i = first; i < points.size(); i++) {
+            int current = points.get(i).magnitudeMa;
             min = Math.min(min, current);
             max = Math.max(max, current);
             total += current;
         }
         int scaleMax = Math.max(100, max);
         Path path = new Path();
+        long startAt = points.get(first).timestamp;
+        long endAt = points.get(points.size() - 1).timestamp;
+        long span = endAt - startAt;
         for (int i = 0; i < count; i++) {
-            int current = values.get(values.size() - count + i);
-            float px = count == 1 ? chartX : chartX + i * chartW / (count - 1);
+            CurrentPoint point = points.get(first + i);
+            float timeFraction = span > 0L
+                    ? Math.max(0f, Math.min(1f, (point.timestamp - startAt) / (float) span))
+                    : (count == 1 ? 0f : i / (float) (count - 1));
+            float px = chartX + timeFraction * chartW;
+            // A long collection gap is real missing data, not a slow ramp.
+            // Keep the gap visible instead of drawing a misleading diagonal.
+            boolean gap = i > 0 && point.timestamp - points.get(first + i - 1).timestamp
+                    > Math.max(2L * 60L * 60L * 1000L, samplingIntervalMs() * 2L);
+            int current = point.magnitudeMa;
             float py = chartY + chartH - current * chartH / (float) scaleMax;
-            if (i == 0) path.moveTo(u(px), u(py)); else path.lineTo(u(px), u(py));
+            if (i == 0 || gap) path.moveTo(u(px), u(py)); else path.lineTo(u(px), u(py));
         }
         stroke(c, chargingFilter ? lime : blue, 2);
         c.drawPath(path, p);
         text(c, max + " mA Spitze", chartX, y + 181, 9, muted, false);
         text(c, String.format(Locale.US, "Ø %d mA", Math.round(total / (float) count)), x + width - 92, y + 181, 9, muted, false);
         text(c, "letzte " + count + " lokalen Messwerte", chartX, y + 199, 8, faint, false);
+    }
+
+    private static final class CurrentPoint {
+        final long timestamp;
+        final int magnitudeMa;
+
+        CurrentPoint(long timestamp, int magnitudeMa) {
+            this.timestamp = timestamp;
+            this.magnitudeMa = magnitudeMa;
+        }
+    }
+
+    /** Reads directionally consistent current points without losing timestamps. */
+    private ArrayList<CurrentPoint> currentChartPoints(boolean chargingFilter) {
+        ArrayList<CurrentPoint> points = new ArrayList<>();
+        String saved = telemetryPrefs.getString("telemetrySamples", "");
+        if (saved.isEmpty()) return points;
+        for (String row : BatteryExportRules.validTelemetryRows(saved)) {
+            String[] parts = row.split(",", 11);
+            if (parts.length < 4 || !String.valueOf(chargingFilter ? 1 : 0).equals(parts[2])) continue;
+            try {
+                long timestamp = Long.parseLong(parts[0].trim());
+                int signedCurrent = Integer.parseInt(parts[3].trim());
+                // Telemetry keeps direction explicit: charging is positive,
+                // discharging is negative. The chart shows magnitude while
+                // retaining the selected direction in its title/filter.
+                boolean matchesDirection = chargingFilter ? signedCurrent > 0 : signedCurrent < 0;
+                int magnitude = Math.abs(signedCurrent);
+                if (matchesDirection && magnitude > 0) points.add(new CurrentPoint(timestamp, magnitude));
+            } catch (NumberFormatException ignored) { }
+        }
+        return points;
     }
 
     private static final class LevelPoint {
