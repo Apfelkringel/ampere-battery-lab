@@ -5,11 +5,15 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.152` (`versionCode 152`)
+- Version: `0.154` (`versionCode 154`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `735c69ce9037879a14c03b139c52b0b7585ca49d1cecba0566b849d9cec37bae`
+- Release APK SHA-256: `wird nach CI-Signatur eingetragen`
 - The same hash is published in the public update repository manifest.
 
+Release `0.154` additionally keeps the compact charging power label readable
+on narrow 320/360 dp layouts without crossing its metric column.
+Release `0.153` additionally calculates and displays validated battery-side
+power separately from charger maximum power.
 Release `0.152` additionally validates Android's optional charger current/
 voltage pair and displays the resulting maximum source power separately from
 the live battery current.
