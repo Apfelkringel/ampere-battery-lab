@@ -2,6 +2,7 @@ package com.ampere.batterylab;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.SystemClock;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -17,8 +18,11 @@ import java.util.Locale;
 final class BatteryCapacity {
     private static final int MIN_MAH = 500;
     private static final int MAX_MAH = 30000;
+    private static final long CACHE_REFRESH_MS = 15L * 60L * 1000L;
     private static volatile Reading cachedReading;
     private static volatile Reading cachedFullChargeReading;
+    private static volatile long cachedReadingAt;
+    private static volatile long cachedFullChargeReadingAt;
 
     private BatteryCapacity() { }
 
@@ -72,9 +76,14 @@ final class BatteryCapacity {
 
     private static Reading automaticReading(Context context) {
         Reading cached = cachedReading;
-        if (cached != null) return cached;
+        long now = SystemClock.elapsedRealtime();
+        if (cached != null && isCacheFresh(cachedReadingAt, now)) return cached;
         synchronized (BatteryCapacity.class) {
-            if (cachedReading == null) cachedReading = detect(context);
+            now = SystemClock.elapsedRealtime();
+            if (cachedReading == null || !isCacheFresh(cachedReadingAt, now)) {
+                cachedReading = detect(context);
+                cachedReadingAt = now;
+            }
             return cachedReading;
         }
     }
@@ -108,11 +117,23 @@ final class BatteryCapacity {
 
     private static Reading automaticFullChargeReading() {
         Reading cached = cachedFullChargeReading;
-        if (cached != null) return cached;
+        long now = SystemClock.elapsedRealtime();
+        if (cached != null && isCacheFresh(cachedFullChargeReadingAt, now)) return cached;
         synchronized (BatteryCapacity.class) {
-            if (cachedFullChargeReading == null) cachedFullChargeReading = detectFullCharge();
+            now = SystemClock.elapsedRealtime();
+            if (cachedFullChargeReading == null || !isCacheFresh(cachedFullChargeReadingAt, now)) {
+                // Full-charge capacity is learned by the fuel gauge and can
+                // change after a charge cycle; do not freeze it for the
+                // lifetime of the foreground monitor process.
+                cachedFullChargeReading = detectFullCharge();
+                cachedFullChargeReadingAt = now;
+            }
             return cachedFullChargeReading;
         }
+    }
+
+    static boolean isCacheFresh(long cachedAt, long now) {
+        return cachedAt > 0L && now >= cachedAt && now - cachedAt < CACHE_REFRESH_MS;
     }
 
     private static Reading detectFullCharge() {

@@ -67,6 +67,9 @@ public class BatteryRulesTest {
         assertEquals(6600L, BatteryCapacity.normalizeCapacity(6600000L));
         assertEquals(6600L, BatteryCapacity.normalizeCapacity(6600L));
         assertEquals(100L, BatteryCapacity.normalizeCapacity(100L));
+        assertTrue(BatteryCapacity.isCacheFresh(1000L, 1001L));
+        assertFalse(BatteryCapacity.isCacheFresh(1000L, 901001L));
+        assertFalse(BatteryCapacity.isCacheFresh(0L, 1001L));
     }
 
     @Test public void localCycleFallbackIgnoresLevelDropsWhileCharging() {
