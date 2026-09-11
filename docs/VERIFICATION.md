@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.143` (`versionCode 143`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `pending — wird nach dem signierten CI-Build ergänzt`
+- Release APK SHA-256: `f203e9d706be3c0613d98de3ebb4f330eed264185108672995b2d6dd4cc9e27a`
 - The same hash is published in the public update repository manifest.
 
 Release `0.143` uses one shared measured-capacity hierarchy for dashboard,
