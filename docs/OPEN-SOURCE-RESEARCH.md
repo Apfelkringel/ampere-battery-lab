@@ -55,8 +55,11 @@ Gesundheitsmessung dargestellt.
 
 Die Zykluszählung folgt demselben Prinzip: Androids gemeldeter Wert hat Vorrang,
 danach werden nur bekannte Batterie-/BMS-Treiberknoten mit einer festen
-Plausibilitätsgrenze gelesen. Fehlt beides, wird kein künstlicher Gesamtzähler
-angezeigt.
+Plausibilitätsgrenze gelesen. Fehlt beides, nutzt Ampere als letzte Option eine
+vorsichtige lokale EFC-Schätzung aus `BATTERY_PROPERTY_CHARGE_COUNTER`: Es werden
+nur stabile Zunahmen während des Ladens addiert; Rücksprünge, Resets und
+unplausible Sprünge werden verworfen. Die Anzeige markiert diesen Fallback mit
+`~`.
 
 Die gemeinsam verwendeten Regeln sind in `BatteryRulesTest` gegen Androids
 Status-/Netzquellenregel und gegen ungültige Zyklusgrenzen abgesichert.

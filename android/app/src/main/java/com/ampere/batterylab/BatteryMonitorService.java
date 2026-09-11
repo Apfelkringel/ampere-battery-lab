@@ -173,8 +173,9 @@ public class BatteryMonitorService extends Service {
         int currentMa = microamps == Integer.MIN_VALUE ? 0 : Math.abs(microamps) / 1000;
         int signedCurrentMa = currentMa == 0 ? 0 : (isCharging ? currentMa : -currentMa);
         int temperature = battery.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0);
-        int rawChargeCounter = batteryManager == null ? 0 : batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER);
-        int chargeCounterMah = rawChargeCounter > 0 ? rawChargeCounter / 1000 : 0;
+        long rawChargeCounterUah = readChargeCounterUah(batteryManager);
+        int chargeCounterMah = rawChargeCounterUah > 0
+                ? (int) Math.min(Integer.MAX_VALUE, Math.round(rawChargeCounterUah / 1000d)) : 0;
         BatteryCycleCount.Reading cycleReading = BatteryCycleCount.read(battery);
         int systemCycleCount = cycleReading == null ? -1 : cycleReading.cycles;
         if (cycleReading != null) {
@@ -229,6 +230,35 @@ public class BatteryMonitorService extends Service {
         for (int i = 0; i < longPoints.size(); i++) { if (i > 0) longOutput.append(','); longOutput.append(longPoints.get(i)); }
         prefs.edit().putString("history", output.toString()).putString("historyLong", longOutput.toString()).putLong("lastSample", now).apply();
         updateUsageCounters(prefs, value, isCharging, now);
+        updateEstimatedCycles(prefs, rawChargeCounterUah, isCharging);
+    }
+
+    private long readChargeCounterUah(BatteryManager batteryManager) {
+        if (batteryManager == null) return 0L;
+        long value = 0L;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            value = batteryManager.getLongProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER);
+        }
+        if (value <= 0L || value == Long.MIN_VALUE) {
+            int legacyValue = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER);
+            value = legacyValue > 0 ? legacyValue : 0L;
+        }
+        return value;
+    }
+
+    private void updateEstimatedCycles(android.content.SharedPreferences prefs, long currentCounterUah,
+                                       boolean charging) {
+        if (currentCounterUah <= 0L) return;
+        int designMah = BatteryCapacity.designCapacityMah(this);
+        long previousCounterUah = prefs.getLong("estimatedCycleLastCounterUah", -1L);
+        float fraction = prefs.getFloat("estimatedCycleFraction", 0f);
+        float updated = BatteryCycleEstimator.addChargedFraction(fraction, previousCounterUah,
+                currentCounterUah, charging, designMah);
+        int completed = BatteryCycleEstimator.completedCycles(updated);
+        int cycles = Math.max(0, prefs.getInt("estimatedCycleCount", 0)) + completed;
+        prefs.edit().putLong("estimatedCycleLastCounterUah", currentCounterUah)
+                .putFloat("estimatedCycleFraction", Math.max(0f, updated - completed))
+                .putInt("estimatedCycleCount", cycles).apply();
     }
 
     /**

@@ -57,4 +57,14 @@ public class BatteryRulesTest {
         assertEquals(0f, BatteryCycleAccumulator.addDischargePercent(0f, 80, 72, true), 0.001f);
         assertEquals(1, BatteryCycleAccumulator.completedCycles(108f));
     }
+
+    @Test public void chargeCounterCycleEstimateCountsOnlyStableChargingIncreases() {
+        assertEquals(0.1f, BatteryCycleEstimator.addChargedFraction(0f, 5000000L, 5500000L,
+                true, 5000), 0.001f);
+        assertEquals(0f, BatteryCycleEstimator.addChargedFraction(0f, 5000000L, 5500000L,
+                false, 5000), 0.001f);
+        assertEquals(0f, BatteryCycleEstimator.addChargedFraction(0f, 20000000L, 5000000L,
+                true, 5000), 0.001f);
+        assertEquals(1, BatteryCycleEstimator.completedCycles(1.2f));
+    }
 }

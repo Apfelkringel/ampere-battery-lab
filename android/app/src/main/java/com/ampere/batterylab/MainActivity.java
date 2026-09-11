@@ -89,7 +89,8 @@ public class MainActivity extends Activity {
             "sinceFullWakeups",
             "sinceFullLastCounterMah", "sinceFullLastLevel", "sinceFullMah", "sinceFullPercent",
             "sinceFullScreenOffMs", "sinceFullScreenOnMs", "sinceFullStartAt", "sinceFullStartLevel",
-            "systemCycleCount", "systemCycleCountSource", "monitorLastCharging", "monitorSampleAt", "monitorSessionStartCounterMah",
+            "systemCycleCount", "systemCycleCountSource", "estimatedCycleLastCounterUah", "estimatedCycleFraction", "estimatedCycleCount",
+            "monitorLastCharging", "monitorSampleAt", "monitorSessionStartCounterMah",
             "monitorSessionStartLevel", "monitorSessionStartedAt", "monitoringMs", "screenOffDurationMin",
             "screenOnMs", "screenSampleAt"
     ));
@@ -1230,6 +1231,8 @@ class BatteryDashboard extends View {
         int reported = prefs.getInt("systemCycleCount", -1);
         if (reported >= 0) return String.valueOf(reported);
         int locallyObserved = prefs.getInt("chargeCycles", 0);
+        int estimated = prefs.getInt("estimatedCycleCount", 0);
+        if (estimated > 0) return "~" + estimated;
         return locallyObserved > 0 ? String.valueOf(locallyObserved) : "—";
     }
 
@@ -1441,6 +1444,8 @@ class BatteryDashboard extends View {
                             .remove("healthSampleSessionAt").remove("lastChargeHealthReason")
                             .remove("totalChargedMah").remove("chargeCycles")
                             .remove("cycleLastLevel").remove("dischargePercent")
+                            .remove("estimatedCycleLastCounterUah").remove("estimatedCycleFraction")
+                            .remove("estimatedCycleCount")
                             .apply();
                     BackupManager.dataChanged(context.getPackageName());
                     reloadStoredData();
