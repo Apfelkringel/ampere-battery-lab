@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.165` (`versionCode 165`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `53185523883a4a2c0b219cbd28c8f14ccfa6e4f71182c198ae710dbfed124969`
+- Release APK SHA-256: `bd2ddd98fb8e0a7aafb69c76315dbc2399066d6521f18d6889bb85a66d039d6d`
 - The same hash is published in the public update repository manifest.
 
 Release `0.165` additionally keeps wide-landscape gauge and status elements in
