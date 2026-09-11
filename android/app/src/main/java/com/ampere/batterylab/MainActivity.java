@@ -3175,7 +3175,16 @@ class BatteryDashboard extends View {
             node.setText(label);
             node.setContentDescription(label);
             node.setParent(BatteryDashboard.this);
-            node.setBoundsInParent(virtualViewBounds(virtualViewId));
+            Rect boundsInParent = virtualViewBounds(virtualViewId);
+            node.setBoundsInParent(boundsInParent);
+            // Accessibility services use screen bounds for touch exploration.
+            // The dashboard lives inside a scrolling parent, so derive them
+            // from the current on-screen location instead of assuming the
+            // Canvas starts at (0, 0).
+            int[] location = new int[2];
+            getLocationOnScreen(location);
+            boundsInParent.offset(location[0], location[1]);
+            node.setBoundsInScreen(boundsInParent);
             node.setVisibleToUser(isShown());
             node.setEnabled(isEnabled());
             node.setFocusable(true);

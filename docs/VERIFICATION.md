@@ -5,9 +5,13 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.222` (`versionCode 222`)
+- Version: `0.223` (`versionCode 223`)
 - `minSdk 23`, `targetSdk 37`
 - Release APK SHA-256: `9eb5219d1b9efa12ba0770e4348970d331442717af16b0aca5d1b62215eee0d3`
+
+Release `0.223` additionally supplies screen-space bounds for the Canvas
+dashboard's virtual accessibility controls, so TalkBack can place focus on
+the actual buttons even while the page is scrolled.
 
 Release `0.222` additionally exposes the Canvas dashboard's header actions and
 five navigation tabs as individually focusable Android accessibility controls,
