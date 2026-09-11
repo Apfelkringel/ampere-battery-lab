@@ -131,6 +131,14 @@ public class BatteryRulesTest {
         assertEquals(null, BatteryExportRules.nonNegativeInt("broken"));
     }
 
+    @Test public void csvTelemetryFilterDropsInvalidRowsBeforeExport() {
+        String valid = "1700000000000,46,1,900,25.0,4.20,6600,0,,12,2";
+        String invalid = "1700000000001,110,1,900,25.0,4.20,6600,0,,12,2";
+        java.util.ArrayList<String> rows = BatteryExportRules.validTelemetryRows(valid + "\n" + invalid);
+        assertEquals(1, rows.size());
+        assertEquals(valid, rows.get(0));
+    }
+
     @Test public void telemetryExportRejectsContradictoryCurrentDirection() {
         String[] charging = {"1700000000000", "46", "1", "-900", "25.0", "4.20", "6600", "0", "", "12", "2"};
         String[] discharging = {"1700000000000", "46", "0", "900", "25.0", "4.20", "6600", "0", "", "12", "0"};

@@ -1,5 +1,7 @@
 package com.ampere.batterylab;
 
+import java.util.ArrayList;
+
 /** Keeps malformed legacy telemetry from aborting a user-requested export. */
 final class BatteryExportRules {
     private BatteryExportRules() { }
@@ -42,5 +44,15 @@ final class BatteryExportRules {
         } catch (NumberFormatException ignored) {
             return null;
         }
+    }
+
+    /** Returns only complete, physically consistent telemetry rows for CSV/JSON export. */
+    static ArrayList<String> validTelemetryRows(String serialized) {
+        ArrayList<String> rows = new ArrayList<>();
+        if (serialized == null || serialized.isEmpty()) return rows;
+        for (String row : serialized.split("\\n", -1)) {
+            if (!row.trim().isEmpty() && isValidTelemetry(row.split(",", -1))) rows.add(row);
+        }
+        return rows;
     }
 }

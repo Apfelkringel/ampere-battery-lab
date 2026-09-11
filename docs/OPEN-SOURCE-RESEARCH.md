@@ -105,6 +105,10 @@ Stroms: Laden muss positiv, Entladen negativ sein. Widersprüchliche Altzeilen
 werden einzeln ausgelassen, damit ein CSV-/JSON-Export keine umgekehrte
 Messung als reale Akkuaufnahme ausgibt.
 
+Diese Prüfung wird jetzt vor beiden Exportformaten über dieselbe Filterfunktion
+ausgeführt. Dadurch können beschädigte CSV-Altzeilen nicht mehr an der
+JSON-Prüfung vorbei in den normalen Nutzerexport gelangen.
+
 Lokale Kapazitätsproben werden wie bei einer vorsichtigen Health-Schätzung nicht
 mehr blind gemittelt: Ampere sortiert die letzten fünf gültigen Proben und nimmt
 den Median. Dadurch kann eine einzelne fehlerhafte oder besonders unruhige

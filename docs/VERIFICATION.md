@@ -27,6 +27,10 @@ Release `0.184` additionally expires power-broadcast edge hints after the
 short synchronization window, so a missing follow-up broadcast cannot leave a
 charging or discharging session permanently misclassified.
 
+Release `0.185` additionally applies the same validated telemetry-row filter
+to CSV and JSON export, dropping malformed, impossible or directionally
+contradictory legacy rows in both formats.
+
 Release `0.180` additionally uses a robust median over the newest five valid
 local capacity samples, so one noisy charge cannot dominate the health result.
 

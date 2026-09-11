@@ -401,10 +401,8 @@ public class MainActivity extends Activity {
 
             JSONArray telemetryRows = new JSONArray();
             String telemetry = getSharedPreferences(TELEMETRY_PREFS, MODE_PRIVATE).getString("telemetrySamples", "");
-            for (String sample : telemetry.split("\\n")) {
-                if (sample.trim().isEmpty()) continue;
-                String[] parts = sample.split(",", 11);
-                if (!BatteryExportRules.isValidTelemetry(parts)) continue;
+            for (String sample : BatteryExportRules.validTelemetryRows(telemetry)) {
+                String[] parts = sample.split(",", -1);
                 JSONObject row = new JSONObject();
                 row.put("timestampMs", Long.parseLong(parts[0]));
                 row.put("levelPercent", Integer.parseInt(parts[1]));
@@ -2630,7 +2628,9 @@ class BatteryDashboard extends View {
         for (Integer point : longHistory) appendCsvRow(csv, new String[]{String.valueOf(point)});
         csv.append("\ntelemetry_timestamp_ms,level_percent,charging,current_ma,temperature_c,voltage_v,charge_counter_mah,screen_on,foreground_package,system_cycle_count,plugged\n");
         String telemetry = telemetryPrefs.getString("telemetrySamples", "");
-        if (!telemetry.isEmpty()) for (String row : telemetry.split("\\n")) appendCsvRow(csv, row.split(",", -1));
+        for (String row : BatteryExportRules.validTelemetryRows(telemetry)) {
+            appendCsvRow(csv, row.split(",", -1));
+        }
         return csv.toString();
     }
 
