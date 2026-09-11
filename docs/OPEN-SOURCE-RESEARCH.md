@@ -111,6 +111,12 @@ dokumentierten Microampere-Stunden-Einheit akzeptiert. Werte außerhalb von
 500–30.000 mAh werden verworfen, statt einen Hersteller-Sentinel oder eine
 unbekannte Einheit in Sitzungen und EFC-Schätzungen einzubauen.
 
+Sitzungen werden wie bei den untersuchten Session-Trackern als begrenzte
+Abschnitte behandelt: eine einzelne Zeile darf höchstens den vollständigen
+1–100-%-Bereich abdecken. Größere oder richtungswidrige Werte werden verworfen;
+wenn ein gültiger Energiezähler vorhanden ist, wird die Änderung daraus
+vorsichtig neu abgeleitet.
+
 Für die zusätzliche Live-Leistung orientiert sich Ampere an dem in offenen
 Batteriemonitoren üblichen, transparenten Modell `P = I × U`: Androids
 gemessener Akkustrom wird mit der Akkuspannung multipliziert. Die Implementierung

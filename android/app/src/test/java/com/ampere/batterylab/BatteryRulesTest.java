@@ -77,6 +77,8 @@ public class BatteryRulesTest {
         assertFalse(BatterySessionRules.isValid("Charge,0%,1 Min.,11.09. 12:00"));
         assertFalse(BatterySessionRules.isValid("Discharge,0%,1 Min.,11.09. 12:00,70,70,0,0"));
         assertFalse(BatterySessionRules.isValid("Charge,-3%,1 Min.,11.09. 12:00"));
+        assertFalse(BatterySessionRules.isValid("Charge,+110%,1 Min.,11.09. 12:00"));
+        assertFalse(BatterySessionRules.isValid("Discharge,-101%,1 Min.,11.09. 12:00"));
         assertFalse(BatterySessionRules.isValid("not-a-session"));
     }
 
@@ -87,6 +89,8 @@ public class BatteryRulesTest {
         assertEquals(5, BatterySessionRules.effectiveChange(5, 0, 6600, true));
         assertEquals(0, BatterySessionRules.effectiveChange(0, 0, 6600, true));
         assertEquals(0, BatterySessionRules.effectiveChange(0, 7000, 6600, true));
+        assertEquals(10, BatterySessionRules.effectiveChange(110, 660, 6600, true));
+        assertEquals(-10, BatterySessionRules.effectiveChange(-110, 660, 6600, false));
     }
 
     @Test public void platformHealthStaysQualitative() {

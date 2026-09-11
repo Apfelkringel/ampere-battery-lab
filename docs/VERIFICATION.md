@@ -18,6 +18,8 @@ Release `0.161` additionally validates battery voltage consistently before
 display and battery-side power calculation.
 Release `0.162` additionally validates the charge counter consistently in the
 foreground and background paths before session and EFC calculations.
+Release `0.163` additionally rejects impossible session changes above 100% and
+re-derives noisy live transitions from valid measured energy where possible.
 Release `0.158` rejects impossible Android state-of-health
 values above 100% instead of silently converting them to 100%; local health
 measurements remain the fallback.

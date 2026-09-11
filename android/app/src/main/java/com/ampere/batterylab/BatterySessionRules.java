@@ -10,8 +10,8 @@ final class BatterySessionRules {
      * enough evidence for a history row.
      */
     static int effectiveChange(int observedChange, int energyMah, int designMah, boolean charging) {
-        if (charging && observedChange > 0) return observedChange;
-        if (!charging && observedChange < 0) return observedChange;
+        if (charging && observedChange >= 1 && observedChange <= 100) return observedChange;
+        if (!charging && observedChange >= -100 && observedChange <= -1) return observedChange;
         if (energyMah <= 0 || designMah <= 0) return 0;
         long inferred = Math.round(energyMah * 100d / designMah);
         if (inferred < 1L || inferred > 100L) return 0;
@@ -27,6 +27,7 @@ final class BatterySessionRules {
         if (!"Charge".equals(type) && !"Discharge".equals(type)) return false;
         try {
             int change = Integer.parseInt(parts[1].replace("%", "").replace("+", "").trim());
+            if (change < -100 || change > 100) return false;
             return "Charge".equals(type) ? change > 0 : change < 0;
         } catch (NumberFormatException ignored) {
             return false;
