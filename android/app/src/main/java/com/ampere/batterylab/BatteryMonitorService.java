@@ -172,6 +172,7 @@ public class BatteryMonitorService extends Service {
         android.content.SharedPreferences prefs = getSharedPreferences("ampere-data", Context.MODE_PRIVATE);
         android.content.SharedPreferences telemetryPrefs = getSharedPreferences("ampere-telemetry", Context.MODE_PRIVATE);
         long now = System.currentTimeMillis();
+        long previousMonitorSampleAt = prefs.getLong("monitorSampleAt", 0L);
         int status = battery.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN);
         int plugged = battery.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0);
         boolean freshPowerHint = BatteryState.isPowerHintFresh(
@@ -231,7 +232,7 @@ public class BatteryMonitorService extends Service {
         updateSinceFullStats(prefs, value, isCharging, chargeCounterMah, currentMa, now, interactive, deepSleepDeltaMs);
         updateDischargeStats(prefs, value, isCharging, chargeCounterMah, currentMa, now, interactive, deepSleepDeltaMs);
         updateChargeStats(prefs, value, isCharging, chargeCounterMah, currentMa, now, interactive, plugged);
-        recordSession(prefs, value, isCharging, chargeCounterMah, now);
+        recordSession(prefs, value, isCharging, chargeCounterMah, now, previousMonitorSampleAt);
         recordTelemetrySample(telemetryPrefs, now, value, isCharging, signedCurrentMa, temperature, voltageMv, chargeCounterMah, interactive, foregroundPackage, systemCycleCount, plugged);
         requestAutomaticBackup(prefs, now);
         UpdateChecker.checkInBackground(this);
@@ -552,7 +553,8 @@ public class BatteryMonitorService extends Service {
                 .putLong("sinceFullScreenOffMs", screenOffMs).putLong("sinceFullDeepSleepMs", deepSleepMs).apply();
     }
 
-    private void recordSession(android.content.SharedPreferences prefs, int level, boolean charging, int counterMah, long now) {
+    private void recordSession(android.content.SharedPreferences prefs, int level, boolean charging, int counterMah,
+                               long now, long previousMonitorSampleAt) {
         String savedSessions = prefs.getString("sessions", "");
         String normalizedSessions = BatterySessionRules.normalizeSerialized(savedSessions);
         if (!savedSessions.equals(normalizedSessions)) {
@@ -572,6 +574,14 @@ public class BatteryMonitorService extends Service {
             // A user/NTP time correction can make the persisted boundary lie
             // in the future. Reset only the open boundary; never write a
             // backwards session that would later poison history or exports.
+            prefs.edit().putLong("monitorSessionStartedAt", now).putBoolean("monitorLastCharging", charging)
+                    .putInt("monitorSessionStartLevel", level).putInt("monitorSessionStartCounterMah", counterMah).apply();
+            return;
+        }
+        if (BatteryTimelineRules.shouldResetSession(startedAt, previousMonitorSampleAt, now, sampleInterval())) {
+            // Do not charge an unobserved gap to either side of a session.
+            // The current snapshot becomes a fresh baseline and will only be
+            // recorded after a newly observed, meaningful transition.
             prefs.edit().putLong("monitorSessionStartedAt", now).putBoolean("monitorLastCharging", charging)
                     .putInt("monitorSessionStartLevel", level).putInt("monitorSessionStartCounterMah", counterMah).apply();
             return;

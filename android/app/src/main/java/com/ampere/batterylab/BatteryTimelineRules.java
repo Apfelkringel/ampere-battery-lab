@@ -26,4 +26,16 @@ final class BatteryTimelineRules {
         long threshold = Math.max(TWO_HOURS_MS, intervalMs * 2L);
         return current - previous > threshold;
     }
+
+    /**
+     * A long gap means the open session was not continuously observed. Reset
+     * only when that session started before the last known sample; a session
+     * that began after the sample is still a valid short event.
+     */
+    static boolean shouldResetSession(long sessionStartedAt, long previousSampleAt,
+                                      long now, long intervalMs) {
+        return sessionStartedAt > 0L && previousSampleAt > 0L
+                && sessionStartedAt <= previousSampleAt
+                && isSamplingGap(previousSampleAt, now, intervalMs);
+    }
 }

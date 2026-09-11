@@ -340,6 +340,16 @@ public class BatteryRulesTest {
                 1_000L + 2L * twoHours + 1L, twoHours));
     }
 
+    @Test public void unobservedGapResetsOnlyAnOlderOpenSession() {
+        long interval = 15L * 60L * 1000L;
+        long previousSample = 2_000L;
+        long afterGap = previousSample + 2L * 60L * 60L * 1000L + 1L;
+        assertTrue(BatteryTimelineRules.shouldResetSession(1_000L, previousSample, afterGap, interval));
+        assertFalse(BatteryTimelineRules.shouldResetSession(3_000L, previousSample, afterGap, interval));
+        assertFalse(BatteryTimelineRules.shouldResetSession(1_000L, previousSample,
+                previousSample + interval, interval));
+    }
+
     @Test public void sessionChangeUsesMeasuredEnergyWhenLevelSnapshotIsNoisy() {
         assertEquals(10, BatterySessionRules.effectiveChange(0, 660, 6600, true));
         assertEquals(10, BatterySessionRules.effectiveChange(-2, 660, 6600, true));

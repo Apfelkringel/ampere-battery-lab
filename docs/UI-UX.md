@@ -41,6 +41,8 @@ charging state, blue for neutral telemetry and amber for warnings or wear.
   list and exports cannot present charging as a battery drop or vice versa.
 - Counter jumps beyond three nominal battery capacities are shown as unavailable
   energy rather than as an exaggerated full-cycle value.
+- After a long unobserved sampling gap, the current point becomes a fresh
+  session baseline instead of being displayed as a continuous measured period.
 
 The current UI checks cover dark and light themes, all five tabs, compact
 charging details, scroll reachability and fatal-exception log scans on Android

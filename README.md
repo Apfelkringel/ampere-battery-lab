@@ -62,6 +62,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - Sitzungsänderungen werden strikt auf maximal 100 % begrenzt; fehlerhafte Altzeilen und unrealistische Live-Änderungen werden verworfen bzw. aus gültiger Energie neu abgeleitet
 - Erweiterte Alt-Sitzungen werden zusätzlich auf physikalische Richtung geprüft: Laden darf nicht mit weniger Prozent enden und Entladen nicht mit mehr; widersprüchliche Zeilen werden beim Laden der Daten entfernt
 - Charge-Counter-Sprünge über drei Nennkapazitäten werden vor der Sitzungs-/EFC-Berechnung verworfen; die Prozentänderung bleibt bei vorhandener Messung erhalten, während die unrealistische mAh-Angabe als nicht verfügbar gilt
+- Nach einer unbeobachteten Sampling-Lücke wird eine alte offene Sitzung nicht mehr über die gesamte Lücke fortgeschrieben; der aktuelle Messpunkt startet eine neue belastbare Basis
 - System-Ladezyklen werden aus Android oder unterstützten Batterie-/BMS-Treibern gelesen; fehlt beides, nutzt Ampere eine vorsichtige lokale EFC-Schätzung aus Androids persistentem Charge Counter und kennzeichnet sie mit `~`
 - transparente Anzeige, warum eine Ladesitzung noch nicht als Health-Kapazitätsprobe zählt
 - Bildschirmzeit, echte Android-Suspendzeit (Deep Sleep), Ladezyklen und optionale Vordergrund-App-Nutzung
