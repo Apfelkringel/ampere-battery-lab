@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.176` (`versionCode 176`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `4913342114b755d2d88a8f46286006077cb5f524bbded7b4bb055357c47b713c`
+- Release APK SHA-256: `8eadcd548f9be5ed6e6e16897e2a6a29bb5a29f7346499661b5866c7f873bf21`
 - The same hash is published in the public update repository manifest.
 
 Release `0.176` additionally rejects invalid EFC values in extended session
