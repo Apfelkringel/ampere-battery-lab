@@ -5,10 +5,15 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.177` (`versionCode 177`)
+- Version: `0.178` (`versionCode 178`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `9e2b4eb4cd2c5b5e4ae9d05024f573e54aed7784ba909008b4473f6697a35f4e`
+- Release APK SHA-256: `wird nach dem signierten CI-Build ergänzt`
 - The same hash is published in the public update repository manifest.
+
+Release `0.178` additionally validates the written duration format and the
+ordering of extended session timestamps before they reach details, exports or
+the wear chart. Invalid legacy rows are removed while supported older rows stay
+supported.
 
 Release `0.177` additionally validates extended session levels, energy,
 screen values and duration fields before they reach details, exports or the

@@ -93,6 +93,11 @@ damit er nicht stillschweigend als `100` ausgegeben wird. Die Intent-Auswertung
 und die Trennung zwischen beiden Bedeutungen sind in `BatteryRulesTest`
 regressionsgesichert.
 
+Sitzungen werden zusätzlich gegen das eigene gespeicherte Dauerformat und die
+Reihenfolge von Start-/Endzeitpunkt geprüft. Das folgt dem Session-Modell
+offener Akku-Tracker: unvollständige oder zeitlich rückwärts laufende Abschnitte
+werden nicht als reale Nutzung ausgegeben.
+
 Für die Laufzeitprognose bleibt der persönliche lokale 7-Tage-Verlauf die
 erste Wahl. Wenn dafür noch keine ausreichenden Daten vorliegen, verwendet
 Ampere auf Android 12+ als Fallback `PowerManager.getBatteryDischargePrediction()`

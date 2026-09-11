@@ -22,7 +22,7 @@ final class BatterySessionRules {
         if (value == null || value.isEmpty()) return false;
         String[] parts = value.split(",", -1);
         // Four fields are the oldest supported format: type, change, duration, date.
-        if (parts.length < 4 || parts[2].trim().isEmpty() || parts[3].trim().isEmpty()) return false;
+        if (parts.length < 4 || parts[3].trim().isEmpty() || durationMinutes(parts[2]) <= 0L) return false;
         String type = parts[0].trim();
         if (!"Charge".equals(type) && !"Discharge".equals(type)) return false;
         try {
@@ -41,6 +41,12 @@ final class BatterySessionRules {
             if (parts.length >= 13
                     && (!isNonNegativeInt(parts[10]) || !isNonNegativeInt(parts[11])
                     || !isNonNegativeInt(parts[12]))) return false;
+            if (parts.length >= 16) {
+                long startedAt = positiveLong(parts[14]);
+                long endedAt = positiveLong(parts[15]);
+                if (startedAt <= 0L || endedAt < startedAt) return false;
+            }
+            if (parts.length >= 17 && !isNonNegativeInt(parts[16])) return false;
             return "Charge".equals(type) ? change > 0 : change < 0;
         } catch (NumberFormatException ignored) {
             return false;
@@ -78,6 +84,36 @@ final class BatterySessionRules {
             return Integer.parseInt(value.trim()) >= 0;
         } catch (Exception ignored) {
             return false;
+        }
+    }
+
+    private static long positiveLong(String value) {
+        try {
+            long parsed = Long.parseLong(value == null ? "" : value.trim());
+            return parsed > 0L ? parsed : -1L;
+        } catch (Exception ignored) {
+            return -1L;
+        }
+    }
+
+    /** Parses the exact human-readable duration written by the monitor. */
+    private static long durationMinutes(String value) {
+        if (value == null) return -1L;
+        String trimmed = value.trim();
+        try {
+            int separator = trimmed.indexOf(" Std. ");
+            if (separator < 0 && trimmed.endsWith(" Min.")) {
+                long minutes = Long.parseLong(trimmed.substring(0, trimmed.length() - 5).trim());
+                return minutes > 0L ? minutes : -1L;
+            }
+            if (separator <= 0 || !trimmed.endsWith(" Min.")) return -1L;
+            long hours = Long.parseLong(trimmed.substring(0, separator).trim());
+            long minutes = Long.parseLong(trimmed.substring(separator + 6, trimmed.length() - 5).trim());
+            if (hours < 1L || minutes < 0L || minutes > 59L
+                    || hours > (Long.MAX_VALUE - minutes) / 60L) return -1L;
+            return hours * 60L + minutes;
+        } catch (Exception ignored) {
+            return -1L;
         }
     }
 }
