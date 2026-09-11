@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.174` (`versionCode 174`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `8dd9b1ad8e73bc7d622c429053fee7c3a9479a32cfb8089d2804262893398e12`
+- Release APK SHA-256: `e83c3e51e1790b515144fd29e86a4629e4be7b0ddcf170a19a9921a94db1daf9`
 - The same hash is published in the public update repository manifest.
 
 Release `0.174` additionally rejects invalid persisted phase percentages
