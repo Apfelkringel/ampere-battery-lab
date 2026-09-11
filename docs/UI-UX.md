@@ -43,6 +43,9 @@ charging state, blue for neutral telemetry and amber for warnings or wear.
   energy rather than as an exaggerated full-cycle value.
 - After a long unobserved sampling gap, the current point becomes a fresh
   session baseline instead of being displayed as a continuous measured period.
+- Home-screen widgets select separate short, compact and standard RemoteViews
+  layouts from their actual width and height; the short layout keeps a single
+  readable row for low-height landscape sizes.
 
 The current UI checks cover dark and light themes, all five tabs, compact
 charging details, scroll reachability and fatal-exception log scans on Android

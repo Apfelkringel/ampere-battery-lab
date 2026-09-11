@@ -103,7 +103,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - Vor dem ersten gültigen Android-Akku-Broadcast bleiben auch Status-Chip und Statuszeile konsistent bei „Nicht verfügbar“
 - Die Entladen-Ansicht zeigt ohne abgeschlossene Entladung keinen aktuellen Akkustand als scheinbare Historie, sondern „Noch keine Entladung“
 - responsive Kompaktansichten für schmale und breite Displays, zentrierter Inhaltsbereich auf Tablets/Foldables, 48-dp-Touch-Zonen und Screenreader-Zusammenfassung; Details in `docs/UI-UX.md`
-- Das Startbildschirm-Widget wählt für kleine Breiten automatisch eine kompakte, nicht überlappende Variante und aktualisiert sich beim Resize anhand der echten Widget-Größe
+- Das Startbildschirm-Widget wählt anhand von Breite und Höhe automatisch eine passende, nicht überlappende Variante; sehr niedrige Querformat-Größen verwenden eine eigene Einzeilenansicht
 - Gesundheitswert und zugehörige Kapazität werden als gemeinsamer validierter Snapshot aus derselben Quelle gelesen; ungültige Systemwerte wie 110 % lösen einen atomaren Fallback auf lokale Messungen aus
 - Landscape-Übersicht reserviert Gauge, Überschrift, Kennzahlen und Statuszeile in getrennten Geometrie-Lanes, damit nichts übereinanderliegt
 - Schmale Hochkant-Karten verwenden vollständige Kurzlabels wie „Kapazität“ statt abgeschnittener Bezeichnungen

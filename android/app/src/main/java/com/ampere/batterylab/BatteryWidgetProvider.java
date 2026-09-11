@@ -38,11 +38,13 @@ public class BatteryWidgetProvider extends AppWidgetProvider {
             Bundle options = manager.getAppWidgetOptions(id);
             int widthDp = options == null ? 180
                     : options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 180);
-            manager.updateAppWidget(id, buildViews(context, widthDp));
+            int heightDp = options == null ? 72
+                    : options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 72);
+            manager.updateAppWidget(id, buildViews(context, widthDp, heightDp));
         }
     }
 
-    private static RemoteViews buildViews(Context context, int widthDp) {
+    private static RemoteViews buildViews(Context context, int widthDp, int heightDp) {
         Intent battery = context.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         int rawLevel = battery == null ? -1 : battery.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
         int scale = battery == null ? 100 : battery.getIntExtra(BatteryManager.EXTRA_SCALE, 100);
@@ -57,7 +59,12 @@ public class BatteryWidgetProvider extends AppWidgetProvider {
                 battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0));
         int currentMa = readCurrentMa(context);
 
-        int layout = widthDp < 220 ? R.layout.battery_widget_compact : R.layout.battery_widget;
+        int layoutType = BatteryWidgetLayoutRules.select(widthDp, heightDp);
+        int layout = layoutType == BatteryWidgetLayoutRules.SHORT
+                ? R.layout.battery_widget_short
+                : layoutType == BatteryWidgetLayoutRules.COMPACT
+                ? R.layout.battery_widget_compact
+                : R.layout.battery_widget;
         RemoteViews views = new RemoteViews(context.getPackageName(), layout);
         views.setTextViewText(R.id.widget_level, level >= 0 ? level + "%" : "—");
         views.setTextViewText(R.id.widget_status, statusText(status, charging));
