@@ -36,6 +36,9 @@ charging state, blue for neutral telemetry and amber for warnings or wear.
   the compact 320 dp test layout as well as the larger emulator layouts.
 - Metric cards switch to the stacked icon/label/value composition below 160 dp,
   so the label lane remains readable on 320 dp phones.
+- Session history keeps only rows whose stored start/end levels agree with their
+  direction; contradictory legacy rows are removed during normalization so the
+  list and exports cannot present charging as a battery drop or vice versa.
 
 The current UI checks cover dark and light themes, all five tabs, compact
 charging details, scroll reachability and fatal-exception log scans on Android

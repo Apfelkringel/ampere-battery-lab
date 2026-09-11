@@ -45,8 +45,16 @@ final class BatterySessionRules {
             // Extended rows contain an EFC value used by the health chart.
             // Float.parseFloat accepts NaN and Infinity, so explicitly reject
             // both and keep impossible chart scales out of the UI.
-            if (parts.length >= 6
-                    && (!isValidLevel(parts[4]) || !isValidLevel(parts[5]))) return false;
+            if (parts.length >= 6) {
+                if (!isValidLevel(parts[4]) || !isValidLevel(parts[5])) return false;
+                // Older builds could persist a row after a noisy status
+                // transition with the start/end levels reversed. The row is
+                // individually numeric, but its physical direction is
+                // impossible: charging cannot finish lower and discharging
+                // cannot finish higher. Drop only that contradictory row;
+                // valid historical entries remain untouched.
+                if (!matchesDirection(type, parts[4], parts[5])) return false;
+            }
             if (parts.length >= 7 && !isNonNegativeInt(parts[6])) return false;
             if (parts.length >= 8 && !isValidEquivalentCycles(parts[7])) return false;
             if (parts.length >= 10
@@ -91,6 +99,16 @@ final class BatterySessionRules {
     private static boolean isValidLevel(String value) {
         try {
             return BatteryLevel.normalizePercent(Integer.parseInt(value.trim())) >= 0;
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    private static boolean matchesDirection(String type, String startValue, String endValue) {
+        try {
+            int start = Integer.parseInt(startValue.trim());
+            int end = Integer.parseInt(endValue.trim());
+            return "Charge".equals(type) ? end >= start : end <= start;
         } catch (Exception ignored) {
             return false;
         }

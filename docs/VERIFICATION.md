@@ -5,13 +5,13 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.214` (`versionCode 214`)
+- Version: `0.215` (`versionCode 215`)
 - `minSdk 23`, `targetSdk 37`
 - Release APK SHA-256: `5275f4da1e3e2ea8748b88b419456ac6c3f8a08b480a47a133c7fbb86eb67cb6`
 
-Release `0.214` additionally switches metric cards below 160 dp to their
-stacked composition. Narrow 320 dp layouts therefore keep icon, label and
-value in separate lanes instead of ellipsizing the label beside the icon.
+Release `0.215` additionally removes contradictory legacy session rows whose
+stored start/end levels run opposite to their charging or discharging type.
+Normal historical rows remain preserved during normalization.
 
 Release `0.213` additionally removes the platform-dependent emoji from the
 optional live overlay. Its first line now uses stable text and measurements so
