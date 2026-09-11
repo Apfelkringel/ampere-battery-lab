@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.225` (`versionCode 225`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: wird nach dem signierten CI-Artefakt ergänzt
+- Release APK SHA-256: `a5b1163b20a7920d42de2f7395da4a0eb308a88660cfd146645505dcc0340ce8`
 
 Release `0.225` additionally exposes the charging target as an Android
 Accessibility `SeekBar` with the safe 50–100 percent range. TalkBack and
