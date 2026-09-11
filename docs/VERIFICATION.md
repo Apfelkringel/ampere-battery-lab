@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.213` (`versionCode 213`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: wird nach dem signierten CI-Build ergänzt.
+- Release APK SHA-256: `bc830a595be21fba20036ccabf3e3bd737ea207ff829393cafd1457e18495520`
 
 Release `0.213` additionally removes the platform-dependent emoji from the
 optional live overlay. Its first line now uses stable text and measurements so
