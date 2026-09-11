@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.196` (`versionCode 196`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: wird nach dem signierten CI-Artefakt ergänzt
+- Release APK SHA-256: `e48eb6a58a93e4dfe26a9863d16582fc3bd12c652240a3fdac24ba589cc81ee2`
 
 Release `0.196` additionally adds a battery/BMS sysfs fallback for live
 `current_now`/`current_avg` when both Android current properties are absent or
