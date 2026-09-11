@@ -16,6 +16,24 @@ compact sans-serif remains reserved for telemetry, units and controls. This
 keeps the app expressive without weakening the accuracy or scanability of its
 battery data.
 
+The hierarchy uses three deliberately different surface levels: illustrated
+hero status, compact primary metrics and quieter secondary analysis or settings
+surfaces. Smaller cards use 18 dp radii and softer outlines instead of inheriting
+the hero card silhouette. The page name appears only once above navigation, and
+build state sits beside the Ampere wordmark as a compact badge. Empty history
+states retain honest chart grammar (scale, grid, time axis and an explicitly
+absent series) rather than presenting a decorative curve as data.
+
+Interactive controls use one Ampere key language: solid faces, a restrained
+two-dp lower edge, consistent corner geometry and a true pressed depth. Filled
+turquoise indicates actions or the active destination; a small terminal mark
+replaces decorative gloss and keeps buttons distinct from passive cards.
+The visible button faces are purpose-made, generated raster artwork rather than
+generic programmatic fills. Three transparent masters cover wide actions,
+active navigation and square header controls. Native text and vector glyphs are
+layered over the artwork from the same measured center, preserving crisp type,
+exact icon alignment, localization and accessibility at every screen density.
+
 Ampere Battery Lab uses a compact, data-first dashboard for battery readings.
 The visual system is intentionally calm and high-contrast: a dark/AMOLED mode
 for OLED screens, a light mode for bright environments, lime for healthy/live
