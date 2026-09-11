@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.192` (`versionCode 192`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: wird nach dem signierten CI-Artefakt ergänzt
+- Release APK SHA-256: `64cd1b30d1b1df6fe1a0e4912f63ba0e2ef5faf99d0beac448c1becb1df70f0d`
 
 Release `0.192` additionally removes the unnecessary API-36 gate from the
 Android BatteryManager state-of-health probe. Android 14/15 devices and OEM
