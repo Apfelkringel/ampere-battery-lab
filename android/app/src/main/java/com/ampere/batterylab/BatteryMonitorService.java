@@ -237,7 +237,9 @@ public class BatteryMonitorService extends Service {
         UpdateChecker.checkInBackground(this);
         int benchmarkCapacity = updateBenchmark(prefs, value, isCharging, chargeCounterMah);
         if (benchmarkCapacity > 0) recordHealthSample(prefs, benchmarkCapacity);
-        int limit = prefs.getInt("chargeLimit", 80);
+        int storedLimit = prefs.getInt("chargeLimit", BatteryChargeLimit.DEFAULT);
+        int limit = BatteryChargeLimit.normalize(storedLimit);
+        if (storedLimit != limit) prefs.edit().putInt("chargeLimit", limit).apply();
         boolean alarmEnabled = prefs.getBoolean("chargeAlarm", true);
         boolean alarmSent = prefs.getBoolean("chargeAlarmSent", false);
         if (alarmEnabled && isCharging && value >= limit && !alarmSent) {

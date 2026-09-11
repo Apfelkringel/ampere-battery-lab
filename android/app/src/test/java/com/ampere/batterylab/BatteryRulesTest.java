@@ -204,6 +204,15 @@ public class BatteryRulesTest {
         assertFalse(BatterySessionRules.shouldRecord(0, 100, 20));
     }
 
+    @Test public void restoredChargeLimitStaysInsideSupportedRange() {
+        assertEquals(80, BatteryChargeLimit.normalize(0));
+        assertEquals(80, BatteryChargeLimit.normalize(49));
+        assertEquals(50, BatteryChargeLimit.normalize(50));
+        assertEquals(80, BatteryChargeLimit.normalize(80));
+        assertEquals(100, BatteryChargeLimit.normalize(100));
+        assertEquals(80, BatteryChargeLimit.normalize(101));
+    }
+
     @Test public void platformHealthStaysQualitative() {
         assertEquals("Gut", BatteryPlatformHealth.label(BatteryManager.BATTERY_HEALTH_GOOD));
         assertEquals("Überhitzt", BatteryPlatformHealth.label(BatteryManager.BATTERY_HEALTH_OVERHEAT));

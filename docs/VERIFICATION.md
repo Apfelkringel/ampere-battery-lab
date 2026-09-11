@@ -40,6 +40,9 @@ Release `0.187` additionally rejects short single-percent cable/status blips
 without an energy reading; a real single-percent session remains recordable
 when it has measured energy or lasts at least five minutes.
 
+Release `0.188` additionally normalizes restored and persisted charge targets
+to 50–100 % before they reach the dashboard, progress bar or charge alarm.
+
 Release `0.180` additionally uses a robust median over the newest five valid
 local capacity samples, so one noisy charge cannot dominate the health result.
 

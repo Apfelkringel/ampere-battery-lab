@@ -639,7 +639,7 @@ class BatteryDashboard extends View {
         sessions.clear();
         loadSessions(prefs.getString("sessions", ""));
         chargeAlarm = prefs.getBoolean("chargeAlarm", chargeAlarm);
-        chargeLimit = prefs.getInt("chargeLimit", chargeLimit);
+        chargeLimit = loadChargeLimit();
         benchmarkActive = prefs.getBoolean("benchmarkActive", benchmarkActive);
         updateLayoutHeight();
     }
@@ -686,12 +686,19 @@ class BatteryDashboard extends View {
         sessionStartChargeCounterMah = prefs.getInt("sessionStartChargeCounterMah", 0);
         lastCharging = prefs.getBoolean("lastCharging", false);
         chargeAlarm = prefs.getBoolean("chargeAlarm", true);
-        chargeLimit = prefs.getInt("chargeLimit", 80);
+        chargeLimit = loadChargeLimit();
         benchmarkActive = prefs.getBoolean("benchmarkActive", false);
         overlayEnabled = prefs.getBoolean("overlayEnabled", false) && (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(getContext()));
         historyDays = prefs.getInt("historyDays", 7) == 30 ? 30 : 7;
         light = prefs.getBoolean("lightTheme", false);
         amoled = prefs.getBoolean("amoledTheme", false);
+    }
+
+    private int loadChargeLimit() {
+        int stored = prefs.getInt("chargeLimit", BatteryChargeLimit.DEFAULT);
+        int normalized = BatteryChargeLimit.normalize(stored);
+        if (stored != normalized) prefs.edit().putInt("chargeLimit", normalized).apply();
+        return normalized;
     }
 
     /** Loads history while dropping legacy cable/status blips without a signal. */
