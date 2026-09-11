@@ -5,9 +5,13 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.193` (`versionCode 193`)
+- Version: `0.194` (`versionCode 194`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `0eaab01ec4d10b54ce6d7009d2588cdde31114a9142a2560a40c14d0eb258117`
+- Release APK SHA-256: wird nach dem signierten CI-Artefakt ergänzt
+
+Release `0.194` additionally reopens foreground and background sampling after
+a wall-clock rollback. The next sample becomes the new cadence baseline while
+chronological sorting keeps the preserved telemetry usable.
 
 Release `0.193` additionally sorts valid telemetry rows by timestamp before
 analytics, export and persistence. It also refuses to write a backwards

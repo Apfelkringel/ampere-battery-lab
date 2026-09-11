@@ -736,6 +736,7 @@ class BatteryDashboard extends View {
         if (level < 0) return;
         long now = System.currentTimeMillis();
         long lastSample = prefs.getLong("lastSample", 0L);
+        if (BatteryTimelineRules.isRollback(lastSample, now)) lastSample = 0L;
         if (now - lastSample < samplingIntervalMs() && !history.isEmpty()) return;
         history.add(level);
         while (history.size() > 48) history.remove(0);

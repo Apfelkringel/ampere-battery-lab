@@ -226,6 +226,11 @@ public class BatteryRulesTest {
         assertEquals(1L, BatteryTimelineRules.sessionMinutes(2_000L, 2_001L));
     }
 
+    @Test public void aClockRollbackIsTheSamplingResetSignal() {
+        assertTrue(BatteryTimelineRules.isRollback(1_700_000_000_000L, 1_699_999_999_000L));
+        assertFalse(BatteryTimelineRules.isRollback(0L, 1_699_999_999_000L));
+    }
+
     @Test public void sessionChangeUsesMeasuredEnergyWhenLevelSnapshotIsNoisy() {
         assertEquals(10, BatterySessionRules.effectiveChange(0, 660, 6600, true));
         assertEquals(10, BatterySessionRules.effectiveChange(-2, 660, 6600, true));

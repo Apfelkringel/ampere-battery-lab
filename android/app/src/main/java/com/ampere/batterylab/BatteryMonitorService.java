@@ -392,6 +392,7 @@ public class BatteryMonitorService extends Service {
                                       int voltageMv, int chargeCounterMah, boolean screenOn,
                                       String foregroundPackage, int systemCycleCount, int plugged) {
         long last = prefs.getLong("telemetryLastSampleAt", 0L);
+        if (BatteryTimelineRules.isRollback(last, now)) last = 0L;
         if (now - last < sampleInterval()) return;
         String saved = prefs.getString("telemetrySamples", "");
         ArrayList<String> existingRows = BatteryExportRules.validTelemetryRows(saved);
