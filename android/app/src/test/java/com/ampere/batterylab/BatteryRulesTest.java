@@ -123,6 +123,11 @@ public class BatteryRulesTest {
         assertEquals(-1, BatteryLevel.normalizePercent(-1));
     }
 
+    @Test public void storedLevelHistoryIsCanonicalizedBeforeReuse() {
+        assertEquals("46,100,0", BatteryLevel.normalizeSerialized("46,110,100,broken,0"));
+        assertEquals("", BatteryLevel.normalizeSerialized(null));
+    }
+
     @Test public void researchExportSkipsMalformedTelemetryWithoutInventingValues() {
         String[] valid = {"1700000000000", "46", "1", "900", "25.0", "4.20", "6600", "0", "", "12", "2"};
         assertTrue(BatteryExportRules.isValidTelemetry(valid));
@@ -197,6 +202,13 @@ public class BatteryRulesTest {
         assertFalse(BatterySessionRules.isValidEquivalentCycles("NaN"));
         assertFalse(BatterySessionRules.isValidEquivalentCycles("Infinity"));
         assertFalse(BatterySessionRules.isValid("not-a-session"));
+    }
+
+    @Test public void storedSessionsAreCanonicalizedBeforeBackgroundAppend() {
+        String valid = "Charge,+12%,18 Min.,11.09. 12:00";
+        String invalid = "Charge,0%,1 Min.,11.09. 12:00";
+        assertEquals(valid, BatterySessionRules.normalizeSerialized(valid + "|" + invalid + "|"));
+        assertEquals("", BatterySessionRules.normalizeSerialized(invalid));
     }
 
     @Test public void sessionChangeUsesMeasuredEnergyWhenLevelSnapshotIsNoisy() {

@@ -548,6 +548,11 @@ public class BatteryMonitorService extends Service {
     }
 
     private void recordSession(android.content.SharedPreferences prefs, int level, boolean charging, int counterMah, long now) {
+        String savedSessions = prefs.getString("sessions", "");
+        String normalizedSessions = BatterySessionRules.normalizeSerialized(savedSessions);
+        if (!savedSessions.equals(normalizedSessions)) {
+            prefs.edit().putString("sessions", normalizedSessions).apply();
+        }
         long startedAt = prefs.getLong("monitorSessionStartedAt", 0L);
         boolean previousCharging = prefs.getBoolean("monitorLastCharging", charging);
         int startLevel = BatteryLevel.normalizePercent(prefs.getInt("monitorSessionStartLevel", level));
@@ -611,9 +616,10 @@ public class BatteryMonitorService extends Service {
         String entry = type + "," + (effectiveChange > 0 ? "+" : "") + effectiveChange + "%," + duration(minutes) + "," + date + "," + startLevel + "," + level + "," + energy + "," + String.format(Locale.US, "%.2f", cycleEquivalent)
                 + "," + screenOnValue + "," + screenOffValue + "," + (screenOnMs / 60000L) + "," + (screenOffMs / 60000L)
                 + "," + (deepSleepMs / 60000L) + "," + chargerSource + "," + startedAt + "," + now + "," + screenWakeups;
-        String saved = prefs.getString("sessions", "");
         ArrayList<String> sessions = new ArrayList<>();
-        if (!saved.isEmpty()) for (String session : saved.split("\\|")) if (!session.isEmpty()) sessions.add(session);
+        if (!normalizedSessions.isEmpty()) {
+            for (String session : normalizedSessions.split("\\|")) if (!session.isEmpty()) sessions.add(session);
+        }
         sessions.add(0, entry);
         while (sessions.size() > 150) sessions.remove(sessions.size() - 1);
         StringBuilder output = new StringBuilder();

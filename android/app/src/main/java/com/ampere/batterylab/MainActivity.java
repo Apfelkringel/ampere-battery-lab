@@ -669,25 +669,31 @@ class BatteryDashboard extends View {
 
     private void loadStoredData() {
         String savedHistory = prefs.getString("history", "");
-        if (!savedHistory.isEmpty()) {
-            for (String value : savedHistory.split(",")) {
+        String normalizedHistory = BatteryLevel.normalizeSerialized(savedHistory);
+        if (!normalizedHistory.isEmpty()) {
+            for (String value : normalizedHistory.split(",")) {
                 try {
-                    int normalized = BatteryLevel.normalizePercent(Integer.parseInt(value.trim()));
-                    if (normalized >= 0) history.add(normalized);
+                    history.add(Integer.parseInt(value.trim()));
                 } catch (NumberFormatException ignored) { }
             }
         }
+        while (history.size() > 48) history.remove(0);
         String savedLongHistory = prefs.getString("historyLong", "");
-        if (!savedLongHistory.isEmpty()) {
-            for (String value : savedLongHistory.split(",")) {
+        String normalizedLongHistory = BatteryLevel.normalizeSerialized(savedLongHistory);
+        if (!normalizedLongHistory.isEmpty()) {
+            for (String value : normalizedLongHistory.split(",")) {
                 try {
-                    int normalized = BatteryLevel.normalizePercent(Integer.parseInt(value.trim()));
-                    if (normalized >= 0) longHistory.add(normalized);
+                    longHistory.add(Integer.parseInt(value.trim()));
                 } catch (NumberFormatException ignored) { }
             }
         }
         if (longHistory.isEmpty()) longHistory.addAll(history);
         while (longHistory.size() > longHistoryRetentionSamples()) longHistory.remove(0);
+        String canonicalHistory = BatteryLevel.serialize(history);
+        String canonicalLongHistory = BatteryLevel.serialize(longHistory);
+        if (!savedHistory.equals(canonicalHistory) || !savedLongHistory.equals(canonicalLongHistory)) {
+            prefs.edit().putString("history", canonicalHistory).putString("historyLong", canonicalLongHistory).apply();
+        }
         loadAndCleanHealthSamples();
         String savedSessions = prefs.getString("sessions", "");
         loadSessions(savedSessions);
@@ -714,14 +720,12 @@ class BatteryDashboard extends View {
     /** Loads history while dropping legacy cable/status blips without a signal. */
     private void loadSessions(String savedSessions) {
         if (savedSessions == null || savedSessions.isEmpty()) return;
-        StringBuilder cleaned = new StringBuilder();
-        for (String value : savedSessions.split("\\|")) {
-            if (value.isEmpty() || isInvalidSession(value)) continue;
+        String cleaned = BatterySessionRules.normalizeSerialized(savedSessions);
+        for (String value : cleaned.split("\\|")) {
+            if (value.isEmpty()) continue;
             sessions.add(value);
-            if (cleaned.length() > 0) cleaned.append('|');
-            cleaned.append(value);
         }
-        if (!savedSessions.equals(cleaned.toString())) prefs.edit().putString("sessions", cleaned.toString()).apply();
+        if (!savedSessions.equals(cleaned)) prefs.edit().putString("sessions", cleaned).apply();
     }
 
     private boolean isInvalidSession(String value) {
@@ -2977,7 +2981,7 @@ class BatteryDashboard extends View {
     private String pageName() { return page == 1 ? "Laden" : page == 2 ? "Entladen" : page == 3 ? "Akkugesundheit" : page == 4 ? "Verlauf" : "Übersicht"; }
 
     private String levelDisplay() { return percentDisplay(level); }
-    private String percentDisplay(int value) { return value >= 0 ? value + "%" : "—"; }
+    private String percentDisplay(int value) { return value >= 0 && value <= 100 ? value + "%" : "—"; }
 
     private String batteryModeLabel() {
         return level < 0 ? "Nicht verfügbar" : (charging ? "Laden" : "Akkubetrieb");

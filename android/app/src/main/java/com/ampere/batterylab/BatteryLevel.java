@@ -1,5 +1,7 @@
 package com.ampere.batterylab;
 
+import java.util.List;
+
 /** Validates and normalizes Android's raw battery level and scale pair. */
 final class BatteryLevel {
     private static final int MAX_SCALE = 1000;
@@ -15,5 +17,31 @@ final class BatteryLevel {
     /** Validates a percentage already read from local history or telemetry. */
     static int normalizePercent(int value) {
         return value >= 0 && value <= 100 ? value : -1;
+    }
+
+    /** Keeps only valid comma-separated percentage samples in their original order. */
+    static String normalizeSerialized(String serialized) {
+        StringBuilder normalized = new StringBuilder();
+        if (serialized == null || serialized.isEmpty()) return "";
+        for (String value : serialized.split(",", -1)) {
+            try {
+                int parsed = normalizePercent(Integer.parseInt(value.trim()));
+                if (parsed < 0) continue;
+                if (normalized.length() > 0) normalized.append(',');
+                normalized.append(parsed);
+            } catch (NumberFormatException ignored) { }
+        }
+        return normalized.toString();
+    }
+
+    static String serialize(List<Integer> values) {
+        StringBuilder serialized = new StringBuilder();
+        if (values == null) return "";
+        for (Integer value : values) {
+            if (value == null || normalizePercent(value) < 0) continue;
+            if (serialized.length() > 0) serialized.append(',');
+            serialized.append(value);
+        }
+        return serialized.toString();
     }
 }

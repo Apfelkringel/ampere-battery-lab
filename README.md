@@ -137,6 +137,8 @@ Plausibilitätsprüfung wie Live-Auswertungen bereinigt; unmögliche Gesundheits
 `110 %` werden verworfen und nicht angezeigt.
 Im breiten Querformat erhält die Live-Karte außerdem einen eigenen unteren Innenabstand,
 damit Statuszeile und farbige Kontur nicht optisch ineinanderlaufen.
+Gespeicherte Prozentverläufe und Sitzungen werden beim Laden kanonisiert, sodass ungültige
+Altzeilen nicht nur ausgeblendet, sondern dauerhaft aus der lokalen Datenbasis entfernt werden.
 
 GitHub Actions kann die Release-APK bei einem `v*`-Tag reproduzierbar bauen. Die privaten
 Schlüssel liegen ausschließlich in `AMPERE_ROTATED_KEYSTORE_BASE64` und

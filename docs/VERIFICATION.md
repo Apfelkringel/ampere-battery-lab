@@ -5,9 +5,9 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.190` (`versionCode 190`)
+- Version: `0.191` (`versionCode 191`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `12e51173d4c969623f9f76a6943e166448dbfa583acdf6f87791121c1b9b7d9f`
+- Release APK SHA-256: `wird nach dem signierten CI-Build eingetragen`
 - The same hash is published in the public update repository manifest.
 
 Release `0.181` additionally keeps a valid Android state-of-health reading as
@@ -51,6 +51,10 @@ telemetry immediately instead of waiting for a later background sample.
 Release `0.190` additionally gives the wide-landscape live card extra bottom
 padding, keeping its status row and bolt glyph visually separated from the
 rounded outline.
+
+Release `0.191` additionally canonicalizes stored level-history and session
+rows during app startup and before background session append, so invalid
+legacy rows are removed from the local data source rather than only hidden.
 
 Release `0.180` additionally uses a robust median over the newest five valid
 local capacity samples, so one noisy charge cannot dominate the health result.

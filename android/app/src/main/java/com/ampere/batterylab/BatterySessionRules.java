@@ -67,6 +67,18 @@ final class BatterySessionRules {
         }
     }
 
+    /** Keeps only supported session rows in their original order. */
+    static String normalizeSerialized(String serialized) {
+        StringBuilder normalized = new StringBuilder();
+        if (serialized == null || serialized.isEmpty()) return "";
+        for (String value : serialized.split("\\|", -1)) {
+            if (value.isEmpty() || !isValid(value)) continue;
+            if (normalized.length() > 0) normalized.append('|');
+            normalized.append(value);
+        }
+        return normalized.toString();
+    }
+
     static boolean isValidEquivalentCycles(String value) {
         try {
             float parsed = Float.parseFloat(value == null ? "" : value.trim());
