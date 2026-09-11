@@ -5,11 +5,14 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.135` (`versionCode 135`)
+- Version: `0.136` (`versionCode 136`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `7efff4392cecc34cf46d2d9ddd6585054ec1dc9e935fc19e42110576327b4dca`
+- Release APK SHA-256: `pending-v0.136-ci`
 - The same hash is published in the public update repository manifest.
 
+Release `0.136` keeps the visible dashboard aligned with the monitor's recent
+stabilized charging state, so transient Android broadcasts cannot make the UI
+and session logic disagree.
 Release `0.135` prefers exact foreground/background usage events for app-drain
 analysis; aggregated daily usage is retained as a compatibility fallback.
 The signed `0.135` artifact was installed over the existing API-36 test

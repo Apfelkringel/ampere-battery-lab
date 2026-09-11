@@ -568,14 +568,20 @@ class BatteryDashboard extends View {
         int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN);
         int pluggedSource = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0);
         if (rawLevel >= 0 && scale > 0) level = Math.max(0, Math.min(100, Math.round(rawLevel * 100f / scale)));
-        boolean newCharging = BatteryState.isCharging(status, pluggedSource);
+        boolean detectedCharging = BatteryState.isCharging(status, pluggedSource);
+        long now = System.currentTimeMillis();
+        long monitorSampleAt = prefs.getLong("monitorSampleAt", 0L);
+        boolean hasRecentMonitorSample = monitorSampleAt > 0L
+                && now >= monitorSampleAt && now - monitorSampleAt <= 2L * 60L * 60L * 1000L;
+        boolean newCharging = BatteryState.resolveUiCharging(detectedCharging, hasRecentMonitorSample,
+                prefs.getBoolean("monitorLastCharging", detectedCharging));
         if (sessionStartedAt == 0L) {
             lastCharging = newCharging;
-            sessionStartedAt = System.currentTimeMillis();
+            sessionStartedAt = now;
             sessionStartLevel = level;
         } else if (newCharging != lastCharging) {
             lastCharging = newCharging;
-            sessionStartedAt = System.currentTimeMillis();
+            sessionStartedAt = now;
             sessionStartLevel = level;
             sessionStartChargeCounterMah = 0;
         }

@@ -13,4 +13,9 @@ final class BatteryState {
         return plugged != 0 && (status == BatteryManager.BATTERY_STATUS_CHARGING
                 || status == BatteryManager.BATTERY_STATUS_FULL);
     }
+
+    static boolean resolveUiCharging(boolean detectedCharging, boolean hasRecentMonitorSample,
+                                     boolean monitorCharging) {
+        return hasRecentMonitorSample ? monitorCharging : detectedCharging;
+    }
 }

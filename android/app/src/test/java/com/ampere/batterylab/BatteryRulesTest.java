@@ -18,6 +18,12 @@ public class BatteryRulesTest {
         assertFalse(BatteryState.isCharging(BatteryManager.BATTERY_STATUS_DISCHARGING, BatteryManager.BATTERY_PLUGGED_AC));
     }
 
+    @Test public void uiUsesRecentStabilizedMonitorState() {
+        assertTrue(BatteryState.resolveUiCharging(false, true, true));
+        assertFalse(BatteryState.resolveUiCharging(true, true, false));
+        assertTrue(BatteryState.resolveUiCharging(true, false, false));
+    }
+
     @Test public void cycleCountRejectsMissingAndImplausibleValues() {
         assertTrue(BatteryCycleCount.isPlausible(0));
         assertTrue(BatteryCycleCount.isPlausible(100000));
