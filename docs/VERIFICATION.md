@@ -5,9 +5,13 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.205` (`versionCode 205`)
+- Version: `0.206` (`versionCode 206`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `3773111ef541991db64c62697023478473d2e93b7efca9f788c444cf6c8413e6`
+- Release APK SHA-256: wird nach dem signierten CI-Artefakt ergänzt
+
+Release `0.206` additionally selects a compact non-overlapping home-screen
+widget layout below 220 dp and re-renders each widget on resize using its
+actual minimum width.
 
 Release `0.205` additionally centralizes Linux power-supply source ranking
 for current, capacity and cycle-count readers. A declared USB/input type is

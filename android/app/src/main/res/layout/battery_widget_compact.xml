@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="10dp"
+    android:background="@drawable/widget_background">
+
+    <ImageView
+        android:id="@+id/widget_icon"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_alignParentStart="true"
+        android:layout_centerVertical="true"
+        android:contentDescription="Ampere"
+        android:src="@drawable/ic_launcher" />
+
+    <LinearLayout
+        android:id="@+id/widget_value_column"
+        android:layout_width="52dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:gravity="end|center_vertical"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/widget_level"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:fontFamily="sans"
+            android:maxLines="1"
+            android:text="—"
+            android:textColor="@color/widget_primary"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/widget_caption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:fontFamily="sans"
+            android:maxLines="1"
+            android:text="Akku"
+            android:textColor="@color/widget_muted"
+            android:textSize="9sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/widget_text_column"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="38dp"
+        android:layout_marginEnd="58dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/widget_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:fontFamily="sans"
+            android:maxLines="1"
+            android:text="Ampere"
+            android:textColor="@color/widget_primary"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/widget_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:fontFamily="sans"
+            android:maxLines="1"
+            android:text="Akkubetrieb"
+            android:textColor="@color/widget_accent"
+            android:textSize="10sp" />
+
+        <TextView
+            android:id="@+id/widget_details"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:fontFamily="sans"
+            android:maxLines="1"
+            android:text="Strom —"
+            android:textColor="@color/widget_muted"
+            android:textSize="9sp" />
+    </LinearLayout>
+</RelativeLayout>

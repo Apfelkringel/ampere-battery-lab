@@ -7,6 +7,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Bundle;
 import android.os.BatteryManager;
 import android.widget.RemoteViews;
 import java.util.Locale;
@@ -19,6 +20,11 @@ public class BatteryWidgetProvider extends AppWidgetProvider {
         update(context, manager, appWidgetIds);
     }
 
+    @Override public void onAppWidgetOptionsChanged(Context context, AppWidgetManager manager,
+                                                    int appWidgetId, Bundle newOptions) {
+        update(context, manager, new int[]{appWidgetId});
+    }
+
     /** Refreshes every placed widget when the foreground monitor receives a sample. */
     static void updateAll(Context context) {
         AppWidgetManager manager = AppWidgetManager.getInstance(context);
@@ -28,11 +34,15 @@ public class BatteryWidgetProvider extends AppWidgetProvider {
 
     private static void update(Context context, AppWidgetManager manager, int[] ids) {
         if (ids == null || ids.length == 0) return;
-        RemoteViews views = buildViews(context);
-        manager.updateAppWidget(ids, views);
+        for (int id : ids) {
+            Bundle options = manager.getAppWidgetOptions(id);
+            int widthDp = options == null ? 180
+                    : options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 180);
+            manager.updateAppWidget(id, buildViews(context, widthDp));
+        }
     }
 
-    private static RemoteViews buildViews(Context context) {
+    private static RemoteViews buildViews(Context context, int widthDp) {
         Intent battery = context.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         int rawLevel = battery == null ? -1 : battery.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
         int scale = battery == null ? 100 : battery.getIntExtra(BatteryManager.EXTRA_SCALE, 100);
@@ -47,7 +57,8 @@ public class BatteryWidgetProvider extends AppWidgetProvider {
                 battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0));
         int currentMa = readCurrentMa(context);
 
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.battery_widget);
+        int layout = widthDp < 220 ? R.layout.battery_widget_compact : R.layout.battery_widget;
+        RemoteViews views = new RemoteViews(context.getPackageName(), layout);
         views.setTextViewText(R.id.widget_level, level >= 0 ? level + "%" : "—");
         views.setTextViewText(R.id.widget_status, statusText(status, charging));
         views.setTextViewText(R.id.widget_details, detailsText(charging, currentMa, temperatureTenths, voltageMv));
