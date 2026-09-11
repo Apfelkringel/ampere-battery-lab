@@ -11,7 +11,10 @@ final class BatteryCycleEstimator {
 
     static float addChargedFraction(float fraction, long previousUah, long currentUah,
                                     boolean charging, int designMah) {
-        float safeFraction = Math.max(0f, fraction);
+        // The persisted value is a remainder after completed cycles have
+        // already been removed. Anything outside [0, 1) is corrupt state,
+        // not evidence for additional battery wear.
+        float safeFraction = isValidRemainder(fraction) ? fraction : 0f;
         if (!charging || previousUah <= 0L || currentUah <= previousUah
                 || designMah < 500 || designMah > 30000) return safeFraction;
         long designUah = designMah * 1000L;
@@ -23,6 +26,17 @@ final class BatteryCycleEstimator {
     }
 
     static int completedCycles(float fraction) {
-        return (int) Math.floor(Math.max(0f, fraction));
+        if (!Float.isFinite(fraction) || fraction < 0f) return 0;
+        return Math.max(0, (int) Math.floor(fraction));
+    }
+
+    static float remainder(float fraction) {
+        if (!Float.isFinite(fraction) || fraction < 0f) return 0f;
+        float remainder = fraction - completedCycles(fraction);
+        return isValidRemainder(remainder) ? remainder : 0f;
+    }
+
+    private static boolean isValidRemainder(float value) {
+        return Float.isFinite(value) && value >= 0f && value < 1f;
     }
 }

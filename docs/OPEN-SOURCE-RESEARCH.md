@@ -68,6 +68,12 @@ unplausible Sprünge werden verworfen. Die Anzeige markiert diesen Fallback mit
 Die gemeinsam verwendeten Regeln sind in `BatteryRulesTest` gegen Androids
 Status-/Netzquellenregel und gegen ungültige Zyklusgrenzen abgesichert.
 
+Der lokale EFC-Fallback speichert nach jedem Schritt ausschließlich den
+Restanteil eines begonnenen Vollzyklus. Dieser Restanteil wird vor jeder
+Berechnung strikt auf endliche Werte in `[0, 1)` geprüft; damit können
+beschädigte Preferences keinen künstlichen Zykluszähler oder eine sichtbare
+`NaN`-Anzeige erzeugen.
+
 Die Android-16/17-Kapazitätsstufe wird in `BatteryCapacityLevel` bewusst nicht
 in `BatteryHealth.percent(...)` eingespeist. Ein Systemwert wie `Hoch` oder
 `Voll` kann damit niemals versehentlich als `110 %` oder als andere

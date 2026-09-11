@@ -286,7 +286,7 @@ public class BatteryMonitorService extends Service {
         int completed = BatteryCycleEstimator.completedCycles(updated);
         int cycles = Math.max(0, prefs.getInt("estimatedCycleCount", 0)) + completed;
         prefs.edit().putLong("estimatedCycleLastCounterUah", currentCounterUah)
-                .putFloat("estimatedCycleFraction", Math.max(0f, updated - completed))
+                .putFloat("estimatedCycleFraction", BatteryCycleEstimator.remainder(updated))
                 .putInt("estimatedCycleCount", cycles).apply();
     }
 

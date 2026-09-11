@@ -37,6 +37,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - Temperaturwerte werden in Dashboard, Dienst, Widget, Overlay, Kachel und Alarm zentral auf Androids Zehntelgrad-Einheit und einen plausiblen Bereich geprüft
 - Batteriespannung wird in allen Oberflächen zentral als Millivolt validiert, bevor daraus Akku-Leistung oder Anzeige berechnet wird
 - Der persistente Charge-Counter wird zentral in Androids Microampere-Stunden-Einheit validiert, bevor Sitzungen oder EFC daraus berechnet werden
+- Der gespeicherte EFC-Restanteil bleibt endlich und kleiner als 1,0; beschädigte Werte wie `NaN`, Unendlich oder künstlich große Bruchteile erzeugen keine falschen Zyklen
 - Sitzungsänderungen werden strikt auf maximal 100 % begrenzt; fehlerhafte Altzeilen und unrealistische Live-Änderungen werden verworfen bzw. aus gültiger Energie neu abgeleitet
 - System-Ladezyklen werden aus Android oder unterstützten Batterie-/BMS-Treibern gelesen; fehlt beides, nutzt Ampere eine vorsichtige lokale EFC-Schätzung aus Androids persistentem Charge Counter und kennzeichnet sie mit `~`
 - transparente Anzeige, warum eine Ladesitzung noch nicht als Health-Kapazitätsprobe zählt

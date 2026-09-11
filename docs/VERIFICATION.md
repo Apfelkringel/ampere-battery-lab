@@ -5,10 +5,14 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.174` (`versionCode 174`)
+- Version: `0.175` (`versionCode 175`)
 - `minSdk 23`, `targetSdk 37`
 - Release APK SHA-256: `e83c3e51e1790b515144fd29e86a4629e4be7b0ddcf170a19a9921a94db1daf9`
 - The same hash is published in the public update repository manifest.
+
+Release `0.175` additionally rejects corrupt persisted EFC fractions; only a
+finite remainder in `[0, 1)` is accepted, so corrupt values cannot create
+false full cycles or leak `NaN` into the UI.
 
 Release `0.174` additionally rejects invalid persisted phase percentages
 (including 110 %, NaN and infinity) in calculations and UI fallbacks; only

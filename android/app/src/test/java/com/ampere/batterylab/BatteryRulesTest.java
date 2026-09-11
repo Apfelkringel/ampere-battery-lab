@@ -230,6 +230,18 @@ public class BatteryRulesTest {
         assertEquals(1, BatteryCycleEstimator.completedCycles(1.2f));
     }
 
+    @Test public void chargeCounterCycleEstimateRejectsCorruptStoredFractions() {
+        assertEquals(0.1f, BatteryCycleEstimator.addChargedFraction(Float.NaN,
+                5000000L, 5500000L, true, 5000), 0.001f);
+        assertEquals(0.1f, BatteryCycleEstimator.addChargedFraction(Float.POSITIVE_INFINITY,
+                5000000L, 5500000L, true, 5000), 0.001f);
+        assertEquals(0f, BatteryCycleEstimator.addChargedFraction(1.2f,
+                5000000L, 5500000L, false, 5000), 0.001f);
+        assertEquals(0, BatteryCycleEstimator.completedCycles(Float.NaN));
+        assertEquals(0f, BatteryCycleEstimator.remainder(Float.POSITIVE_INFINITY), 0.001f);
+        assertEquals(0.2f, BatteryCycleEstimator.remainder(1.2f), 0.001f);
+    }
+
     @Test public void usageEventsCountOnlyForegroundIntervalsInsideTheWindow() {
         Map<String, Long> totals = new HashMap<>();
         Map<String, Long> active = new HashMap<>();
