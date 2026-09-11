@@ -16,8 +16,8 @@ import android.content.IntentFilter;
 import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
-import android.os.Looper;
 import android.os.PowerManager;
 import android.os.SystemClock;
 import java.util.ArrayList;
@@ -33,33 +33,40 @@ public class BatteryMonitorService extends Service {
     private static final String CHANNEL_ID = "ampere-monitor";
     private static final String ALARM_CHANNEL_ID = "ampere-charge-alarm";
     private static final long CHARGING_STATE_CONFIRMATION_MS = 2500L;
-    private final Handler handler = new Handler(Looper.getMainLooper());
+    private Handler handler;
+    private HandlerThread monitorThread;
     private boolean transitionCheckScheduled;
     private Boolean powerConnectedHint;
     private final BroadcastReceiver batteryReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
-            String action = intent == null ? null : intent.getAction();
-            if (Intent.ACTION_POWER_CONNECTED.equals(action)
-                    || Intent.ACTION_POWER_DISCONNECTED.equals(action)) {
-                // Power broadcasts are authoritative for the physical cable
-                // edge. Keep that hint for the following battery snapshots so
-                // a stale/intermediate EXTRA_STATUS cannot flip the session.
-                powerConnectedHint = Intent.ACTION_POWER_CONNECTED.equals(action);
-                recordSample();
-            } else {
-                recordSample(intent);
-            }
+            if (handler == null) return;
+            handler.post(() -> {
+                String action = intent == null ? null : intent.getAction();
+                if (Intent.ACTION_POWER_CONNECTED.equals(action)
+                        || Intent.ACTION_POWER_DISCONNECTED.equals(action)) {
+                    // Power broadcasts are authoritative for the physical cable
+                    // edge. Keep that hint for the following battery snapshots so
+                    // a stale/intermediate EXTRA_STATUS cannot flip the session.
+                    powerConnectedHint = Intent.ACTION_POWER_CONNECTED.equals(action);
+                    recordSample();
+                } else {
+                    recordSample(intent);
+                }
+            });
         }
     };
     private boolean screenInteractive;
     private final BroadcastReceiver screenReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
-            if (Intent.ACTION_SCREEN_OFF.equals(intent.getAction())) {
-                screenInteractive = false;
-            } else if (Intent.ACTION_SCREEN_ON.equals(intent.getAction())) {
-                if (!screenInteractive) recordScreenWakeup();
-                screenInteractive = true;
-            }
+            if (handler == null) return;
+            handler.post(() -> {
+                if (Intent.ACTION_SCREEN_OFF.equals(intent.getAction())) {
+                    screenInteractive = false;
+                } else if (Intent.ACTION_SCREEN_ON.equals(intent.getAction())) {
+                    if (!screenInteractive) recordScreenWakeup();
+                    screenInteractive = true;
+                }
+            });
         }
     };
     private final Runnable sampleTask = new Runnable() {
@@ -72,6 +79,9 @@ public class BatteryMonitorService extends Service {
     @Override public void onCreate() {
         super.onCreate();
         MainActivity.migrateTelemetryPrefs(this);
+        monitorThread = new HandlerThread("ampere-battery-monitor", android.os.Process.THREAD_PRIORITY_BACKGROUND);
+        monitorThread.start();
+        handler = new Handler(monitorThread.getLooper());
         createChannel();
         startForeground(7, notification());
         IntentFilter batteryFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
@@ -84,7 +94,7 @@ public class BatteryMonitorService extends Service {
         screenFilter.addAction(Intent.ACTION_SCREEN_ON);
         screenFilter.addAction(Intent.ACTION_SCREEN_OFF);
         if (Build.VERSION.SDK_INT >= 33) registerReceiver(screenReceiver, screenFilter, Context.RECEIVER_NOT_EXPORTED); else registerReceiver(screenReceiver, screenFilter);
-        recordSample();
+        handler.post(this::recordSample);
         handler.postDelayed(sampleTask, sampleInterval());
         UpdateChecker.checkInBackground(this);
     }
@@ -803,7 +813,11 @@ public class BatteryMonitorService extends Service {
     @Override public void onDestroy() {
         try { unregisterReceiver(screenReceiver); } catch (IllegalArgumentException ignored) { }
         try { unregisterReceiver(batteryReceiver); } catch (IllegalArgumentException ignored) { }
-        handler.removeCallbacksAndMessages(null);
+        if (handler != null) handler.removeCallbacksAndMessages(null);
+        if (monitorThread != null) {
+            monitorThread.quitSafely();
+            monitorThread = null;
+        }
         super.onDestroy();
     }
 

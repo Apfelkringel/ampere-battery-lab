@@ -5,11 +5,14 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.136` (`versionCode 136`)
+- Version: `0.137` (`versionCode 137`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `c21b3cc172018cae68138831aac057a70820849aafa9685bd0305449141de40d`
+- Release APK SHA-256: `pending-v0.137-ci`
 - The same hash is published in the public update repository manifest.
 
+Release `0.137` moves monitor broadcast handling, sampling and local
+persistence to a dedicated background thread, keeping the UI main thread
+independent of telemetry work.
 Release `0.136` keeps the visible dashboard aligned with the monitor's recent
 stabilized charging state, so transient Android broadcasts cannot make the UI
 and session logic disagree.

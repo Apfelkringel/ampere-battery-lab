@@ -71,6 +71,12 @@ deshalb bleibt diese API nur der Fallback, wenn keine auswertbaren Ereignisse
 vorliegen. Die reine Intervalllogik liegt in `UsageEventAccumulator` und wird
 ohne Android-Systemobjekte getestet.
 
+Der laufende Monitor verwendet außerdem einen eigenen `HandlerThread` für
+Broadcast-Verarbeitung, Messung und lokale Persistenz. Dadurch bleibt die
+Canvas-Oberfläche vom Hintergrund-I/O getrennt; Foreground-Service und
+Benachrichtigung werden weiterhin sofort im vorgesehenen Android-Startpfad
+initialisiert.
+
 Das Startbildschirm-Widget ist eigenständig als `AppWidgetProvider` umgesetzt.
 Es liest den aktuellen Sticky-Akku-Broadcast und `BatteryManager` direkt, wird
 bei jedem laufenden Monitor-Sample aktualisiert und hat zusätzlich den von

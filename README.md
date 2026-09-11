@@ -58,6 +58,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - der Hintergrundmonitor prüft höchstens alle 12 Stunden die öffentliche Update-Datei und meldet neue Versionen per Android-Benachrichtigung
 - In-App-Updates laden Manifest und APK über den festgelegten GitHub-Contents-Endpunkt und prüfen vor dem Installer zusätzlich Hash, Paketname, Version und das eingebettete Release-Zertifikat; Details in `docs/UPDATE-SECURITY.md`
 - Lade-/Entladegrenzen werden zusätzlich direkt über Androids `POWER_CONNECTED`-/`POWER_DISCONNECTED`-Broadcasts verarbeitet, damit Kabelwechsel und Ladealarm nicht auf eine verzögerte Statusmessung warten
+- Der lokale Foreground-Monitor verarbeitet Messungen und System-Broadcasts auf einem eigenen Hintergrundthread, damit die responsive Oberfläche nicht durch Akku-/Datei-/Telemetriearbeit blockiert wird
 
 ## Entwicklung
 
