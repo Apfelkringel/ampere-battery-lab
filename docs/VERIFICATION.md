@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.138` (`versionCode 138`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `pending — wird nach dem signierten CI-Build ergänzt`
+- Release APK SHA-256: `911c18fad7afefba2795c592b16d7dd9b17548d4cd5394fd2176a82a9f7fde5f`
 - The same hash is published in the public update repository manifest.
 
 Release `0.138` makes the compact landscape overview height-aware. The live
