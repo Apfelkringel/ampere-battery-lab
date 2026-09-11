@@ -117,6 +117,27 @@ public class BatteryRulesTest {
         assertEquals("", reading.source);
     }
 
+    @Test public void widgetUsesShortLayoutForVeryLowHeight() {
+        assertEquals(BatteryWidgetLayoutRules.SHORT,
+                BatteryWidgetLayoutRules.select(320, 56));
+        assertEquals(BatteryWidgetLayoutRules.SHORT,
+                BatteryWidgetLayoutRules.select(180, 71));
+    }
+
+    @Test public void widgetUsesCompactLayoutOnlyWhenHeightCanShowItsContent() {
+        assertEquals(BatteryWidgetLayoutRules.COMPACT,
+                BatteryWidgetLayoutRules.select(180, 72));
+        assertEquals(BatteryWidgetLayoutRules.COMPACT,
+                BatteryWidgetLayoutRules.select(219, 130));
+    }
+
+    @Test public void widgetUsesStandardLayoutForWideContent() {
+        assertEquals(BatteryWidgetLayoutRules.STANDARD,
+                BatteryWidgetLayoutRules.select(220, 72));
+        assertEquals(BatteryWidgetLayoutRules.STANDARD,
+                BatteryWidgetLayoutRules.select(624, 276));
+    }
+
     @Test public void persistedUpdateResumeTargetsOnlyCompletedDownloads() {
         assertTrue(UpdateChecker.shouldResumePersistedDownload(DownloadManager.STATUS_SUCCESSFUL));
         assertFalse(UpdateChecker.shouldResumePersistedDownload(DownloadManager.STATUS_PENDING));
