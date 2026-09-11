@@ -55,6 +55,15 @@ public class BatteryRulesTest {
         assertFalse(BatterySessionRules.isValid("not-a-session"));
     }
 
+    @Test public void sessionChangeUsesMeasuredEnergyWhenLevelSnapshotIsNoisy() {
+        assertEquals(10, BatterySessionRules.effectiveChange(0, 660, 6600, true));
+        assertEquals(10, BatterySessionRules.effectiveChange(-2, 660, 6600, true));
+        assertEquals(-10, BatterySessionRules.effectiveChange(0, 660, 6600, false));
+        assertEquals(5, BatterySessionRules.effectiveChange(5, 0, 6600, true));
+        assertEquals(0, BatterySessionRules.effectiveChange(0, 0, 6600, true));
+        assertEquals(0, BatterySessionRules.effectiveChange(0, 7000, 6600, true));
+    }
+
     @Test public void platformHealthStaysQualitative() {
         assertEquals("Gut", BatteryPlatformHealth.label(BatteryManager.BATTERY_HEALTH_GOOD));
         assertEquals("Überhitzt", BatteryPlatformHealth.label(BatteryManager.BATTERY_HEALTH_OVERHEAT));

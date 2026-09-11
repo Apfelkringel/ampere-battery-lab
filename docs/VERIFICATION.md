@@ -5,12 +5,16 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.147` (`versionCode 147`)
+- Version: `0.148` (`versionCode 148`)
 - `minSdk 23`, `targetSdk 37`
 - Release APK SHA-256: `a65f7d41e4248165ae5e1fb7f7d43443685c34dcdb58b002d0dddf439c200729`
 - The same hash is published in the public update repository manifest.
 
-Release `0.147` additionally filters legacy health-capacity samples once at
+Release `0.148` additionally resolves noisy charging/discharging level
+snapshots against measured energy before writing a session row. This preserves
+real charging sessions at OEM charge limits without creating zero-percent
+history entries.
+Release `0.147` filters legacy health-capacity samples once at
 load time and writes the normalized list back, so invalid points cannot remain
 in the health graph or future averages.
 Release `0.146` additionally refreshes dynamic OEM full-charge-capacity values

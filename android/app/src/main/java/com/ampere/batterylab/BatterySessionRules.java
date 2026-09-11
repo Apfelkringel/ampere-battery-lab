@@ -4,6 +4,20 @@ package com.ampere.batterylab;
 final class BatterySessionRules {
     private BatterySessionRules() { }
 
+    /**
+     * Resolves a session's direction without trusting a noisy level snapshot
+     * over a measured charge-counter delta. A zero result means there is not
+     * enough evidence for a history row.
+     */
+    static int effectiveChange(int observedChange, int energyMah, int designMah, boolean charging) {
+        if (charging && observedChange > 0) return observedChange;
+        if (!charging && observedChange < 0) return observedChange;
+        if (energyMah <= 0 || designMah <= 0) return 0;
+        long inferred = Math.round(energyMah * 100d / designMah);
+        if (inferred < 1L || inferred > 100L) return 0;
+        return charging ? (int) inferred : -(int) inferred;
+    }
+
     static boolean isValid(String value) {
         if (value == null || value.isEmpty()) return false;
         String[] parts = value.split(",", -1);

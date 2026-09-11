@@ -516,9 +516,10 @@ public class BatteryMonitorService extends Service {
         long minutes = Math.max(1L, (now - startedAt) / 60000L);
         int change = level - startLevel;
         int energy = counterMah > 0 && startCounter > 0 ? (previousCharging ? Math.max(0, counterMah - startCounter) : Math.max(0, startCounter - counterMah)) : 0;
-        // The state transition is authoritative: a charging interval is still
-        // a charge session even when the percentage estimate moves by one point
-        // in the opposite direction.
+        // The state transition is authoritative, but a level snapshot can be
+        // noisy while the device is under load or held at an OEM charge limit.
+        // Resolve that snapshot against measured energy before deciding whether
+        // a history row has enough evidence.
         String type = previousCharging ? "Charge" : "Discharge";
         int screenOnValue;
         int screenOffValue;
@@ -545,13 +546,12 @@ public class BatteryMonitorService extends Service {
             chargerSource = "Battery";
             if (energy <= 0) energy = prefs.getInt("lastDischargeMah", 0);
         }
-        // A session is a percentage-based history item. Android can expose a
-        // stale counter or a one-sample level reversal while a cable/status
-        // blip is being confirmed. Neither a 0% row nor a backwards charging
-        // row is useful history. Preserve genuine charge energy in the
-        // aggregate, but keep the session list directional and clean.
-        boolean validDirection = previousCharging ? change > 0 : change < 0;
-        if (!validDirection) {
+        int designCapacity = BatteryCapacity.designCapacityMah(this);
+        int effectiveChange = BatterySessionRules.effectiveChange(
+                change, energy, designCapacity, previousCharging);
+        // A session is a percentage-based history item. Never create a 0% row
+        // or silently label a contradictory transition as a real session.
+        if (effectiveChange == 0) {
             if (previousCharging && energy > 0) {
                 prefs.edit().putInt("totalChargedMah", prefs.getInt("totalChargedMah", 0) + energy).apply();
             }
@@ -560,10 +560,9 @@ public class BatteryMonitorService extends Service {
             return;
         }
         String date = new SimpleDateFormat("dd.MM. HH:mm", Locale.GERMANY).format(new Date(now));
-        int designCapacity = BatteryCapacity.designCapacityMah(this);
         float cycleEquivalent = energy > 0 && designCapacity > 0 ? energy / (float) designCapacity : Math.abs(change) / 100f;
         int screenWakeups = previousCharging ? 0 : prefs.getInt("lastDischargeWakeups", prefs.getInt("dischargeWakeups", 0));
-        String entry = type + "," + (change > 0 ? "+" : "") + change + "%," + duration(minutes) + "," + date + "," + startLevel + "," + level + "," + energy + "," + String.format(Locale.US, "%.2f", cycleEquivalent)
+        String entry = type + "," + (effectiveChange > 0 ? "+" : "") + effectiveChange + "%," + duration(minutes) + "," + date + "," + startLevel + "," + level + "," + energy + "," + String.format(Locale.US, "%.2f", cycleEquivalent)
                 + "," + screenOnValue + "," + screenOffValue + "," + (screenOnMs / 60000L) + "," + (screenOffMs / 60000L)
                 + "," + (deepSleepMs / 60000L) + "," + chargerSource + "," + startedAt + "," + now + "," + screenWakeups;
         String saved = prefs.getString("sessions", "");
@@ -577,7 +576,7 @@ public class BatteryMonitorService extends Service {
         if (previousCharging && energy > 0) editor.putInt("totalChargedMah", prefs.getInt("totalChargedMah", 0) + energy);
         if (previousCharging) {
             String healthReason;
-            if (change < 5) healthReason = "Zu geringe Akkustandänderung (mindestens 5 % nötig)";
+            if (effectiveChange < 5) healthReason = "Zu geringe Akkustandänderung (mindestens 5 % nötig)";
             else if (energy <= 0) healthReason = "Energiezähler/Strom nicht verfügbar";
             else healthReason = "Wird in den nächsten Gesundheitsdurchschnitt einbezogen";
             editor.putInt("lastChargeStartLevel", startLevel)
@@ -589,8 +588,8 @@ public class BatteryMonitorService extends Service {
                     .putString("lastChargeHealthReason", healthReason);
         }
         editor.apply();
-        if (previousCharging && change >= 5 && energy > 0) {
-            int estimatedCapacity = Math.round(energy * 100f / change);
+        if (previousCharging && effectiveChange >= 5 && energy > 0) {
+            int estimatedCapacity = Math.round(energy * 100f / effectiveChange);
             if (estimatedCapacity >= 500 && estimatedCapacity <= 20000) {
                 recordHealthSample(prefs, estimatedCapacity);
             }
