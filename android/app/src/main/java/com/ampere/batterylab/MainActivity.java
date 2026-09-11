@@ -390,7 +390,10 @@ public class MainActivity extends Activity {
                 if (parts.length > 13) row.put("chargerSource", parts[13]);
                 if (parts.length > 14) row.put("startTimestampMs", parts[14]);
                 if (parts.length > 15) row.put("endTimestampMs", parts[15]);
-                if (parts.length > 16) row.put("screenWakeups", Integer.parseInt(parts[16]));
+                if (parts.length > 16) {
+                    Integer wakeups = BatteryExportRules.nonNegativeInt(parts[16]);
+                    if (wakeups != null) row.put("screenWakeups", wakeups);
+                }
                 if (parts.length > 8) row.put("screenValueUnit", "Charge".equals(parts[0]) ? "mAh" : "percent");
                 sessionRows.put(row);
             }
@@ -401,7 +404,7 @@ public class MainActivity extends Activity {
             for (String sample : telemetry.split("\\n")) {
                 if (sample.trim().isEmpty()) continue;
                 String[] parts = sample.split(",", 11);
-                if (parts.length < 11) continue;
+                if (!BatteryExportRules.isValidTelemetry(parts)) continue;
                 JSONObject row = new JSONObject();
                 row.put("timestampMs", Long.parseLong(parts[0]));
                 row.put("levelPercent", Integer.parseInt(parts[1]));

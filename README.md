@@ -27,6 +27,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - analysefähiger lokaler CSV-Export mit Zeitreihe für Akkustand, signiertem Strom (Laden positiv/Entladen negativ), Temperatur, Spannung, Ladequelle, Zykluszähler, Bildschirmstatus und Bildschirm-Wakeups
 - CSV-Export als auswählbare Datei über den Android-Dateidialog
 - strukturierter Research-Export als JSON mit Messreihen, Sitzungen und Geräte-/Android-Kontext nach ausdrücklicher Nutzeraktion
+- Der Research-Export überspringt beschädigte Altzeilen einzeln, statt wegen eines einzigen ungültigen Wertes komplett abzubrechen
 - einstellbare lokale Messfrequenz (5/15/30/60 Minuten) für Hintergrundmonitor und Verlauf
 - Kapazitätsschätzung und manueller Health-Benchmark
 - best-effort lokale Designkapazitäts-Erkennung mit Batterie-/BMS-Treiber, Energie-/Spannungswerten und Android-PowerProfile sowie separate Full-Charge-Kapazität vom Batterie-Treiber; jede Quelle bleibt mit Einheitengrenzen und Herkunft transparent

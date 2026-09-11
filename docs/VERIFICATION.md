@@ -5,10 +5,13 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.167` (`versionCode 167`)
+- Version: `0.168` (`versionCode 168`)
 - `minSdk 23`, `targetSdk 37`
 - Release APK SHA-256: `dab268de2f908f08d81d83ee2ce78df7b5eccd825095910adddfb3c8da9b0fb6`
 - The same hash is published in the public update repository manifest.
+
+Release `0.168` additionally keeps malformed telemetry and session metadata
+from aborting the structured research export; impossible rows are skipped.
 
 Release `0.167` additionally uses a complete short "Kapazität" label on
 phone-width overview cards instead of truncating "Geschätzte Kapazität".

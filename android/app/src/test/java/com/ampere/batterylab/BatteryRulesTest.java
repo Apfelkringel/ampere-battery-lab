@@ -73,6 +73,22 @@ public class BatteryRulesTest {
         assertEquals(-1, BatteryLevel.percent(1001, 1001));
     }
 
+    @Test public void researchExportSkipsMalformedTelemetryWithoutInventingValues() {
+        String[] valid = {"1700000000000", "46", "1", "900", "25.0", "4.20", "6600", "0", "", "12", "2"};
+        assertTrue(BatteryExportRules.isValidTelemetry(valid));
+        valid[1] = "110";
+        assertFalse(BatteryExportRules.isValidTelemetry(valid));
+        valid[1] = "46";
+        valid[3] = "not-a-current";
+        assertFalse(BatteryExportRules.isValidTelemetry(valid));
+        valid[3] = "900";
+        valid[2] = "maybe";
+        assertFalse(BatteryExportRules.isValidTelemetry(valid));
+        assertEquals(Integer.valueOf(7), BatteryExportRules.nonNegativeInt(" 7 "));
+        assertEquals(null, BatteryExportRules.nonNegativeInt("-1"));
+        assertEquals(null, BatteryExportRules.nonNegativeInt("broken"));
+    }
+
     @Test public void chargeCounterRejectsSentinelsAndUnknownUnits() {
         assertEquals(6600000L, BatteryChargeCounter.normalizeMicroampereHours(6600000L));
         assertEquals(6600, BatteryChargeCounter.toMilliampereHours(6600000L));
