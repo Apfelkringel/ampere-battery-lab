@@ -5,10 +5,13 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.171` (`versionCode 171`)
+- Version: `0.172` (`versionCode 172`)
 - `minSdk 23`, `targetSdk 37`
 - Release APK SHA-256: `c927fa56dcca7d522c69712ec945562f97a8cd12c3ba5154143371440b10e32e`
 - The same hash is published in the public update repository manifest.
+
+Release `0.172` additionally removes the unused battery-optimization exemption
+permission; monitoring, backup and the signed in-app updater do not require it.
 
 Release `0.171` additionally keeps every initial status label consistent with
 the unavailable state until a valid Android battery level arrives.
