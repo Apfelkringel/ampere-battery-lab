@@ -96,6 +96,14 @@ public class BatteryRulesTest {
         assertEquals("Nicht verfügbar", BatteryChargingState.label(0));
     }
 
+    @Test public void chargerCapabilityUsesOnlyPlausiblePowerPairs() {
+        assertEquals(7500, BatteryChargerCapability.maxPowerMilliwatts(1_500_000, 5_000_000));
+        assertEquals(0, BatteryChargerCapability.maxPowerMilliwatts(0, 5_000_000));
+        assertEquals(0, BatteryChargerCapability.maxPowerMilliwatts(1_500_000, 0));
+        assertEquals(0, BatteryChargerCapability.maxPowerMilliwatts(100_000_000, 30_000_000));
+        assertEquals("Max. 7,5 W", BatteryChargerCapability.label(7500));
+    }
+
     @Test public void capacityUnitsNormalizeWithoutInventingAValue() {
         assertEquals(6600L, BatteryCapacity.normalizeCapacity(6600000L));
         assertEquals(6600L, BatteryCapacity.normalizeCapacity(6600L));

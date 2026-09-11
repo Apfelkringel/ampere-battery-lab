@@ -86,6 +86,12 @@ zu heiße Ladebedingungen sowie Akku-schonende und adaptive Profile. Dieser
 Wert beeinflusst weder die Kabelerkennung noch die Sitzungsrichtung; er wird
 nur angezeigt, wenn er gültig vorhanden ist.
 
+Die optionalen AOSP-Felder `max_charging_current` und `max_charging_voltage`
+werden nach dem von Androids eigener `BatteryStatus`-Logik verwendeten
+Strom-mal-Spannung-Prinzip in Milliwatt umgerechnet. Ampere zeigt das Ergebnis
+nur mit engen Spannungs-, Strom- und Leistungsgrenzen als „Max. … W“; der
+aktuelle Batteriefluss bleibt davon unabhängig.
+
 Für die optionale App-Nutzungsansicht verwendet Ampere bevorzugt Androids
 `UsageStatsManager.queryEvents()`. Aggregierte `queryUsageStats()`-Tageswerte
 können laut Android-Dokumentation über den angefragten Zeitraum hinausreichen;

@@ -436,6 +436,7 @@ class BatteryDashboard extends View {
     private int platformHealth = BatteryManager.BATTERY_HEALTH_UNKNOWN;
     private int capacityLevel = -1;
     private int chargingStatus = 0;
+    private int maxChargingPowerMilliwatts = 0;
     private int currentMa = 0;
     private int signedCurrentMa = 0;
     private int chargeCounterMah = 0;
@@ -594,6 +595,7 @@ class BatteryDashboard extends View {
         platformHealth = intent.getIntExtra(BatteryManager.EXTRA_HEALTH, BatteryManager.BATTERY_HEALTH_UNKNOWN);
         capacityLevel = BatteryCapacityLevel.fromIntent(intent);
         chargingStatus = BatteryChargingState.fromIntent(intent);
+        maxChargingPowerMilliwatts = BatteryChargerCapability.maxPowerMilliwatts(intent);
         int mv = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1);
         voltage = mv > 0 ? mv / 1000f : 0f;
         BatteryManager manager = (BatteryManager) getContext().getSystemService(Context.BATTERY_SERVICE);
@@ -2081,7 +2083,12 @@ class BatteryDashboard extends View {
         text(c, "Temp. " + temperatureDisplay() + " °C · Spannung " + voltageDisplay() + " V", narrowHeader ? 36 : 78, y + 151, 8, faint, false);
         text(c, "Ladeziel", 36, y + 190, 10, muted, false);
         text(c, chargeLimit + "%", w - 67, y + 190, 10, lime, true);
-        text(c, "Quelle: " + chargerTypeDisplay(), 36, y + 169, 9, faint, false);
+        float sourceLeft = narrowHeader ? 36f : 78f;
+        float sourceRight = narrowHeader ? w * .58f : w * .54f;
+        boundedText(c, "Quelle: " + chargerTypeDisplay(), sourceLeft, sourceRight, y + 169, 9, faint, false);
+        boundedRightText(c, maxChargingPowerMilliwatts > 0
+                        ? BatteryChargerCapability.label(maxChargingPowerMilliwatts) : "",
+                narrowHeader ? w * .62f : w * .60f, w - 36, y + 169, 9, faint, false);
         rounded(c, 36, y + 205, w - 36, y + 209, 3, border);
         rounded(c, 36, y + 205, 36 + (w - 72) * chargeLimit / 100f, y + 209, 3, lime);
         text(c, "Belastung bis zum Ziel", 36, y + 258, 9, muted, false);
