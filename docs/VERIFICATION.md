@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.223` (`versionCode 223`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `9eb5219d1b9efa12ba0770e4348970d331442717af16b0aca5d1b62215eee0d3`
+- Release APK SHA-256: `391c15d9ba540a1dc59bfbb46b04da5fd1edd0da2ef25f1a008d191c1136644f`
 
 Release `0.223` additionally supplies screen-space bounds for the Canvas
 dashboard's virtual accessibility controls, so TalkBack can place focus on
