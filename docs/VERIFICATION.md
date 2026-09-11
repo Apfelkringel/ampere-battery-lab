@@ -7,7 +7,7 @@ Last verified: 2026-09-11 (Europe/Berlin)
 - Package: `com.ampere.batterylab`
 - Version: `0.136` (`versionCode 136`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `pending-v0.136-ci`
+- Release APK SHA-256: `c21b3cc172018cae68138831aac057a70820849aafa9685bd0305449141de40d`
 - The same hash is published in the public update repository manifest.
 
 Release `0.136` keeps the visible dashboard aligned with the monitor's recent
