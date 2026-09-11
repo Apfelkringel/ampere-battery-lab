@@ -1,6 +1,7 @@
 package com.ampere.batterylab;
 
 import android.os.BatteryManager;
+import android.app.DownloadManager;
 import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
@@ -114,6 +115,13 @@ public class BatteryRulesTest {
                 110, 101, "Android BatteryManager", "Batterie-Treiber (SoH)");
         assertEquals(0, reading.percent);
         assertEquals("", reading.source);
+    }
+
+    @Test public void persistedUpdateResumeTargetsOnlyCompletedDownloads() {
+        assertTrue(UpdateChecker.shouldResumePersistedDownload(DownloadManager.STATUS_SUCCESSFUL));
+        assertFalse(UpdateChecker.shouldResumePersistedDownload(DownloadManager.STATUS_PENDING));
+        assertFalse(UpdateChecker.shouldResumePersistedDownload(DownloadManager.STATUS_RUNNING));
+        assertFalse(UpdateChecker.shouldResumePersistedDownload(DownloadManager.STATUS_FAILED));
     }
 
     @Test public void finalHealthGateNeverReturnsAnImpossiblePercentage() {

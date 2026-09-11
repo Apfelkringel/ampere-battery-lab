@@ -80,14 +80,51 @@ final class UpdateChecker {
     /** Releases the installer guard when the app becomes visible again. */
     static void onActivityResumed(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-        if (!prefs.getBoolean(INSTALL_IN_PROGRESS, false)) return;
-        synchronized (OPERATION_LOCK) {
-            installInProgress = false;
-            downloadInProgress = false;
-            downloadCompletionInProgress = false;
+        if (prefs.getBoolean(INSTALL_IN_PROGRESS, false)) {
+            synchronized (OPERATION_LOCK) {
+                installInProgress = false;
+                downloadInProgress = false;
+                downloadCompletionInProgress = false;
+            }
+            clearDownloadState(prefs);
+            prefs.edit().remove(INSTALL_IN_PROGRESS).apply();
+            return;
         }
-        clearDownloadState(prefs);
-        prefs.edit().remove(INSTALL_IN_PROGRESS).apply();
+        resumePersistedDownload(context);
+    }
+
+    /**
+     * A completion broadcast normally starts the receiver process itself. If
+     * Android reclaims that process after the broadcast but before APK
+     * verification finishes, however, the successful DownloadManager row can
+     * remain without another broadcast. Reconcile that durable row when the
+     * app next becomes visible; the operation lock still makes a receiver and
+     * this recovery path mutually exclusive.
+     */
+    private static void resumePersistedDownload(Context context) {
+        Context app = context.getApplicationContext();
+        SharedPreferences prefs = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        long id = prefs.getLong(DOWNLOAD_ID, -1L);
+        if (id < 0L || prefs.getBoolean(INSTALL_IN_PROGRESS, false)) return;
+        DownloadManager manager = (DownloadManager) app.getSystemService(Context.DOWNLOAD_SERVICE);
+        if (manager == null) return;
+        android.database.Cursor cursor = manager.query(new DownloadManager.Query().setFilterById(id));
+        if (cursor == null) return;
+        int status;
+        try {
+            if (!cursor.moveToFirst()) return;
+            status = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS));
+        } finally {
+            cursor.close();
+        }
+        if (!shouldResumePersistedDownload(status)) return;
+        Intent completion = new Intent(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
+                .putExtra(DownloadManager.EXTRA_DOWNLOAD_ID, id);
+        handleDownloadCompleted(app, completion);
+    }
+
+    static boolean shouldResumePersistedDownload(int status) {
+        return status == DownloadManager.STATUS_SUCCESSFUL;
     }
 
     /** Performs a throttled manifest-only check from the persistent monitor service. */

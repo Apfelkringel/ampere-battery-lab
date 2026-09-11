@@ -5,9 +5,14 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.209` (`versionCode 209`)
+- Version: `0.210` (`versionCode 210`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `2295ddb1595e3bfa2a5e09f780a7074ecdfc3f6ef7e7d05be672d4346afedaf5`
+- Release APK SHA-256: wird nach dem signierten CI-Build ergänzt.
+
+Release `0.210` additionally reconciles a successfully completed persisted
+DownloadManager update when the app becomes visible again. This recovers
+from process reclamation between download completion and APK verification,
+without starting a second download.
 
 Release `0.209` additionally resolves the Android/OEM state-of-health
 percentage and its source as one validated reading. An invalid system value
