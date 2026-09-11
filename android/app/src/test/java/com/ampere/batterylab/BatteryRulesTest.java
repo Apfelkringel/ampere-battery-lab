@@ -147,6 +147,21 @@ public class BatteryRulesTest {
                 BatteryManager.BATTERY_PLUGGED_AC | BatteryManager.BATTERY_PLUGGED_USB));
     }
 
+    @Test public void chargeRateHistoryKeepsChargerSourcesSeparate() {
+        assertEquals(BatteryChargeSource.AC,
+                BatteryChargeSource.fromPlugged(BatteryManager.BATTERY_PLUGGED_AC));
+        assertEquals(BatteryChargeSource.USB,
+                BatteryChargeSource.fromPlugged(BatteryManager.BATTERY_PLUGGED_USB));
+        assertEquals(BatteryChargeSource.WIRELESS,
+                BatteryChargeSource.fromPlugged(BatteryManager.BATTERY_PLUGGED_WIRELESS));
+        assertEquals(BatteryChargeSource.WIRELESS,
+                BatteryChargeSource.fromPlugged(BatteryManager.BATTERY_PLUGGED_WIRELESS
+                        | BatteryManager.BATTERY_PLUGGED_AC));
+        assertEquals(BatteryChargeSource.UNKNOWN, BatteryChargeSource.fromPlugged(0));
+        assertTrue(BatteryChargeSource.isKnown(BatteryChargeSource.DOCK));
+        assertFalse(BatteryChargeSource.isKnown(BatteryChargeSource.UNKNOWN));
+    }
+
     @Test public void dailyCycleHistoryKeepsTheStrongestMonotoneReadingPerDay() {
         String history = BatteryCycleHistory.record("", "2026-09-11", 12f, BatteryCycleHistory.ESTIMATED);
         history = BatteryCycleHistory.record(history, "2026-09-11", 11f, BatteryCycleHistory.ESTIMATED);

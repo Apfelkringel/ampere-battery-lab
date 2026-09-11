@@ -1218,6 +1218,9 @@ class BatteryDashboard extends View {
         boolean previousCharging = false;
         float weightedRate = 0f;
         long weightedMs = 0L;
+        float[] sourceRates = new float[BatteryChargeSource.DOCK + 1];
+        long[] sourceMs = new long[BatteryChargeSource.DOCK + 1];
+        int previousSource = BatteryChargeSource.UNKNOWN;
         for (String row : BatteryExportRules.validTelemetryRows(saved)) {
             String[] parts = row.split(",", 11);
             if (parts.length < 7) continue;
@@ -1227,6 +1230,10 @@ class BatteryDashboard extends View {
                 boolean sampleCharging = "1".equals(parts[2]);
                 int counter = Integer.parseInt(parts[6]);
                 int current = Math.abs(Integer.parseInt(parts[3]));
+                int sampleSource = BatteryChargeSource.UNKNOWN;
+                if (parts.length > 10) {
+                    sampleSource = BatteryChargeSource.fromPlugged(Integer.parseInt(parts[10]));
+                }
                 long gap = previousAt > 0L ? timestamp - previousAt : 0L;
                 if (sampleCharging && previousCharging && gap > 0L && gap <= 2L * 60L * 60L * 1000L) {
                     float rate = 0f;
@@ -1238,12 +1245,27 @@ class BatteryDashboard extends View {
                     if (rate >= 50f && rate <= 20000f) {
                         weightedRate += rate * gap;
                         weightedMs += gap;
+                        // Do not carry a rate over a charger change. The
+                        // interval belongs to the source reported by both
+                        // endpoints; an unknown source remains usable for
+                        // the all-source fallback only.
+                        if (sampleSource == previousSource
+                                && BatteryChargeSource.isKnown(sampleSource)) {
+                            sourceRates[sampleSource] += rate * gap;
+                            sourceMs[sampleSource] += gap;
+                        }
                     }
                 }
                 previousAt = timestamp;
                 previousCounter = counter;
                 previousCharging = sampleCharging;
+                previousSource = sampleSource;
             } catch (NumberFormatException ignored) { }
+        }
+        int currentSource = BatteryChargeSource.fromPlugged(plugged);
+        if (BatteryChargeSource.isKnown(currentSource)
+                && sourceMs[currentSource] >= 5L * 60L * 1000L) {
+            return sourceRates[currentSource] / sourceMs[currentSource];
         }
         return weightedMs >= 5L * 60L * 1000L ? weightedRate / weightedMs : 0f;
     }
