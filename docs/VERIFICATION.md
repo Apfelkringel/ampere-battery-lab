@@ -5,10 +5,13 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.169` (`versionCode 169`)
+- Version: `0.170` (`versionCode 170`)
 - `minSdk 23`, `targetSdk 37`
 - Release APK SHA-256: `636be8c89ad9a82c40ccb24deb955f6243ecab9ae21956f2b22905720440e7d9`
 - The same hash is published in the public update repository manifest.
+
+Release `0.170` additionally keeps the initial dashboard state unavailable
+until a valid Android battery level arrives; no transient 0-% value is saved.
 
 Release `0.169` additionally rejects impossible legacy percentage points in
 stored history and chart telemetry instead of clipping them to 100%.

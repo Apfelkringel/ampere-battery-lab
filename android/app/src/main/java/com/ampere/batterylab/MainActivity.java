@@ -434,7 +434,7 @@ class BatteryDashboard extends View {
     private final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final RectF rect = new RectF();
     private final float density;
-    private int level = 0;
+    private int level = -1;
     private float temperature = 0f;
     private float voltage = 0f;
     private int platformHealth = BatteryManager.BATTERY_HEALTH_UNKNOWN;
@@ -575,7 +575,12 @@ class BatteryDashboard extends View {
         int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN);
         int pluggedSource = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0);
         int normalizedLevel = BatteryLevel.percent(rawLevel, scale);
-        if (normalizedLevel >= 0) level = normalizedLevel;
+        if (normalizedLevel < 0) {
+            updateAccessibilitySummary();
+            invalidate();
+            return;
+        }
+        level = normalizedLevel;
         boolean detectedCharging = BatteryState.isCharging(status, pluggedSource);
         long now = System.currentTimeMillis();
         long monitorSampleAt = prefs.getLong("monitorSampleAt", 0L);
@@ -709,6 +714,7 @@ class BatteryDashboard extends View {
     }
 
     private void saveSample() {
+        if (level < 0) return;
         long now = System.currentTimeMillis();
         long lastSample = prefs.getLong("lastSample", 0L);
         if (now - lastSample < samplingIntervalMs() && !history.isEmpty()) return;
@@ -859,7 +865,7 @@ class BatteryDashboard extends View {
     }
 
     private String timeToFull() {
-        if (!charging) return "—";
+        if (!charging || level < 0) return "—";
         if (level >= 99) return "Voll";
         long systemMinutes = systemChargeTimeRemainingMinutes();
         if (systemMinutes > 0L) return formatDuration(systemMinutes);
@@ -876,7 +882,7 @@ class BatteryDashboard extends View {
      * unavailable on devices that do not expose a charging estimate.
      */
     private long systemChargeTimeRemainingMinutes() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P || !charging || level >= 99) return 0L;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P || !charging || level < 0 || level >= 99) return 0L;
         BatteryManager manager = (BatteryManager) getContext().getSystemService(Context.BATTERY_SERVICE);
         if (manager == null) return 0L;
         long remainingMs = manager.computeChargeTimeRemaining();
@@ -890,9 +896,9 @@ class BatteryDashboard extends View {
     }
 
     private String timeToLimit() {
-        if (!charging) return "—";
+        if (!charging || level < 0) return "—";
         if (level >= chargeLimit) return "Erreicht";
-        if (calculationCapacityMah() <= 0) return "—";
+        if (level < 0 || calculationCapacityMah() <= 0) return "—";
         int missingMah = Math.round(calculationCapacityMah() * (chargeLimit - level) / 100f);
         float historicalRate = averageChargeRateMahPerHour();
         if (historicalRate > 0f) return formatDuration(Math.max(1, Math.round(missingMah * 60f / historicalRate)));
@@ -948,6 +954,7 @@ class BatteryDashboard extends View {
      * the app's charging guidance and is useful for comparing targets.
      */
     private String wearImpactToTarget() {
+        if (level < 0) return "—";
         if (chargeLimit <= level) return "Erreicht";
         float score = 0f;
         for (int percent = Math.max(0, level); percent < chargeLimit; percent++) {
@@ -1027,6 +1034,7 @@ class BatteryDashboard extends View {
     }
 
     private String runtimeEstimate() {
+        if (level < 0) return "—";
         if (charging) {
             float used = prefs.getFloat("lastDischargeScreenOnPercent", 0f) + prefs.getFloat("lastDischargeScreenOffPercent", 0f);
             long minutes = (prefs.getLong("lastDischargeScreenOnMs", 0L) + prefs.getLong("lastDischargeScreenOffMs", 0L)) / 60000L;
@@ -1228,6 +1236,7 @@ class BatteryDashboard extends View {
     }
 
     private String dischargeRuntime(boolean screenOn) {
+        if (level < 0) return "—";
         String percentKey = screenOn ? "dischargeScreenOnPercent" : "dischargeScreenOffPercent";
         String durationKey = screenOn ? "dischargeScreenOnMs" : "dischargeScreenOffMs";
         if (charging) {
@@ -1922,7 +1931,7 @@ class BatteryDashboard extends View {
             float gaugeRadius = Math.min(80f, Math.max(52f, heroW / 2f - 10f));
             float gaugeTextSize = gaugeRadius < 64f ? 32f : 44f;
             drawGauge(c, centerX, top + 153 + gaugeOffset, gaugeRadius, level, primary, faint);
-            centeredText(c, level + "%", centerX, top + 168 + gaugeOffset, gaugeTextSize, primary, true);
+            centeredText(c, levelDisplay(), centerX, top + 168 + gaugeOffset, gaugeTextSize, primary, true);
             centeredText(c, charging ? "Laden" : "Akkubetrieb", centerX, top + 207 + gaugeOffset, 9, muted, false);
             float compactDetailsOffset = heroW < 230f ? 20f : 0f;
             text(c, "Akkugesundheit", 36, top + 258 + compactDetailsOffset, 9, muted, false);
@@ -1957,7 +1966,7 @@ class BatteryDashboard extends View {
             float gaugeCx = 135f;
             float gaugeCy = top + 178f;
             drawGauge(c, gaugeCx, gaugeCy, gaugeRadius, level, primary, faint);
-            centeredText(c, level + "%", gaugeCx, top + 187, 46, primary, true);
+            centeredText(c, levelDisplay(), gaugeCx, top + 187, 46, primary, true);
             centeredText(c, charging ? "Laden" : "Akkubetrieb", gaugeCx, top + 211, 10, muted, false);
             float detailRight = 18 + heroW - 42;
             boundedText(c, health == 0 ? "Nicht gemessen" : (health > 80 ? "Guter Zustand" : "Prüfung nötig"),
@@ -2024,7 +2033,7 @@ class BatteryDashboard extends View {
         float gaugeCx = 36f + gaugeRadius + 8f;
         float gaugeCy = top + 122f;
         drawGauge(c, gaugeCx, gaugeCy, gaugeRadius, level, primary, faint);
-        centeredText(c, level + "%", gaugeCx, gaugeCy + 8, gaugeRadius < 52f ? 25f : 28f, primary, true);
+        centeredText(c, levelDisplay(), gaugeCx, gaugeCy + 8, gaugeRadius < 52f ? 25f : 28f, primary, true);
         centeredText(c, charging ? "Laden" : "Akku", gaugeCx, gaugeCy + 29, 7, muted, false);
 
         float detailX = Math.max(160f, heroW * .52f);
@@ -2090,7 +2099,7 @@ class BatteryDashboard extends View {
         float gaugeCx = heroRight - gaugeRadius - 24f;
         float gaugeCy = top + 47f;
         drawGauge(c, gaugeCx, gaugeCy, gaugeRadius, level, primary, faint);
-        centeredText(c, level + "%", gaugeCx, gaugeCy + 5, 13, primary, true);
+        centeredText(c, levelDisplay(), gaugeCx, gaugeCy + 5, 13, primary, true);
         centeredText(c, charging ? "Laden" : "Akku", gaugeCx, gaugeCy + 15, 5.5f, muted, false);
 
         int health = healthPercent();
@@ -2231,7 +2240,7 @@ class BatteryDashboard extends View {
         text(c, charging ? "Letzter Entladevorgang" : "Akkuverbrauch", 36, y + 58, 18, primary, true);
         int displayLevel = charging ? prefs.getInt("lastDischargeEndLevel", level) : level;
         drawGauge(c, 94, y + 145, 55, displayLevel, primary, faint);
-        text(c, displayLevel + "%", 70, y + 153, 22, primary, true);
+        text(c, percentDisplay(displayLevel), 70, y + 153, 22, primary, true);
         text(c, "verbleibend", 69, y + 173, 9, muted, false);
         line(c, w * .54f, y + 94, w * .54f, y + 196, border, 1);
         text(c, "Gemischte Laufzeit", w * .6f, y + 106, 10, muted, false);
@@ -2908,13 +2917,17 @@ class BatteryDashboard extends View {
 
     private String pageName() { return page == 1 ? "Laden" : page == 2 ? "Entladen" : page == 3 ? "Akkugesundheit" : page == 4 ? "Verlauf" : "Übersicht"; }
 
+    private String levelDisplay() { return percentDisplay(level); }
+    private String percentDisplay(int value) { return value >= 0 ? value + "%" : "—"; }
+
     private void updateAccessibilitySummary() {
-        String state = charging ? "Laden erkannt" : "Akkubetrieb";
+        String state = level < 0 ? "Akku nicht verfügbar" : (charging ? "Laden erkannt" : "Akkubetrieb");
         String capacity = BatteryCapacityLevel.isAvailable(capacityLevel)
                 ? " Kapazitätsniveau " + BatteryCapacityLevel.label(capacityLevel) + "." : "";
         String chargingProfile = charging && BatteryChargingState.isSpecial(chargingStatus)
                 ? " Ladeprofil " + BatteryChargingState.label(chargingStatus) + "." : "";
-        setContentDescription(pageName() + ". " + state + ". Akkustand " + level + " Prozent. "
+        setContentDescription(pageName() + ". " + state + ". Akkustand "
+                + (level >= 0 ? level + " Prozent" : "nicht verfügbar") + ". "
                 + "Android-Zustand " + BatteryPlatformHealth.label(platformHealth) + "." + capacity
                 + chargingProfile
                 + " Tabs: Übersicht, Laden, Entladen, Gesundheit, Verlauf. Aktiver Tab: " + pageName() + ".");
@@ -2923,6 +2936,7 @@ class BatteryDashboard extends View {
     private void drawGauge(Canvas c, float cx, float cy, float radius, int value, int primary, int faint) {
         int track = Color.argb(light ? 120 : 90, Color.red(faint), Color.green(faint), Color.blue(faint));
         stroke(c, track, 10); rect.set(u(cx - radius), u(cy - radius), u(cx + radius), u(cy + radius)); c.drawArc(rect, -90, 360, false, p);
+        if (value < 0) return;
         stroke(c, lime, 10); c.drawArc(rect, -90, 360 * Math.max(0, Math.min(100, value)) / 100f, false, p);
         float angle = (float) Math.toRadians(-90 + 360 * Math.max(0, Math.min(100, value)) / 100f);
         fill(c, lime); c.drawCircle(u(cx + (float) Math.cos(angle) * radius), u(cy + (float) Math.sin(angle) * radius), u(5), p);
