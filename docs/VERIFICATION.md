@@ -5,11 +5,13 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.139` (`versionCode 139`)
+- Version: `0.140` (`versionCode 140`)
 - `minSdk 23`, `targetSdk 37`
-- Release APK SHA-256: `d9da0b0157495d9b870bb91500a9a62bdcd62da7a7c12ef872221b0cafe0ed23`
+- Release APK SHA-256: `pending — wird nach dem signierten CI-Build ergänzt`
 - The same hash is published in the public update repository manifest.
 
+Release `0.140` separates the compact landscape hero into clean horizontal
+lanes so its status, gauge and health line cannot overlap.
 Release `0.139` uses the actual Canvas dimensions for landscape selection on
 Android rotation and keeps the compact overview card inside the safe band.
 Release `0.138` makes the compact landscape overview height-aware. The live

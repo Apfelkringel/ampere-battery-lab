@@ -1994,22 +1994,20 @@ class BatteryDashboard extends View {
         c.drawCircle(u(44), u(top + 62), u(2.5f), p);
         text(c, charging ? "LÄDT JETZT" : "AKKUBETRIEB", 53, top + 65, 7, charging ? lime : blue, true);
 
-        float gaugeRadius = Math.min(24f, Math.max(21f, heroW * .08f));
-        float gaugeCx = 34f + gaugeRadius + 5f;
-        float gaugeCy = top + heroHeight - gaugeRadius - 5f;
+        // Put the gauge in its own right-hand lane. Stacking it below the
+        // status chip made the two visual groups collide in 320dp-tall
+        // landscape windows even when the card itself fit.
+        float gaugeRadius = Math.min(22f, Math.max(19f, heroW * .07f));
+        float gaugeCx = heroRight - gaugeRadius - 24f;
+        float gaugeCy = top + 47f;
         drawGauge(c, gaugeCx, gaugeCy, gaugeRadius, level, primary, faint);
-        centeredText(c, level + "%", gaugeCx, gaugeCy + 5, 14, primary, true);
-        centeredText(c, charging ? "Laden" : "Akku", gaugeCx, gaugeCy + 16, 5.5f, muted, false);
+        centeredText(c, level + "%", gaugeCx, gaugeCy + 5, 13, primary, true);
+        centeredText(c, charging ? "Laden" : "Akku", gaugeCx, gaugeCy + 15, 5.5f, muted, false);
 
         int health = healthPercent();
-        float detailX = Math.max(142f, heroW * .50f);
-        float detailRight = heroRight - 16f;
-        boundedText(c, health == 0 ? "Nicht gemessen" : (health > 80 ? "Guter Zustand" : "Prüfung nötig"),
-                detailX, detailRight, top + 63, 9, primary, true);
-        boundedText(c, "Gesundheit " + (health > 0 ? health + "%" : "—"),
-                detailX, detailRight, top + 76, 7, muted, false);
-        boundedText(c, "Kapazität " + (health > 0 ? mahDisplay(estimatedCapacityMah()) : "—"),
-                detailX, detailRight, top + 87, 6.5f, faint, false);
+        float detailRight = gaugeCx - gaugeRadius - 10f;
+        boundedText(c, health == 0 ? "Gesundheit —" : "Gesundheit " + health + "%",
+                34, detailRight, top + 84, 7, muted, false);
 
         float metricGap = 10f;
         float metricW = (metricsW - metricGap) / 2f;
