@@ -185,6 +185,12 @@ public class BatteryMonitorService extends Service {
         BatteryManager batteryManager = (BatteryManager) getSystemService(BATTERY_SERVICE);
         int currentMa = BatteryCurrent.milliAmps(batteryManager);
         int signedCurrentMa = currentMa == 0 ? 0 : (isCharging ? currentMa : -currentMa);
+        if (isCharging && currentMa > 0) {
+            int previousChargingCurrent = prefs.getInt("lastChargingCurrentMa", 0);
+            if (previousChargingCurrent == 0 || currentMa < previousChargingCurrent) {
+                prefs.edit().putInt("lastChargingCurrentMa", currentMa).apply();
+            }
+        }
         int temperature = BatteryTemperature.normalizeTenths(
                 battery.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0));
         int voltageMv = BatteryVoltage.normalizeMilliVolts(
@@ -598,8 +604,11 @@ public class BatteryMonitorService extends Service {
         if (previousCharging && energy > 0) editor.putInt("totalChargedMah", prefs.getInt("totalChargedMah", 0) + energy);
         if (previousCharging) {
             String healthReason;
-            if (effectiveChange < 5) healthReason = "Zu geringe Akkustandänderung (mindestens 5 % nötig)";
+            if (level - startLevel < 5) healthReason = "Zu geringe Akkustandänderung (mindestens 5 % nötig)";
             else if (energy <= 0) healthReason = "Energiezähler/Strom nicht verfügbar";
+            else if (level < 95) healthReason = "Automatische Schätzung erst ab 95 % Ladezustand";
+            else if (prefs.getInt("lastChargingCurrentMa", 0) <= 0) healthReason = "Ladestrom am Ladeende nicht verfügbar";
+            else if (prefs.getInt("lastChargingCurrentMa", 0) > 25) healthReason = "Ladeende noch nicht stabil (über 25 mA)";
             else healthReason = "Wird in den nächsten Gesundheitsdurchschnitt einbezogen";
             editor.putInt("lastChargeStartLevel", startLevel)
                     .putInt("lastChargeEndLevel", level)
@@ -610,11 +619,10 @@ public class BatteryMonitorService extends Service {
                     .putString("lastChargeHealthReason", healthReason);
         }
         editor.apply();
-        if (previousCharging && effectiveChange >= 5 && energy > 0) {
-            int estimatedCapacity = Math.round(energy * 100f / effectiveChange);
-            if (estimatedCapacity >= 500 && estimatedCapacity <= 20000) {
-                recordHealthSample(prefs, estimatedCapacity);
-            }
+        if (previousCharging) {
+            int estimatedCapacity = BatteryHealthSampleRules.estimateCapacityMah(
+                    startLevel, level, energy, prefs.getInt("lastChargingCurrentMa", 0));
+            if (estimatedCapacity > 0) recordHealthSample(prefs, estimatedCapacity);
         }
         prefs.edit().putLong("monitorSessionStartedAt", now).putBoolean("monitorLastCharging", charging)
                 .putInt("monitorSessionStartLevel", level).putInt("monitorSessionStartCounterMah", counterMah).apply();
@@ -769,6 +777,7 @@ public class BatteryMonitorService extends Service {
         if (charging && !previousCharging) {
             prefs.edit().putInt("chargeLastCounterMah", counterMah).putInt("chargeLastLevel", level).putLong("chargeLastAt", now)
                     .putInt("chargePlugged", plugged)
+                    .putInt("lastChargingCurrentMa", 0)
                     .putLong("chargeScreenOnMs", 0L).putLong("chargeScreenOffMs", 0L)
                     .putInt("chargeScreenOnMah", 0).putInt("chargeScreenOffMah", 0)
                     .putFloat("chargeScreenOnPercent", 0f).putFloat("chargeScreenOffPercent", 0f)

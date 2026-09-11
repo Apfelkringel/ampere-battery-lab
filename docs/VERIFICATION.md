@@ -14,6 +14,11 @@ Release `0.181` additionally keeps a valid Android state-of-health reading as
 the shared source for both the displayed health percentage and derived mAh
 capacity. Invalid benchmark preferences are no longer presented as a source.
 
+Release `0.182` additionally records automatic health samples only after a
+near-full charge (at least 95 %) with a measured stable charging current of at
+most 25 mA; partial or still unstable charges are kept out of the health
+estimate.
+
 Release `0.180` additionally uses a robust median over the newest five valid
 local capacity samples, so one noisy charge cannot dominate the health result.
 

@@ -51,6 +51,15 @@ public class BatteryRulesTest {
         assertEquals(0, BatteryHealth.capacityFromReportedPercent(90, 0));
     }
 
+    @Test public void automaticHealthSamplesRequireAStableNearFullCharge() {
+        assertTrue(BatteryHealthSampleRules.isEligible(30, 96, 4200, 20));
+        assertFalse(BatteryHealthSampleRules.isEligible(30, 94, 4200, 20));
+        assertFalse(BatteryHealthSampleRules.isEligible(30, 96, 4200, 26));
+        assertFalse(BatteryHealthSampleRules.isEligible(30, 96, 4200, 0));
+        assertEquals(6364, BatteryHealthSampleRules.estimateCapacityMah(30, 96, 4200, 20));
+        assertEquals(0, BatteryHealthSampleRules.estimateCapacityMah(30, 94, 4200, 20));
+    }
+
     @Test public void persistedPercentagesRejectInvalidPhaseValues() {
         assertTrue(BatteryPercentage.isValidPhase(0f));
         assertTrue(BatteryPercentage.isValidPhase(100f));

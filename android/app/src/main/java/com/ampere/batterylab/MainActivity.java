@@ -95,7 +95,7 @@ public class MainActivity extends Activity {
             "sinceFullScreenOffMs", "sinceFullScreenOnMs", "sinceFullStartAt", "sinceFullStartLevel",
             "systemCycleCount", "systemCycleCountSource", "estimatedCycleLastCounterUah", "estimatedCycleFraction", "estimatedCycleCount",
             "monitorLastCharging", "monitorSampleAt", "monitorSessionStartCounterMah",
-            "monitorSessionStartLevel", "monitorSessionStartedAt", "monitoringMs", "screenOffDurationMin",
+            "monitorSessionStartLevel", "monitorSessionStartedAt", "lastChargingCurrentMa", "monitoringMs", "screenOffDurationMin",
             "screenOnMs", "screenSampleAt"
     ));
     private static final Set<String> RESTORABLE_TELEMETRY_KEYS = new HashSet<>(Arrays.asList(

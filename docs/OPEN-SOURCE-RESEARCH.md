@@ -110,6 +110,13 @@ mehr blind gemittelt: Ampere sortiert die letzten fünf gültigen Proben und nim
 den Median. Dadurch kann eine einzelne fehlerhafte oder besonders unruhige
 Ladesitzung den Gesundheitswert nicht unverhältnismäßig verschieben.
 
+Automatische Proben werden zusätzlich nur nach einer Ladung bis mindestens 95 %
+und bei einem während der Sitzung beobachteten stabilen Ladestrom bis 25 mA
+gespeichert. Teil- oder noch aktive Ladevorgänge werden nicht als
+Full-Charge-Kapazität umetikettiert; das folgt der vorsichtigen FCC-Aufzeichnung
+von [PlusPlusBattery](https://github.com/dijia1124/PlusPlusBattery). Der manuelle
+Benchmark bleibt der ausdrücklich gestartete Weg für eine vollständige Messung.
+
 Für die Laufzeitprognose bleibt der persönliche lokale 7-Tage-Verlauf die
 erste Wahl. Wenn dafür noch keine ausreichenden Daten vorliegen, verwendet
 Ampere auf Android 12+ als Fallback `PowerManager.getBatteryDischargePrediction()`
