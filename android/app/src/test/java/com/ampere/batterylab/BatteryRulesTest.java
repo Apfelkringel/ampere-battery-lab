@@ -41,6 +41,8 @@ public class BatteryRulesTest {
     @Test public void platformHealthStaysQualitative() {
         assertEquals("Gut", BatteryPlatformHealth.label(BatteryManager.BATTERY_HEALTH_GOOD));
         assertEquals("Überhitzt", BatteryPlatformHealth.label(BatteryManager.BATTERY_HEALTH_OVERHEAT));
+        assertEquals("Akzeptabel", BatteryPlatformHealth.label(8));
+        assertEquals("Sehr gut", BatteryPlatformHealth.label(9));
         assertEquals("Nicht verfügbar", BatteryPlatformHealth.label(BatteryManager.BATTERY_HEALTH_UNKNOWN));
     }
 }
