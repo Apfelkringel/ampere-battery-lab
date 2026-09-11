@@ -71,6 +71,9 @@ public class BatteryRulesTest {
         assertEquals(-1, BatteryLevel.percent(-1, 100));
         assertEquals(-1, BatteryLevel.percent(1, 0));
         assertEquals(-1, BatteryLevel.percent(1001, 1001));
+        assertEquals(88, BatteryLevel.normalizePercent(88));
+        assertEquals(-1, BatteryLevel.normalizePercent(110));
+        assertEquals(-1, BatteryLevel.normalizePercent(-1));
     }
 
     @Test public void researchExportSkipsMalformedTelemetryWithoutInventingValues() {

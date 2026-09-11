@@ -248,14 +248,20 @@ public class BatteryMonitorService extends Service {
         if (now - prefs.getLong("lastSample", 0L) < sampleInterval()) return;
         String saved = prefs.getString("history", "");
         ArrayList<Integer> points = new ArrayList<>();
-        if (!saved.isEmpty()) for (String point : saved.split(",")) try { points.add(Integer.parseInt(point)); } catch (NumberFormatException ignored) { }
+        if (!saved.isEmpty()) for (String point : saved.split(",")) try {
+            int normalized = BatteryLevel.normalizePercent(Integer.parseInt(point.trim()));
+            if (normalized >= 0) points.add(normalized);
+        } catch (NumberFormatException ignored) { }
         points.add(value);
         while (points.size() > 48) points.remove(0);
         StringBuilder output = new StringBuilder();
         for (int i = 0; i < points.size(); i++) { if (i > 0) output.append(','); output.append(points.get(i)); }
         String savedLong = prefs.getString("historyLong", "");
         ArrayList<Integer> longPoints = new ArrayList<>();
-        if (!savedLong.isEmpty()) for (String point : savedLong.split(",")) try { longPoints.add(Integer.parseInt(point)); } catch (NumberFormatException ignored) { }
+        if (!savedLong.isEmpty()) for (String point : savedLong.split(",")) try {
+            int normalized = BatteryLevel.normalizePercent(Integer.parseInt(point.trim()));
+            if (normalized >= 0) longPoints.add(normalized);
+        } catch (NumberFormatException ignored) { }
         longPoints.add(value);
         while (longPoints.size() > longHistoryRetentionSamples()) longPoints.remove(0);
         StringBuilder longOutput = new StringBuilder();

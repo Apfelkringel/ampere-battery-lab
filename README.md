@@ -69,6 +69,7 @@ Die kanonische Projektablage befindet sich auf der externen SSD unter
 - Temperaturwarnungs-Dialog zeigt die auswählbaren Grenzwerte direkt als sichtbare Einzelauswahl
 - Android-Stromwerte werden zentral in allen Anzeigen validiert; Sentinelwerte und unrealistische Rohstromspitzen werden als nicht verfügbar behandelt
 - Android-Akkustand/Skalierung wird zentral validiert; unmögliche OEM-Paare werden nicht mehr stillschweigend auf 100 % gekappt, sondern als nicht verfügbar behandelt
+- Auch gespeicherte Verlaufspunkte und Chart-Telemetrie akzeptieren keine ungültigen Prozentwerte aus alten App-Versionen
 - responsive Kompaktansichten für schmale und breite Displays, zentrierter Inhaltsbereich auf Tablets/Foldables, 48-dp-Touch-Zonen und Screenreader-Zusammenfassung; Details in `docs/UI-UX.md`
 - Landscape-Übersicht reserviert Gauge, Überschrift, Kennzahlen und Statuszeile in getrennten Geometrie-Lanes, damit nichts übereinanderliegt
 - Schmale Hochkant-Karten verwenden vollständige Kurzlabels wie „Kapazität“ statt abgeschnittener Bezeichnungen

@@ -5,10 +5,13 @@ Last verified: 2026-09-11 (Europe/Berlin)
 ## Release artifact
 
 - Package: `com.ampere.batterylab`
-- Version: `0.168` (`versionCode 168`)
+- Version: `0.169` (`versionCode 169`)
 - `minSdk 23`, `targetSdk 37`
 - Release APK SHA-256: `c64daf21d06f6a8d0d274d280cf6aa3d1a8ae06e99da2e16ad22fa061eef8eae`
 - The same hash is published in the public update repository manifest.
+
+Release `0.169` additionally rejects impossible legacy percentage points in
+stored history and chart telemetry instead of clipping them to 100%.
 
 Release `0.168` additionally keeps malformed telemetry and session metadata
 from aborting the structured research export; impossible rows are skipped.

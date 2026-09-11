@@ -13,8 +13,8 @@ android {
         // APK installable on older Android versions as a bonus.
         minSdk 23
         targetSdk 37
-        versionCode 168
-        versionName "0.168"
+        versionCode 169
+        versionName "0.169"
     }
 
     buildFeatures {

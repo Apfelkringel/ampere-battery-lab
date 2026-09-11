@@ -658,13 +658,19 @@ class BatteryDashboard extends View {
         String savedHistory = prefs.getString("history", "");
         if (!savedHistory.isEmpty()) {
             for (String value : savedHistory.split(",")) {
-                try { history.add(Integer.parseInt(value)); } catch (NumberFormatException ignored) { }
+                try {
+                    int normalized = BatteryLevel.normalizePercent(Integer.parseInt(value.trim()));
+                    if (normalized >= 0) history.add(normalized);
+                } catch (NumberFormatException ignored) { }
             }
         }
         String savedLongHistory = prefs.getString("historyLong", "");
         if (!savedLongHistory.isEmpty()) {
             for (String value : savedLongHistory.split(",")) {
-                try { longHistory.add(Integer.parseInt(value)); } catch (NumberFormatException ignored) { }
+                try {
+                    int normalized = BatteryLevel.normalizePercent(Integer.parseInt(value.trim()));
+                    if (normalized >= 0) longHistory.add(normalized);
+                } catch (NumberFormatException ignored) { }
             }
         }
         if (longHistory.isEmpty()) longHistory.addAll(history);
@@ -2838,7 +2844,8 @@ class BatteryDashboard extends View {
                 try {
                     long timestamp = Long.parseLong(parts[0]);
                     if (timestamp < start || timestamp > end) continue;
-                    points.add(new LevelPoint(timestamp, Math.max(0, Math.min(100, Integer.parseInt(parts[1])))));
+                    int level = BatteryLevel.normalizePercent(Integer.parseInt(parts[1].trim()));
+                    if (level >= 0) points.add(new LevelPoint(timestamp, level));
                 } catch (NumberFormatException ignored) { }
             }
         }
