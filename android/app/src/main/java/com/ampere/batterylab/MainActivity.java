@@ -737,6 +737,11 @@ class BatteryDashboard extends View {
         return historyPanelBottom() - 58;
     }
 
+    /** Uses the legible mobile export composition instead of squeezing the desktop artwork. */
+    private Bitmap historyExportArtwork(float width) {
+        return width < 390f ? actionCsvCompactArtwork : actionCsvWideArtwork;
+    }
+
     private float historyRowHeight() {
         float width = getWidth() > 0 ? getWidth() / density
                 : getResources().getConfiguration().screenWidthDp;
@@ -3399,7 +3404,7 @@ class BatteryDashboard extends View {
         drawSourceBadge(c, "GESCHÄTZT", 230, y + 729);
 
         float exportTop = historyExportTop();
-        drawGeneratedButton(c, actionCsvWideArtwork,
+        drawGeneratedButton(c, historyExportArtwork(w),
                 36, exportTop, w - 36, exportTop + 44, isPressed(40), false);
     }
 
@@ -4008,7 +4013,7 @@ class BatteryDashboard extends View {
         boundedText(c, "Akkumesswerte bleiben auf diesem Gerät.", 36, w - 36, summaryY + 143, 9, primary, true);
         boundedText(c, "Export nur auf deine Auswahl; kein Konto/Abonnement.", 36, w - 36, summaryY + 165, 8, muted, false);
         float exportTop = historyExportTop();
-        drawGeneratedButton(c, actionCsvWideArtwork,
+        drawGeneratedButton(c, historyExportArtwork(w),
                 36, exportTop, w - 36, exportTop + 44, isPressed(40), false);
     }
 

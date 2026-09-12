@@ -56,6 +56,16 @@ public class BatteryButtonAssetLayoutTest {
                 dashboard.contains("historyPanelBottom"));
     }
 
+    @Test public void narrowHistoryUsesCompactExportArtwork() throws IOException {
+        String dashboard = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
+                StandardCharsets.UTF_8);
+        assertTrue("narrow history export must select the legible compact image button",
+                dashboard.contains("historyExportArtwork(w)"));
+        assertTrue("compact export artwork must be available for narrow phones",
+                dashboard.contains("width < 390f ? actionCsvCompactArtwork : actionCsvWideArtwork"));
+    }
+
     private static int countOccurrences(String value, String needle) {
         int count = 0;
         int offset = 0;
