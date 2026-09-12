@@ -289,6 +289,13 @@ public class BatteryRulesTest {
         assertEquals(0, BatteryFullChargeEstimate.fromCounterAtLevel(2_500_000L, 101));
     }
 
+    @Test public void healthNeverTreatsASingleCounterExtrapolationAsMeasuredCapacity() {
+        BatteryHealth.HealthReading reading = BatteryHealth.resolveReading(
+                0, 5000, 5000, "", "Android-Charge-Counter (geschätzt)");
+        assertEquals(0, reading.percent);
+        assertEquals(0, reading.capacityMah);
+    }
+
     @Test public void appAttributionNeverExceedsObservedEnergyWhenDirectTelemetryRunsHot() {
         assertEquals(320, BatteryAppAttribution.estimateMah(400, 1000, 800, 0L, 0L));
         assertEquals(400, BatteryAppAttribution.estimateMah(400, 800, 1000, 0L, 0L));

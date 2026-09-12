@@ -50,10 +50,16 @@ final class BatteryHealth {
             return new HealthReading(reported, capacityFromReportedPercent(reported, designMah),
                     reportedSource);
         }
-        int measured = isPlausibleCapacity(measuredMah) ? measuredMah : 0;
+        int measured = isDirectMeasuredCapacitySource(measuredSource)
+                && isPlausibleCapacity(measuredMah) ? measuredMah : 0;
         int measuredPercent = percent(measured, designMah);
         return new HealthReading(measuredPercent, measured,
                 measuredPercent > 0 ? measuredSource : "");
+    }
+
+    /** A value explicitly described as an estimate must never become health data. */
+    static boolean isDirectMeasuredCapacitySource(String source) {
+        return source != null && !source.contains("geschätzt");
     }
 
     /**

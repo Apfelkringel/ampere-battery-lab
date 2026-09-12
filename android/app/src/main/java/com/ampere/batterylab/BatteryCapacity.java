@@ -2,9 +2,6 @@ package com.ampere.batterylab;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.os.BatteryManager;
 import android.os.SystemClock;
 import java.io.BufferedReader;
 import java.io.File;
@@ -180,31 +177,7 @@ final class BatteryCapacity {
         } catch (Exception ignored) { }
         Reading oplus = readVendorFullChargeCapacity();
         if (oplus != null) return oplus;
-        Reading counterEstimate = readChargeCounterEstimate(context);
-        if (counterEstimate != null) return counterEstimate;
         return new Reading(0, "Nicht verfügbar");
-    }
-
-    /**
-     * Last-resort estimate used when no fuel-gauge full-capacity node exists.
-     * The Android charge counter is remaining charge in µAh; dividing it by
-     * the current level fraction gives an approximate full-charge value.
-     */
-    private static Reading readChargeCounterEstimate(Context context) {
-        if (context == null) return null;
-        try {
-            Intent battery = context.registerReceiver(null,
-                    new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
-            if (battery == null) return null;
-            int rawLevel = battery.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
-            int scale = battery.getIntExtra(BatteryManager.EXTRA_SCALE, 100);
-            BatteryManager manager = (BatteryManager) context.getSystemService(Context.BATTERY_SERVICE);
-            int estimate = BatteryFullChargeEstimate.fromCounter(
-                    BatteryChargeCounter.readMicroampereHours(manager), rawLevel, scale);
-            return estimate > 0 ? new Reading(estimate, "Android-Charge-Counter (geschätzt)") : null;
-        } catch (RuntimeException ignored) {
-            return null;
-        }
     }
 
     private static PercentReading detectStateOfHealth() {
