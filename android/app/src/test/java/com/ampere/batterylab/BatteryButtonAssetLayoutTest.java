@@ -156,6 +156,15 @@ public class BatteryButtonAssetLayoutTest {
                         && checker.contains("raw.githubusercontent.com"));
     }
 
+    @Test public void cardsDoNotUseDecorativeLeftRails() throws IOException {
+        String dashboard = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
+                StandardCharsets.UTF_8);
+        assertTrue("card frames must not draw the generic AI-style left rail",
+                !dashboard.contains("c.drawRect(u(l), u(t), u(Math.min(r, l + 6))")
+                        && !dashboard.contains("u(l + 4), u(b - 18)"));
+    }
+
     private static int countOccurrences(String value, String needle) {
         int count = 0;
         int offset = 0;

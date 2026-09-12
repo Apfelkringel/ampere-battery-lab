@@ -2289,18 +2289,6 @@ class BatteryDashboard extends View {
         stroke(c, border, 1);
         rect.set(u(l), u(t), u(r), u(b));
         c.drawRoundRect(rect, u(24), u(24), p);
-        // A quiet color rail makes the information hierarchy scannable without
-        // turning every card into a bright button.
-        // Clip it to the card shape: a separate narrow rounded rectangle has
-        // square-looking ends wherever the card itself has a large corner.
-        rect.set(u(l), u(t), u(r), u(b));
-        Path cardClip = new Path();
-        cardClip.addRoundRect(rect, u(24), u(24), Path.Direction.CW);
-        c.save();
-        c.clipPath(cardClip);
-        fill(c, Color.argb(150, Color.red(accent), Color.green(accent), Color.blue(accent)));
-        c.drawRect(u(l), u(t), u(Math.min(r, l + 6)), u(b), p);
-        c.restore();
     }
 
     private void secondaryFrame(Canvas c, float l, float t, float r, float b,
@@ -2309,8 +2297,6 @@ class BatteryDashboard extends View {
         stroke(c, mixColor(panel, border, .58f), .8f);
         rect.set(u(l), u(t), u(r), u(b));
         c.drawRoundRect(rect, u(18), u(18), p);
-        fill(c, Color.argb(105, Color.red(accent), Color.green(accent), Color.blue(accent)));
-        c.drawRoundRect(new RectF(u(l), u(t + 18), u(l + 4), u(b - 18)), u(2), u(2), p);
     }
 
     private int pressedFill(int base, boolean pressed) {
