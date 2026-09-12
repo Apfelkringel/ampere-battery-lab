@@ -4481,20 +4481,20 @@ class BatteryDashboard extends View {
     private Rect virtualViewBounds(int virtualViewId) {
         float w = getWidth() / density;
         if (virtualViewId == BatteryHeaderLayout.OVERFLOW) {
-            return new Rect(Math.round((w < 390f ? w - 116f : w - 200f) * density),
-                    Math.round(12f * density),
-                    Math.round((w < 390f ? w - 68f : w - 144f) * density),
-                    Math.round(60f * density));
+            return new Rect(Math.round((w < 390f ? w - 116f : w - 196f) * density),
+                    Math.round(18f * density),
+                    Math.round((w < 390f ? w - 68f : w - 148f) * density),
+                    Math.round(54f * density));
         }
         if (virtualViewId == BatteryHeaderLayout.THEME) {
-            return new Rect(Math.round((w < 390f ? w - 60f : w - 144f) * density),
-                    Math.round(12f * density),
-                    Math.round((w < 390f ? w - 12f : w - 88f) * density),
-                    Math.round(60f * density));
+            return new Rect(Math.round((w < 390f ? w - 60f : w - 140f) * density),
+                    Math.round(18f * density),
+                    Math.round((w < 390f ? w - 12f : w - 92f) * density),
+                    Math.round(54f * density));
         }
         if (virtualViewId == BatteryHeaderLayout.LIVE_REFRESH) {
-            return new Rect(Math.round((w - 84f) * density), Math.round(12f * density),
-                    Math.round((w - 12f) * density), Math.round(60f * density));
+            return new Rect(Math.round((w - 80f) * density), Math.round(20f * density),
+                    Math.round((w - 16f) * density), Math.round(52f * density));
         }
         if (BatteryAccessibilityLayout.isVisible(virtualViewId, page)) {
             float bodyWidth = contentWidth(w);

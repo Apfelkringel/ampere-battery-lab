@@ -446,6 +446,19 @@ public class BatteryRulesTest {
                 BatteryHeaderLayout.actionAt(379f, 72f, 411f));
     }
 
+    @Test public void headerActionsDoNotCaptureTheVisibleGuttersBetweenImageButtons() {
+        assertEquals(BatteryHeaderLayout.NONE,
+                BatteryHeaderLayout.actionAt(253f, 36f, 320f));
+        assertEquals(BatteryHeaderLayout.NONE,
+                BatteryHeaderLayout.actionAt(258f, 36f, 320f));
+        assertEquals(BatteryHeaderLayout.NONE,
+                BatteryHeaderLayout.actionAt(264f, 36f, 411f));
+        assertEquals(BatteryHeaderLayout.NONE,
+                BatteryHeaderLayout.actionAt(325f, 36f, 411f));
+        assertEquals(BatteryHeaderLayout.NONE,
+                BatteryHeaderLayout.actionAt(230f, 16f, 320f));
+    }
+
     @Test public void overlayHeaderUsesStableTextInsteadOfAPlatformGlyph() {
         assertEquals("Akku 88%   +900 mA",
                 BatteryOverlayText.header("88%", "+900 mA"));
