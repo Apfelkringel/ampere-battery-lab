@@ -3991,7 +3991,7 @@ class BatteryDashboard extends View {
                     text(c, parts[3], 36, rowY, 9, muted, false);
                     text(c, sessionTypeDisplay(parts[0]), w * .53f, rowY, 9, parts[0].equals("Charge") ? lime : blue, true);
                     text(c, parts[1], w * .71f, rowY, 9, primary, true);
-                    text(c, parts[2], w - 75, rowY, 9, faint, false);
+                    rightText(c, parts[2], w - 36, rowY, 9, faint, false);
                 }
                 if (++row == rowCount) break;
             }
@@ -4008,8 +4008,8 @@ class BatteryDashboard extends View {
         boundedText(c, "Ladungsmenge: " + sessionEnergyDisplay("Charge", "+") + " / " + sessionEnergyDisplay("Discharge", "-"),
                 36, w - 36, summaryY + 121, 9, blue, true);
         BatteryTelemetryDiagnostics.Summary diagnostics = telemetryDiagnostics();
-        boundedText(c, "Diagnose: " + telemetryDiagnosticDisplay(diagnostics), 36, w - 36, summaryY + 187, 8,
-                diagnosticsColor(diagnostics), false);
+        drawHistoryDiagnostic(c, telemetryDiagnosticDisplay(diagnostics), w,
+                summaryY + 177, diagnosticsColor(diagnostics));
         boundedText(c, "Akkumesswerte bleiben auf diesem Gerät.", 36, w - 36, summaryY + 143, 9, primary, true);
         boundedText(c, "Export nur auf deine Auswahl; kein Konto/Abonnement.", 36, w - 36, summaryY + 165, 8, muted, false);
         float exportTop = historyExportTop();
@@ -4025,6 +4025,35 @@ class BatteryDashboard extends View {
                 parts[0].equals("Charge") ? lime : blue, true);
         rightText(c, parts[1], w - 36, rowY, 9, primary, true);
         rightText(c, parts[2], w - 36, rowY + 17, 9, faint, false);
+    }
+
+    /** Wraps diagnostic chunks into a readable two-line block on narrow cards. */
+    private void drawHistoryDiagnostic(Canvas c, String value, float w, float top, int color) {
+        text(c, "DIAGNOSE", 36, top, 8, color, true);
+        String[] chunks = value.split(" · ");
+        String line = "";
+        float lineY = top + 17;
+        int lines = 0;
+        for (String chunk : chunks) {
+            String candidate = line.isEmpty() ? chunk : line + " · " + chunk;
+            type(8, color, false);
+            float candidateWidth = p.measureText(candidate) / density;
+            if (!line.isEmpty() && candidateWidth > w - 72f) {
+                boundedText(c, line, 36, w - 36, lineY, 8, color, false);
+                line = chunk;
+                lineY += 16;
+                if (++lines >= 2) {
+                    boundedText(c, line + " · …", 36, w - 36, lineY, 8, color, false);
+                    line = "";
+                    break;
+                }
+            } else {
+                line = candidate;
+            }
+        }
+        if (!line.isEmpty() && lines < 2) {
+            boundedText(c, line, 36, w - 36, lineY, 8, color, false);
+        }
     }
 
     private BatteryTelemetryDiagnostics.Summary telemetryDiagnostics() {

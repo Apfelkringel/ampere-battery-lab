@@ -74,6 +74,26 @@ public class BatteryButtonAssetLayoutTest {
                 dashboard.contains("rightText(c, deepSleepTime(), w - 36"));
     }
 
+    @Test public void historyDiagnosticsUseReadableWrappedBlock() throws IOException {
+        String dashboard = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
+                StandardCharsets.UTF_8);
+        assertTrue("diagnostics must use a dedicated wrapped block on narrow history cards",
+                dashboard.contains("drawHistoryDiagnostic"));
+        assertTrue("the old squeezed one-line diagnostic must be gone",
+                !dashboard.contains("boundedText(c, \"Diagnose: \" + telemetryDiagnosticDisplay"));
+    }
+
+    @Test public void wideHistoryDurationIsRightBounded() throws IOException {
+        String dashboard = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
+                StandardCharsets.UTF_8);
+        assertTrue("history durations must end inside the card padding",
+                dashboard.contains("rightText(c, parts[2], w - 36"));
+        assertTrue("history must not place durations from an unbounded left edge",
+                !dashboard.contains("text(c, parts[2], w - 75"));
+    }
+
     private static int countOccurrences(String value, String needle) {
         int count = 0;
         int offset = 0;
