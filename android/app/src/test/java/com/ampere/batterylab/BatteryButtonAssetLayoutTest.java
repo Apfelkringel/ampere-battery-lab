@@ -133,6 +133,17 @@ public class BatteryButtonAssetLayoutTest {
                         && dashboard.contains("schafft die Messbasis"));
     }
 
+    @Test public void healthHeroReservesIllustrationLaneAndBalancesBattery() throws IOException {
+        String dashboard = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
+                StandardCharsets.UTF_8);
+        assertTrue("health copy must stop before the battery illustration lane",
+                dashboard.contains("float healthTextRight = w - 130f")
+                        && dashboard.contains("boundedText(c, \"Noch keine Messung\", 36, healthTextRight"));
+        assertTrue("health illustration must use the vertically balanced position",
+                dashboard.contains("drawEditorialBattery(c, w - 79, y + 129"));
+    }
+
     @Test public void dischargeEmptyStateUsesCompactReadableCopy() throws IOException {
         String dashboard = Files.readString(findRepositoryRoot()
                 .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),

@@ -3207,6 +3207,10 @@ class BatteryDashboard extends View {
     private void drawHealthEditorial(Canvas c, float w, int panel, int raised, int border,
                                      int primary, int muted, int faint) {
         float y = 182;
+        // Keep the illustration in its own right-hand lane. The previous
+        // bound ended at the battery edge, which made long localized copy
+        // visually collide with the artwork on narrow phones.
+        float healthTextRight = w - 130f;
         int deep = Color.rgb(4, 52, 56);
         int cream = Color.rgb(255, 247, 232);
         int health = healthPercent();
@@ -3222,18 +3226,20 @@ class BatteryDashboard extends View {
         if (health > 0) {
             displayText(c, health + "%", 36, y + 110, 38, cream);
         } else {
-            boundedText(c, "Noch keine Messung", 36, w - 112, y + 110, 15.5f, cream, true);
+            boundedText(c, "Noch keine Messung", 36, healthTextRight, y + 110, 15.5f, cream, true);
         }
         if (health > 0) {
-            boundedText(c, "geschätzte Restkapazität", 38, w - 112, y + 133, 8.8f,
+            boundedText(c, "geschätzte Restkapazität", 38, healthTextRight, y + 133, 8.8f,
                     Color.rgb(184, 226, 219), false);
         } else {
-            boundedText(c, "Eine volle Ladung", 38, w - 112, y + 133, 8.8f,
+            boundedText(c, "Eine volle Ladung", 38, healthTextRight, y + 133, 8.8f,
                     Color.rgb(184, 226, 219), false);
-            boundedText(c, "schafft die Messbasis", 38, w - 112, y + 147, 8.8f,
+            boundedText(c, "schafft die Messbasis", 38, healthTextRight, y + 147, 8.8f,
                     Color.rgb(184, 226, 219), false);
         }
-        drawEditorialBattery(c, w - 79, y + 121, health > 0 ? health : 76,
+        // Lower the character slightly so the hero composition is vertically
+        // balanced between the headline and the measurement surface.
+        drawEditorialBattery(c, w - 79, y + 129, health > 0 ? health : 76,
                 false, cream, lime, deep);
         if (health > 0) {
             rounded(c, 36, y + 190, w - 36, y + 196, 3, Color.rgb(20, 94, 96));
