@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="214" height="160" viewBox="0 0 214 160">
+
+<defs>
+  <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#0a5e68"/>
+    <stop offset="0.35" stop-color="#06434d"/>
+    <stop offset="1" stop-color="#02232a"/>
+  </linearGradient>
+
+  <linearGradient id="cyanBtn" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#1df2ef"/>
+    <stop offset="0.45" stop-color="#13d9db"/>
+    <stop offset="1" stop-color="#09aeb8"/>
+  </linearGradient>
+
+  <linearGradient id="cyanBtnSoft" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#17dfe2"/>
+    <stop offset="0.55" stop-color="#0abfc8"/>
+    <stop offset="1" stop-color="#087e8a"/>
+  </linearGradient>
+
+  <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+    <feGaussianBlur stdDeviation="5" result="blur"/>
+    <feMerge>
+      <feMergeNode in="blur"/>
+      <feMergeNode in="SourceGraphic"/>
+    </feMerge>
+  </filter>
+
+  <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%">
+    <feDropShadow dx="0" dy="7" stdDeviation="6" flood-color="#001116" flood-opacity="0.55"/>
+  </filter>
+
+  <style>
+    .txt {
+      font-family: Inter, "SF Pro Display", "Segoe UI", Arial, sans-serif;
+    }
+    .label {
+      font-size: 30px;
+      font-weight: 500;
+      fill: #eaffff;
+    }
+    .label-dark {
+      font-size: 30px;
+      font-weight: 600;
+      fill: #062c34;
+    }
+    .icon {
+      fill: none;
+      stroke: #72ffff;
+      stroke-width: 7;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .icon-dark {
+      fill: none;
+      stroke: #07353d;
+      stroke-width: 7;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+  </style>
+</defs>
+
+<g filter="url(#shadow)">
+  <rect x="2" y="2" width="210" height="156" rx="30" fill="url(#panel)" stroke="#39e4ea" stroke-width="3"/>
+  <circle cx="107" cy="80" r="22" class="icon" style="stroke-width:6"/>
+  <path d="M107 38 V52 M107 108 V122 M65 80 H79 M135 80 H149 M78 51 L88 61 M126 99 L136 109 M136 51 L126 61 M88 99 L78 109" class="icon" style="stroke-width:5"/>
+</g>
+</svg>

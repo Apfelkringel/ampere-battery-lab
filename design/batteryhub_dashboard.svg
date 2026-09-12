@@ -1,0 +1,191 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1648" height="928" viewBox="0 0 1648 928">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#031f26"/>
+      <stop offset="0.55" stop-color="#003944"/>
+      <stop offset="1" stop-color="#00181e"/>
+    </linearGradient>
+
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0a5e68"/>
+      <stop offset="0.35" stop-color="#06434d"/>
+      <stop offset="1" stop-color="#02232a"/>
+    </linearGradient>
+
+    <linearGradient id="cyanBtn" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1df2ef"/>
+      <stop offset="0.45" stop-color="#13d9db"/>
+      <stop offset="1" stop-color="#09aeb8"/>
+    </linearGradient>
+
+    <linearGradient id="cyanBtnSoft" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#17dfe2"/>
+      <stop offset="0.55" stop-color="#0abfc8"/>
+      <stop offset="1" stop-color="#087e8a"/>
+    </linearGradient>
+
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#000" flood-opacity="0.38"/>
+    </filter>
+
+    <filter id="buttonShadow" x="-30%" y="-30%" width="160%" height="180%">
+      <feDropShadow dx="0" dy="9" stdDeviation="6" flood-color="#001116" flood-opacity="0.55"/>
+    </filter>
+
+    <style>
+      .txt { font-family: Inter, "SF Pro Display", "Segoe UI", Arial, sans-serif; }
+      .title { font-size: 40px; font-weight: 700; fill: #e8ffff; letter-spacing: .2px; }
+      .sub { font-size: 15px; font-weight: 600; fill: #7fc6d0; letter-spacing: 7px; }
+      .label { font-size: 31px; font-weight: 500; fill: #eaffff; }
+      .label-dark { font-size: 31px; font-weight: 500; fill: #072a31; }
+      .label-small { font-size: 24px; font-weight: 500; fill: #eaffff; }
+      .muted { font-size: 16px; font-weight: 500; fill: #a8d2d8; }
+      .icon { fill: none; stroke: #72ffff; stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; }
+      .iconDark { fill: none; stroke: #07353d; stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; }
+      .hair { stroke: #5ffcff; stroke-width: 2.5; opacity: .85; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1648" height="928" fill="url(#bg)"/>
+  <path d="M850 105 C1015 14 1110 59 1195 0" fill="none" stroke="#0b5c68" stroke-width="2" opacity=".55"/>
+
+  <!-- Header -->
+  <g transform="translate(55,35)">
+    <!-- battery logo -->
+    <rect x="0" y="0" width="76" height="47" rx="10" fill="none" stroke="#4cffff" stroke-width="5" filter="url(#glow)"/>
+    <rect x="77" y="14" width="7" height="18" rx="3.5" fill="#4cffff"/>
+    <path d="M41 5 L28 24 H41 L35 42 L56 17 H42 Z" fill="#4cffff"/>
+    <text x="112" y="34" class="txt title">BatteryHub</text>
+    <text x="113" y="61" class="txt sub">ENERGIE INTELLIGENT STEUERN</text>
+  </g>
+
+  <!-- Header status -->
+  <g transform="translate(1200,42)">
+    <path d="M0 16 Q14 3 28 16 M5 21 Q14 12 23 21 M11 26 Q14 23 17 26" class="icon" stroke-width="4"/>
+    <text x="66" y="28" class="txt muted">Di, 27. Mai 2025</text>
+    <text x="232" y="28" class="txt muted">14:42</text>
+    <g transform="translate(333,-5)">
+      <circle cx="20" cy="20" r="12" fill="none" stroke="#85bac2" stroke-width="3"/>
+      <path d="M20 1 V8 M20 32 V39 M1 20 H8 M32 20 H39 M7 7 L12 12 M28 28 L33 33 M33 7 L28 12 M12 28 L7 33" stroke="#85bac2" stroke-width="3" stroke-linecap="round"/>
+    </g>
+  </g>
+
+  <!-- main container -->
+  <rect x="50" y="120" width="1546" height="766" rx="42" fill="#012730" fill-opacity=".28" stroke="#0d4854" stroke-width="1.4"/>
+
+  <!-- Top navigation cards -->
+  <g filter="url(#softShadow)">
+    <!-- Laden -->
+    <g transform="translate(100,150)">
+      <rect width="260" height="210" rx="32" fill="url(#panel)" stroke="#36e7ec" stroke-width="3"/>
+      <path d="M127 42 L99 97 H128 L115 142 L162 79 H135 L150 42 Z" fill="#68ffff"/>
+      <text x="130" y="175" text-anchor="middle" class="txt label">Laden</text>
+    </g>
+
+    <!-- Entladen -->
+    <g transform="translate(394,150)">
+      <rect width="260" height="210" rx="32" fill="url(#panel)" stroke="#36e7ec" stroke-width="3"/>
+      <path d="M131 43 V115 M99 84 L131 116 L163 84" class="icon"/>
+      <text x="130" y="175" text-anchor="middle" class="txt label">Entladen</text>
+    </g>
+
+    <!-- Akku -->
+    <g transform="translate(688,150)">
+      <rect width="272" height="210" rx="32" fill="url(#panel)" stroke="#36e7ec" stroke-width="3"/>
+      <path d="M136 117 L93 78 C77 63 86 41 106 41 C119 41 130 48 136 59 C143 48 153 41 167 41 C188 41 196 64 180 79 Z" class="icon"/>
+      <text x="136" y="175" text-anchor="middle" class="txt label">Akku</text>
+    </g>
+
+    <!-- Verlauf -->
+    <g transform="translate(996,150)">
+      <rect width="264" height="210" rx="32" fill="url(#panel)" stroke="#36e7ec" stroke-width="3"/>
+      <path d="M87 111 L116 82 L136 102 L169 68" class="icon"/>
+      <path d="M150 68 H169 V87" class="icon"/>
+      <text x="132" y="175" text-anchor="middle" class="txt label">Verlauf</text>
+    </g>
+
+    <!-- Start -->
+    <g transform="translate(1293,150)">
+      <rect width="255" height="210" rx="32" fill="url(#panel)" stroke="#36e7ec" stroke-width="3"/>
+      <circle cx="128" cy="84" r="35" class="icon"/>
+      <path d="M128 61 V86 L145 96" class="icon"/>
+      <text x="128" y="175" text-anchor="middle" class="txt label">Start</text>
+    </g>
+  </g>
+
+  <!-- mid row -->
+  <g filter="url(#softShadow)">
+    <g transform="translate(99,387)">
+      <rect width="320" height="160" rx="32" fill="url(#panel)" stroke="#39e4ea" stroke-width="3"/>
+      <circle cx="92" cy="80" r="18" fill="#16f0cf" filter="url(#glow)"/>
+      <text x="180" y="96" text-anchor="middle" class="txt label" font-weight="700">LIVE</text>
+    </g>
+
+    <g transform="translate(458,387)">
+      <rect width="214" height="160" rx="30" fill="url(#panel)" stroke="#39e4ea" stroke-width="3"/>
+      <circle cx="107" cy="54" r="6.5" fill="#d8ffff"/>
+      <circle cx="107" cy="80" r="6.5" fill="#d8ffff"/>
+      <circle cx="107" cy="106" r="6.5" fill="#d8ffff"/>
+    </g>
+
+    <g transform="translate(707,387)">
+      <rect width="214" height="160" rx="30" fill="url(#panel)" stroke="#39e4ea" stroke-width="3"/>
+      <circle cx="107" cy="80" r="22" class="icon" stroke-width="6"/>
+      <path d="M107 38 V52 M107 108 V122 M65 80 H79 M135 80 H149 M78 51 L88 61 M126 99 L136 109 M136 51 L126 61 M88 99 L78 109" class="icon" stroke-width="5"/>
+    </g>
+
+    <g transform="translate(973,400)">
+      <rect width="574" height="136" rx="68" fill="url(#cyanBtnSoft)" stroke="#42f7f2" stroke-width="3"/>
+      <circle cx="210" cy="68" r="17" fill="#14ebc4" filter="url(#glow)"/>
+      <text x="375" y="85" text-anchor="middle" class="txt label" font-weight="700">Aktiv</text>
+    </g>
+  </g>
+
+  <!-- export row -->
+  <g filter="url(#buttonShadow)">
+    <g transform="translate(96,592)">
+      <rect width="448" height="100" rx="48" fill="url(#cyanBtnSoft)" stroke="#3cf7f1" stroke-width="3"/>
+      <path d="M88 28 V64 M71 49 L88 66 L105 49 M67 77 H109" class="icon"/>
+      <text x="285" y="61" text-anchor="middle" class="txt label-small">CSV exportieren</text>
+    </g>
+
+    <g transform="translate(577,579)">
+      <rect width="974" height="119" rx="60" fill="url(#cyanBtn)" stroke="#62ffff" stroke-width="3"/>
+      <path d="M278 32 V75 M258 56 L278 76 L298 56 M256 89 H300" class="iconDark"/>
+      <text x="560" y="76" text-anchor="middle" class="txt label-dark" font-size="28" font-weight="700">CSV EXPORTIEREN</text>
+    </g>
+  </g>
+
+  <!-- bottom row -->
+  <g filter="url(#buttonShadow)">
+    <g transform="translate(98,734)">
+      <rect width="615" height="113" rx="44" fill="url(#cyanBtn)" stroke="#62ffff" stroke-width="3"/>
+      <path d="M240 36 L240 78 L278 57 Z" fill="#eaffff"/>
+      <text x="370" y="70" text-anchor="middle" class="txt label-dark" font-size="29" font-weight="700">Starten</text>
+    </g>
+
+    <g transform="translate(759,749)">
+      <rect width="158" height="85" rx="22" fill="#064954" stroke="#31dce1" stroke-width="2"/>
+      <text x="79" y="54" text-anchor="middle" class="txt label-small">30D</text>
+    </g>
+
+    <g transform="translate(953,749)">
+      <rect width="158" height="85" rx="22" fill="#064954" stroke="#31dce1" stroke-width="2"/>
+      <text x="79" y="54" text-anchor="middle" class="txt label-small">7D</text>
+    </g>
+
+    <g transform="translate(1158,738)">
+      <rect width="390" height="104" rx="38" fill="url(#cyanBtnSoft)" stroke="#43f2ef" stroke-width="3"/>
+      <text x="195" y="66" text-anchor="middle" class="txt label-dark" font-size="29">Start</text>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="260" height="210" viewBox="0 0 260 210">
+
+<defs>
+  <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#0a5e68"/>
+    <stop offset="0.35" stop-color="#06434d"/>
+    <stop offset="1" stop-color="#02232a"/>
+  </linearGradient>
+
+  <linearGradient id="cyanBtn" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#1df2ef"/>
+    <stop offset="0.45" stop-color="#13d9db"/>
+    <stop offset="1" stop-color="#09aeb8"/>
+  </linearGradient>
+
+  <linearGradient id="cyanBtnSoft" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#17dfe2"/>
+    <stop offset="0.55" stop-color="#0abfc8"/>
+    <stop offset="1" stop-color="#087e8a"/>
+  </linearGradient>
+
+  <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+    <feGaussianBlur stdDeviation="5" result="blur"/>
+    <feMerge>
+      <feMergeNode in="blur"/>
+      <feMergeNode in="SourceGraphic"/>
+    </feMerge>
+  </filter>
+
+  <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%">
+    <feDropShadow dx="0" dy="7" stdDeviation="6" flood-color="#001116" flood-opacity="0.55"/>
+  </filter>
+
+  <style>
+    .txt {
+      font-family: Inter, "SF Pro Display", "Segoe UI", Arial, sans-serif;
+    }
+    .label {
+      font-size: 40px;
+      font-weight: 600;
+      fill: #eaffff;
+    }
+    .label-dark {
+      font-size: 30px;
+      font-weight: 600;
+      fill: #062c34;
+    }
+    .icon {
+      fill: none;
+      stroke: #72ffff;
+      stroke-width: 7;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .icon-dark {
+      fill: none;
+      stroke: #07353d;
+      stroke-width: 7;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+  </style>
+</defs>
+
+<g filter="url(#shadow)">
+  <rect x="2" y="2" width="256" height="206" rx="32" fill="url(#panel)" stroke="#36e7ec" stroke-width="3"/>
+  <g transform="translate(0,-16)">
+  <path d="M127 42 L99 97 H128 L115 142 L162 79 H135 L150 42 Z" fill="#68ffff"/>
+  <text x="130" y="175" text-anchor="middle" class="txt label">Laden</text>
+  </g>
+</g>
+</svg>

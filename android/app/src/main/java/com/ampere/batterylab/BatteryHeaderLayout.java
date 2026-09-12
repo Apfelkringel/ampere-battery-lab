@@ -16,9 +16,9 @@ final class BatteryHeaderLayout {
             if (x >= width - 64f && x < width - 12f) return THEME;
             return NONE;
         }
-        if (x > width - 184f && x < width - 128f) return OVERFLOW;
-        if (x >= width - 128f && x < width - 72f) return THEME;
-        if (x >= width - 72f && x < width - 16f) return LIVE_REFRESH;
+        if (x > width - 200f && x < width - 144f) return OVERFLOW;
+        if (x >= width - 144f && x < width - 88f) return THEME;
+        if (x >= width - 84f && x < width - 12f) return LIVE_REFRESH;
         return NONE;
     }
 }

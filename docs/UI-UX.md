@@ -28,11 +28,12 @@ Interactive controls use one Ampere key language: solid faces, a restrained
 two-dp lower edge, consistent corner geometry and a true pressed depth. Filled
 turquoise indicates actions or the active destination; a small terminal mark
 replaces decorative gloss and keeps buttons distinct from passive cards.
-The visible button faces are purpose-made, generated raster artwork rather than
-generic programmatic fills. Three transparent masters cover wide actions,
-active navigation and square header controls. Native text and vector glyphs are
-layered over the artwork from the same measured center, preserving crisp type,
-exact icon alignment, localization and accessibility at every screen density.
+The visible button faces are deterministic raster exports of the supplied
+BatteryHub SVG masters rather than generic programmatic fills. Every visible
+image-button state contains its final German label and icon inside the same
+asset, so typography and symbols cannot drift apart at runtime. Five mobile
+navigation derivatives increase the embedded label size and center the complete
+icon/text block for the compact 320 dp rail.
 
 Ampere Battery Lab uses a compact, data-first dashboard for battery readings.
 The visual system is intentionally calm and high-contrast: a dark/AMOLED mode

@@ -553,9 +553,17 @@ class BatteryDashboard extends View {
     private final RectF rect = new RectF();
     private final float density;
     private final Bitmap batteryCareIllustration;
-    private final Bitmap primaryButtonArtwork;
-    private final Bitmap activeNavButtonArtwork;
-    private final Bitmap iconButtonArtwork;
+    private final Bitmap[] navButtonArtwork = new Bitmap[5];
+    private final Bitmap headerLiveArtwork;
+    private final Bitmap headerOverflowArtwork;
+    private final Bitmap headerThemeArtwork;
+    private final Bitmap actionActiveArtwork;
+    private final Bitmap actionStartArtwork;
+    private final Bitmap actionStartenArtwork;
+    private final Bitmap actionCsvWideArtwork;
+    private final Bitmap actionCsvCompactArtwork;
+    private final Bitmap range7dArtwork;
+    private final Bitmap range30dArtwork;
     private int level = -1;
     private float temperature = 0f;
     private float voltage = 0f;
@@ -629,12 +637,21 @@ class BatteryDashboard extends View {
         density = getResources().getDisplayMetrics().density;
         batteryCareIllustration = BitmapFactory.decodeResource(
                 getResources(), com.ampere.batterylab.R.drawable.ampere_battery_care);
-        primaryButtonArtwork = BitmapFactory.decodeResource(
-                getResources(), com.ampere.batterylab.R.drawable.ampere_button_primary);
-        activeNavButtonArtwork = BitmapFactory.decodeResource(
-                getResources(), com.ampere.batterylab.R.drawable.ampere_button_nav_active);
-        iconButtonArtwork = BitmapFactory.decodeResource(
-                getResources(), com.ampere.batterylab.R.drawable.ampere_button_icon);
+        navButtonArtwork[0] = BitmapFactory.decodeResource(getResources(), R.drawable.ampere_nav_start);
+        navButtonArtwork[1] = BitmapFactory.decodeResource(getResources(), R.drawable.ampere_nav_charge);
+        navButtonArtwork[2] = BitmapFactory.decodeResource(getResources(), R.drawable.ampere_nav_discharge);
+        navButtonArtwork[3] = BitmapFactory.decodeResource(getResources(), R.drawable.ampere_nav_health);
+        navButtonArtwork[4] = BitmapFactory.decodeResource(getResources(), R.drawable.ampere_nav_history);
+        headerLiveArtwork = BitmapFactory.decodeResource(getResources(), R.drawable.ampere_header_live);
+        headerOverflowArtwork = BitmapFactory.decodeResource(getResources(), R.drawable.ampere_header_overflow);
+        headerThemeArtwork = BitmapFactory.decodeResource(getResources(), R.drawable.ampere_header_theme);
+        actionActiveArtwork = BitmapFactory.decodeResource(getResources(), R.drawable.ampere_action_active);
+        actionStartArtwork = BitmapFactory.decodeResource(getResources(), R.drawable.ampere_action_start);
+        actionStartenArtwork = BitmapFactory.decodeResource(getResources(), R.drawable.ampere_action_starten);
+        actionCsvWideArtwork = BitmapFactory.decodeResource(getResources(), R.drawable.ampere_action_csv_wide);
+        actionCsvCompactArtwork = BitmapFactory.decodeResource(getResources(), R.drawable.ampere_action_csv_compact);
+        range7dArtwork = BitmapFactory.decodeResource(getResources(), R.drawable.ampere_range_7d);
+        range30dArtwork = BitmapFactory.decodeResource(getResources(), R.drawable.ampere_range_30d);
         p.setTypeface(Typeface.create("sans", Typeface.NORMAL));
         setFocusable(true);
         setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
@@ -2115,29 +2132,6 @@ class BatteryDashboard extends View {
         type(size, color, bold);
         c.drawText(fitted, u(centerX) - p.measureText(fitted) / 2f, u(y), p);
     }
-    private void centeredButtonText(Canvas c, String value, float centerX, float centerY,
-                                    float maxWidth, float size, int color, boolean bold) {
-        String fitted = fitText(value, Math.max(1f, maxWidth), size, bold);
-        type(size, color, bold);
-        Paint.FontMetrics metrics = p.getFontMetrics();
-        float baseline = u(centerY) - (metrics.ascent + metrics.descent) / 2f;
-        c.drawText(fitted, u(centerX) - p.measureText(fitted) / 2f, baseline, p);
-    }
-    private void centeredArrowButtonContent(Canvas c, String value,
-                                            float left, float right, float centerY,
-                                            float size, int color) {
-        float available = Math.max(20f, right - left - 20f);
-        String fitted = fitText(value, Math.max(10f, available - 21f), size, true);
-        type(size, color, true);
-        float textWidth = p.measureText(fitted) / density;
-        float groupWidth = 14f + 7f + textWidth;
-        float groupLeft = (left + right - groupWidth) / 2f;
-        drawArrow(c, groupLeft + 7f, centerY, color);
-        type(size, color, true);
-        Paint.FontMetrics metrics = p.getFontMetrics();
-        float baseline = u(centerY) - (metrics.ascent + metrics.descent) / 2f;
-        c.drawText(fitted, u(groupLeft + 21f), baseline, p);
-    }
     private void rightText(Canvas c, String value, float rightX, float y, float size, int color, boolean bold) {
         float viewWidth = layoutWidthDp > 0f ? layoutWidthDp : getWidth() / density;
         float safeRight = Math.max(8f, Math.min(rightX, viewWidth - 8f));
@@ -2233,18 +2227,10 @@ class BatteryDashboard extends View {
         return true;
     }
 
-    /** Shared Ampere key backed by generated, text-free production artwork. */
+    /** Quiet fallback used only for controls whose content changes continuously. */
     private void smoothButton(Canvas c, float l, float t, float r, float b,
                               float radius, int baseColor, int borderColor, int accentColor,
                               boolean selected, boolean pressed) {
-        float aspect = (r - l) / Math.max(1f, b - t);
-        Bitmap artwork = selected
-                ? (aspect >= 1.65f ? primaryButtonArtwork : activeNavButtonArtwork)
-                : (aspect <= 1.35f ? iconButtonArtwork : null);
-        if (drawGeneratedButton(c, artwork, l, t, r, b, pressed,
-                artwork == primaryButtonArtwork)) {
-            return;
-        }
         float inset = pressed ? 1f : 0f;
         float left = l + inset;
         float top = t + inset;
@@ -2470,25 +2456,25 @@ class BatteryDashboard extends View {
             // Keep the actions as two independent 48-dp controls. A shared
             // capsule visually merged unrelated actions and made their
             // outlines look misaligned on narrow phones.
-            smoothButton(c, w - 116, controlTop, w - 68, controlBottom, 16, headerMid, headerMid, lime, false, isPressed(1));
-            smoothButton(c, w - 60, controlTop, w - 12, controlBottom, 16, headerMid, headerMid, lime, false, isPressed(2));
-            drawHeaderOverflow(c, w - 90, headerMuted);
-            drawSun(c, w - 38, 36, headerMuted);
+            drawGeneratedButton(c, headerOverflowArtwork,
+                    w - 116, controlTop + 6, w - 68, controlBottom - 6,
+                    isPressed(1), false);
+            drawGeneratedButton(c, headerThemeArtwork,
+                    w - 60, controlTop + 6, w - 12, controlBottom - 6,
+                    isPressed(2), false);
         } else {
             // Three equal controls use the same measured cell and gap as the
             // narrow layout. Each icon and the LIVE label are centered inside
             // its own surface, never across a neighboring button.
-            smoothButton(c, w - 176, controlTop, w - 128, controlBottom, 16, headerMid, headerMid, lime, false, isPressed(1));
-            smoothButton(c, w - 120, controlTop, w - 72, controlBottom, 16, headerMid, headerMid, lime, false, isPressed(2));
-            smoothButton(c, w - 64, controlTop, w - 16, controlBottom, 16, headerMid, headerMid, lime, false, isPressed(3));
-            drawHeaderOverflow(c, w - 152, headerMuted);
-            drawSun(c, w - 96, 36, headerMuted);
-            type(9, headerText, true);
-            float liveLabelWidth = p.measureText("LIVE") / density;
-            float liveGroupWidth = 8f + 7f + liveLabelWidth;
-            float liveLeft = w - 40f - liveGroupWidth / 2f;
-            fill(c, lime); c.drawCircle(u(liveLeft + 2f), u(36), u(4), p);
-            text(c, "LIVE", liveLeft + 12f, 40, 9, headerText, true);
+            drawGeneratedButton(c, headerOverflowArtwork,
+                    w - 196, controlTop + 6, w - 148, controlBottom - 6,
+                    isPressed(1), false);
+            drawGeneratedButton(c, headerThemeArtwork,
+                    w - 140, controlTop + 6, w - 92, controlBottom - 6,
+                    isPressed(2), false);
+            drawGeneratedButton(c, headerLiveArtwork,
+                    w - 80, controlTop + 8, w - 16, controlBottom - 8,
+                    isPressed(3), false);
         }
         drawNav(c, w, primary, muted, border, panel);
     }
@@ -2514,21 +2500,28 @@ class BatteryDashboard extends View {
             float centerX = x + cell / 2f;
             boolean active = page == i;
             boolean pressed = isPressed(10 + i);
-            if (active || pressed) {
+            boolean bakedActiveAsset = false;
+            if (compactNav && (active || pressed)) {
                 // The reference uses a clear filled selection state. A
-                // turquoise cell makes the active destination legible before
-                // the label is read, while the outer rail keeps the group
-                // visually unified.
+                // finished bitmap keeps its icon, label and surface together;
+                // no separately positioned text can fall off the button.
+                bakedActiveAsset = drawGeneratedButton(c, navButtonArtwork[i],
+                        x + 2, 123, x + cell - 2, 165, pressed, false);
+            } else if (active || pressed) {
                 smoothButton(c, x + 2, 123, x + cell - 2, 165, 11,
                         panel, border, lime, active, pressed);
             }
+            if (bakedActiveAsset) continue;
             int activeTextColor = active ? accentForeground() : muted;
             int iconColor = active ? activeTextColor : muted;
             if (compactNav) {
                 // A fixed 24dp icon slot plus one shared label baseline is
-                // the same top-centered model used by Material NavigationBar.
-                drawNavGlyph(c, i, centerX, 135, iconColor);
-                centeredText(c, labels[i], centerX, 156.5f, 8.3f, active ? activeTextColor : muted, active);
+                // centered as one block. Generated active artwork has a dark
+                // physical lower edge, so active content sits in the turquoise
+                // front face instead of drifting onto that edge.
+                drawNavGlyph(c, i, centerX, 135f, iconColor);
+                centeredText(c, labels[i], centerX, 156.5f, 8.3f,
+                        active ? activeTextColor : muted, active);
             } else {
                 // Material's horizontal navigation layout centers one shared
                 // content block: a 24-dp icon box, fixed icon/label spacing,
@@ -3292,10 +3285,8 @@ class BatteryDashboard extends View {
                 36, y + 596, benchmarkActive ? 18 : 16, primary);
         text(c, benchmarkActive ? "Zum Abschluss über 95% laden." : "Unter 25% starten, dann in Ruhe vollladen.",
                 36, y + 616, 8, muted, false);
-        smoothButton(c, w - 132, y + 528, w - 36, y + 572, 14,
-                benchmarkActive ? raised : lime, border, lime, !benchmarkActive, isPressed(30));
-        centeredButtonText(c, benchmarkActive ? "Aktiv" : "Starten", w - 84, y + 550,
-                76, 10, benchmarkActive ? lime : accentForeground(), true);
+        drawGeneratedButton(c, benchmarkActive ? actionActiveArtwork : actionStartenArtwork,
+                w - 216, y + 528, w - 36, y + 564, isPressed(30), false);
 
         drawEditorialSurface(c, 18, y + 648, w - 18, y + 708, panel, border, blue);
         text(c, "NENNKAPAZITÄT", 36, y + 673, 9, muted, true);
@@ -3391,10 +3382,8 @@ class BatteryDashboard extends View {
         drawSourceBadge(c, "GESCHÄTZT", 230, y + 729);
 
         float exportTop = historyExportTop();
-        smoothButton(c, 36, exportTop, w - 36, exportTop + 44, 16,
-                lime, lime, lime, true, isPressed(40));
-        centeredArrowButtonContent(c, "CSV EXPORTIEREN", 36, w - 36,
-                exportTop + 22, 9, accentForeground());
+        drawGeneratedButton(c, actionCsvWideArtwork,
+                36, exportTop, w - 36, exportTop + 44, isPressed(40), false);
     }
 
     private void drawChargingPage(Canvas c, float w, float h, int panel, int raised, int border, int primary, int muted, int faint) {
@@ -3847,11 +3836,8 @@ class BatteryDashboard extends View {
         rounded(c, 18, y + 548, w - 18, y + 615, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 548), u(w - 18), u(y + 615)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, benchmarkActive ? "Benchmark läuft" : "Manueller Benchmark", 36, y + 575, 11, primary, true);
         text(c, benchmarkActive ? "Zum Abschluss über 95 % laden" : "Für beste Ergebnisse unter 25 % starten", 36, y + 595, 9, muted, false);
-        smoothButton(c, w - 132, y + 558, w - 36, y + 602, 14,
-                benchmarkActive ? raised : lime, border, lime,
-                !benchmarkActive, isPressed(30));
-        centeredButtonText(c, benchmarkActive ? "Aktiv" : "Start", w - 84, y + 580,
-                76, 10, benchmarkActive ? lime : accentForeground(), true);
+        drawGeneratedButton(c, benchmarkActive ? actionActiveArtwork : actionStartArtwork,
+                w - 216, y + 558, w - 36, y + 594, isPressed(30), false);
         rounded(c, 18, y + 630, w - 18, y + 697, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 630), u(w - 18), u(y + 697)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "Nennkapazität", 36, y + 659, 11, primary, true);
             text(c, designCapacitySource(), 36, y + 680, 9, muted, false);
@@ -3994,10 +3980,8 @@ class BatteryDashboard extends View {
         boundedText(c, "Akkumesswerte bleiben auf diesem Gerät.", 36, w - 36, summaryY + 143, 9, primary, true);
         boundedText(c, "Export nur auf deine Auswahl; kein Konto/Abonnement.", 36, w - 36, summaryY + 165, 8, muted, false);
         float exportTop = historyExportTop();
-        smoothButton(c, w - 156, exportTop, w - 36, exportTop + 44, 14,
-                lime, lime, lime, true, isPressed(40));
-        centeredArrowButtonContent(c, "CSV exportieren", w - 156, w - 36,
-                exportTop + 22, 9, accentForeground());
+        drawGeneratedButton(c, actionCsvCompactArtwork,
+                w - 212, exportTop + 2, w - 36, exportTop + 42, isPressed(40), false);
     }
 
     private BatteryTelemetryDiagnostics.Summary telemetryDiagnostics() {
@@ -4199,16 +4183,12 @@ class BatteryDashboard extends View {
     private void drawChart(Canvas c, float x, float y, float width, float height, int panel, int border, int primary, int muted, int faint) {
         frame(c, x, y, x + width, y + height, panel, border, lime);
         text(c, historyDays == 30 ? "Akkustand · 30 Tage" : "Akkustand · 7 Tage", x + 18, y + 28, 15, primary, true);
-        smoothButton(c, x + width - 104, y + 10, x + width - 56, y + 42, 11,
-                panel, border, lime, historyDays == 7,
-                isPressed(BatteryAccessibilityLayout.OVERVIEW_7D));
-        smoothButton(c, x + width - 52, y + 10, x + width - 12, y + 42, 11,
-                panel, border, lime, historyDays == 30,
-                isPressed(BatteryAccessibilityLayout.OVERVIEW_30D));
-        centeredButtonText(c, "7D", x + width - 80, y + 26, 34, 8,
-                historyDays == 7 ? accentForeground() : muted, true);
-        centeredButtonText(c, "30D", x + width - 32, y + 26, 30, 8,
-                historyDays == 30 ? accentForeground() : muted, true);
+        drawGeneratedButton(c, range7dArtwork,
+                x + width - 112, y + 12, x + width - 58, y + 40,
+                isPressed(BatteryAccessibilityLayout.OVERVIEW_7D), false);
+        drawGeneratedButton(c, range30dArtwork,
+                x + width - 54, y + 12, x + width, y + 40,
+                isPressed(BatteryAccessibilityLayout.OVERVIEW_30D), false);
         float chartX = x + 18, chartY = y + 51, chartW = width - 36, chartH = 94;
         for (int i = 0; i < 3; i++) line(c, chartX, chartY + i * 45, chartX + chartW, chartY + i * 45, border, 1);
         rightText(c, "100%", x + width - 18, chartY + 9, 7, faint, false);
@@ -4496,20 +4476,20 @@ class BatteryDashboard extends View {
     private Rect virtualViewBounds(int virtualViewId) {
         float w = getWidth() / density;
         if (virtualViewId == BatteryHeaderLayout.OVERFLOW) {
-            return new Rect(Math.round((w < 390f ? w - 116f : w - 176f) * density),
+            return new Rect(Math.round((w < 390f ? w - 116f : w - 200f) * density),
                     Math.round(12f * density),
-                    Math.round((w < 390f ? w - 68f : w - 128f) * density),
+                    Math.round((w < 390f ? w - 68f : w - 144f) * density),
                     Math.round(60f * density));
         }
         if (virtualViewId == BatteryHeaderLayout.THEME) {
-            return new Rect(Math.round((w < 390f ? w - 60f : w - 120f) * density),
+            return new Rect(Math.round((w < 390f ? w - 60f : w - 144f) * density),
                     Math.round(12f * density),
-                    Math.round((w < 390f ? w - 12f : w - 72f) * density),
+                    Math.round((w < 390f ? w - 12f : w - 88f) * density),
                     Math.round(60f * density));
         }
         if (virtualViewId == BatteryHeaderLayout.LIVE_REFRESH) {
-            return new Rect(Math.round((w - 64f) * density), Math.round(12f * density),
-                    Math.round((w - 16f) * density), Math.round(60f * density));
+            return new Rect(Math.round((w - 84f) * density), Math.round(12f * density),
+                    Math.round((w - 12f) * density), Math.round(60f * density));
         }
         if (BatteryAccessibilityLayout.isVisible(virtualViewId, page)) {
             float bodyWidth = contentWidth(w);

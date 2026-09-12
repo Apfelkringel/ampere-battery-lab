@@ -70,16 +70,16 @@ final class BatteryAccessibilityLayout {
         float bottom;
         switch (virtualViewId) {
             case OVERVIEW_7D:
-                left = bodyInset + bodyWidth - 104f;
-                top = overviewChartTop + 10f;
-                right = bodyInset + bodyWidth - 56f;
-                bottom = overviewChartTop + 42f;
+                left = bodyInset + bodyWidth - 112f;
+                top = overviewChartTop + 12f;
+                right = bodyInset + bodyWidth - 58f;
+                bottom = overviewChartTop + 40f;
                 break;
             case OVERVIEW_30D:
-                left = bodyInset + bodyWidth - 52f;
-                top = overviewChartTop + 10f;
-                right = bodyInset + bodyWidth - 12f;
-                bottom = overviewChartTop + 42f;
+                left = bodyInset + bodyWidth - 54f;
+                top = overviewChartTop + 12f;
+                right = bodyInset + bodyWidth;
+                bottom = overviewChartTop + 40f;
                 break;
             case CHARGE_ALARM:
                 left = bodyInset + bodyWidth - 145f;
@@ -100,10 +100,10 @@ final class BatteryAccessibilityLayout {
                 bottom = 410f;
                 break;
             case HEALTH_BENCHMARK:
-                left = bodyInset + bodyWidth - 145f;
-                top = 738f;
-                right = bodyInset + bodyWidth - 30f;
-                bottom = 786f;
+                left = bodyInset + bodyWidth - 216f;
+                top = 710f;
+                right = bodyInset + bodyWidth - 36f;
+                bottom = 776f;
                 break;
             case HEALTH_CAPACITY:
                 left = bodyInset + 18f;
@@ -118,9 +118,9 @@ final class BatteryAccessibilityLayout {
                 bottom = 897f;
                 break;
             case HISTORY_EXPORT:
-                left = bodyInset + bodyWidth - 155f;
+                left = bodyInset + 36f;
                 top = historyExportTop;
-                right = bodyInset + bodyWidth - 18f;
+                right = bodyInset + bodyWidth - 36f;
                 bottom = historyExportTop + 48f;
                 break;
             default:
