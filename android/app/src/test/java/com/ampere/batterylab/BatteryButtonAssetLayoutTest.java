@@ -150,12 +150,26 @@ public class BatteryButtonAssetLayoutTest {
                 StandardCharsets.UTF_8);
         assertTrue("compact health card must use a centered right edge",
                 dashboard.contains("float infoRight = 18 + heroW - 18")
-                        && dashboard.contains("rounded(c, 36, infoTop, infoRight, top + 374"));
+                        && dashboard.contains("rounded(c, 36, infoTop, infoRight, top + 392"));
         assertTrue("compact health card must use a semantic health icon",
-                dashboard.contains("drawHeart(c, 66, infoTop + 26, lime, .62f)"));
+                dashboard.contains("drawHeart(c, 66, infoTop + 24, lime, .62f)"));
         assertTrue("compact health content must use a clear single reading order",
                 dashboard.contains("centeredText(c, health == 0 ? \"Noch nicht gemessen\"")
-                        && dashboard.contains("Benchmark unter 25 % starten"));
+                        && dashboard.contains("Finde Kapazität und Verschleiß heraus.")
+                        && dashboard.contains("Designkapazität")
+                        && dashboard.contains("Gemessene Kapazität")
+                        && dashboard.contains("Verschleiß")
+                        && dashboard.contains("centeredText(c, health > 0 ? \"Messung aktualisieren\" : \"Messung starten\""));
+        assertTrue("compact health card must keep its hero inside the mobile viewport",
+                dashboard.contains("float heroH = compact ? 410f : 320f")
+                        && dashboard.contains("float heroHeight = compact ? 410f : 320f"));
+        assertTrue("compact health card must not mix in charging telemetry",
+                !dashboard.contains("text(c, batteryRowLabel(), 52, infoTop")
+                        && !dashboard.contains("compactDetection, 144, currentLeft"));
+        assertTrue("compact measurement CTA must trigger the real benchmark action",
+                dashboard.contains("return 23;")
+                        && dashboard.contains("if (page == 0 && releasedRegion == 23)")
+                        && dashboard.contains("toggleBenchmark();"));
     }
 
     @Test public void dischargeEmptyStateUsesCompactReadableCopy() throws IOException {

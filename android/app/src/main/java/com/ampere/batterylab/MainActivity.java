@@ -752,7 +752,8 @@ class BatteryDashboard extends View {
         if (viewportWidthDp >= 600f && viewportHeightDp > 0f && viewportHeightDp < 390f) return 174 + 218;
         if (viewportWidthDp >= 600f && viewportHeightDp > 0f && viewportHeightDp < 600f) return 182 + 218;
         float heroWidth = Math.min(bodyWidth - 36, 520);
-        float heroHeight = heroWidth < 410f ? 400f : 320f;
+        boolean compact = viewportWidthDp > 0f ? viewportWidthDp < 600f : width < 600f;
+        float heroHeight = compact ? 410f : 320f;
         return 182 + heroHeight + 14 + 234;
     }
 
@@ -986,6 +987,13 @@ class BatteryDashboard extends View {
         // This protects every Canvas and accessibility surface if a future
         // source reader or restored object ever bypasses the normal path.
         return BatteryHealth.displayPercent(healthReading.percent);
+    }
+
+    private String healthGradeLabel(int health) {
+        if (health >= 90) return "Sehr gut";
+        if (health >= 80) return "Gut";
+        if (health >= 60) return "Beobachten";
+        return "Prüfen";
     }
 
     private int healthMeasurementMah() {
@@ -2318,6 +2326,13 @@ class BatteryDashboard extends View {
             float cell = (w - 36) / 5f;
             return 10 + Math.max(0, Math.min(4, (int) ((x - 18) / cell)));
         }
+        boolean compactOverview = viewportWidthDp > 0f ? viewportWidthDp < 600f : w < 600f;
+        float compactHeroWidth = Math.min(w - 36, 520);
+        if (page == 0 && compactOverview
+                && y >= 182 + 232 + 80 && y <= 182 + 232 + 105
+                && x >= 52 && x <= 18 + compactHeroWidth - 34) {
+            return 23;
+        }
         if (page == 0 && y >= overviewChartTop() + 8f && y < overviewChartTop() + 60f
                 && x >= contentInset(w) + contentWidth(w) - 112f) {
             float bodyX = x - contentInset(w);
@@ -2565,7 +2580,9 @@ class BatteryDashboard extends View {
         // small difference in device density must not switch otherwise
         // identical phones between two visibly different compositions.
         boolean compact = viewportWidthDp > 0f ? viewportWidthDp < 600f : w < 600f;
-        float heroH = compact ? 400f : 320f;
+        // Keep the complete compact composition inside the visible viewport;
+        // the gesture/navigation area is not part of the drawable height.
+        float heroH = compact ? 410f : 320f;
         int heroSurface = compact ? Color.rgb(4, 52, 56) : panel;
         int heroBorder = compact ? Color.rgb(11, 143, 138) : border;
         int heroPrimary = compact ? Color.rgb(255, 247, 232) : primary;
@@ -2607,28 +2624,42 @@ class BatteryDashboard extends View {
             fill(c, stateColor); c.drawCircle(u(47), u(top + 181), u(3), p);
             boundedText(c, batteryChipLabel(), 57, 117, top + 185, 8, stateColor, true);
 
-            float infoTop = top + 284;
-            // Keep the compact health card centered inside the hero. It used
-            // to have 18dp on the left but 36dp on the right, which made the
-            // whole card read as shifted left on narrow phones.
+            float infoTop = top + 232;
+            // Health is its own compact information module. Charging source,
+            // current and plug type belong to the charging screen, not here.
             float infoRight = 18 + heroW - 18;
-            rounded(c, 36, infoTop, infoRight, top + 374, 20,
+            rounded(c, 36, infoTop, infoRight, top + 392, 20,
                     Color.rgb(7, 86, 90));
             stroke(c, Color.argb(92, Color.red(lime), Color.green(lime), Color.blue(lime)), .8f);
-            rect.set(u(36), u(infoTop), u(infoRight), u(top + 374));
+            rect.set(u(36), u(infoTop), u(infoRight), u(top + 392));
             c.drawRoundRect(rect, u(20), u(20), p);
-            // A compact health card needs one clear reading order: semantic
-            // heart marker, value, explanation, then the live footer. The old
-            // centered headline plus floating bolt made the panel feel busy.
-            rounded(c, 52, infoTop + 12, 80, infoTop + 40, 12,
+            rounded(c, 52, infoTop + 10, 80, infoTop + 38, 12,
                     Color.argb(42, Color.red(lime), Color.green(lime), Color.blue(lime)));
-            drawHeart(c, 66, infoTop + 26, lime, .62f);
-            text(c, "AKKUGESUNDHEIT", 90, infoTop + 30, 8, Color.rgb(115, 228, 216), true);
-            centeredText(c, health == 0 ? "Noch nicht gemessen" : health + "% · sehr gut",
-                    (36 + infoRight) / 2f, infoTop + 57, health == 0 ? 16 : 20, heroPrimary, true);
+            drawHeart(c, 66, infoTop + 24, lime, .62f);
+            text(c, "AKKUGESUNDHEIT", 90, infoTop + 28, 9, Color.rgb(145, 235, 224), true);
+            centeredText(c, health == 0 ? "Noch nicht gemessen" : health + " % · " + healthGradeLabel(health),
+                    (36 + infoRight) / 2f, infoTop + 54, health == 0 ? 16 : 20, heroPrimary, true);
             centeredText(c, health > 0 ? mahDisplay(estimatedCapacityMah()) + " von " + designCapacityDisplay()
-                            : "Benchmark unter 25 % starten",
-                    (36 + infoRight) / 2f, infoTop + 75, 8.5f, heroMuted, false);
+                    : "Finde Kapazität und Verschleiß heraus.",
+                    (36 + infoRight) / 2f, infoTop + 70, 9.2f, heroMuted, false);
+            rounded(c, 52, infoTop + 80, infoRight - 16, infoTop + 105, 12,
+                    health > 0 ? Color.rgb(7, 86, 90) : lime);
+            stroke(c, health > 0 ? lime : Color.TRANSPARENT, .8f);
+            rect.set(u(52), u(infoTop + 80), u(infoRight - 16), u(infoTop + 105));
+            c.drawRoundRect(rect, u(12), u(12), p);
+            centeredText(c, health > 0 ? "Messung aktualisieren" : "Messung starten",
+                    (52 + infoRight - 16) / 2f, infoTop + 96.5f, 9.5f,
+                    health > 0 ? lime : accentForeground(), true);
+            line(c, 52, infoTop + 114, infoRight - 16, infoTop + 114,
+                    Color.argb(90, Color.red(lime), Color.green(lime), Color.blue(lime)), 1);
+            text(c, "Designkapazität", 52, infoTop + 132, 9.2f, heroMuted, false);
+            rightText(c, designCapacityDisplay(), infoRight - 16, infoTop + 132, 9.8f, heroPrimary, true);
+            text(c, "Gemessene Kapazität", 52, infoTop + 149, 9.2f, heroMuted, false);
+            rightText(c, health > 0 ? mahDisplay(estimatedCapacityMah()) : "—",
+                    infoRight - 16, infoTop + 149, 9.8f, heroPrimary, true);
+            text(c, "Verschleiß", 52, infoTop + 166, 9.2f, heroMuted, false);
+            rightText(c, health > 0 ? (100 - health) + " %" : "—",
+                    infoRight - 16, infoTop + 166, 9.8f, health > 0 ? lime : heroPrimary, true);
         } else {
             // Keep a clear vertical rhythm: the gauge ends before the
             // details/status rows begin. The previous 101-dp circle touched
@@ -4926,6 +4957,11 @@ class BatteryDashboard extends View {
             updateAccessibilitySummary();
             updateLayoutHeight();
             invalidate();
+            return true;
+        }
+        if (page == 0 && releasedRegion == 23) {
+            hapticClick();
+            toggleBenchmark();
             return true;
         }
         // Page content is centered on wide displays; convert screen coordinates
