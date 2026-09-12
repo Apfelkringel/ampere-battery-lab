@@ -64,9 +64,7 @@
 
 <g filter="url(#shadow)">
   <rect x="2" y="2" width="268" height="206" rx="32" fill="url(#panel)" stroke="#36e7ec" stroke-width="3"/>
-  <g transform="translate(0,-16)">
-  <path d="M136 117 L93 78 C77 63 86 41 106 41 C119 41 130 48 136 59 C143 48 153 41 167 41 C188 41 196 64 180 79 Z" class="icon"/>
+  <path d="M136 117 L93 78 C77 63 86 41 106 41 C119 41 130 48 136 59 C143 48 153 41 167 41 C188 41 196 64 180 79 Z" class="icon" transform="translate(0,-16)"/>
   <text x="136" y="175" text-anchor="middle" class="txt label">Akku</text>
-  </g>
 </g>
 </svg>

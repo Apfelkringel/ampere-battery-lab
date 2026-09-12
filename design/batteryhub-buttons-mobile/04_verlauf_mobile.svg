@@ -64,10 +64,8 @@
 
 <g filter="url(#shadow)">
   <rect x="2" y="2" width="260" height="206" rx="32" fill="url(#panel)" stroke="#36e7ec" stroke-width="3"/>
-  <g transform="translate(0,-16)">
-  <path d="M87 111 L116 82 L136 102 L169 68" class="icon"/>
-  <path d="M150 68 H169 V87" class="icon"/>
+  <path d="M87 111 L116 82 L136 102 L169 68" class="icon" transform="translate(0,-16)"/>
+  <path d="M150 68 H169 V87" class="icon" transform="translate(0,-16)"/>
   <text x="132" y="175" text-anchor="middle" class="txt label">Verlauf</text>
-  </g>
 </g>
 </svg>

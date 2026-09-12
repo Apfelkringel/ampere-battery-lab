@@ -5,7 +5,8 @@
 - Implementation evidence: `docs/qa/overview-buttons-320x640.png`,
   `docs/qa/health-action-320x640.png`,
   `docs/qa/history-active-spacing-320x640.png`, and
-  `docs/qa/history-export-320x640.png`.
+  `docs/qa/history-export-320x640.png`; all five corrected active states are in
+  `docs/qa/nav-icon-label-separation-320x640.png`.
 - Combined comparison: `docs/qa/button-comparison.png`.
 - Source dimensions: 1648 × 928 SVG viewBox (reference PNG: 1672 × 941).
 - Implementation viewport: Android 320 × 640 physical pixels at 160 dpi,
@@ -33,8 +34,8 @@ CSV capture has fully transparent corners and no black or white export residue.
 
 - Fonts and typography: exact SVG copy is preserved. Mobile tab derivatives
   increase only label size and weight for legibility at 320 dp.
-- Spacing and layout rhythm: active-tab icon/label groups were raised 16 source
-  units to equalize visible top and bottom padding; action content is centered.
+- Spacing and layout rhythm: active-tab icons are raised 16 source units while
+  labels remain on a separate 175-unit baseline; action content is centered.
 - Colors and visual tokens: source gradients, cyan strokes and foreground colors
   are rasterized directly from the supplied SVGs.
 - Image quality and asset fidelity: PNGs are deterministic CoreGraphics exports
@@ -54,6 +55,10 @@ CSV capture has fully transparent corners and no black or white export residue.
    mobile derivatives.
 4. P1: Quick Look PNG export left opaque corner residue on the CSV action.
    Fix: switched all runtime exports to direct transparent `sips` conversion.
+5. P1: the shared active-tab transform moved labels into the icon slot and made
+   some glyphs touch or cover the upper half of their copy after downsampling.
+   Fix: each SVG now transforms only its icon primitives; every label stays on
+   an independent baseline, guarded by `BatteryButtonAssetLayoutTest`.
 
 No actionable P0, P1 or P2 findings remain in the captured portrait states.
 

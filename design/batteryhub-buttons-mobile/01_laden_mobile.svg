@@ -64,9 +64,7 @@
 
 <g filter="url(#shadow)">
   <rect x="2" y="2" width="256" height="206" rx="32" fill="url(#panel)" stroke="#36e7ec" stroke-width="3"/>
-  <g transform="translate(0,-16)">
-  <path d="M127 42 L99 97 H128 L115 142 L162 79 H135 L150 42 Z" fill="#68ffff"/>
+  <path d="M127 42 L99 97 H128 L115 142 L162 79 H135 L150 42 Z" fill="#68ffff" transform="translate(0,-16)"/>
   <text x="130" y="175" text-anchor="middle" class="txt label">Laden</text>
-  </g>
 </g>
 </svg>

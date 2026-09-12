@@ -2184,9 +2184,8 @@ class BatteryDashboard extends View {
     }
 
     /**
-     * Draws the generated artwork without stretching its illustrated end caps.
-     * Labels and glyphs are drawn afterwards from the same measured bounds, so
-     * both stay mathematically centered and remain sharp for every density.
+     * Draws one finished image-button whose surface, glyph and label are baked
+     * together. The complete composition moves as one unit while pressed.
      */
     private boolean drawGeneratedButton(Canvas c, Bitmap artwork,
                                         float l, float t, float r, float b,

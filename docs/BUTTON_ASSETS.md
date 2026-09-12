@@ -1,6 +1,6 @@
 # BatteryHub button assets
 
-The button artwork used by Ampere 0.285 comes from the user-supplied individual
+The button artwork used by Ampere 0.286 comes from the user-supplied individual
 SVG masters in `design/batteryhub-buttons/`. Copy, icon geometry, type placement,
 gradients and radii remain part of each source asset; the app does not redraw or
 reposition those elements at runtime.
@@ -29,9 +29,11 @@ The original dashboard composition is retained as
 `design/batteryhub_dashboard.svg` for visual provenance.
 
 The five files in `design/batteryhub-buttons-mobile/` are deterministic mobile
-derivatives of the first five masters. Only the embedded label size/weight is
+derivatives of the first five masters. The embedded label size/weight is
 increased so the text remains readable when a full card is reduced to a compact
-five-column 320 dp navigation rail; no runtime text overlay is introduced.
+five-column 320 dp navigation rail. Icons and labels use separate vertical
+slots inside each image, preventing their pixels from colliding; no runtime
+text overlay is introduced.
 
 The SHA-256 manifest at `design/button-assets.sha256` pins every runtime PNG
 used by the release.
