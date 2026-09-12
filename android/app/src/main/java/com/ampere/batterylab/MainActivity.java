@@ -2635,7 +2635,9 @@ class BatteryDashboard extends View {
             rounded(c, 36, infoTop, infoRight, top + 374, 20,
                     Color.rgb(7, 86, 90));
             text(c, "AKKUGESUNDHEIT", 52, infoTop + 24, 8, Color.rgb(115, 228, 216), true);
-            float infoTextRight = infoRight - 52f;
+            // The headline is the card's focal point and must be centered on
+            // the card itself, not on a reduced left column beside the icon.
+            float infoTextRight = infoRight - 16f;
             centeredDisplayBoundedText(c, health == 0 ? "Noch nicht gemessen" : health + "% · sehr gut",
                     52, infoTextRight, infoTop + 50, health == 0 ? 16 : 20, heroPrimary);
             centeredBoundedText(c, health > 0 ? mahDisplay(estimatedCapacityMah()) + " von " + designCapacityDisplay()

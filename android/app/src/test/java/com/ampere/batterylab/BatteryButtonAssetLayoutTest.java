@@ -155,7 +155,7 @@ public class BatteryButtonAssetLayoutTest {
                 dashboard.contains("drawBolt(c, infoRight - 37")
                         && dashboard.contains("float statusRight = infoRight - 32f"));
         assertTrue("compact health headline and detail must share a centered text axis",
-                dashboard.contains("float infoTextRight = infoRight - 52f")
+                dashboard.contains("float infoTextRight = infoRight - 16f")
                         && dashboard.contains("centeredDisplayBoundedText(c, health == 0 ? \"Noch nicht gemessen\""));
     }
 
