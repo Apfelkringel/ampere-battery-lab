@@ -144,6 +144,18 @@ public class BatteryButtonAssetLayoutTest {
                 dashboard.contains("drawEditorialBattery(c, w - 79, y + 129"));
     }
 
+    @Test public void compactHealthCardUsesSymmetricHeroInsets() throws IOException {
+        String dashboard = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
+                StandardCharsets.UTF_8);
+        assertTrue("compact health card must use a centered right edge",
+                dashboard.contains("float infoRight = 18 + heroW - 18")
+                        && dashboard.contains("rounded(c, 36, infoTop, infoRight, top + 374"));
+        assertTrue("compact health status values must follow the centered card",
+                dashboard.contains("drawBolt(c, infoRight - 37")
+                        && dashboard.contains("float statusRight = infoRight - 32f"));
+    }
+
     @Test public void dischargeEmptyStateUsesCompactReadableCopy() throws IOException {
         String dashboard = Files.readString(findRepositoryRoot()
                 .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),

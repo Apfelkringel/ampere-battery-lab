@@ -2608,19 +2608,23 @@ class BatteryDashboard extends View {
             boundedText(c, batteryChipLabel(), 57, 117, top + 185, 8, stateColor, true);
 
             float infoTop = top + 278;
-            rounded(c, 36, infoTop, 18 + heroW - 36, top + 374, 20,
+            // Keep the compact health card centered inside the hero. It used
+            // to have 18dp on the left but 36dp on the right, which made the
+            // whole card read as shifted left on narrow phones.
+            float infoRight = 18 + heroW - 18;
+            rounded(c, 36, infoTop, infoRight, top + 374, 20,
                     Color.rgb(7, 86, 90));
             text(c, "AKKUGESUNDHEIT", 52, infoTop + 24, 8, Color.rgb(115, 228, 216), true);
             displayText(c, health == 0 ? "Noch nicht gemessen" : health + "% · sehr gut",
                     52, infoTop + 50, health == 0 ? 16 : 20, heroPrimary);
             boundedText(c, health > 0 ? mahDisplay(estimatedCapacityMah()) + " von " + designCapacityDisplay()
                             : "Starte einen Benchmark für deine Kapazität",
-                    52, 18 + heroW - 52, infoTop + 69, 8, heroMuted, false);
-            drawBolt(c, 18 + heroW - 55, infoTop + 26, lime, .7f);
+                    52, infoRight - 52, infoTop + 69, 8, heroMuted, false);
+            drawBolt(c, infoRight - 37, infoTop + 26, lime, .7f);
             text(c, batteryRowLabel(), 52, infoTop + 88, 9, heroPrimary, true);
             String compactDetection = charging ? (heroW < 230f ? chargerTypeDisplay() : chargerTypeDisplay() + " · automatisch")
                     : (heroW < 230f ? "Automatisch erkannt" : "Akku automatisch erkannt");
-            float statusRight = 18 + heroW - 50;
+            float statusRight = infoRight - 32f;
             float currentLeft = Math.max(68f, statusRight - 76f);
             boundedText(c, compactDetection, 144, currentLeft - 8f, infoTop + 88, 8, heroMuted, false);
             boundedRightText(c, liveCurrentDisplay(), currentLeft, statusRight,
