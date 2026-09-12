@@ -47,6 +47,7 @@ final class UpdateChecker {
     private static final String DOWNLOAD_VERSION_CODE = "downloadVersionCode";
     private static final String INSTALL_IN_PROGRESS = "installInProgress";
     private static final String EXPECTED_MANIFEST_PATH = "/repos/Apfelkringel/ampere-battery-lab-updates/contents/latest.json";
+    private static final String EXPECTED_MANIFEST_RAW_PATH = "/Apfelkringel/ampere-battery-lab-updates/main/latest.json";
     private static final String EXPECTED_APK_RAW_PATH = "/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk";
     private static final String EXPECTED_APK_CONTENTS_PATH = "/repos/Apfelkringel/ampere-battery-lab-updates/contents/Ampere-Battery-Lab-release.apk";
     // Android's package installer enforces this signer too. Rechecking it here
@@ -262,10 +263,13 @@ final class UpdateChecker {
     }
 
     private static boolean isAllowedManifestUrl(URL url) {
-        return "https".equalsIgnoreCase(url.getProtocol())
-                && url.getPort() == -1
-                && url.getUserInfo() == null
-                && "api.github.com".equalsIgnoreCase(url.getHost())
+        if (!"https".equalsIgnoreCase(url.getProtocol())
+                || url.getPort() != -1
+                || url.getUserInfo() != null) return false;
+        if ("raw.githubusercontent.com".equalsIgnoreCase(url.getHost())) {
+            return EXPECTED_MANIFEST_RAW_PATH.equals(url.getPath());
+        }
+        return "api.github.com".equalsIgnoreCase(url.getHost())
                 && EXPECTED_MANIFEST_PATH.equals(url.getPath());
     }
 

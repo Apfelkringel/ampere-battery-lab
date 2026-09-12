@@ -143,6 +143,19 @@ public class BatteryButtonAssetLayoutTest {
                 !dashboard.contains("Beim Abstecken startet die Sitzung automatisch"));
     }
 
+    @Test public void updateChannelAvoidsGithubApiRateLimit() throws IOException {
+        String build = Files.readString(findRepositoryRoot()
+                .resolve("android/app/build.gradle"), StandardCharsets.UTF_8);
+        String checker = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/UpdateChecker.java"),
+                StandardCharsets.UTF_8);
+        assertTrue("manifest must use the public raw CDN instead of the rate-limited API",
+                build.contains("https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/latest.json"));
+        assertTrue("checker must allow only the pinned raw manifest path",
+                checker.contains("EXPECTED_MANIFEST_RAW_PATH")
+                        && checker.contains("raw.githubusercontent.com"));
+    }
+
     private static int countOccurrences(String value, String needle) {
         int count = 0;
         int offset = 0;

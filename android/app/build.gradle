@@ -13,8 +13,8 @@ android {
         // APK installable on older Android versions as a bonus.
         minSdk 23
         targetSdk 37
-        versionCode 299
-        versionName "0.299"
+        versionCode 300
+        versionName "0.300"
     }
 
     buildFeatures {
@@ -50,7 +50,7 @@ android {
 
     // Public distribution repository contains binaries only; source stays private.
     buildTypes.each { type ->
-        type.buildConfigField "String", "UPDATE_MANIFEST_URL", '"https://api.github.com/repos/Apfelkringel/ampere-battery-lab-updates/contents/latest.json?ref=main"'
+        type.buildConfigField "String", "UPDATE_MANIFEST_URL", '"https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/latest.json"'
     }
 
     buildTypes {
