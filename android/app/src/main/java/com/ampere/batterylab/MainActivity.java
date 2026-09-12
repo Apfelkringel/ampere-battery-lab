@@ -1165,7 +1165,7 @@ class BatteryDashboard extends View {
     }
 
     private String healthMeasurementSource() {
-        return healthReading.source.isEmpty() ? "keiner Messung" : healthReading.source;
+        return healthReading.source.isEmpty() ? "Keine Messung" : healthReading.source;
     }
 
     private String healthMeasurementSourceLabel() {
@@ -3316,7 +3316,7 @@ class BatteryDashboard extends View {
         drawHeart(c, 54.5f, y + 555.5f, lime, .65f);
         displayText(c, benchmarkActive ? "Kapazitätsmessung läuft." : "Kapazität messen",
                 36, y + 596, benchmarkActive ? 18 : 16, primary);
-        text(c, benchmarkActive ? "Zum Abschluss über 95% laden." : "Unter 25% starten, dann in Ruhe vollladen.",
+        text(c, benchmarkActive ? "Zum Abschluss über 95 % laden." : "Unter 25 % starten, dann in Ruhe vollladen.",
                 36, y + 616, 8, muted, false);
         drawGeneratedButton(c, benchmarkActive ? actionActiveArtwork : actionStartenArtwork,
                 w - 216, y + 528, w - 36, y + 564, isPressed(30), false);
@@ -3862,7 +3862,8 @@ class BatteryDashboard extends View {
         drawStat(c, 30 + (w - 48) / 2f, y + 316, (w - 48) / 2f, 105, "Ladezyklen", chargeCyclesDisplay(), "", secondaryTone, primary, muted, border, panel, "grid");
         rounded(c, 18, y + 438, w - 18, y + 520, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 438), u(w - 18), u(y + 520)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "So entsteht die Schätzung", 36, y + 468, 10, muted, true);
-        boundedText(c, "Kapazität aus " + healthMeasurementSource(), 36, w * .53f, y + 493, 9, primary, false);
+        boundedText(c, healthReading.source.isEmpty() ? "Keine Messung vorhanden" : "Kapazität aus " + healthMeasurementSource(),
+                36, w * .53f, y + 493, 9, primary, false);
         text(c, "Messungen · letzter Ladevorgang " + lastChargeEquivalentCycles(), 36, y + 510, 9, primary, false);
         rightText(c, "Gesamt geladen: " + (totalChargedMah() > 0 ? totalChargedMah() + " mAh" : "—"), w - 30, y + 493, 8, blue, true);
         rightText(c, "Äquivalente Zyklen: " + totalEquivalentCycles(), w - 30, y + 512, 8, blue, true);

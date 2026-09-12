@@ -257,6 +257,18 @@ public class BatteryButtonAssetLayoutTest {
                 dashboard.contains("\"Screenzeit\""));
     }
 
+    @Test public void healthSourceCopyKeepsEmptyStateGrammatical() throws IOException {
+        String dashboard = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
+                StandardCharsets.UTF_8);
+        assertTrue("empty health source must read as a complete statement",
+                dashboard.contains("Keine Messung vorhanden"));
+        assertFalse("empty health source must not use the ungrammatical dative fragment",
+                dashboard.contains("keiner Messung"));
+        assertTrue("measurement guidance must use typographic spacing before percent signs",
+                dashboard.contains("Unter 25 % starten") && dashboard.contains("über 95 % laden"));
+    }
+
     private static int countOccurrences(String value, String needle) {
         int count = 0;
         int offset = 0;
