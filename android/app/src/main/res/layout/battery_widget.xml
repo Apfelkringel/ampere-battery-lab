@@ -5,6 +5,7 @@
     android:layout_height="match_parent"
     android:orientation="horizontal"
     android:gravity="center_vertical"
+    android:baselineAligned="false"
     android:padding="14dp"
     android:background="@drawable/widget_background">
 
@@ -28,6 +29,7 @@
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:fontFamily="sans"
+            android:includeFontPadding="false"
             android:maxLines="1"
             android:text="Ampere"
             android:textColor="@color/widget_primary"
@@ -40,6 +42,7 @@
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:fontFamily="sans"
+            android:includeFontPadding="false"
             android:maxLines="1"
             android:text="Akkubetrieb"
             android:textColor="@color/widget_accent"
@@ -51,6 +54,7 @@
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:fontFamily="sans"
+            android:includeFontPadding="false"
             android:maxLines="1"
             android:text="Strom —"
             android:textColor="@color/widget_muted"
@@ -70,6 +74,7 @@
             android:layout_height="wrap_content"
             android:gravity="end"
             android:fontFamily="sans"
+            android:includeFontPadding="false"
             android:maxLines="1"
             android:text="—"
             android:textColor="@color/widget_primary"
@@ -82,6 +87,7 @@
             android:layout_height="wrap_content"
             android:gravity="end"
             android:fontFamily="sans"
+            android:includeFontPadding="false"
             android:text="Akku"
             android:textColor="@color/widget_muted"
             android:textSize="10sp" />

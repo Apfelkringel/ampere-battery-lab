@@ -205,6 +205,20 @@ public class BatteryButtonAssetLayoutTest {
                         && !dashboard.contains("rounded(c, l + 9f, t + 10f"));
     }
 
+    @Test public void widgetTextUsesTheSameVerticalBaselineAsItsSurface() throws IOException {
+        Path root = findRepositoryRoot().resolve("android/app/src/main/res/layout");
+        for (String name : new String[]{"battery_widget.xml", "battery_widget_compact.xml", "battery_widget_short.xml"}) {
+            String layout = Files.readString(root.resolve(name), StandardCharsets.UTF_8);
+            assertTrue(name + " must remove font-leading that pushes labels downward",
+                    layout.contains("android:includeFontPadding=\"false\""));
+        }
+        String standard = Files.readString(root.resolve("battery_widget.xml"), StandardCharsets.UTF_8);
+        String shortLayout = Files.readString(root.resolve("battery_widget_short.xml"), StandardCharsets.UTF_8);
+        assertTrue("horizontal widget roots must not use baseline alignment",
+                standard.contains("android:baselineAligned=\"false\"")
+                        && shortLayout.contains("android:baselineAligned=\"false\""));
+    }
+
     @Test public void mobileCopyStaysConcreteAndLocalized() throws IOException {
         String dashboard = Files.readString(findRepositoryRoot()
                 .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
