@@ -2622,20 +2622,22 @@ class BatteryDashboard extends View {
             drawHeart(c, 66, infoTop + 25, lime, .62f);
             text(c, "AKKUGESUNDHEIT", 90, infoTop + 29, 8, Color.rgb(115, 228, 216), true);
             displayText(c, health == 0 ? "Noch nicht gemessen" : health + "% · sehr gut",
-                    52, infoTop + 55, health == 0 ? 16 : 20, heroPrimary);
+                    52, infoTop + 53, health == 0 ? 16 : 20, heroPrimary);
             boundedText(c, health > 0 ? mahDisplay(estimatedCapacityMah()) + " von " + designCapacityDisplay()
                             : "Benchmark für deine Kapazität starten",
-                    52, infoRight - 18, infoTop + 71, 8, heroMuted, false);
-            line(c, 52, infoTop + 79, infoRight - 18, infoTop + 79,
+                    52, infoRight - 18, infoTop + 68, 8, heroMuted, false);
+            line(c, 52, infoTop + 76, infoRight - 18, infoTop + 76,
                     Color.argb(90, Color.red(lime), Color.green(lime), Color.blue(lime)), 1);
-            text(c, batteryRowLabel(), 52, infoTop + 95, 9, heroPrimary, true);
-            String compactDetection = charging ? (heroW < 230f ? chargerTypeDisplay() : chargerTypeDisplay() + " · automatisch")
-                    : (heroW < 230f ? "Automatisch erkannt" : "Akku automatisch erkannt");
+            text(c, batteryRowLabel(), 52, infoTop + 89, 9, heroPrimary, true);
+            // The footer is intentionally compact: show the real source name
+            // instead of appending a sentence that gets ellipsized to
+            // "Netz…" on a 320dp screen.
+            String compactDetection = charging ? chargerTypeDisplay() : "Auto";
             float statusRight = infoRight - 32f;
-            float currentLeft = Math.max(68f, statusRight - 76f);
-            boundedText(c, compactDetection, 144, currentLeft - 8f, infoTop + 95, 8, heroMuted, false);
+            float currentLeft = Math.max(68f, statusRight - 60f);
+            boundedText(c, compactDetection, 144, currentLeft - 8f, infoTop + 89, 8, heroMuted, false);
             boundedRightText(c, liveCurrentDisplay(), currentLeft, statusRight,
-                    infoTop + 95, 9, charging ? lime : blue, false);
+                    infoTop + 89, 9, charging ? lime : blue, false);
         } else {
             // Keep a clear vertical rhythm: the gauge ends before the
             // details/status rows begin. The previous 101-dp circle touched

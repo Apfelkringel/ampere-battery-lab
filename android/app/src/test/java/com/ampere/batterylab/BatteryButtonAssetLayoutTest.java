@@ -158,6 +158,9 @@ public class BatteryButtonAssetLayoutTest {
         assertTrue("compact health content must use a clear single reading order",
                 dashboard.contains("displayText(c, health == 0 ? \"Noch nicht gemessen\"")
                         && dashboard.contains("Benchmark für deine Kapazität starten"));
+        assertTrue("compact health footer must keep the real charger label readable",
+                dashboard.contains("String compactDetection = charging ? chargerTypeDisplay() : \"Auto\"")
+                        && dashboard.contains("float currentLeft = Math.max(68f, statusRight - 60f)"));
     }
 
     @Test public void dischargeEmptyStateUsesCompactReadableCopy() throws IOException {
