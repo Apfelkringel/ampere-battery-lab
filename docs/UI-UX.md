@@ -36,9 +36,10 @@ navigation derivatives increase the embedded label size and center the complete
 icon/text block for the compact 320 dp rail.
 
 Ampere Battery Lab uses a compact, data-first dashboard for battery readings.
-The visual system is intentionally calm and high-contrast: a dark/AMOLED mode
-for OLED screens, a light mode for bright environments, lime for healthy/live
-charging state, blue for neutral telemetry and amber for warnings or wear.
+The visual system is intentionally calm and high-contrast: one fixed deep-petrol
+surface keeps the product language consistent on every device, with turquoise
+for healthy/live charging state, blue for neutral telemetry and amber for
+warnings or wear.
 
 ## Responsive behavior
 

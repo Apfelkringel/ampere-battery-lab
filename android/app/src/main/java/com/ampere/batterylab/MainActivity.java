@@ -86,7 +86,7 @@ public class MainActivity extends Activity {
             "benchmarkChargeAddedMah", "benchmarkChargeStatsBaselineMah", "healthSampleSessionAt",
             "lastChargeHealthReason", "totalChargedMah", "chargeCycles", "cycleLastLevel",
             "dischargePercent", "deepSleepMs", "deepSleepClockElapsed", "deepSleepClockUptime", "samplingIntervalMin", "overlayEnabled", "historyDays",
-            "amoledTheme", "designCapacityMah", "tutorialShown", "lastBackupRequestAt",
+            "designCapacityMah", "tutorialShown", "lastBackupRequestAt",
             "chargeLastAt", "chargeLastCounterMah", "chargeLastLevel", "chargePlugged",
             "chargeScreenOffMah", "chargeScreenOffMs", "chargeScreenOffPercent", "chargeScreenOnMah",
             "chargeScreenOnMs", "chargeScreenOnPercent", "lastChargeDurationMin", "lastChargeEndAt",
@@ -556,7 +556,6 @@ class BatteryDashboard extends View {
     private final Bitmap[] navButtonArtwork = new Bitmap[5];
     private final Bitmap headerLiveArtwork;
     private final Bitmap headerOverflowArtwork;
-    private final Bitmap headerThemeArtwork;
     private final Bitmap actionActiveArtwork;
     private final Bitmap actionStartArtwork;
     private final Bitmap actionStartenArtwork;
@@ -599,7 +598,6 @@ class BatteryDashboard extends View {
     private final ArrayList<String> sessions = new ArrayList<>();
     private BatteryHealth.HealthReading healthReading = new BatteryHealth.HealthReading(0, 0, "");
     private boolean charging = false;
-    private boolean amoled = false;
     private boolean chargeAlarm = true;
     private int chargeLimit = 80;
     private boolean benchmarkActive = false;
@@ -643,7 +641,6 @@ class BatteryDashboard extends View {
         navButtonArtwork[4] = BitmapFactory.decodeResource(getResources(), R.drawable.ampere_nav_history);
         headerLiveArtwork = BitmapFactory.decodeResource(getResources(), R.drawable.ampere_header_live);
         headerOverflowArtwork = BitmapFactory.decodeResource(getResources(), R.drawable.ampere_header_overflow);
-        headerThemeArtwork = BitmapFactory.decodeResource(getResources(), R.drawable.ampere_header_theme);
         actionActiveArtwork = BitmapFactory.decodeResource(getResources(), R.drawable.ampere_action_active);
         actionStartArtwork = BitmapFactory.decodeResource(getResources(), R.drawable.ampere_action_start);
         actionStartenArtwork = BitmapFactory.decodeResource(getResources(), R.drawable.ampere_action_starten);
@@ -676,7 +673,7 @@ class BatteryDashboard extends View {
     void applySystemBarTheme() {
         Window window = ((Activity) getContext()).getWindow();
         lime = Color.rgb(53, 211, 200);
-        int surface = amoled ? Color.BLACK : Color.rgb(4, 52, 56);
+        int surface = Color.rgb(4, 52, 56);
         window.setStatusBarColor(surface);
         window.setNavigationBarColor(surface);
         window.getDecorView().setSystemUiVisibility(0);
@@ -929,7 +926,6 @@ class BatteryDashboard extends View {
         benchmarkActive = prefs.getBoolean("benchmarkActive", false);
         overlayEnabled = prefs.getBoolean("overlayEnabled", false) && (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(getContext()));
         historyDays = prefs.getInt("historyDays", 7) == 30 ? 30 : 7;
-        amoled = prefs.getBoolean("amoledTheme", false);
     }
 
     private int loadChargeLimit() {
@@ -1832,7 +1828,7 @@ class BatteryDashboard extends View {
     }
 
     private void showSettings() {
-        String[] options = {"Dunkles Design", "AMOLED-Schwarz", "Benachrichtigungen", "Temperaturwarnung", "Tiefstandwarnung", "Overlay-Berechtigung", "Daten & Datenschutz", "Sicherung & Wiederherstellung", "Hintergrundüberwachung", "Datenerfassung", "Nach Updates suchen", "Kurzanleitung", "Gesundheitsbasis zurücksetzen", "Lokale Daten löschen"};
+        String[] options = {"Benachrichtigungen", "Temperaturwarnung", "Tiefstandwarnung", "Overlay-Berechtigung", "Daten & Datenschutz", "Sicherung & Wiederherstellung", "Hintergrundüberwachung", "Datenerfassung", "Nach Updates suchen", "Kurzanleitung", "Gesundheitsbasis zurücksetzen", "Lokale Daten löschen"};
         LinearLayout titleBar = new LinearLayout(getContext());
         titleBar.setOrientation(LinearLayout.HORIZONTAL);
         titleBar.setGravity(Gravity.CENTER_VERTICAL);
@@ -1856,38 +1852,34 @@ class BatteryDashboard extends View {
         titleBar.addView(close, new LinearLayout.LayoutParams(closeSize, closeSize));
 
         AlertDialog dialog = new AlertDialog.Builder(getContext()).setCustomTitle(titleBar).setItems(options, (itemDialog, which) -> {
-            if (which == 0) { amoled = false; }
-            else if (which == 1) { amoled = true; }
-            else if (which == 2) {
+            if (which == 0) {
                 try {
                     Intent notificationSettings = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, getContext().getPackageName());
                     getContext().startActivity(notificationSettings);
                 } catch (Exception ignored) { }
-            } else if (which == 3) {
+            } else if (which == 1) {
                 showTemperatureAlarmSettings();
-            } else if (which == 4) {
+            } else if (which == 2) {
                 showDischargeAlarmSettings();
-            } else if (which == 5) {
+            } else if (which == 3) {
                 try { getContext().startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getContext().getPackageName()))); } catch (Exception ignored) { }
-            } else if (which == 6) {
+            } else if (which == 4) {
                 showDataPrivacy();
-            } else if (which == 7) {
+            } else if (which == 5) {
                 showBackupRestore();
-            } else if (which == 8) {
+            } else if (which == 6) {
                 requestBackgroundMonitoring();
-            } else if (which == 9) {
+            } else if (which == 7) {
                 showDataCollection();
-            } else if (which == 10) {
+            } else if (which == 8) {
                 UpdateChecker.checkNow((Activity) getContext());
-            } else if (which == 11) {
+            } else if (which == 9) {
                 showTutorial(true);
-            } else if (which == 12) {
+            } else if (which == 10) {
                 confirmResetHealthBaseline();
             } else {
                 confirmDeleteData();
             }
-            prefs.edit().remove("lightTheme").putBoolean("amoledTheme", amoled).apply();
-            applySystemBarTheme();
             invalidate();
         }).create();
         close.setOnClickListener(view -> dialog.dismiss());
@@ -2405,10 +2397,10 @@ class BatteryDashboard extends View {
         viewportWidthDp = visibleWindow.width() > 0 ? visibleWindow.width() / density : w;
         viewportHeightDp = visibleWindow.height() > 0 ? visibleWindow.height() / density : h;
         layoutWidthDp = w;
-        int bg = amoled ? Color.BLACK : Color.rgb(4, 52, 56);
-        int panel = amoled ? Color.rgb(3, 25, 27) : Color.rgb(6, 63, 68);
-        int raised = amoled ? Color.rgb(6, 49, 52) : Color.rgb(7, 86, 90);
-        int border = amoled ? Color.rgb(18, 76, 78) : Color.rgb(20, 114, 111);
+        int bg = Color.rgb(4, 52, 56);
+        int panel = Color.rgb(6, 63, 68);
+        int raised = Color.rgb(7, 86, 90);
+        int border = Color.rgb(20, 114, 111);
         int primary = Color.rgb(255, 247, 232);
         int muted = Color.rgb(184, 226, 219);
         int faint = Color.rgb(145, 196, 189);
@@ -2467,25 +2459,16 @@ class BatteryDashboard extends View {
         final float controlTop = 12f;
         final float controlBottom = 60f;
         if (w < 390f) {
-            // Keep the actions as two independent 48-dp controls. A shared
-            // capsule visually merged unrelated actions and made their
-            // outlines look misaligned on narrow phones.
+            // Keep the single settings action right-aligned on narrow phones.
             drawGeneratedButton(c, headerOverflowArtwork,
-                    w - 116, controlTop + 6, w - 68, controlBottom - 6,
-                    isPressed(1), false);
-            drawGeneratedButton(c, headerThemeArtwork,
                     w - 60, controlTop + 6, w - 12, controlBottom - 6,
-                    isPressed(2), false);
-        } else {
-            // Three equal controls use the same measured cell and gap as the
-            // narrow layout. Each icon and the LIVE label are centered inside
-            // its own surface, never across a neighboring button.
-            drawGeneratedButton(c, headerOverflowArtwork,
-                    w - 196, controlTop + 6, w - 148, controlBottom - 6,
                     isPressed(1), false);
-            drawGeneratedButton(c, headerThemeArtwork,
+        } else {
+            // Settings and live refresh keep the same measured cells as the
+            // narrow layout; there is no theme toggle in the fixed design.
+            drawGeneratedButton(c, headerOverflowArtwork,
                     w - 140, controlTop + 6, w - 92, controlBottom - 6,
-                    isPressed(2), false);
+                    isPressed(1), false);
             drawGeneratedButton(c, headerLiveArtwork,
                     w - 80, controlTop + 8, w - 16, controlBottom - 8,
                     isPressed(3), false);
@@ -4526,17 +4509,13 @@ class BatteryDashboard extends View {
 
     private boolean isVisibleVirtualView(int virtualViewId) {
         if (virtualViewId >= 10 && virtualViewId <= 14) return true;
-        if (virtualViewId == BatteryHeaderLayout.OVERFLOW
-                || virtualViewId == BatteryHeaderLayout.THEME) return true;
+        if (virtualViewId == BatteryHeaderLayout.OVERFLOW) return true;
         if (virtualViewId == BatteryHeaderLayout.LIVE_REFRESH) return getWidth() / density >= 390f;
         return BatteryAccessibilityLayout.isVisible(virtualViewId, page);
     }
 
     private String virtualViewLabel(int virtualViewId) {
         if (virtualViewId == BatteryHeaderLayout.OVERFLOW) return "Einstellungen";
-        if (virtualViewId == BatteryHeaderLayout.THEME) {
-            return amoled ? "Dunkles Design aktivieren" : "AMOLED-Schwarz aktivieren";
-        }
         if (virtualViewId == BatteryHeaderLayout.LIVE_REFRESH) return "Live-Daten aktualisieren";
         if (BatteryAccessibilityLayout.isVisible(virtualViewId, page)) {
             return BatteryAccessibilityLayout.label(virtualViewId, historyDays == 30,
@@ -4551,12 +4530,6 @@ class BatteryDashboard extends View {
     private Rect virtualViewBounds(int virtualViewId) {
         float w = getWidth() / density;
         if (virtualViewId == BatteryHeaderLayout.OVERFLOW) {
-            return new Rect(Math.round((w < 390f ? w - 116f : w - 196f) * density),
-                    Math.round(18f * density),
-                    Math.round((w < 390f ? w - 68f : w - 148f) * density),
-                    Math.round(54f * density));
-        }
-        if (virtualViewId == BatteryHeaderLayout.THEME) {
             return new Rect(Math.round((w < 390f ? w - 60f : w - 140f) * density),
                     Math.round(18f * density),
                     Math.round((w < 390f ? w - 12f : w - 92f) * density),
@@ -4602,12 +4575,6 @@ class BatteryDashboard extends View {
         hapticClick();
         if (virtualViewId == BatteryHeaderLayout.OVERFLOW) {
             showSettings();
-        } else if (virtualViewId == BatteryHeaderLayout.THEME) {
-            amoled = !amoled;
-            prefs.edit().remove("lightTheme").putBoolean("amoledTheme", amoled).apply();
-            applySystemBarTheme();
-            invalidate();
-            updateAccessibilitySummary();
         } else if (virtualViewId == BatteryHeaderLayout.LIVE_REFRESH) {
             Intent battery = ((Activity) getContext()).registerReceiver(
                     null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
@@ -4675,7 +4642,6 @@ class BatteryDashboard extends View {
                 BatteryDashboard.this.onInitializeAccessibilityNodeInfo(host);
                 for (int id = 10; id <= 14; id++) host.addChild(BatteryDashboard.this, id);
                 host.addChild(BatteryDashboard.this, BatteryHeaderLayout.OVERFLOW);
-                host.addChild(BatteryDashboard.this, BatteryHeaderLayout.THEME);
                 if (isVisibleVirtualView(BatteryHeaderLayout.LIVE_REFRESH)) {
                     host.addChild(BatteryDashboard.this, BatteryHeaderLayout.LIVE_REFRESH);
                 }
@@ -4884,7 +4850,6 @@ class BatteryDashboard extends View {
         fill(c, lime); c.drawCircle(u(cx + (float) Math.cos(angle) * radius), u(cy + (float) Math.sin(angle) * radius), u(5), p);
     }
     private void drawBolt(Canvas c, float cx, float cy, int color, float width) { Path b = new Path(); b.moveTo(u(cx + 3), u(cy - 12)); b.lineTo(u(cx - 6), u(cy + 1)); b.lineTo(u(cx), u(cy + 1)); b.lineTo(u(cx - 3), u(cy + 12)); b.lineTo(u(cx + 7), u(cy - 2)); b.lineTo(u(cx + 1), u(cy - 2)); b.close(); fill(c, color); c.drawPath(b, p); }
-    private void drawSun(Canvas c, float cx, float cy, int color) { stroke(c, color, 1.5f); c.drawCircle(u(cx), u(cy), u(4), p); for (int i=0; i<8; i++) { double a=i*Math.PI/4; line(c, cx+(float)Math.cos(a)*7, cy+(float)Math.sin(a)*7, cx+(float)Math.cos(a)*10, cy+(float)Math.sin(a)*10, color, 1.3f); } }
     private void drawHeart(Canvas c, float cx, float cy, int color) { drawHeart(c, cx, cy, color, 1f); }
     private void drawHeart(Canvas c, float cx, float cy, int color, float scale) {
         Path path = new Path();
@@ -4948,7 +4913,6 @@ class BatteryDashboard extends View {
         float w = getWidth() / density;
         int releasedHeader = BatteryHeaderLayout.actionAt(screenX, y, w);
         if (releasedRegion == BatteryHeaderLayout.OVERFLOW && releasedHeader == releasedRegion) { hapticClick(); showSettings(); return true; }
-        if (releasedRegion == BatteryHeaderLayout.THEME && releasedHeader == releasedRegion) { hapticClick(); amoled = !amoled; prefs.edit().remove("lightTheme").putBoolean("amoledTheme", amoled).apply(); applySystemBarTheme(); invalidate(); return true; }
         if (releasedRegion == BatteryHeaderLayout.LIVE_REFRESH && releasedHeader == releasedRegion) {
             // The LIVE control is an explicit refresh action: Android's
             // sticky battery broadcast is read immediately, so the user can
