@@ -46,6 +46,16 @@ public class BatteryButtonAssetLayoutTest {
         }
     }
 
+    @Test public void narrowHistoryUsesDedicatedVerticalSessionRows() throws IOException {
+        String dashboard = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
+                StandardCharsets.UTF_8);
+        assertTrue("320-dp history must not pack change and duration into one row",
+                dashboard.contains("drawCompactHistorySessionRow"));
+        assertTrue("history export needs a dedicated panel-bottom calculation",
+                dashboard.contains("historyPanelBottom"));
+    }
+
     private static int countOccurrences(String value, String needle) {
         int count = 0;
         int offset = 0;

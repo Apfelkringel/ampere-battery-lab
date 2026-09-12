@@ -714,10 +714,12 @@ class BatteryDashboard extends View {
             else if (page == 2) contentDp = 1900;
             else if (page == 3) contentDp = 1700;
             else if (page == 4 && sessions.isEmpty()) contentDp = 1050;
-            else if (page == 4) contentDp = Math.max(900, 600 + rowCount * 44);
+            else if (page == 4) contentDp = Math.max(900,
+                    650 + Math.round(rowCount * historyRowHeight()));
             else contentDp = 1320;
         } else {
-            contentDp = page == 4 ? Math.max(1320, 600 + rowCount * 44)
+            contentDp = page == 4 ? Math.max(1320,
+                    650 + Math.round(rowCount * historyRowHeight()))
                     : (page == 1 ? 1550 : (page == 3 ? 1500 : 1320));
         }
         int contentPx = Math.round(contentDp * density);
@@ -732,10 +734,20 @@ class BatteryDashboard extends View {
         boolean editorialPortrait = getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE
                 && getResources().getConfiguration().screenWidthDp < 600;
         if (editorialPortrait && sessions.isEmpty()) return 958;
+        return historyPanelBottom() - 58;
+    }
+
+    private float historyRowHeight() {
+        float width = getWidth() > 0 ? getWidth() / density
+                : getResources().getConfiguration().screenWidthDp;
+        return width < 390f ? 54f : 44f;
+    }
+
+    /** Leaves the diagnosis copy clear of the full-width export image button. */
+    private float historyPanelBottom() {
         int rowCount = Math.min(150, sessions.size());
-        float listBottom = 182 + 160 + rowCount * 44f;
-        float panelBottom = Math.max(182 + 610, listBottom + 250);
-        return panelBottom - 58;
+        float listBottom = 182 + 160 + rowCount * historyRowHeight();
+        return Math.max(182 + 610, listBottom + 300);
     }
 
     private float overviewChartTop() {
@@ -3939,8 +3951,10 @@ class BatteryDashboard extends View {
         }
         float y = 182;
         int rowCount = Math.min(150, sessions.size());
-        float listBottom = y + 160 + rowCount * 44f;
-        float panelBottom = Math.max(y + 610, listBottom + 250);
+        boolean compactHistory = w < 390f;
+        float rowHeight = compactHistory ? 54f : 44f;
+        float listBottom = y + 160 + rowCount * rowHeight;
+        float panelBottom = historyPanelBottom();
         rounded(c, 18, y, w - 18, panelBottom, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y), u(w - 18), u(panelBottom)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "VERLAUF", 36, y + 31, 10, muted, true);
         text(c, w < 340f ? "Sitzungsverlauf" : "Lade-/Entladesitzungen", 36, y + 61, w < 340f ? 19 : 20, primary, true);
@@ -3951,20 +3965,29 @@ class BatteryDashboard extends View {
             text(c, "Lass die Überwachung laufen, um", 36, y + 171, 10, muted, false);
             text(c, "lokale Verlaufseinträge zu erstellen.", 36, y + 189, 10, muted, false);
         } else {
-            text(c, "Datum", 36, y + 130, 9, faint, true);
-            text(c, "Typ", w * .53f, y + 130, 9, faint, true);
-            text(c, "Änderung", w * .71f, y + 130, 9, faint, true);
-            text(c, "Dauer", w - 75, y + 130, 9, faint, true);
+            if (compactHistory) {
+                text(c, "Sitzung", 36, y + 130, 9, faint, true);
+                rightText(c, "Änderung · Dauer", w - 36, y + 130, 9, faint, true);
+            } else {
+                text(c, "Datum", 36, y + 130, 9, faint, true);
+                text(c, "Typ", w * .53f, y + 130, 9, faint, true);
+                text(c, "Änderung", w * .71f, y + 130, 9, faint, true);
+                text(c, "Dauer", w - 75, y + 130, 9, faint, true);
+            }
             int row = 0;
             for (String session : sessions) {
                 String[] parts = session.split(",", -1);
                 if (parts.length < 4) continue;
-                float rowY = y + 160 + row * 44;
+                float rowY = y + 160 + row * rowHeight;
                 line(c, 36, rowY - 18, w - 36, rowY - 18, border, 1);
-                text(c, parts[3], 36, rowY, 9, muted, false);
-                text(c, sessionTypeDisplay(parts[0]), w * .53f, rowY, 9, parts[0].equals("Charge") ? lime : blue, true);
-                text(c, parts[1], w * .71f, rowY, 9, primary, true);
-                text(c, parts[2], w - 75, rowY, 9, faint, false);
+                if (compactHistory) {
+                    drawCompactHistorySessionRow(c, parts, w, rowY, primary, muted, faint);
+                } else {
+                    text(c, parts[3], 36, rowY, 9, muted, false);
+                    text(c, sessionTypeDisplay(parts[0]), w * .53f, rowY, 9, parts[0].equals("Charge") ? lime : blue, true);
+                    text(c, parts[1], w * .71f, rowY, 9, primary, true);
+                    text(c, parts[2], w - 75, rowY, 9, faint, false);
+                }
                 if (++row == rowCount) break;
             }
         }
@@ -3987,6 +4010,16 @@ class BatteryDashboard extends View {
         float exportTop = historyExportTop();
         drawGeneratedButton(c, actionCsvWideArtwork,
                 36, exportTop, w - 36, exportTop + 44, isPressed(40), false);
+    }
+
+    /** Narrow phones use two vertical metadata lanes instead of four squeezed columns. */
+    private void drawCompactHistorySessionRow(Canvas c, String[] parts, float w, float rowY,
+                                              int primary, int muted, int faint) {
+        text(c, parts[3], 36, rowY, 9, muted, false);
+        text(c, sessionTypeDisplay(parts[0]), 36, rowY + 17, 9,
+                parts[0].equals("Charge") ? lime : blue, true);
+        rightText(c, parts[1], w - 36, rowY, 9, primary, true);
+        rightText(c, parts[2], w - 36, rowY + 17, 9, faint, false);
     }
 
     private BatteryTelemetryDiagnostics.Summary telemetryDiagnostics() {
@@ -4943,8 +4976,10 @@ class BatteryDashboard extends View {
             return true;
         }
         int historyRows = Math.min(150, sessions.size());
-        if (page == 4 && y >= 342 && y < 342 + historyRows * 44f && x < bodyW - 145 && !sessions.isEmpty()) {
-            int index = (int) ((y - 342) / 44);
+        float historyRowHeight = historyRowHeight();
+        if (page == 4 && y >= 342 && y < 342 + historyRows * historyRowHeight
+                && x >= 36 && x <= bodyW - 36 && !sessions.isEmpty()) {
+            int index = (int) ((y - 342) / historyRowHeight);
             showSessionDetails(index);
             return true;
         }
