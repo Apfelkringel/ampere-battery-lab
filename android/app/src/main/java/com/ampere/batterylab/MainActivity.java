@@ -2338,16 +2338,20 @@ class BatteryDashboard extends View {
             if (bodyX <= contentWidth(w) - 58f) return BatteryAccessibilityLayout.OVERVIEW_7D;
             if (bodyX >= contentWidth(w) - 54f) return BatteryAccessibilityLayout.OVERVIEW_30D;
         }
-        float bodyX = x - contentInset(w);
-        float bodyW = contentWidth(w);
-        if (page == 1 && y > 350 && y < 420 && bodyX > bodyW - 130) return 20; // charge target
-        if (page == 1 && y >= 462 && y < 504 && bodyX >= 18 && bodyX <= bodyW - 18) return 21; // alarm
-        if (page == 1 && y >= 508 && y < 552 && bodyX >= 18 && bodyX <= bodyW - 18) return 22; // overlay
-        if (page == 3 && y > 700f && y < 815f
-                && bodyX >= bodyW - 216f && bodyX <= bodyW - 36f) return 30;
-        if (page == 4 && y >= historyExportTop() && y < historyExportTop() + 44f
-                && bodyX >= 36f && bodyX <= bodyW - 36f) return 40;
+        if (page == 1 && isWithinCanvasControl(BatteryAccessibilityLayout.CHARGE_LIMIT, x, y, w)) return 20;
+        if (page == 1 && isWithinCanvasControl(BatteryAccessibilityLayout.CHARGE_ALARM, x, y, w)) return 21;
+        if (page == 1 && isWithinCanvasControl(BatteryAccessibilityLayout.CHARGE_OVERLAY, x, y, w)) return 22;
+        if (page == 3 && isWithinCanvasControl(BatteryAccessibilityLayout.HEALTH_BENCHMARK, x, y, w)) return 30;
+        if (page == 4 && isWithinCanvasControl(BatteryAccessibilityLayout.HISTORY_EXPORT, x, y, w)) return 40;
         return 0;
+    }
+
+    /** Uses the renderer's own bounds so an invisible gutter can never act like a button. */
+    private boolean isWithinCanvasControl(int virtualViewId, float screenX, float y, float screenWidth) {
+        int[] bounds = BatteryAccessibilityLayout.bounds(virtualViewId,
+                contentInset(screenWidth), contentWidth(screenWidth), overviewChartTop(),
+                historyExportTop(), usesEditorialPortrait(screenWidth));
+        return screenX >= bounds[0] && screenX <= bounds[2] && y >= bounds[1] && y <= bounds[3];
     }
 
     private String fitText(String value, float maxWidthDp, float size, boolean bold) {
@@ -3276,8 +3280,8 @@ class BatteryDashboard extends View {
         text(c, healthMeasurementSource(), 36, y + 485, 9, primary, true);
         text(c, "Ampere-Vollzyklen: " + totalEquivalentCycles(), 36, y + 501, 8.8f, muted, false);
 
-        // Benchmark coordinates intentionally match the existing touch and
-        // accessibility regions (absolute y 700–815).
+        // The button bounds below are the shared source for drawing, touch,
+        // and accessibility, so the adjacent capacity card stays inert.
         drawEditorialSurface(c, 18, y + 518, w - 18, y + 633, panel, border, lime);
         rounded(c, 36, y + 537, 73, y + 574, 15,
                 Color.argb(light ? 30 : 42, Color.red(lime), Color.green(lime), Color.blue(lime)));
@@ -4914,7 +4918,7 @@ class BatteryDashboard extends View {
                 return true;
             }
         }
-        if (page == 1 && y >= 462 && y < 504 && x >= 18 && x <= bodyW - 18) {
+        if (page == 1 && isWithinCanvasControl(BatteryAccessibilityLayout.CHARGE_ALARM, screenX, y, w)) {
             hapticClick();
             chargeAlarm = !chargeAlarm;
             prefs.edit().putBoolean("chargeAlarm", chargeAlarm)
@@ -4927,13 +4931,13 @@ class BatteryDashboard extends View {
             invalidate();
             return true;
         }
-        if (page == 1 && y > 365 && y < 410 && x >= 36 && x <= bodyW - 36) {
+        if (page == 1 && isWithinCanvasControl(BatteryAccessibilityLayout.CHARGE_LIMIT, screenX, y, w)) {
             hapticClick();
             setChargeLimitFromAccessibility(
                     Math.round((x - 36) / (bodyW - 72) * 100));
             return true;
         }
-        if (page == 1 && y >= 508 && y < 552 && x >= 18 && x <= bodyW - 18) {
+        if (page == 1 && isWithinCanvasControl(BatteryAccessibilityLayout.CHARGE_OVERLAY, screenX, y, w)) {
             hapticClick();
             setOverlayEnabled(!overlayEnabled);
             return true;
@@ -4944,22 +4948,20 @@ class BatteryDashboard extends View {
             showSessionDetails(index);
             return true;
         }
-        if (page == 4 && y >= historyExportTop() && y < historyExportTop() + 44
-                && x >= 36 && x <= bodyW - 36) {
+        if (page == 4 && isWithinCanvasControl(BatteryAccessibilityLayout.HISTORY_EXPORT, screenX, y, w)) {
             hapticClick();
             exportHistory();
             return true;
         }
-        if (page == 3 && y > 700f && y < 815f
-                && x >= bodyW - 216f && x <= bodyW - 36f) {
+        if (page == 3 && isWithinCanvasControl(BatteryAccessibilityLayout.HEALTH_BENCHMARK, screenX, y, w)) {
             toggleBenchmark();
             return true;
         }
-        if (page == 3 && y > 815 && y < 890) {
+        if (page == 3 && isWithinCanvasControl(BatteryAccessibilityLayout.HEALTH_CAPACITY, screenX, y, w)) {
             editDesignCapacity();
             return true;
         }
-        if (page == 2 && y > 640 && y < 920) {
+        if (page == 2 && isWithinCanvasControl(BatteryAccessibilityLayout.DISCHARGE_USAGE, screenX, y, w)) {
             showAppUsageDetails();
             return true;
         }

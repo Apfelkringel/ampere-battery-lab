@@ -96,16 +96,16 @@ final class BatteryAccessibilityLayout {
                 bottom = overviewChartTop + 40f;
                 break;
             case CHARGE_ALARM:
-                left = bodyInset + bodyWidth - 145f;
+                left = bodyInset + (editorialPortrait ? 22f : 36f);
                 top = 462f;
-                right = bodyInset + bodyWidth - 30f;
-                bottom = 504f;
+                right = bodyInset + bodyWidth - (editorialPortrait ? 22f : 36f);
+                bottom = editorialPortrait ? 504f : 502f;
                 break;
             case CHARGE_OVERLAY:
-                left = bodyInset + bodyWidth - 145f;
+                left = bodyInset + (editorialPortrait ? 22f : 36f);
                 top = 508f;
-                right = bodyInset + bodyWidth - 30f;
-                bottom = 552f;
+                right = bodyInset + bodyWidth - (editorialPortrait ? 22f : 36f);
+                bottom = 548f;
                 break;
             case CHARGE_LIMIT:
                 left = bodyInset + 36f;
@@ -121,15 +121,15 @@ final class BatteryAccessibilityLayout {
                 break;
             case HEALTH_CAPACITY:
                 left = bodyInset + 18f;
-                top = 812f;
+                top = editorialPortrait ? 830f : 812f;
                 right = bodyInset + bodyWidth - 18f;
-                bottom = 882f;
+                bottom = editorialPortrait ? 890f : 879f;
                 break;
             case DISCHARGE_USAGE:
                 left = bodyInset + 18f;
-                top = 722f;
+                top = editorialPortrait ? 742f : 722f;
                 right = bodyInset + bodyWidth - 18f;
-                bottom = 897f;
+                bottom = editorialPortrait ? 917f : 897f;
                 break;
             case HISTORY_EXPORT:
                 left = bodyInset + 36f;

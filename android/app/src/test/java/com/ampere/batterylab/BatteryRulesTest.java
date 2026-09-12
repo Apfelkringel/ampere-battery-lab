@@ -109,6 +109,22 @@ public class BatteryRulesTest {
         assertEquals(776, wide[3]);
     }
 
+    @Test public void chargingControlBoundsMatchTheirVisibleRows() {
+        int[] editorialAlarm = BatteryAccessibilityLayout.bounds(
+                BatteryAccessibilityLayout.CHARGE_ALARM, 0f, 320f, 0f, 0f, true);
+        assertEquals(22, editorialAlarm[0]);
+        assertEquals(462, editorialAlarm[1]);
+        assertEquals(298, editorialAlarm[2]);
+        assertEquals(504, editorialAlarm[3]);
+
+        int[] wideOverlay = BatteryAccessibilityLayout.bounds(
+                BatteryAccessibilityLayout.CHARGE_OVERLAY, 0f, 600f, 0f, 0f, false);
+        assertEquals(36, wideOverlay[0]);
+        assertEquals(508, wideOverlay[1]);
+        assertEquals(564, wideOverlay[2]);
+        assertEquals(548, wideOverlay[3]);
+    }
+
     @Test public void rangeTapSelectsItsOwnRangeInsteadOfTogglingTheOtherOne() {
         assertEquals(7, BatteryAccessibilityLayout.historyDaysForControl(
                 BatteryAccessibilityLayout.OVERVIEW_7D, 30));
