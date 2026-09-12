@@ -205,6 +205,20 @@ public class BatteryButtonAssetLayoutTest {
                         && !dashboard.contains("rounded(c, l + 9f, t + 10f"));
     }
 
+    @Test public void mobileCopyStaysConcreteAndLocalized() throws IOException {
+        String dashboard = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
+                StandardCharsets.UTF_8);
+        assertTrue("charging status must explain the alarm without implying a forced stop",
+                dashboard.contains("Alarm bei \" + chargeLimit + \" % · kein Ladestopp"));
+        assertTrue("health measurement callout must name the concrete action",
+                dashboard.contains("Kapazität messen"));
+        assertTrue("technical analysis heading must remain in the app language",
+                dashboard.contains("DETAILANALYSE") && !dashboard.contains("DEEP ANALYSIS"));
+        assertTrue("cycle labels must be understandable without English jargon",
+                dashboard.contains("Systemzyklen") && dashboard.contains("Vollzyklen (EFC)"));
+    }
+
     private static int countOccurrences(String value, String needle) {
         int count = 0;
         int offset = 0;

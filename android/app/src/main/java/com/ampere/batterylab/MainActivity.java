@@ -3084,7 +3084,7 @@ class BatteryDashboard extends View {
         drawBolt(c, 52, y + 232, lime, .65f);
         boundedText(c, BatteryChargePresentation.status(level, chargeLimit, charging, timeToLimit()),
                 68, w - 46, y + 229, 9.2f, cream, true);
-        boundedText(c, "Alarmziel · Ampere stoppt den Ladevorgang nicht",
+        boundedText(c, "Alarm bei " + chargeLimit + " % · kein Ladestopp",
                 68, w - 46, y + 244, 8.3f, Color.rgb(184, 226, 219), false);
 
         // One calm settings group replaces two competing system-like boxes.
@@ -3226,7 +3226,7 @@ class BatteryDashboard extends View {
 
         float analysisTop = liveTop + 372;
         drawTechnicalPanel(c, 18, analysisTop, w - 18, analysisTop + 356,
-                "DEEP ANALYSIS", "Zeit, Ladung und Ruhephasen", panel, border, primary, muted);
+                "DETAILANALYSE", "Zeit, Ladung und Ruhephasen", panel, border, primary, muted);
         row = analysisTop + 66;
         drawTechnicalRow(c, 36, w - 36, row, "Verbrauchte Ladung", dischargeMah() > 0 ? dischargeMah() + " mAh" : "Noch offen", "BERECHNET", primary, muted, border);
         drawTechnicalRow(c, 36, w - 36, row + 48, "Verbrauchte Energie", dischargeEnergyWhDisplay(), "BERECHNET", primary, muted, border);
@@ -3253,7 +3253,8 @@ class BatteryDashboard extends View {
         drawEditorialSurface(c, 18, y, w - 18, y + 294, deep, Color.rgb(11, 143, 138), lime);
         text(c, "AKKUGESUNDHEIT", 36, y + 29, 9f, lime, true);
         if (health > 0) {
-            displayText(c, "Dein Akku fühlt sich gut.", 36, y + 58, 17, cream);
+            displayText(c, "Dein Akku ist", 36, y + 58, 17, cream);
+            displayText(c, healthGradeLabel(health) + ".", 36, y + 80, 18, cream);
         } else {
             displayText(c, "Lernen braucht", 36, y + 58, 19, cream);
             displayText(c, "ein wenig Zeit.", 36, y + 80, 19, cream);
@@ -3310,7 +3311,7 @@ class BatteryDashboard extends View {
         rounded(c, 36, y + 537, 73, y + 574, 15,
                 Color.argb(42, Color.red(lime), Color.green(lime), Color.blue(lime)));
         drawHeart(c, 54.5f, y + 555.5f, lime, .65f);
-        displayText(c, benchmarkActive ? "Benchmark läuft." : "Einmal richtig kennenlernen.",
+        displayText(c, benchmarkActive ? "Benchmark läuft." : "Kapazität messen",
                 36, y + 596, benchmarkActive ? 18 : 16, primary);
         text(c, benchmarkActive ? "Zum Abschluss über 95% laden." : "Unter 25% starten, dann in Ruhe vollladen.",
                 36, y + 616, 8, muted, false);
@@ -3341,8 +3342,8 @@ class BatteryDashboard extends View {
         drawTechnicalPanel(c, 18, cyclesTop, w - 18, cyclesTop + 260,
                 "ZYKLEN & THERMIK", "Zyklen sauber getrennt", panel, border, primary, muted);
         row = cyclesTop + 66;
-        drawTechnicalRow(c, 36, w - 36, row, "System-Cycle-Count", chargeCyclesDisplay(), "SYSTEM", primary, muted, border);
-        drawTechnicalRow(c, 36, w - 36, row + 48, "Equivalent Full Cycles", totalEquivalentCycles(), "BERECHNET", primary, muted, border);
+        drawTechnicalRow(c, 36, w - 36, row, "Systemzyklen", chargeCyclesDisplay(), "SYSTEM", primary, muted, border);
+        drawTechnicalRow(c, 36, w - 36, row + 48, "Vollzyklen (EFC)", totalEquivalentCycles(), "BERECHNET", primary, muted, border);
         drawTechnicalRow(c, 36, w - 36, row + 96, "Gesamt geladen", totalChargedMah() > 0 ? totalChargedMah() + " mAh" : "Noch offen", "BERECHNET", primary, muted, border);
         drawTechnicalRow(c, 36, w - 36, row + 144, "Temperatur Min / Ø / Max", temperatureRangeDisplay(diagnostics), "BERECHNET", primary, muted, border);
     }
