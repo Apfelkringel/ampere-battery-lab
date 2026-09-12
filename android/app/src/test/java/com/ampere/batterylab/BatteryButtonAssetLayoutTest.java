@@ -150,7 +150,7 @@ public class BatteryButtonAssetLayoutTest {
                 StandardCharsets.UTF_8);
         assertTrue("compact health card must use a centered right edge",
                 dashboard.contains("float infoRight = 18 + heroW - 18")
-                        && dashboard.contains("rounded(c, 36, infoTop, infoRight, top + 392"));
+                        && dashboard.contains("rounded(c, 36, infoTop, infoRight, top + 408"));
         assertTrue("compact health card must use a semantic health icon",
                 dashboard.contains("drawHeart(c, 66, infoTop + 24, lime, .62f)"));
         assertTrue("compact health content must use a clear single reading order",
@@ -217,6 +217,18 @@ public class BatteryButtonAssetLayoutTest {
         assertTrue("horizontal widget roots must not use baseline alignment",
                 standard.contains("android:baselineAligned=\"false\"")
                         && shortLayout.contains("android:baselineAligned=\"false\""));
+    }
+
+    @Test public void metricIconsMatchTheirMeaning() throws IOException {
+        String dashboard = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
+                StandardCharsets.UTF_8);
+        assertTrue("system cycle metrics must use a grid icon, not a health heart",
+                dashboard.contains("\"Systemzyklen\", chargeCyclesDisplay(), \"von Android gemeldet\", \"grid\""));
+        assertTrue("deep-sleep metrics must use a sleep icon",
+                dashboard.contains("\"nach erster Sitzung\", \"moon\""));
+        assertTrue("the sleep icon must be implemented in both metric layouts",
+                dashboard.contains("else if (icon.equals(\"moon\")) drawMoon"));
     }
 
     @Test public void mobileCopyStaysConcreteAndLocalized() throws IOException {

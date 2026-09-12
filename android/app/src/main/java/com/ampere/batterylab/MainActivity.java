@@ -2628,10 +2628,13 @@ class BatteryDashboard extends View {
             // Health is its own compact information module. Charging source,
             // current and plug type belong to the charging screen, not here.
             float infoRight = 18 + heroW - 18;
-            rounded(c, 36, infoTop, infoRight, top + 392, 20,
+            // Leave a real lower breathing zone for the final metric row;
+            // the previous edge ended above the text baseline on compact
+            // phones, making "Verschleiß" appear outside its card.
+            rounded(c, 36, infoTop, infoRight, top + 408, 20,
                     Color.rgb(7, 86, 90));
             stroke(c, Color.argb(92, Color.red(lime), Color.green(lime), Color.blue(lime)), .8f);
-            rect.set(u(36), u(infoTop), u(infoRight), u(top + 392));
+            rect.set(u(36), u(infoTop), u(infoRight), u(top + 408));
             c.drawRoundRect(rect, u(20), u(20), p);
             rounded(c, 52, infoTop + 10, 80, infoTop + 38, 12,
                     Color.argb(42, Color.red(lime), Color.green(lime), Color.blue(lime)));
@@ -3253,8 +3256,8 @@ class BatteryDashboard extends View {
         drawEditorialSurface(c, 18, y, w - 18, y + 294, deep, Color.rgb(11, 143, 138), lime);
         text(c, "AKKUGESUNDHEIT", 36, y + 29, 9f, lime, true);
         if (health > 0) {
-            displayText(c, "Dein Akku ist", 36, y + 58, 17, cream);
-            displayText(c, healthGradeLabel(health) + ".", 36, y + 80, 18, cream);
+            displayText(c, "Akkuzustand", 36, y + 58, 17, cream);
+            displayText(c, healthGradeLabel(health), 36, y + 80, 18, cream);
         } else {
             displayText(c, "Lernen braucht", 36, y + 58, 19, cream);
             displayText(c, "ein wenig Zeit.", 36, y + 80, 19, cream);
@@ -3297,7 +3300,7 @@ class BatteryDashboard extends View {
                 "Akkuspannung", voltage > 0 ? voltageDisplay() + " V" : "Wird gemessen",
                 isProbablyEmulator() ? "Android-Testwert" : "Android-Akkusensor", "bolt", panel, border, primary, muted);
         drawFriendlyMetric(c, 30 + cardW, y + 310, w - 18, y + 422,
-                "Systemzyklen", chargeCyclesDisplay(), "von Android gemeldet", "heart",
+                "Systemzyklen", chargeCyclesDisplay(), "von Android gemeldet", "grid",
                 panel, border, primary, muted);
 
         drawEditorialSurface(c, 18, y + 438, w - 18, y + 510, panel, border, lime);
@@ -3385,7 +3388,7 @@ class BatteryDashboard extends View {
                 panel, border, primary, muted);
         drawFriendlyMetric(c, 30 + cardW, y + 302, w - 18, y + 414,
                 "Tiefschlaf", "—".equals(deepSleepTime()) ? "Nicht verfügbar" : deepSleepTime(),
-                "nach erster Sitzung", "heart",
+                "nach erster Sitzung", "moon",
                 panel, border, primary, muted);
 
         drawEditorialSurface(c, 18, y + 430, w - 18, y + 535, panel, border, lime);
@@ -4232,7 +4235,7 @@ class BatteryDashboard extends View {
             // compact card content instead of letting icon, label and value
             // compete for the same horizontal row.
             rounded(c, x + 10, y + 12, x + 38, y + 40, 8, Color.argb(28, Color.red(accent), Color.green(accent), Color.blue(accent)));
-            if (icon.equals("bolt")) drawBolt(c, x + 24, y + 26, accent, .65f); else if (icon.equals("temp")) drawThermometer(c, x + 24, y + 26, accent); else if (icon.equals("heart")) drawHeart(c, x + 24, y + 26, accent); else if (icon.equals("arrow")) drawArrow(c, x + 24, y + 26, accent); else if (icon.equals("grid")) drawGrid(c, x + 24, y + 26, accent); else drawClock(c, x + 24, y + 26, accent);
+            if (icon.equals("bolt")) drawBolt(c, x + 24, y + 26, accent, .65f); else if (icon.equals("temp")) drawThermometer(c, x + 24, y + 26, accent); else if (icon.equals("heart")) drawHeart(c, x + 24, y + 26, accent); else if (icon.equals("arrow")) drawArrow(c, x + 24, y + 26, accent); else if (icon.equals("grid")) drawGrid(c, x + 24, y + 26, accent); else if (icon.equals("moon")) drawMoon(c, x + 24, y + 26, accent); else drawClock(c, x + 24, y + 26, accent);
             String compactLabel = label.replace("Akkugesundheit", "Gesundheit")
                     .replace("Akkutemperatur", "Temperatur")
                     .replace("Bildschirmzeit", "Screenzeit")
@@ -4250,7 +4253,7 @@ class BatteryDashboard extends View {
             return;
         }
         rounded(c, x + 15, y + 16, x + 45, y + 46, 8, Color.argb(28, Color.red(accent), Color.green(accent), Color.blue(accent)));
-        if (icon.equals("bolt")) drawBolt(c, x + 30, y + 31, accent, .7f); else if (icon.equals("temp")) drawThermometer(c, x + 30, y + 31, accent); else if (icon.equals("heart")) drawHeart(c, x + 30, y + 31, accent); else if (icon.equals("arrow")) drawArrow(c, x + 30, y + 31, accent); else if (icon.equals("grid")) drawGrid(c, x + 30, y + 31, accent); else drawClock(c, x + 30, y + 31, accent);
+        if (icon.equals("bolt")) drawBolt(c, x + 30, y + 31, accent, .7f); else if (icon.equals("temp")) drawThermometer(c, x + 30, y + 31, accent); else if (icon.equals("heart")) drawHeart(c, x + 30, y + 31, accent); else if (icon.equals("arrow")) drawArrow(c, x + 30, y + 31, accent); else if (icon.equals("grid")) drawGrid(c, x + 30, y + 31, accent); else if (icon.equals("moon")) drawMoon(c, x + 30, y + 31, accent); else drawClock(c, x + 30, y + 31, accent);
         boundedText(c, label, x + 58, x + width - 12, y + 30, 10, muted, false);
         type(10, muted, false);
         float unitWidth = unit.isEmpty() ? 0f : p.measureText(unit) / density + 4f;
@@ -4883,6 +4886,14 @@ class BatteryDashboard extends View {
         path.moveTo(u(cx), u(cy + 8f * scale));
         path.cubicTo(u(cx - 16f * scale), u(cy - 2f * scale), u(cx - 9f * scale), u(cy - 11f * scale), u(cx), u(cy - 5f * scale));
         path.cubicTo(u(cx + 9f * scale), u(cy - 11f * scale), u(cx + 16f * scale), u(cy - 2f * scale), u(cx), u(cy + 8f * scale));
+        stroke(c, color, 1.7f);
+        c.drawPath(path, p);
+    }
+    private void drawMoon(Canvas c, float cx, float cy, int color) {
+        Path path = new Path();
+        path.moveTo(u(cx + 5.5f), u(cy - 9f));
+        path.cubicTo(u(cx - 6f), u(cy - 7f), u(cx - 7f), u(cy + 7f), u(cx + 5.5f), u(cy + 9f));
+        path.cubicTo(u(cx - 1f), u(cy + 4f), u(cx - 1f), u(cy - 4f), u(cx + 5.5f), u(cy - 9f));
         stroke(c, color, 1.7f);
         c.drawPath(path, p);
     }
