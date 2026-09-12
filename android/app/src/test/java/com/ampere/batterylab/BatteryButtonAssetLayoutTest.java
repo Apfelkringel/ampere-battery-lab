@@ -94,6 +94,18 @@ public class BatteryButtonAssetLayoutTest {
                 !dashboard.contains("text(c, parts[2], w - 75"));
     }
 
+    @Test public void whiteThemeIsNotExposedOrReachable() throws IOException {
+        String dashboard = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
+                StandardCharsets.UTF_8);
+        assertTrue("settings must not offer a white theme",
+                !dashboard.contains("Helles Design"));
+        assertTrue("theme button must never enable the white theme",
+                !dashboard.contains("light = true"));
+        assertTrue("theme button should only toggle AMOLED against the dark theme",
+                dashboard.contains("amoled = !amoled"));
+    }
+
     private static int countOccurrences(String value, String needle) {
         int count = 0;
         int offset = 0;

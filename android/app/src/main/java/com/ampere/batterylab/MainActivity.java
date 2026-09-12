@@ -85,7 +85,7 @@ public class MainActivity extends Activity {
             "benchmarkStartLevel", "benchmarkStartCounterMah", "benchmarkChargeLastCounterMah",
             "benchmarkChargeAddedMah", "benchmarkChargeStatsBaselineMah", "healthSampleSessionAt",
             "lastChargeHealthReason", "totalChargedMah", "chargeCycles", "cycleLastLevel",
-            "dischargePercent", "deepSleepMs", "deepSleepClockElapsed", "deepSleepClockUptime", "samplingIntervalMin", "overlayEnabled", "historyDays", "lightTheme",
+            "dischargePercent", "deepSleepMs", "deepSleepClockElapsed", "deepSleepClockUptime", "samplingIntervalMin", "overlayEnabled", "historyDays",
             "amoledTheme", "designCapacityMah", "tutorialShown", "lastBackupRequestAt",
             "chargeLastAt", "chargeLastCounterMah", "chargeLastLevel", "chargePlugged",
             "chargeScreenOffMah", "chargeScreenOffMs", "chargeScreenOffPercent", "chargeScreenOnMah",
@@ -599,7 +599,6 @@ class BatteryDashboard extends View {
     private final ArrayList<String> sessions = new ArrayList<>();
     private BatteryHealth.HealthReading healthReading = new BatteryHealth.HealthReading(0, 0, "");
     private boolean charging = false;
-    private boolean light = false;
     private boolean amoled = false;
     private boolean chargeAlarm = true;
     private int chargeLimit = 80;
@@ -623,8 +622,8 @@ class BatteryDashboard extends View {
     private float viewportWidthDp;
     private float viewportHeightDp;
     // The reference language uses one assertive accent. Ampere uses a
-    // blue-green signal instead of the old yellow-green, with a darker
-    // accessible tone in light mode and a luminous tone on dark surfaces.
+    // blue-green signal instead of the old yellow-green, with a dark-surface
+    // accessible tone and a luminous accent.
     private int lime = Color.rgb(53, 211, 200);
     private final int blue = Color.rgb(115, 228, 216);
     private final int amber = Color.rgb(38, 169, 160);
@@ -676,16 +675,11 @@ class BatteryDashboard extends View {
 
     void applySystemBarTheme() {
         Window window = ((Activity) getContext()).getWindow();
-        lime = light ? Color.rgb(8, 143, 138) : Color.rgb(53, 211, 200);
-        int surface = light ? Color.rgb(255, 249, 238) : (amoled ? Color.BLACK : Color.rgb(4, 52, 56));
+        lime = Color.rgb(53, 211, 200);
+        int surface = amoled ? Color.BLACK : Color.rgb(4, 52, 56);
         window.setStatusBarColor(surface);
         window.setNavigationBarColor(surface);
-        int flags = 0;
-        if (light) {
-            flags |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
-            if (Build.VERSION.SDK_INT >= 26) flags |= View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
-        }
-        window.getDecorView().setSystemUiVisibility(flags);
+        window.getDecorView().setSystemUiVisibility(0);
     }
 
     void reloadStoredData() {
@@ -935,7 +929,6 @@ class BatteryDashboard extends View {
         benchmarkActive = prefs.getBoolean("benchmarkActive", false);
         overlayEnabled = prefs.getBoolean("overlayEnabled", false) && (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(getContext()));
         historyDays = prefs.getInt("historyDays", 7) == 30 ? 30 : 7;
-        light = prefs.getBoolean("lightTheme", false);
         amoled = prefs.getBoolean("amoledTheme", false);
     }
 
@@ -1839,7 +1832,7 @@ class BatteryDashboard extends View {
     }
 
     private void showSettings() {
-        String[] options = {"Dunkles Design", "AMOLED-Schwarz", "Helles Design", "Benachrichtigungen", "Temperaturwarnung", "Tiefstandwarnung", "Overlay-Berechtigung", "Daten & Datenschutz", "Sicherung & Wiederherstellung", "Hintergrundüberwachung", "Datenerfassung", "Nach Updates suchen", "Kurzanleitung", "Gesundheitsbasis zurücksetzen", "Lokale Daten löschen"};
+        String[] options = {"Dunkles Design", "AMOLED-Schwarz", "Benachrichtigungen", "Temperaturwarnung", "Tiefstandwarnung", "Overlay-Berechtigung", "Daten & Datenschutz", "Sicherung & Wiederherstellung", "Hintergrundüberwachung", "Datenerfassung", "Nach Updates suchen", "Kurzanleitung", "Gesundheitsbasis zurücksetzen", "Lokale Daten löschen"};
         LinearLayout titleBar = new LinearLayout(getContext());
         titleBar.setOrientation(LinearLayout.HORIZONTAL);
         titleBar.setGravity(Gravity.CENTER_VERTICAL);
@@ -1849,7 +1842,7 @@ class BatteryDashboard extends View {
         TextView title = new TextView(getContext());
         title.setText("Einstellungen");
         title.setTextSize(20);
-        title.setTextColor(light ? Color.rgb(25, 32, 28) : Color.WHITE);
+        title.setTextColor(Color.WHITE);
         title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
         titleBar.addView(title, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
 
@@ -1857,44 +1850,43 @@ class BatteryDashboard extends View {
         close.setText("×");
         close.setTextSize(30);
         close.setGravity(Gravity.CENTER);
-        close.setTextColor(light ? Color.rgb(25, 32, 28) : Color.WHITE);
+        close.setTextColor(Color.WHITE);
         close.setContentDescription("Einstellungen schließen");
         int closeSize = Math.round(48 * density);
         titleBar.addView(close, new LinearLayout.LayoutParams(closeSize, closeSize));
 
         AlertDialog dialog = new AlertDialog.Builder(getContext()).setCustomTitle(titleBar).setItems(options, (itemDialog, which) -> {
-            if (which == 0) { light = false; amoled = false; }
-            else if (which == 1) { light = false; amoled = true; }
-            else if (which == 2) { light = true; amoled = false; }
-            else if (which == 3) {
+            if (which == 0) { amoled = false; }
+            else if (which == 1) { amoled = true; }
+            else if (which == 2) {
                 try {
                     Intent notificationSettings = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, getContext().getPackageName());
                     getContext().startActivity(notificationSettings);
                 } catch (Exception ignored) { }
-            } else if (which == 4) {
+            } else if (which == 3) {
                 showTemperatureAlarmSettings();
-            } else if (which == 5) {
+            } else if (which == 4) {
                 showDischargeAlarmSettings();
-            } else if (which == 6) {
+            } else if (which == 5) {
                 try { getContext().startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getContext().getPackageName()))); } catch (Exception ignored) { }
-            } else if (which == 7) {
+            } else if (which == 6) {
                 showDataPrivacy();
-            } else if (which == 8) {
+            } else if (which == 7) {
                 showBackupRestore();
-            } else if (which == 9) {
+            } else if (which == 8) {
                 requestBackgroundMonitoring();
-            } else if (which == 10) {
+            } else if (which == 9) {
                 showDataCollection();
-            } else if (which == 11) {
+            } else if (which == 10) {
                 UpdateChecker.checkNow((Activity) getContext());
-            } else if (which == 12) {
+            } else if (which == 11) {
                 showTutorial(true);
-            } else if (which == 13) {
+            } else if (which == 12) {
                 confirmResetHealthBaseline();
             } else {
                 confirmDeleteData();
             }
-            prefs.edit().putBoolean("lightTheme", light).putBoolean("amoledTheme", amoled).apply();
+            prefs.edit().remove("lightTheme").putBoolean("amoledTheme", amoled).apply();
             applySystemBarTheme();
             invalidate();
         }).create();
@@ -2256,7 +2248,7 @@ class BatteryDashboard extends View {
         float keyRadius = Math.max(8f, radius);
         int edge = selected
                 ? mixColor(accentColor, Color.rgb(3, 45, 49), .48f)
-                : mixColor(borderColor, Color.rgb(3, 38, 42), light ? .18f : .44f);
+                : mixColor(borderColor, Color.rgb(3, 38, 42), .44f);
         // The two-dp lower face makes the key feel tappable without generic
         // gloss, glow or a floating pill shadow.
         rounded(c, left, top + (pressed ? 1f : 2f), right, bottom + (pressed ? 0f : 2f),
@@ -2287,8 +2279,8 @@ class BatteryDashboard extends View {
         rightText(c, status, r - 56, t + (b - t) / 2f + 4f, 9, buttonMuted, false);
         float switchLeft = r - 48f;
         float switchTop = t + (b - t - 24f) / 2f;
-        int trackTop = enabled ? mixColor(lime, Color.rgb(7, 24, 30), .18f) : mixColor(border, Color.WHITE, light ? .08f : .04f);
-        int trackBottom = enabled ? mixColor(lime, Color.rgb(7, 24, 30), .38f) : mixColor(border, Color.rgb(7, 24, 30), light ? .03f : .14f);
+        int trackTop = enabled ? mixColor(lime, Color.rgb(7, 24, 30), .18f) : mixColor(border, Color.WHITE, .04f);
+        int trackBottom = enabled ? mixColor(lime, Color.rgb(7, 24, 30), .38f) : mixColor(border, Color.rgb(7, 24, 30), .14f);
         gradientRounded(c, switchLeft, switchTop, r - 12f, switchTop + 24f, 12, trackTop, trackBottom);
         stroke(c, enabled ? mixColor(lime, Color.rgb(7, 24, 30), .44f) : border, .8f);
         rect.set(u(switchLeft), u(switchTop), u(r - 12f), u(switchTop + 24f));
@@ -2296,7 +2288,7 @@ class BatteryDashboard extends View {
         fill(c, enabled ? Color.WHITE : muted);
         c.drawCircle(u(enabled ? r - 24f : switchLeft + 12f),
                 u(switchTop + 12f), u(8f), p);
-        fill(c, Color.argb(light ? 135 : 85, 255, 255, 255));
+        fill(c, Color.argb(85, 255, 255, 255));
         c.drawCircle(u(enabled ? r - 26f : switchLeft + 10f), u(switchTop + 9f), u(2.2f), p);
     }
 
@@ -2331,13 +2323,13 @@ class BatteryDashboard extends View {
 
     private int pressedFill(int base, boolean pressed) {
         if (!pressed) return base;
-        return Color.argb(light ? 34 : 46, Color.red(lime), Color.green(lime), Color.blue(lime));
+        return Color.argb(46, Color.red(lime), Color.green(lime), Color.blue(lime));
     }
 
     private boolean isPressed(int region) { return pressedRegion == region; }
 
     private int accentForeground() {
-        return light ? Color.WHITE : Color.rgb(5, 35, 38);
+        return Color.rgb(5, 35, 38);
     }
 
     private int pressedRegionAt(float x, float y, float w) {
@@ -2413,13 +2405,13 @@ class BatteryDashboard extends View {
         viewportWidthDp = visibleWindow.width() > 0 ? visibleWindow.width() / density : w;
         viewportHeightDp = visibleWindow.height() > 0 ? visibleWindow.height() / density : h;
         layoutWidthDp = w;
-        int bg = light ? Color.rgb(255, 249, 238) : (amoled ? Color.BLACK : Color.rgb(4, 52, 56));
-        int panel = light ? Color.rgb(255, 253, 247) : (amoled ? Color.rgb(3, 25, 27) : Color.rgb(6, 63, 68));
-        int raised = light ? Color.rgb(215, 245, 239) : (amoled ? Color.rgb(6, 49, 52) : Color.rgb(7, 86, 90));
-        int border = light ? Color.rgb(195, 231, 223) : (amoled ? Color.rgb(18, 76, 78) : Color.rgb(20, 114, 111));
-        int primary = light ? Color.rgb(6, 63, 68) : Color.rgb(255, 247, 232);
-        int muted = light ? Color.rgb(65, 108, 105) : Color.rgb(184, 226, 219);
-        int faint = light ? Color.rgb(91, 132, 128) : Color.rgb(145, 196, 189);
+        int bg = amoled ? Color.BLACK : Color.rgb(4, 52, 56);
+        int panel = amoled ? Color.rgb(3, 25, 27) : Color.rgb(6, 63, 68);
+        int raised = amoled ? Color.rgb(6, 49, 52) : Color.rgb(7, 86, 90);
+        int border = amoled ? Color.rgb(18, 76, 78) : Color.rgb(20, 114, 111);
+        int primary = Color.rgb(255, 247, 232);
+        int muted = Color.rgb(184, 226, 219);
+        int faint = Color.rgb(145, 196, 189);
         fill(c, bg); c.drawRect(0, 0, getWidth(), getHeight(), p);
 
         drawHeader(c, w, primary, muted, border, panel);
@@ -2896,7 +2888,7 @@ class BatteryDashboard extends View {
                                     int panel, int border, int primary, int muted) {
         secondaryFrame(c, l, t, r, b, panel, border, lime);
         rounded(c, l + 14, t + 14, l + 45, t + 45, 13,
-                Color.argb(light ? 32 : 42, Color.red(lime), Color.green(lime), Color.blue(lime)));
+                Color.argb(42, Color.red(lime), Color.green(lime), Color.blue(lime)));
         if ("temp".equals(glyph)) drawThermometer(c, l + 29.5f, t + 29.5f, lime);
         else if ("clock".equals(glyph)) drawClock(c, l + 29.5f, t + 29.5f, lime);
         else if ("heart".equals(glyph)) drawHeart(c, l + 29.5f, t + 29.5f, lime, .65f);
@@ -2911,18 +2903,18 @@ class BatteryDashboard extends View {
                                        String label, String caption, boolean enabled, boolean pressed,
                                        int primary, int muted) {
         int rowFill = pressed
-                ? Color.argb(light ? 30 : 40, Color.red(lime), Color.green(lime), Color.blue(lime))
+                ? Color.argb(40, Color.red(lime), Color.green(lime), Color.blue(lime))
                 : Color.TRANSPARENT;
         if (rowFill != Color.TRANSPARENT) rounded(c, l, t, r, b, 14, rowFill);
         rounded(c, l + 13, t + 9, l + 43, t + 39, 12,
-                Color.argb(light ? 28 : 38, Color.red(lime), Color.green(lime), Color.blue(lime)));
+                Color.argb(38, Color.red(lime), Color.green(lime), Color.blue(lime)));
         if (enabled) drawBolt(c, l + 28, t + 24, lime, .58f);
         else drawClock(c, l + 28, t + 24, muted);
         text(c, label, l + 53, t + 21, 10, primary, true);
         boundedText(c, caption, l + 53, r - 58, t + 36, 8.8f, muted, false);
         float switchL = r - 52, switchT = t + 12;
         rounded(c, switchL, switchT, r - 13, switchT + 24, 12,
-                enabled ? lime : Color.argb(light ? 38 : 55,
+                enabled ? lime : Color.argb(55,
                         Color.red(muted), Color.green(muted), Color.blue(muted)));
         fill(c, enabled ? Color.rgb(4, 52, 56) : Color.rgb(255, 247, 232));
         c.drawCircle(u(enabled ? r - 25 : switchL + 12), u(switchT + 12), u(8), p);
@@ -2940,7 +2932,7 @@ class BatteryDashboard extends View {
         type(7.3f, color, true);
         float width = p.measureText(source) / density + 13f;
         rounded(c, x, baseline - 11, x + width, baseline + 4, 7f,
-                Color.argb(light ? 28 : 42, Color.red(color), Color.green(color), Color.blue(color)));
+                Color.argb(42, Color.red(color), Color.green(color), Color.blue(color)));
         text(c, source, x + 6.5f, baseline, 7.3f, color, true);
     }
 
@@ -3120,7 +3112,7 @@ class BatteryDashboard extends View {
         text(c, "Dauer", w * .58f, y + 553, 9, faint, false);
         boundedText(c, chargeDurationForDisplay(), w * .58f, w - 36, y + 575, 13, primary, true);
         rounded(c, 36, y + 613, w - 36, y + 632, 9,
-                Color.argb(light ? 28 : 40, Color.red(lime), Color.green(lime), Color.blue(lime)));
+                Color.argb(40, Color.red(lime), Color.green(lime), Color.blue(lime)));
         text(c, healthPercent() > 0 ? "Kapazität " + healthDisplay() + "% · im gesunden Bereich"
                         : "Nach längeren Ladungen wird die Schätzung genauer",
                 46, y + 626, 8.8f, muted, false);
@@ -3203,7 +3195,7 @@ class BatteryDashboard extends View {
         // optional Android usage permission/details action.
         drawEditorialSurface(c, 18, y + 560, w - 18, y + 735, panel, border, lime);
         rounded(c, 36, y + 579, 73, y + 616, 15,
-                Color.argb(light ? 30 : 42, Color.red(lime), Color.green(lime), Color.blue(lime)));
+                Color.argb(42, Color.red(lime), Color.green(lime), Color.blue(lime)));
         drawGrid(c, 54.5f, y + 597.5f, lime);
         displayText(c, "Was braucht heute Strom?", 36, y + 651, 17, primary);
         if (hasUsageAccess()) {
@@ -3301,7 +3293,7 @@ class BatteryDashboard extends View {
         // and accessibility, so the adjacent capacity card stays inert.
         drawEditorialSurface(c, 18, y + 518, w - 18, y + 633, panel, border, lime);
         rounded(c, 36, y + 537, 73, y + 574, 15,
-                Color.argb(light ? 30 : 42, Color.red(lime), Color.green(lime), Color.blue(lime)));
+                Color.argb(42, Color.red(lime), Color.green(lime), Color.blue(lime)));
         drawHeart(c, 54.5f, y + 555.5f, lime, .65f);
         displayText(c, benchmarkActive ? "Benchmark läuft." : "Einmal richtig kennenlernen.",
                 36, y + 596, benchmarkActive ? 18 : 16, primary);
@@ -3390,7 +3382,7 @@ class BatteryDashboard extends View {
         for (int i = 0; i < ranges.length; i++) {
             float chipWidth = i == 0 ? 61 : 49;
             rounded(c, chipX, y + 628, chipX + chipWidth, y + 653, 12,
-                    i == 0 ? lime : Color.argb(light ? 24 : 36,
+                    i == 0 ? lime : Color.argb(36,
                             Color.red(lime), Color.green(lime), Color.blue(lime)));
             centeredText(c, ranges[i], chipX + chipWidth / 2f, y + 645, 7.5f,
                     i == 0 ? accentForeground() : muted, true);
@@ -4533,7 +4525,9 @@ class BatteryDashboard extends View {
 
     private String virtualViewLabel(int virtualViewId) {
         if (virtualViewId == BatteryHeaderLayout.OVERFLOW) return "Einstellungen";
-        if (virtualViewId == BatteryHeaderLayout.THEME) return light ? "Dunkles Design" : "Helles Design";
+        if (virtualViewId == BatteryHeaderLayout.THEME) {
+            return amoled ? "Dunkles Design aktivieren" : "AMOLED-Schwarz aktivieren";
+        }
         if (virtualViewId == BatteryHeaderLayout.LIVE_REFRESH) return "Live-Daten aktualisieren";
         if (BatteryAccessibilityLayout.isVisible(virtualViewId, page)) {
             return BatteryAccessibilityLayout.label(virtualViewId, historyDays == 30,
@@ -4600,9 +4594,8 @@ class BatteryDashboard extends View {
         if (virtualViewId == BatteryHeaderLayout.OVERFLOW) {
             showSettings();
         } else if (virtualViewId == BatteryHeaderLayout.THEME) {
-            light = !light;
-            amoled = false;
-            prefs.edit().putBoolean("lightTheme", light).putBoolean("amoledTheme", amoled).apply();
+            amoled = !amoled;
+            prefs.edit().remove("lightTheme").putBoolean("amoledTheme", amoled).apply();
             applySystemBarTheme();
             invalidate();
             updateAccessibilitySummary();
@@ -4874,7 +4867,7 @@ class BatteryDashboard extends View {
     }
 
     private void drawGauge(Canvas c, float cx, float cy, float radius, int value, int primary, int faint) {
-        int track = Color.argb(light ? 120 : 90, Color.red(faint), Color.green(faint), Color.blue(faint));
+        int track = Color.argb(90, Color.red(faint), Color.green(faint), Color.blue(faint));
         stroke(c, track, 10); rect.set(u(cx - radius), u(cy - radius), u(cx + radius), u(cy + radius)); c.drawArc(rect, -90, 360, false, p);
         if (value < 0) return;
         stroke(c, lime, 10); c.drawArc(rect, -90, 360 * Math.max(0, Math.min(100, value)) / 100f, false, p);
@@ -4946,7 +4939,7 @@ class BatteryDashboard extends View {
         float w = getWidth() / density;
         int releasedHeader = BatteryHeaderLayout.actionAt(screenX, y, w);
         if (releasedRegion == BatteryHeaderLayout.OVERFLOW && releasedHeader == releasedRegion) { hapticClick(); showSettings(); return true; }
-        if (releasedRegion == BatteryHeaderLayout.THEME && releasedHeader == releasedRegion) { hapticClick(); light = !light; amoled = false; prefs.edit().putBoolean("lightTheme", light).putBoolean("amoledTheme", amoled).apply(); applySystemBarTheme(); invalidate(); return true; }
+        if (releasedRegion == BatteryHeaderLayout.THEME && releasedHeader == releasedRegion) { hapticClick(); amoled = !amoled; prefs.edit().remove("lightTheme").putBoolean("amoledTheme", amoled).apply(); applySystemBarTheme(); invalidate(); return true; }
         if (releasedRegion == BatteryHeaderLayout.LIVE_REFRESH && releasedHeader == releasedRegion) {
             // The LIVE control is an explicit refresh action: Android's
             // sticky battery broadcast is read immediately, so the user can
