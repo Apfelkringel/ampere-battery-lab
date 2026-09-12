@@ -66,6 +66,14 @@ public class BatteryButtonAssetLayoutTest {
                 dashboard.contains("width < 390f ? actionCsvCompactArtwork : actionCsvWideArtwork"));
     }
 
+    @Test public void historyDeepSleepSummaryIsRightBounded() throws IOException {
+        String dashboard = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
+                StandardCharsets.UTF_8);
+        assertTrue("deep-sleep minutes must stay inside the history card",
+                dashboard.contains("rightText(c, deepSleepTime(), w - 36"));
+    }
+
     private static int countOccurrences(String value, String needle) {
         int count = 0;
         int offset = 0;

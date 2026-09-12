@@ -4002,7 +4002,7 @@ class BatteryDashboard extends View {
         text(c, String.valueOf(longHistory.size()), w - 75, summaryY + 13, 11, lime, true);
         text(c, "Zeitraum: bis zu 30 lokale Tage", 36, summaryY + 39, 9, faint, false);
         text(c, "Tiefschlaf", 36, summaryY + 69, 10, muted, false);
-        text(c, deepSleepTime(), w - 75, summaryY + 69, 11, secondaryTone, true);
+        rightText(c, deepSleepTime(), w - 36, summaryY + 69, 11, secondaryTone, true);
         boundedText(c, "Sitzungen: " + sessionCount("Charge") + " Laden · " + sessionCount("Discharge") + " Entladen",
                 36, w - 36, summaryY + 99, 9, primary, true);
         boundedText(c, "Ladungsmenge: " + sessionEnergyDisplay("Charge", "+") + " / " + sessionEnergyDisplay("Discharge", "-"),
