@@ -106,6 +106,28 @@ public class BatteryButtonAssetLayoutTest {
                 dashboard.contains("amoled = !amoled"));
     }
 
+    @Test public void emptyHistoryCalloutDoesNotCoverTimeAxis() throws IOException {
+        String dashboard = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
+                StandardCharsets.UTF_8);
+        assertTrue("empty history callout must sit below the chart time axis",
+                dashboard.contains("rounded(c, 36, y + 253, w - 36, y + 280"));
+        assertTrue("empty history callout label must follow its moved surface",
+                dashboard.contains("y + 271, 8, cream, true"));
+    }
+
+    @Test public void emptyHistoryAndHealthCopyAvoidIllustrationLane() throws IOException {
+        String dashboard = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
+                StandardCharsets.UTF_8);
+        assertTrue("empty history privacy copy must reserve the illustration lane",
+                dashboard.contains("Ampere sammelt nur lokal.")
+                        && dashboard.contains("auf diesem Gerät."));
+        assertTrue("health measurement basis must wrap before the battery illustration",
+                dashboard.contains("Eine vollständige Ladung")
+                        && dashboard.contains("schafft die Messbasis"));
+    }
+
     private static int countOccurrences(String value, String needle) {
         int count = 0;
         int offset = 0;

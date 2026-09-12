@@ -3256,9 +3256,15 @@ class BatteryDashboard extends View {
         } else {
             boundedText(c, "Noch keine Messung", 36, w - 112, y + 110, 15.5f, cream, true);
         }
-        boundedText(c, health > 0 ? "geschätzte Restkapazität"
-                        : "Eine vollständige Ladung schafft die Messbasis",
-                38, w - 112, y + 133, 8.8f, Color.rgb(184, 226, 219), false);
+        if (health > 0) {
+            boundedText(c, "geschätzte Restkapazität", 38, w - 112, y + 133, 8.8f,
+                    Color.rgb(184, 226, 219), false);
+        } else {
+            boundedText(c, "Eine vollständige Ladung", 38, w - 112, y + 133, 8.8f,
+                    Color.rgb(184, 226, 219), false);
+            boundedText(c, "schafft die Messbasis", 38, w - 112, y + 147, 8.8f,
+                    Color.rgb(184, 226, 219), false);
+        }
         drawEditorialBattery(c, w - 79, y + 121, health > 0 ? health : 76,
                 false, cream, lime, deep);
         if (health > 0) {
@@ -3341,7 +3347,10 @@ class BatteryDashboard extends View {
         text(c, "DEIN AKKU-TAGEBUCH", 36, y + 29, 9f, lime, true);
         displayText(c, "Hier wächst bald", 36, y + 59, 19, cream);
         displayText(c, "deine Geschichte.", 36, y + 81, 19, cream);
-        text(c, "Ampere sammelt nur lokal auf diesem Gerät.", 36, y + 108, 9, Color.rgb(184, 226, 219), false);
+        boundedText(c, "Ampere sammelt nur lokal.", 36, w - 126, y + 108, 9,
+                Color.rgb(184, 226, 219), false);
+        boundedText(c, "auf diesem Gerät.", 36, w - 126, y + 122, 9,
+                Color.rgb(184, 226, 219), false);
         drawEditorialBattery(c, w - 78, y + 145, 54, false, cream, lime, deep);
         // Even the empty state uses honest chart grammar: scale, grid and
         // time axis are visible, while the missing series remains empty.
@@ -3356,8 +3365,8 @@ class BatteryDashboard extends View {
         text(c, "0%", 43, y + 230, 7.8f, Color.rgb(184, 226, 219), false);
         text(c, "ZEIT →", chartLeft, y + 246, 8f, lime, true);
         text(c, "Noch keine Messreihe", chartLeft, y + 201, 8.5f, cream, true);
-        rounded(c, 36, y + 243, w - 36, y + 270, 13, Color.rgb(7, 86, 90));
-        centeredText(c, "Erste Sitzung wird automatisch aufgezeichnet", w / 2f, y + 261, 8, cream, true);
+        rounded(c, 36, y + 253, w - 36, y + 280, 13, Color.rgb(7, 86, 90));
+        centeredText(c, "Erste Sitzung wird automatisch aufgezeichnet", w / 2f, y + 271, 8, cream, true);
 
         float cardW = (w - 48) / 2f;
         drawFriendlyMetric(c, 18, y + 302, 18 + cardW, y + 414,
