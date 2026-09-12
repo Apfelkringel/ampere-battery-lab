@@ -2126,26 +2126,6 @@ class BatteryDashboard extends View {
         type(size, color, bold);
         c.drawText(fitted, u(left), u(y), p);
     }
-    private void centeredBoundedText(Canvas c, String value, float leftX, float rightX,
-                                     float y, float size, int color, boolean bold) {
-        float left = Math.max(8f, leftX);
-        float right = Math.max(left + 1f, rightX);
-        String fitted = fitText(value, right - left, size, bold);
-        type(size, color, bold);
-        c.drawText(fitted, u((left + right) / 2f) - p.measureText(fitted) / 2f, u(y), p);
-    }
-    private void centeredDisplayBoundedText(Canvas c, String value, float leftX, float rightX,
-                                            float y, float size, int color) {
-        float left = Math.max(8f, leftX);
-        float right = Math.max(left + 1f, rightX);
-        displayType(size, color);
-        String fitted = value == null ? "" : value;
-        while (fitted.length() > 1 && p.measureText(fitted) > u(right - left)) {
-            fitted = fitted.substring(0, fitted.length() - 1);
-        }
-        if (!fitted.equals(value)) fitted = fitted.substring(0, Math.max(1, fitted.length() - 1)) + "…";
-        c.drawText(fitted, u((left + right) / 2f) - p.measureText(fitted) / 2f, u(y), p);
-    }
     private void centeredText(Canvas c, String value, float centerX, float y, float size, int color, boolean bold) {
         float viewWidth = layoutWidthDp > 0f ? layoutWidthDp : getWidth() / density;
         float halfWidth = Math.max(1f, Math.min(centerX - 8f, viewWidth - centerX - 8f));
@@ -2632,26 +2612,30 @@ class BatteryDashboard extends View {
             // to have 18dp on the left but 36dp on the right, which made the
             // whole card read as shifted left on narrow phones.
             float infoRight = 18 + heroW - 18;
-            rounded(c, 36, infoTop, infoRight, top + 374, 20,
+            rounded(c, 36, infoTop, infoRight, top + 378, 20,
                     Color.rgb(7, 86, 90));
-            text(c, "AKKUGESUNDHEIT", 52, infoTop + 24, 8, Color.rgb(115, 228, 216), true);
-            // The headline is the card's focal point and must be centered on
-            // the card itself, not on a reduced left column beside the icon.
-            float infoTextRight = infoRight - 16f;
-            centeredDisplayBoundedText(c, health == 0 ? "Noch nicht gemessen" : health + "% · sehr gut",
-                    52, infoTextRight, infoTop + 50, health == 0 ? 16 : 20, heroPrimary);
-            centeredBoundedText(c, health > 0 ? mahDisplay(estimatedCapacityMah()) + " von " + designCapacityDisplay()
-                            : "Starte einen Benchmark für deine Kapazität",
-                    52, infoTextRight, infoTop + 69, 8, heroMuted, false);
-            drawBolt(c, infoRight - 37, infoTop + 26, lime, .7f);
-            text(c, batteryRowLabel(), 52, infoTop + 88, 9, heroPrimary, true);
+            // A compact health card needs one clear reading order: semantic
+            // heart marker, value, explanation, then the live footer. The old
+            // centered headline plus floating bolt made the panel feel busy.
+            rounded(c, 52, infoTop + 11, 80, infoTop + 39, 12,
+                    Color.argb(42, Color.red(lime), Color.green(lime), Color.blue(lime)));
+            drawHeart(c, 66, infoTop + 25, lime, .62f);
+            text(c, "AKKUGESUNDHEIT", 90, infoTop + 29, 8, Color.rgb(115, 228, 216), true);
+            displayText(c, health == 0 ? "Noch nicht gemessen" : health + "% · sehr gut",
+                    52, infoTop + 55, health == 0 ? 16 : 20, heroPrimary);
+            boundedText(c, health > 0 ? mahDisplay(estimatedCapacityMah()) + " von " + designCapacityDisplay()
+                            : "Benchmark für deine Kapazität starten",
+                    52, infoRight - 18, infoTop + 71, 8, heroMuted, false);
+            line(c, 52, infoTop + 79, infoRight - 18, infoTop + 79,
+                    Color.argb(90, Color.red(lime), Color.green(lime), Color.blue(lime)), 1);
+            text(c, batteryRowLabel(), 52, infoTop + 95, 9, heroPrimary, true);
             String compactDetection = charging ? (heroW < 230f ? chargerTypeDisplay() : chargerTypeDisplay() + " · automatisch")
                     : (heroW < 230f ? "Automatisch erkannt" : "Akku automatisch erkannt");
             float statusRight = infoRight - 32f;
             float currentLeft = Math.max(68f, statusRight - 76f);
-            boundedText(c, compactDetection, 144, currentLeft - 8f, infoTop + 88, 8, heroMuted, false);
+            boundedText(c, compactDetection, 144, currentLeft - 8f, infoTop + 95, 8, heroMuted, false);
             boundedRightText(c, liveCurrentDisplay(), currentLeft, statusRight,
-                    infoTop + 88, 9, charging ? lime : blue, false);
+                    infoTop + 95, 9, charging ? lime : blue, false);
         } else {
             // Keep a clear vertical rhythm: the gauge ends before the
             // details/status rows begin. The previous 101-dp circle touched

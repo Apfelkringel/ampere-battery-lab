@@ -150,13 +150,14 @@ public class BatteryButtonAssetLayoutTest {
                 StandardCharsets.UTF_8);
         assertTrue("compact health card must use a centered right edge",
                 dashboard.contains("float infoRight = 18 + heroW - 18")
-                        && dashboard.contains("rounded(c, 36, infoTop, infoRight, top + 374"));
+                        && dashboard.contains("rounded(c, 36, infoTop, infoRight, top + 378"));
+        assertTrue("compact health card must use a semantic health icon",
+                dashboard.contains("drawHeart(c, 66, infoTop + 25, lime, .62f)"));
         assertTrue("compact health status values must follow the centered card",
-                dashboard.contains("drawBolt(c, infoRight - 37")
-                        && dashboard.contains("float statusRight = infoRight - 32f"));
-        assertTrue("compact health headline and detail must share a centered text axis",
-                dashboard.contains("float infoTextRight = infoRight - 16f")
-                        && dashboard.contains("centeredDisplayBoundedText(c, health == 0 ? \"Noch nicht gemessen\""));
+                dashboard.contains("float statusRight = infoRight - 32f"));
+        assertTrue("compact health content must use a clear single reading order",
+                dashboard.contains("displayText(c, health == 0 ? \"Noch nicht gemessen\"")
+                        && dashboard.contains("Benchmark für deine Kapazität starten"));
     }
 
     @Test public void dischargeEmptyStateUsesCompactReadableCopy() throws IOException {
