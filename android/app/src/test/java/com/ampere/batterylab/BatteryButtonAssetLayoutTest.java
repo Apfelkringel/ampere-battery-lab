@@ -162,7 +162,8 @@ public class BatteryButtonAssetLayoutTest {
                 StandardCharsets.UTF_8);
         assertTrue("card frames must not draw the generic AI-style left rail",
                 !dashboard.contains("c.drawRect(u(l), u(t), u(Math.min(r, l + 6))")
-                        && !dashboard.contains("u(l + 4), u(b - 18)"));
+                        && !dashboard.contains("u(l + 4), u(b - 18)")
+                        && !dashboard.contains("rounded(c, l + 9f, t + 10f"));
     }
 
     private static int countOccurrences(String value, String needle) {

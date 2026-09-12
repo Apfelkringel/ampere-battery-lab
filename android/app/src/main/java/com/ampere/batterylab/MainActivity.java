@@ -2266,7 +2266,6 @@ class BatteryDashboard extends View {
         smoothButton(c, l, t, r, b, 12, raised, border, lime, enabled, pressed);
         int buttonText = enabled ? accentForeground() : primary;
         int buttonMuted = enabled ? mixColor(buttonText, lime, .18f) : muted;
-        rounded(c, l + 9f, t + 10f, l + 13f, b - 10f, 2f, enabled ? lime : border);
         text(c, label, l + 21, t + (b - t) / 2f + 4f, 10, buttonText, true);
         rightText(c, status, r - 56, t + (b - t) / 2f + 4f, 9, buttonMuted, false);
         float switchLeft = r - 48f;
