@@ -2126,6 +2126,26 @@ class BatteryDashboard extends View {
         type(size, color, bold);
         c.drawText(fitted, u(left), u(y), p);
     }
+    private void centeredBoundedText(Canvas c, String value, float leftX, float rightX,
+                                     float y, float size, int color, boolean bold) {
+        float left = Math.max(8f, leftX);
+        float right = Math.max(left + 1f, rightX);
+        String fitted = fitText(value, right - left, size, bold);
+        type(size, color, bold);
+        c.drawText(fitted, u((left + right) / 2f) - p.measureText(fitted) / 2f, u(y), p);
+    }
+    private void centeredDisplayBoundedText(Canvas c, String value, float leftX, float rightX,
+                                            float y, float size, int color) {
+        float left = Math.max(8f, leftX);
+        float right = Math.max(left + 1f, rightX);
+        displayType(size, color);
+        String fitted = value == null ? "" : value;
+        while (fitted.length() > 1 && p.measureText(fitted) > u(right - left)) {
+            fitted = fitted.substring(0, fitted.length() - 1);
+        }
+        if (!fitted.equals(value)) fitted = fitted.substring(0, Math.max(1, fitted.length() - 1)) + "…";
+        c.drawText(fitted, u((left + right) / 2f) - p.measureText(fitted) / 2f, u(y), p);
+    }
     private void centeredText(Canvas c, String value, float centerX, float y, float size, int color, boolean bold) {
         float viewWidth = layoutWidthDp > 0f ? layoutWidthDp : getWidth() / density;
         float halfWidth = Math.max(1f, Math.min(centerX - 8f, viewWidth - centerX - 8f));
@@ -2615,11 +2635,12 @@ class BatteryDashboard extends View {
             rounded(c, 36, infoTop, infoRight, top + 374, 20,
                     Color.rgb(7, 86, 90));
             text(c, "AKKUGESUNDHEIT", 52, infoTop + 24, 8, Color.rgb(115, 228, 216), true);
-            displayText(c, health == 0 ? "Noch nicht gemessen" : health + "% · sehr gut",
-                    52, infoTop + 50, health == 0 ? 16 : 20, heroPrimary);
-            boundedText(c, health > 0 ? mahDisplay(estimatedCapacityMah()) + " von " + designCapacityDisplay()
+            float infoTextRight = infoRight - 52f;
+            centeredDisplayBoundedText(c, health == 0 ? "Noch nicht gemessen" : health + "% · sehr gut",
+                    52, infoTextRight, infoTop + 50, health == 0 ? 16 : 20, heroPrimary);
+            centeredBoundedText(c, health > 0 ? mahDisplay(estimatedCapacityMah()) + " von " + designCapacityDisplay()
                             : "Starte einen Benchmark für deine Kapazität",
-                    52, infoRight - 52, infoTop + 69, 8, heroMuted, false);
+                    52, infoTextRight, infoTop + 69, 8, heroMuted, false);
             drawBolt(c, infoRight - 37, infoTop + 26, lime, .7f);
             text(c, batteryRowLabel(), 52, infoTop + 88, 9, heroPrimary, true);
             String compactDetection = charging ? (heroW < 230f ? chargerTypeDisplay() : chargerTypeDisplay() + " · automatisch")
