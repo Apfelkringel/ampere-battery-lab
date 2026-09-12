@@ -114,6 +114,10 @@ public class BatteryButtonAssetLayoutTest {
                 dashboard.contains("rounded(c, 36, y + 253, w - 36, y + 280"));
         assertTrue("empty history callout label must follow its moved surface",
                 dashboard.contains("y + 271, 8, cream, true"));
+        assertTrue("empty history placeholder must sit between chart grid lines",
+                dashboard.contains("chartLeft, y + 214, 8.5f, cream, true"));
+        assertTrue("empty history placeholder must not sit on the 50% grid line",
+                !dashboard.contains("chartLeft, y + 201, 8.5f, cream, true"));
     }
 
     @Test public void emptyHistoryAndHealthCopyAvoidIllustrationLane() throws IOException {

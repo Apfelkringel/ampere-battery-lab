@@ -3364,7 +3364,7 @@ class BatteryDashboard extends View {
         text(c, "50%", 39, y + 199, 7.8f, Color.rgb(184, 226, 219), false);
         text(c, "0%", 43, y + 230, 7.8f, Color.rgb(184, 226, 219), false);
         text(c, "ZEIT →", chartLeft, y + 246, 8f, lime, true);
-        text(c, "Noch keine Messreihe", chartLeft, y + 201, 8.5f, cream, true);
+        text(c, "Noch keine Messreihe", chartLeft, y + 214, 8.5f, cream, true);
         rounded(c, 36, y + 253, w - 36, y + 280, 13, Color.rgb(7, 86, 90));
         centeredText(c, "Erste Sitzung wird automatisch aufgezeichnet", w / 2f, y + 271, 8, cream, true);
 
