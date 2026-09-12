@@ -121,11 +121,21 @@ public class BatteryButtonAssetLayoutTest {
                 .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
                 StandardCharsets.UTF_8);
         assertTrue("empty history privacy copy must reserve the illustration lane",
-                dashboard.contains("Ampere sammelt nur lokal.")
+                dashboard.contains("Nur lokal gespeichert.")
                         && dashboard.contains("auf diesem Gerät."));
         assertTrue("health measurement basis must wrap before the battery illustration",
-                dashboard.contains("Eine vollständige Ladung")
+                dashboard.contains("Eine volle Ladung")
                         && dashboard.contains("schafft die Messbasis"));
+    }
+
+    @Test public void dischargeEmptyStateUsesCompactReadableCopy() throws IOException {
+        String dashboard = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
+                StandardCharsets.UTF_8);
+        assertTrue("discharge helper copy must fit the illustration lane",
+                dashboard.contains("Sitzung startet beim Abstecken"));
+        assertTrue("the old clipped discharge sentence must be gone",
+                !dashboard.contains("Beim Abstecken startet die Sitzung automatisch"));
     }
 
     private static int countOccurrences(String value, String needle) {

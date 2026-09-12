@@ -3166,7 +3166,7 @@ class BatteryDashboard extends View {
         text(c, !charging && currentMa > 0 ? "−" + currentMa + " mA" : "Gerät wird geladen",
                 36, y + 153, 12, cream, true);
         boundedText(c, !charging && currentMa > 0 ? "Akkustrom live"
-                        : "Beim Abstecken startet die Sitzung automatisch",
+                        : "Sitzung startet beim Abstecken",
                 36, w - 126, y + 169, 8.8f, Color.rgb(184, 226, 219), false);
         drawEditorialBattery(c, w - 79, y + 121,
                 displayLevel < 0 ? 62 : displayLevel, false, cream, blue, deep);
@@ -3260,7 +3260,7 @@ class BatteryDashboard extends View {
             boundedText(c, "geschätzte Restkapazität", 38, w - 112, y + 133, 8.8f,
                     Color.rgb(184, 226, 219), false);
         } else {
-            boundedText(c, "Eine vollständige Ladung", 38, w - 112, y + 133, 8.8f,
+            boundedText(c, "Eine volle Ladung", 38, w - 112, y + 133, 8.8f,
                     Color.rgb(184, 226, 219), false);
             boundedText(c, "schafft die Messbasis", 38, w - 112, y + 147, 8.8f,
                     Color.rgb(184, 226, 219), false);
@@ -3347,7 +3347,7 @@ class BatteryDashboard extends View {
         text(c, "DEIN AKKU-TAGEBUCH", 36, y + 29, 9f, lime, true);
         displayText(c, "Hier wächst bald", 36, y + 59, 19, cream);
         displayText(c, "deine Geschichte.", 36, y + 81, 19, cream);
-        boundedText(c, "Ampere sammelt nur lokal.", 36, w - 126, y + 108, 9,
+        boundedText(c, "Nur lokal gespeichert.", 36, w - 126, y + 108, 9,
                 Color.rgb(184, 226, 219), false);
         boundedText(c, "auf diesem Gerät.", 36, w - 126, y + 122, 9,
                 Color.rgb(184, 226, 219), false);
