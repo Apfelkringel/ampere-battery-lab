@@ -84,6 +84,38 @@ public class BatteryRulesTest {
         }
     }
 
+    @Test public void historyExportBoundsMatchTheFullVisibleButton() {
+        int[] bounds = BatteryAccessibilityLayout.bounds(
+                BatteryAccessibilityLayout.HISTORY_EXPORT, 0f, 320f, 0f, 500f);
+        assertEquals(36, bounds[0]);
+        assertEquals(500, bounds[1]);
+        assertEquals(284, bounds[2]);
+        assertEquals(544, bounds[3]);
+    }
+
+    @Test public void healthBenchmarkBoundsMatchTheRenderedPortraitAndWideButtons() {
+        int[] portrait = BatteryAccessibilityLayout.bounds(
+                BatteryAccessibilityLayout.HEALTH_BENCHMARK, 0f, 320f, 0f, 0f);
+        assertEquals(104, portrait[0]);
+        assertEquals(710, portrait[1]);
+        assertEquals(284, portrait[2]);
+        assertEquals(746, portrait[3]);
+
+        int[] wide = BatteryAccessibilityLayout.bounds(
+                BatteryAccessibilityLayout.HEALTH_BENCHMARK, 0f, 600f, 0f, 0f);
+        assertEquals(384, wide[0]);
+        assertEquals(740, wide[1]);
+        assertEquals(564, wide[2]);
+        assertEquals(776, wide[3]);
+    }
+
+    @Test public void rangeTapSelectsItsOwnRangeInsteadOfTogglingTheOtherOne() {
+        assertEquals(7, BatteryAccessibilityLayout.historyDaysForControl(
+                BatteryAccessibilityLayout.OVERVIEW_7D, 30));
+        assertEquals(30, BatteryAccessibilityLayout.historyDaysForControl(
+                BatteryAccessibilityLayout.OVERVIEW_30D, 7));
+    }
+
     @Test public void pageAccessibilityLabelsExposeCurrentToggleState() {
         assertEquals("7 Tage", BatteryAccessibilityLayout.label(
                 BatteryAccessibilityLayout.OVERVIEW_7D, false, true, false, false));

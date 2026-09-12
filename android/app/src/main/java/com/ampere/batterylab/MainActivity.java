@@ -2335,16 +2335,18 @@ class BatteryDashboard extends View {
         if (page == 0 && y >= overviewChartTop() + 8f && y < overviewChartTop() + 60f
                 && x >= contentInset(w) + contentWidth(w) - 112f) {
             float bodyX = x - contentInset(w);
-            return bodyX < contentWidth(w) - 56f ? BatteryAccessibilityLayout.OVERVIEW_7D
-                    : BatteryAccessibilityLayout.OVERVIEW_30D;
+            if (bodyX <= contentWidth(w) - 58f) return BatteryAccessibilityLayout.OVERVIEW_7D;
+            if (bodyX >= contentWidth(w) - 54f) return BatteryAccessibilityLayout.OVERVIEW_30D;
         }
         float bodyX = x - contentInset(w);
         float bodyW = contentWidth(w);
         if (page == 1 && y > 350 && y < 420 && bodyX > bodyW - 130) return 20; // charge target
         if (page == 1 && y >= 462 && y < 504 && bodyX >= 18 && bodyX <= bodyW - 18) return 21; // alarm
         if (page == 1 && y >= 508 && y < 552 && bodyX >= 18 && bodyX <= bodyW - 18) return 22; // overlay
-        if (page == 3 && y > 690 && y < 825 && bodyX > bodyW - 140) return 30; // benchmark
-        if (page == 4 && y > historyExportTop() && y < historyExportTop() + 55) return 40;
+        if (page == 3 && y > 700f && y < 815f
+                && bodyX >= bodyW - 216f && bodyX <= bodyW - 36f) return 30;
+        if (page == 4 && y >= historyExportTop() && y < historyExportTop() + 44f
+                && bodyX >= 36f && bodyX <= bodyW - 36f) return 40;
         return 0;
     }
 
@@ -3979,8 +3981,8 @@ class BatteryDashboard extends View {
         boundedText(c, "Akkumesswerte bleiben auf diesem Gerät.", 36, w - 36, summaryY + 143, 9, primary, true);
         boundedText(c, "Export nur auf deine Auswahl; kein Konto/Abonnement.", 36, w - 36, summaryY + 165, 8, muted, false);
         float exportTop = historyExportTop();
-        drawGeneratedButton(c, actionCsvCompactArtwork,
-                w - 212, exportTop + 2, w - 36, exportTop + 42, isPressed(40), false);
+        drawGeneratedButton(c, actionCsvWideArtwork,
+                36, exportTop, w - 36, exportTop + 44, isPressed(40), false);
     }
 
     private BatteryTelemetryDiagnostics.Summary telemetryDiagnostics() {
@@ -4494,7 +4496,7 @@ class BatteryDashboard extends View {
             float bodyWidth = contentWidth(w);
             float bodyInset = contentInset(w);
             int[] bounds = BatteryAccessibilityLayout.bounds(virtualViewId, bodyInset, bodyWidth,
-                    overviewChartTop(), historyExportTop());
+                    overviewChartTop(), historyExportTop(), usesEditorialPortrait(w));
             return new Rect(Math.round(bounds[0] * density), Math.round(bounds[1] * density),
                     Math.round(bounds[2] * density), Math.round(bounds[3] * density));
         }
@@ -4516,7 +4518,7 @@ class BatteryDashboard extends View {
         float bodyInset = contentInset(w);
         for (int id : BatteryAccessibilityLayout.pageControlsFor(page)) {
             int[] bounds = BatteryAccessibilityLayout.bounds(id, bodyInset, bodyWidth,
-                    overviewChartTop(), historyExportTop());
+                    overviewChartTop(), historyExportTop(), usesEditorialPortrait(w));
             if (x >= bounds[0] && x <= bounds[2] && y >= bounds[1] && y <= bounds[3]) return id;
         }
         return AccessibilityNodeProvider.HOST_VIEW_ID;
@@ -4545,7 +4547,7 @@ class BatteryDashboard extends View {
             invalidate();
         } else if (virtualViewId == BatteryAccessibilityLayout.OVERVIEW_7D
                 || virtualViewId == BatteryAccessibilityLayout.OVERVIEW_30D) {
-            historyDays = virtualViewId == BatteryAccessibilityLayout.OVERVIEW_30D ? 30 : 7;
+            historyDays = BatteryAccessibilityLayout.historyDaysForControl(virtualViewId, historyDays);
             prefs.edit().putInt("historyDays", historyDays).apply();
             updateAccessibilitySummary();
             invalidate();
@@ -4898,11 +4900,19 @@ class BatteryDashboard extends View {
         // back into the same local coordinate system used by onDraw().
         float x = screenX - contentInset(w);
         float bodyW = contentWidth(w);
-        if (page == 0 && y > overviewChartTop() + 8 && y < overviewChartTop() + 60 && x > bodyW - 140) {
-            historyDays = historyDays == 7 ? 30 : 7;
-            prefs.edit().putInt("historyDays", historyDays).apply();
-            invalidate();
-            return true;
+        if (page == 0 && y > overviewChartTop() + 8 && y < overviewChartTop() + 60) {
+            int rangeControl = 0;
+            if (x >= bodyW - 112 && x <= bodyW - 58) {
+                rangeControl = BatteryAccessibilityLayout.OVERVIEW_7D;
+            } else if (x >= bodyW - 54 && x <= bodyW) {
+                rangeControl = BatteryAccessibilityLayout.OVERVIEW_30D;
+            }
+            if (rangeControl != 0) {
+                historyDays = BatteryAccessibilityLayout.historyDaysForControl(rangeControl, historyDays);
+                prefs.edit().putInt("historyDays", historyDays).apply();
+                invalidate();
+                return true;
+            }
         }
         if (page == 1 && y >= 462 && y < 504 && x >= 18 && x <= bodyW - 18) {
             hapticClick();
@@ -4934,12 +4944,14 @@ class BatteryDashboard extends View {
             showSessionDetails(index);
             return true;
         }
-        if (page == 4 && y > historyExportTop() && y < historyExportTop() + 45 && x > bodyW - 155) {
+        if (page == 4 && y >= historyExportTop() && y < historyExportTop() + 44
+                && x >= 36 && x <= bodyW - 36) {
             hapticClick();
             exportHistory();
             return true;
         }
-        if (page == 3 && y > 700 && y < 815 && x > bodyW - 140) {
+        if (page == 3 && y > 700f && y < 815f
+                && x >= bodyW - 216f && x <= bodyW - 36f) {
             toggleBenchmark();
             return true;
         }

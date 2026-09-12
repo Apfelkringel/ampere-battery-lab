@@ -61,9 +61,23 @@ final class BatteryAccessibilityLayout {
         return Math.max(50, Math.min(100, value));
     }
 
+    static int historyDaysForControl(int virtualViewId, int currentDays) {
+        if (virtualViewId == OVERVIEW_7D) return 7;
+        if (virtualViewId == OVERVIEW_30D) return 30;
+        return currentDays == 30 ? 30 : 7;
+    }
+
     /** Returns left, top, right, bottom in dashboard dp coordinates. */
     static int[] bounds(int virtualViewId, float bodyInset, float bodyWidth,
                         float overviewChartTop, float historyExportTop) {
+        return bounds(virtualViewId, bodyInset, bodyWidth, overviewChartTop,
+                historyExportTop, bodyWidth < 600f);
+    }
+
+    /** Returns bounds using the same portrait/wide mode as the dashboard renderer. */
+    static int[] bounds(int virtualViewId, float bodyInset, float bodyWidth,
+                        float overviewChartTop, float historyExportTop,
+                        boolean editorialPortrait) {
         float left;
         float top;
         float right;
@@ -101,9 +115,9 @@ final class BatteryAccessibilityLayout {
                 break;
             case HEALTH_BENCHMARK:
                 left = bodyInset + bodyWidth - 216f;
-                top = 710f;
+                top = editorialPortrait ? 710f : 740f;
                 right = bodyInset + bodyWidth - 36f;
-                bottom = 776f;
+                bottom = editorialPortrait ? 746f : 776f;
                 break;
             case HEALTH_CAPACITY:
                 left = bodyInset + 18f;
@@ -121,7 +135,7 @@ final class BatteryAccessibilityLayout {
                 left = bodyInset + 36f;
                 top = historyExportTop;
                 right = bodyInset + bodyWidth - 36f;
-                bottom = historyExportTop + 48f;
+                bottom = historyExportTop + 44f;
                 break;
             default:
                 return new int[]{0, 0, 0, 0};
