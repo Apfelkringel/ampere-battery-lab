@@ -138,7 +138,7 @@ final class BatteryHealth {
         if (source == null || source.isEmpty()) return "keine Messung";
         if ("Android BatteryManager".equals(source)) return "Android-Systemwert";
         if ("lokale Lademessungen".equals(source)) return "lokale Lademessungen";
-        if ("manueller Benchmark".equals(source)) return "manueller Benchmark";
+        if ("manueller Benchmark".equals(source) || "manuelle Kapazitätsmessung".equals(source)) return "Kapazitätsmessung";
         if (source.contains("ASOC")) return "Samsung-ASOC";
         if (source.contains("SoH")) return "Batterie-Treiber-SoH";
         return "BMS-/Treiberwert";
@@ -165,7 +165,7 @@ final class BatteryHealth {
             return "lokale Lademessungen";
         }
         if (isPlausibleCapacity(prefs.getInt("benchmarkCapacityMah", 0))) {
-            return "manueller Benchmark";
+            return "manuelle Kapazitätsmessung";
         }
         if (BatteryCapacity.fullChargeCapacityMah(context) > 0) {
             return BatteryCapacity.fullChargeCapacitySource(context);

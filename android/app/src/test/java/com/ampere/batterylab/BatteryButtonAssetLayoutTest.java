@@ -245,6 +245,18 @@ public class BatteryButtonAssetLayoutTest {
                 dashboard.contains("Systemzyklen") && dashboard.contains("Vollzyklen (EFC)"));
     }
 
+    @Test public void healthGradeThresholdsStayConsistentAcrossLayouts() throws IOException {
+        String dashboard = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
+                StandardCharsets.UTF_8);
+        assertTrue("every rendered health status must use the shared grade thresholds",
+                dashboard.contains("healthGradeLabel(health)"));
+        assertFalse("health cards must not keep the old strict-greater-than-80 split",
+                dashboard.contains("health > 80 ? \"Guter Zustand\""));
+        assertFalse("the UI must use the full German label, not an English shorthand",
+                dashboard.contains("\"Screenzeit\""));
+    }
+
     private static int countOccurrences(String value, String needle) {
         int count = 0;
         int offset = 0;

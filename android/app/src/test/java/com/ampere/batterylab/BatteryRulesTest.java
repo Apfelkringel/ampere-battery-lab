@@ -143,7 +143,7 @@ public class BatteryRulesTest {
                 BatteryAccessibilityLayout.CHARGE_LIMIT, false, true, false, false, 80));
         assertEquals("Live-Anzeige: Aktiv", BatteryAccessibilityLayout.label(
                 BatteryAccessibilityLayout.CHARGE_OVERLAY, false, true, true, false));
-        assertEquals("Benchmark stoppen", BatteryAccessibilityLayout.label(
+        assertEquals("Kapazitätsmessung stoppen", BatteryAccessibilityLayout.label(
                 BatteryAccessibilityLayout.HEALTH_BENCHMARK, false, true, false, true));
     }
 

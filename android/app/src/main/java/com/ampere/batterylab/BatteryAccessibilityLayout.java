@@ -49,7 +49,7 @@ final class BatteryAccessibilityLayout {
             case CHARGE_ALARM: return "Ladealarm: " + (chargeAlarm ? "Aktiv" : "Aus");
             case CHARGE_OVERLAY: return "Live-Anzeige: " + (overlayEnabled ? "Aktiv" : "Aus");
             case CHARGE_LIMIT: return "Ladeziel: " + normalizeChargeLimit(chargeLimit) + " Prozent";
-            case HEALTH_BENCHMARK: return benchmarkActive ? "Benchmark stoppen" : "Benchmark starten";
+            case HEALTH_BENCHMARK: return benchmarkActive ? "Kapazitätsmessung stoppen" : "Kapazität messen";
             case HEALTH_CAPACITY: return "Nennkapazität bearbeiten";
             case DISCHARGE_USAGE: return "Vordergrundverbrauch öffnen";
             case HISTORY_EXPORT: return "CSV exportieren";

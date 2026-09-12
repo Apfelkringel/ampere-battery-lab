@@ -1191,7 +1191,7 @@ class BatteryDashboard extends View {
                     .remove("benchmarkChargeLastCounterMah").remove("benchmarkChargeAddedMah")
                     .remove("benchmarkChargeStatsBaselineMah").apply();
         } else if (charging || level > 25) {
-            Toast.makeText(getContext(), "Starte den Benchmark getrennt vom Ladegerät unter 25 %.", Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), "Starte die Kapazitätsmessung getrennt vom Ladegerät unter 25 %.", Toast.LENGTH_LONG).show();
         } else {
             benchmarkActive = true;
             SharedPreferences.Editor editor = prefs.edit().putBoolean("benchmarkActive", true)
@@ -2045,7 +2045,7 @@ class BatteryDashboard extends View {
     private void confirmResetHealthBaseline() {
         new AlertDialog.Builder(getContext())
                 .setTitle("Gesundheitsbasis zurücksetzen?")
-                .setMessage("Damit beginnen Akku-Gesundheit, Benchmark-Berechnung und tägliche Zyklushistorie neu, zum Beispiel nach einem Akkutausch. Bestehende Sitzungen, Telemetrie, Einstellungen und Exporte bleiben erhalten.")
+                .setMessage("Damit beginnen Akku-Gesundheit, Kapazitätsmessung und tägliche Zyklushistorie neu, zum Beispiel nach einem Akkutausch. Bestehende Sitzungen, Telemetrie, Einstellungen und Exporte bleiben erhalten.")
                 .setNegativeButton("Abbrechen", null)
                 .setPositiveButton("Basis zurücksetzen", (dialog, which) -> {
                     Context context = getContext();
@@ -2097,7 +2097,7 @@ class BatteryDashboard extends View {
         if (!force && prefs.getBoolean("tutorialShown", false)) return;
         new AlertDialog.Builder(getContext())
                 .setTitle("Willkommen bei Ampere")
-                .setMessage("Ampere misst Akkustrom, Ladegeschwindigkeit, Verbrauch und geschätzte Kapazität lokal.\n\n1. Lass die Überwachungsbenachrichtigung für den Hintergrundverlauf aktiviert.\n2. Stelle den Ladealarm auf den Akkustand, bei dem du erinnert werden möchtest.\n3. Für eine möglichst genaue Gesundheitsbewertung starte den manuellen Benchmark unter 25 % und beende ihn über 95 %.\n\nOptional: Erlaube den Nutzungszugriff für App-Verbrauchsschätzungen und die Overlay-Berechtigung für Live-Werte über anderen Apps.")
+                .setMessage("Ampere misst Akkustrom, Ladegeschwindigkeit, Verbrauch und geschätzte Kapazität lokal.\n\n1. Lass die Überwachungsbenachrichtigung für den Hintergrundverlauf aktiviert.\n2. Stelle den Ladealarm auf den Akkustand, bei dem du erinnert werden möchtest.\n3. Für eine möglichst genaue Gesundheitsbewertung starte die Kapazitätsmessung unter 25 % und beende sie über 95 %.\n\nOptional: Erlaube den Nutzungszugriff für App-Verbrauchsschätzungen und die Overlay-Berechtigung für Live-Werte über anderen Apps.")
                 .setNegativeButton("Überspringen", (dialog, which) -> prefs.edit().putBoolean("tutorialShown", true).apply())
                 .setPositiveButton("Kapazität festlegen", (dialog, which) -> {
                     prefs.edit().putBoolean("tutorialShown", true).apply();
@@ -2674,9 +2674,9 @@ class BatteryDashboard extends View {
             centeredText(c, levelDisplay(), gaugeCx, top + 187, 46, primary, true);
             centeredText(c, batteryModeLabel(), gaugeCx, top + 211, 10, muted, false);
             float detailRight = 18 + heroW - 42;
-            boundedText(c, health == 0 ? "Nicht gemessen" : (health > 80 ? "Guter Zustand" : "Prüfung nötig"),
+            boundedText(c, health == 0 ? "Nicht gemessen" : healthGradeLabel(health),
                     255, detailRight, top + 117, 17, primary, true);
-            boundedText(c, health == 0 ? "Benchmark starten" : (health > 80 ? "Im gesunden Bereich" : "Unter Erwartung"),
+            boundedText(c, health == 0 ? "Kapazität messen" : (health >= 80 ? "Im gesunden Bereich" : health >= 60 ? "Beobachten" : "Prüfung empfohlen"),
                     255, detailRight, top + 141, 10, muted, false);
             boundedText(c, "Volle Kapazität", 255, detailRight, top + 181, 10, muted, false);
             boundedText(c, health > 0 ? mahDisplay(estimatedCapacityMah()) : "—", 255, detailRight, top + 201, 12, primary, true);
@@ -2747,7 +2747,7 @@ class BatteryDashboard extends View {
         float detailX = Math.max(160f, heroW * .52f);
         int health = healthPercent();
         float detailRight = heroRight - 18f;
-        boundedText(c, health == 0 ? "Nicht gemessen" : (health > 80 ? "Guter Zustand" : "Prüfung nötig"),
+        boundedText(c, health == 0 ? "Nicht gemessen" : healthGradeLabel(health),
                 detailX, detailRight, top + 91, 13, primary, true);
         boundedText(c, "Akkugesundheit", detailX, detailRight, top + 108, 7, muted, false);
         boundedText(c, "Volle Kapazität", detailX, detailRight, top + 130, 7, muted, false);
@@ -2767,7 +2767,7 @@ class BatteryDashboard extends View {
                 primary, muted, border, panel, "temp");
         drawStat(c, metricsX, top + 106, metricW, 98, "Spannung", voltageDisplay(), voltage > 0f ? "V" : "", blue,
                 primary, muted, border, panel, "bolt");
-        drawStat(c, metricsX + metricW + metricGap, top + 106, metricW, 98, "Screenzeit", screenOnTimeCard(), "", secondaryTone,
+        drawStat(c, metricsX + metricW + metricGap, top + 106, metricW, 98, "Bildschirmzeit", screenOnTimeCard(), "", secondaryTone,
                 primary, muted, border, panel, "clock");
 
         drawChart(c, 18, top + 218, w - 36, 360, panel, border, primary, muted, faint);
@@ -2823,7 +2823,7 @@ class BatteryDashboard extends View {
                 primary, muted, border, panel, "temp");
         drawStat(c, metricsX, top + 106, metricW, 98, "Spannung", voltageDisplay(), voltage > 0f ? "V" : "", blue,
                 primary, muted, border, panel, "bolt");
-        drawStat(c, metricsX + metricW + metricGap, top + 106, metricW, 98, "Screenzeit", screenOnTimeCard(), "", secondaryTone,
+        drawStat(c, metricsX + metricW + metricGap, top + 106, metricW, 98, "Bildschirmzeit", screenOnTimeCard(), "", secondaryTone,
                 primary, muted, border, panel, "clock");
 
         drawChart(c, 18, top + 218, w - 36, 360, panel, border, primary, muted, faint);
@@ -3292,7 +3292,7 @@ class BatteryDashboard extends View {
         text(c, health > 0 ? mahDisplay(estimatedCapacityMah()) : healthSamples.size() + " geeignete Sitzungen",
                 50, y + 259, 13, cream, true);
         rightText(c, health > 0 && design > 0 ? "von " + mahDisplay(design)
-                        : "Benchmark unten",
+                        : "Messung starten",
                 w - 50, y + 259, 8.5f, Color.rgb(184, 226, 219), false);
 
         float cardW = (w - 48) / 2f;
@@ -3314,7 +3314,7 @@ class BatteryDashboard extends View {
         rounded(c, 36, y + 537, 73, y + 574, 15,
                 Color.argb(42, Color.red(lime), Color.green(lime), Color.blue(lime)));
         drawHeart(c, 54.5f, y + 555.5f, lime, .65f);
-        displayText(c, benchmarkActive ? "Benchmark läuft." : "Kapazität messen",
+        displayText(c, benchmarkActive ? "Kapazitätsmessung läuft." : "Kapazität messen",
                 36, y + 596, benchmarkActive ? 18 : 16, primary);
         text(c, benchmarkActive ? "Zum Abschluss über 95% laden." : "Unter 25% starten, dann in Ruhe vollladen.",
                 36, y + 616, 8, muted, false);
@@ -3828,13 +3828,13 @@ class BatteryDashboard extends View {
         text(c, "AKKUGESUNDHEIT", 36, y + 31, 10, muted, true);
         int health = healthPercent();
         int design = designCapacityMah();
-        text(c, health == 0 ? "Nicht gemessen" : (health > 80 ? "Guter Zustand" : "Prüfung nötig"), 36, y + 62, 23, primary, true);
+        text(c, health == 0 ? "Nicht gemessen" : healthGradeLabel(health), 36, y + 62, 23, primary, true);
         text(c, "Geschätzte Kapazität", 36, y + 102, 10, muted, false);
         text(c, health > 0 ? mahDisplay(estimatedCapacityMah()) : "—", 36, y + 132, 28, lime, true);
         text(c, design > 0 ? "von " + mahDisplay(design) + " Nennkapazität" : "Nennkapazität nicht verfügbar", 36, y + 153, 10, muted, false);
         rounded(c, 36, y + 181, w - 36, y + 187, 3, border);
         if (health > 0) rounded(c, 36, y + 181, 36 + (w - 72) * health / 100f, y + 187, 3, lime);
-        String healthStatus = health > 0 ? health + "% Kapazität" : (w < 340f ? "Benchmark starten" : "Benchmark für Kapazität starten");
+        String healthStatus = health > 0 ? health + "% Kapazität" : "Kapazität messen";
         text(c, fitText(healthStatus, w < 340f ? 104f : w - 190f, 10, true), 36, y + 211, 10, primary, true);
         text(c, w < 340f ? "Alterung" : "Akkualterung", w < 340f ? w - 90 : w - 145, y + 211, 10, muted, false);
         text(c, health > 0 ? (100 - Math.min(100, health)) + "%" : "—", w - 58, y + 211, 10, amber, true);
@@ -3870,7 +3870,7 @@ class BatteryDashboard extends View {
             rightText(c, "Herstellung: " + manufactureDate.label(), w - 30, y + 530, 8, faint, false);
         }
         rounded(c, 18, y + 548, w - 18, y + 615, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 548), u(w - 18), u(y + 615)); c.drawRoundRect(rect, u(12), u(12), p);
-        text(c, benchmarkActive ? "Benchmark läuft" : "Manueller Benchmark", 36, y + 575, 11, primary, true);
+        text(c, benchmarkActive ? "Kapazitätsmessung läuft" : "Kapazitätsmessung", 36, y + 575, 11, primary, true);
         text(c, benchmarkActive ? "Zum Abschluss über 95 % laden" : "Für beste Ergebnisse unter 25 % starten", 36, y + 595, 9, muted, false);
         drawGeneratedButton(c, benchmarkActive ? actionActiveArtwork : actionStartArtwork,
                 w - 216, y + 558, w - 36, y + 594, isPressed(30), false);
@@ -4238,7 +4238,6 @@ class BatteryDashboard extends View {
             if (icon.equals("bolt")) drawBolt(c, x + 24, y + 26, accent, .65f); else if (icon.equals("temp")) drawThermometer(c, x + 24, y + 26, accent); else if (icon.equals("heart")) drawHeart(c, x + 24, y + 26, accent); else if (icon.equals("arrow")) drawArrow(c, x + 24, y + 26, accent); else if (icon.equals("grid")) drawGrid(c, x + 24, y + 26, accent); else if (icon.equals("moon")) drawMoon(c, x + 24, y + 26, accent); else drawClock(c, x + 24, y + 26, accent);
             String compactLabel = label.replace("Akkugesundheit", "Gesundheit")
                     .replace("Akkutemperatur", "Temperatur")
-                    .replace("Bildschirmzeit", "Screenzeit")
                     .replace("Geladene Energie", "Energie");
             boundedText(c, compactLabel, x + 10, x + width - 10, y + 58, 9, muted, false);
             type(9, muted, false);
