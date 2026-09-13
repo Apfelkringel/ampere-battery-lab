@@ -325,6 +325,16 @@ public class BatteryButtonAssetLayoutTest {
                         && dashboard.contains("w - 60, controlTop + 6"));
     }
 
+    @Test public void ultraNarrowNavigationAvoidsStretchedBakedLabels() throws IOException {
+        String dashboard = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
+                StandardCharsets.UTF_8);
+        assertTrue("very narrow navigation must shorten labels and skip stretched image buttons",
+                dashboard.contains("boolean ultraCompactNav = w < 280f")
+                        && dashboard.contains("new String[]{\"Start\", \"Laden\", \"Entl.\", \"Akku\", \"Verl.\"}")
+                        && dashboard.contains("compactNav && !ultraCompactNav && (active || pressed)"));
+    }
+
     private static int countOccurrences(String value, String needle) {
         int count = 0;
         int offset = 0;

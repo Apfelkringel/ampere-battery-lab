@@ -2490,7 +2490,10 @@ class BatteryDashboard extends View {
 
     private void drawNav(Canvas c, float w, int primary, int muted, int border, int panel) {
         boolean compactNav = w < 480f;
-        String[] labels = compactNav
+        boolean ultraCompactNav = w < 280f;
+        String[] labels = ultraCompactNav
+                ? new String[]{"Start", "Laden", "Entl.", "Akku", "Verl."}
+                : compactNav
                 ? new String[]{"Start", "Laden", "Entladen", "Akku", "Verlauf"}
                 : new String[]{"Übersicht", "Laden", "Entladen", "Gesundheit", "Verlauf"};
         float cell = (w - 36) / 5f;
@@ -2503,7 +2506,7 @@ class BatteryDashboard extends View {
             boolean active = page == i;
             boolean pressed = isPressed(10 + i);
             boolean bakedActiveAsset = false;
-            if (compactNav && (active || pressed)) {
+            if (compactNav && !ultraCompactNav && (active || pressed)) {
                 // The reference uses a clear filled selection state. A
                 // finished bitmap keeps its icon, label and surface together;
                 // no separately positioned text can fall off the button.
