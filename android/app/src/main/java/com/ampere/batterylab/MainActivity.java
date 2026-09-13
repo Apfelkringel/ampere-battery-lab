@@ -4026,7 +4026,10 @@ class BatteryDashboard extends View {
                 } else {
                     text(c, parts[3], 36, rowY, 9, muted, false);
                     text(c, sessionTypeDisplay(parts[0]), w * .53f, rowY, 9, parts[0].equals("Charge") ? lime : blue, true);
-                    text(c, parts[1], w * .71f, rowY, 9, primary, true);
+                    // Keep the change value out of the duration lane. Longer
+                    // deltas (for example “−1.250 mAh”) must not collide with
+                    // the right-aligned duration on medium-width phones.
+                    boundedText(c, parts[1], w * .71f, w - 96f, rowY, 9, primary, true);
                     rightText(c, parts[2], w - 36, rowY, 9, faint, false);
                 }
                 if (++row == rowCount) break;
