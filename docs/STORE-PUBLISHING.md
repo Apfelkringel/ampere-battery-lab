@@ -28,6 +28,11 @@ Für den ersten Play-Upload:
 5. Das öffentliche `Ampere-Battery-Lab-play-release.aab` im internen Testtrack hochladen und die Release-Prüfung abwarten.
 
 Die einsetzbaren Texte liegen unter `store/google-play/listing/`.
+Alternativ kann der manuelle Workflow `Publish Google Play bundle` nach dem
+Hinterlegen des geschützten Repository-Secrets
+`AMPERE_PLAY_SERVICE_ACCOUNT_JSON` gestartet werden. Er prüft Version und
+SHA-256 aus `latest.json` vor jedem Upload; standardmäßig wird ein Entwurf im
+internen Track erstellt.
 
 ## iOS
 
@@ -41,3 +46,11 @@ Zertifikat mit Provisioning Profile sowie ein App-Store-Connect-API-Schlüssel
 für den signierten Archive-Upload. Die Texte für App Store Connect liegen unter
 `store/apple-app-store/metadata/`; die öffentliche Datenschutz-URL ist dieselbe
 wie oben.
+
+Der manuelle Workflow `Publish iOS build to App Store Connect` erwartet dafür
+die geschützten Secrets `AMPERE_IOS_CERTIFICATE_P12_BASE64`,
+`AMPERE_IOS_CERTIFICATE_PASSWORD`, `AMPERE_IOS_PROVISIONING_PROFILE_BASE64`,
+`AMPERE_IOS_PROVISIONING_PROFILE_NAME`, `AMPERE_IOS_KEYCHAIN_PASSWORD`,
+`AMPERE_IOS_TEAM_ID`, `AMPERE_ASC_ISSUER_ID`, `AMPERE_ASC_KEY_ID` und
+`AMPERE_ASC_API_PRIVATE_KEY`. Ohne diese Signaturdaten wird bewusst kein
+unsignierter Build als Store-Upload ausgegeben.

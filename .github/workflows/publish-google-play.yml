@@ -1,0 +1,61 @@
+name: Publish Google Play bundle
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version to upload (for example 0.338)"
+        required: true
+        default: "0.338"
+        type: string
+      track:
+        description: "Play testing/release track"
+        required: true
+        default: internal
+        type: choice
+        options:
+          - internal
+          - closed
+          - production
+      status:
+        description: "Release status in the selected track"
+        required: true
+        default: draft
+        type: choice
+        options:
+          - draft
+          - completed
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download and verify public Play bundle
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p build
+          curl --fail --silent --show-error --location \
+            "https://github.com/Apfelkringel/ampere-battery-lab-updates/raw/refs/heads/main/Ampere-Battery-Lab-play-release.aab" \
+            --output build/Ampere-Battery-Lab-play-release.aab
+          curl --fail --silent --show-error \
+            "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/latest.json" \
+            --output build/latest.json
+          test "$(jq -r .versionName build/latest.json)" = "$RELEASE_VERSION"
+          expected="$(jq -r .aabSha256 build/latest.json)"
+          actual="$(sha256sum build/Ampere-Battery-Lab-play-release.aab | awk '{print $1}')"
+          test "$expected" = "$actual"
+
+      - name: Upload bundle to Google Play
+        uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5 # v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.AMPERE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.ampere.batterylab
+          releaseFiles: build/Ampere-Battery-Lab-play-release.aab
+          track: ${{ inputs.track }}
+          status: ${{ inputs.status }}
+          changesNotSentForReview: true
