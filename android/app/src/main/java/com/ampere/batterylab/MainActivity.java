@@ -2449,10 +2449,15 @@ class BatteryDashboard extends View {
         drawBolt(c, 36, 36, headerDark, 1.1f);
         displayText(c, "Ampere", 62, 40, 18, headerText);
         String buildLabel = isProbablyEmulator() ? "TESTDATEN" : "LIVE";
-        float badgeLeft = 137f;
-        float badgeRight = isProbablyEmulator() ? 193f : 174f;
-        rounded(c, badgeLeft, 25, badgeRight, 43, 7, headerMid);
-        centeredText(c, buildLabel, (badgeLeft + badgeRight) / 2f, 37.5f, 7f, lime, true);
+        // At 240–270 dp the right menu cell reaches into the old badge lane.
+        // Hiding the secondary build marker is cleaner than shrinking either
+        // control until its label becomes unreadable.
+        if (w >= 280f) {
+            float badgeLeft = 137f;
+            float badgeRight = isProbablyEmulator() ? 193f : 174f;
+            rounded(c, badgeLeft, 25, badgeRight, 43, 7, headerMid);
+            centeredText(c, buildLabel, (badgeLeft + badgeRight) / 2f, 37.5f, 7f, lime, true);
+        }
         // The page name appears once. Removing the former AMPERE · PAGE kicker
         // makes room for hierarchy instead of repeating the navigation.
         text(c, page == 0 ? "Hallo, dein Akku." : pageName(), 18, 105, 21.5f, headerText, true);

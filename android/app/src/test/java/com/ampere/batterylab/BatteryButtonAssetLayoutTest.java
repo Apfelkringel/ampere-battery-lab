@@ -315,6 +315,16 @@ public class BatteryButtonAssetLayoutTest {
                         && dashboard.contains("boundedText(c, healthReading.source.isEmpty() ? \"Keine Messung\" : healthMeasurementSourceLabel(),"));
     }
 
+    @Test public void ultraNarrowHeaderAvoidsBadgeMenuCollision() throws IOException {
+        String dashboard = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
+                StandardCharsets.UTF_8);
+        assertTrue("very narrow headers must hide the secondary badge before the menu cell",
+                dashboard.contains("if (w >= 280f)")
+                        && dashboard.contains("if (w < 390f)")
+                        && dashboard.contains("w - 60, controlTop + 6"));
+    }
+
     private static int countOccurrences(String value, String needle) {
         int count = 0;
         int offset = 0;
