@@ -50,7 +50,7 @@ jobs:
           AMPERE_KEYSTORE_PASSWORD: ${{ secrets.AMPERE_ROTATED_KEYSTORE_PASSWORD }}
           AMPERE_KEY_ALIAS: ${{ secrets.AMPERE_ROTATED_KEY_ALIAS }}
           AMPERE_KEY_PASSWORD: ${{ secrets.AMPERE_ROTATED_KEY_PASSWORD }}
-        run: gradle -p android :app:assembleDirectRelease -x lintVitalAnalyzeRelease
+        run: gradle -p android :app:assembleDirectRelease -x lintVitalAnalyzeDirectRelease
 
       - name: Build Google Play App Bundle
         env:
@@ -58,7 +58,7 @@ jobs:
           AMPERE_KEYSTORE_PASSWORD: ${{ secrets.AMPERE_ROTATED_KEYSTORE_PASSWORD }}
           AMPERE_KEY_ALIAS: ${{ secrets.AMPERE_ROTATED_KEY_ALIAS }}
           AMPERE_KEY_PASSWORD: ${{ secrets.AMPERE_ROTATED_KEY_PASSWORD }}
-        run: gradle -p android :app:bundlePlayRelease -x lintVitalAnalyzeRelease
+        run: gradle -p android :app:bundlePlayRelease -x lintVitalAnalyzePlayRelease
 
       - name: Apply signing certificate rotation
         env:
