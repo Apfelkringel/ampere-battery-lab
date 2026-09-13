@@ -2955,9 +2955,13 @@ class BatteryDashboard extends View {
     private void drawTechnicalRow(Canvas c, float left, float right, float top,
                                   String label, String value, String source,
                                   int primary, int muted, int border) {
-        text(c, label, left, top + 19, 10f, primary, true);
-        drawSourceBadge(c, source, left, top + 37);
-        boundedRightText(c, value, left + 112, right, top + 25, value.length() > 18 ? 9.5f : 12, primary, true);
+        // Separate the value from its label; long telemetry values need the
+        // entire row width on phones. The source shares only the label lane.
+        type(7.3f, muted, true);
+        float badgeWidth = p.measureText(source) / density + 13f;
+        boundedText(c, label, left, right - badgeWidth - 10f, top + 16, 10f, muted, true);
+        drawSourceBadge(c, source, right - badgeWidth, top + 16);
+        boundedText(c, value, left, right, top + 36, 12f, primary, true);
         line(c, left, top + 46, right, top + 46, border, 1);
     }
 
@@ -2965,8 +2969,8 @@ class BatteryDashboard extends View {
                                     String eyebrow, String title, int panel, int border,
                                     int primary, int muted) {
         secondaryFrame(c, left, top, right, bottom, panel, border, lime);
-        text(c, eyebrow, left + 18, top + 27, 9f, muted, true);
-        text(c, title, left + 18, top + 54, 17f, primary, true);
+        boundedText(c, eyebrow, left + 18, right - 18, top + 27, 9f, muted, true);
+        boundedText(c, title, left + 18, right - 18, top + 54, 17f, primary, true);
     }
 
     private String chargeEnergyWhDisplay() {
@@ -3298,12 +3302,12 @@ class BatteryDashboard extends View {
             text(c, "SYSTEMDATEN AKTIV", 45, y + 198, 8f, lime, true);
         }
         rounded(c, 36, y + 218, w - 36, y + 270, 18, Color.rgb(7, 86, 90));
-        text(c, health > 0 ? "VOLLE KAPAZITÄT" : "MESSBASIS", 50, y + 239, 8.5f, Color.rgb(184, 226, 219), true);
-        text(c, health > 0 ? mahDisplay(estimatedCapacityMah()) : healthSamples.size() + " geeignete Sitzungen",
-                50, y + 259, 13, cream, true);
-        rightText(c, health > 0 && design > 0 ? "von " + mahDisplay(design)
-                        : "Messung starten",
-                w - 50, y + 259, 8.5f, Color.rgb(184, 226, 219), false);
+        boundedText(c, health > 0 ? "VOLLE KAPAZITÄT" : "MESSBASIS", 50, w - 50, y + 233, 8.5f, Color.rgb(184, 226, 219), true);
+        boundedText(c, health > 0 ? mahDisplay(estimatedCapacityMah()) : healthSamples.size() + " geeignete Sitzungen",
+                50, w - 50, y + 250, 13, cream, true);
+        boundedText(c, health > 0 && design > 0 ? "von " + mahDisplay(design)
+                        : "Kapazitätsmessung weiter unten starten",
+                50, w - 50, y + 263, 8.5f, Color.rgb(184, 226, 219), false);
 
         float cardW = (w - 48) / 2f;
         drawFriendlyMetric(c, 18, y + 310, 18 + cardW, y + 422,
@@ -3336,11 +3340,11 @@ class BatteryDashboard extends View {
                 w - 216, y + 528, w - 36, y + 564, isPressed(30), false);
 
         drawEditorialSurface(c, 18, y + 648, w - 18, y + 708, panel, border, blue);
-        text(c, "NENNKAPAZITÄT", 36, y + 673, 9, muted, true);
-        text(c, isProbablyEmulator() && !BatteryCapacity.hasManualOverride(getContext())
+        text(c, "NENNKAPAZITÄT", 36, y + 664, 9, muted, true);
+        boundedText(c, isProbablyEmulator() && !BatteryCapacity.hasManualOverride(getContext())
                         ? "Testwert · " + designCapacityDisplay() : designCapacityDisplay(),
-                36, y + 697, 14, primary, true);
-        rightText(c, "ANTIPPEN ZUM ÄNDERN", w - 36, y + 695, 8.2f, lime, true);
+                36, w - 36, y + 684, 14, primary, true);
+        boundedText(c, "ANTIPPEN ZUM ÄNDERN", 36, w - 36, y + 700, 8.2f, lime, true);
 
         BatteryTelemetryDiagnostics.Summary diagnostics = telemetryDiagnostics();
         float capacityTop = y + 728;
