@@ -1,0 +1,4 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Google Play owns updates for this variant; no package-install
+         permission or APK updater is contributed by this source set. -->
+</manifest>

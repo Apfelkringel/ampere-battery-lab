@@ -130,6 +130,7 @@ final class UpdateChecker {
 
     /** Performs a throttled manifest-only check from the persistent monitor service. */
     static void checkInBackground(Context context) {
+        if (!BuildConfig.DIRECT_DISTRIBUTION) return;
         String manifestUrl = BuildConfig.UPDATE_MANIFEST_URL;
         if (manifestUrl == null || manifestUrl.trim().isEmpty()) return;
         Context app = context.getApplicationContext();
@@ -154,6 +155,7 @@ final class UpdateChecker {
     }
 
     private static void check(Activity activity, boolean force) {
+        if (!BuildConfig.DIRECT_DISTRIBUTION) return;
         String manifestUrl = BuildConfig.UPDATE_MANIFEST_URL;
         if (manifestUrl == null || manifestUrl.trim().isEmpty()) return;
 

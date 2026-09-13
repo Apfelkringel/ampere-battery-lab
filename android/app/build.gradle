@@ -13,8 +13,23 @@ android {
         // APK installable on older Android versions as a bonus.
         minSdk 23
         targetSdk 37
-        versionCode 329
-        versionName "0.329"
+        versionCode 330
+        versionName "0.330"
+    }
+
+    // The GitHub APK channel may offer an explicitly user-confirmed update.
+    // The Play build must use Google Play's update mechanism and therefore
+    // does not request package-install permission or run the APK updater.
+    flavorDimensions "distribution"
+    productFlavors {
+        direct {
+            dimension "distribution"
+            buildConfigField "boolean", "DIRECT_DISTRIBUTION", "true"
+        }
+        play {
+            dimension "distribution"
+            buildConfigField "boolean", "DIRECT_DISTRIBUTION", "false"
+        }
     }
 
     buildFeatures {

@@ -54,11 +54,14 @@ public class BatteryWidgetProvider extends AppWidgetProvider {
             // Android 12+ can select among these layouts without waking the
             // app again for every launcher size. The lower-left points are
             // the exact cutoffs declared by the widget's resize range:
-            // short <72dp high, compact <220dp wide, standard otherwise.
+            // short <72dp high or <160dp wide, compact <220dp wide,
+            // standard otherwise.
             Map<SizeF, RemoteViews> responsive = new LinkedHashMap<>();
             responsive.put(new SizeF(109f, 56f), populateViews(context,
                     BatteryWidgetLayoutRules.SHORT, state));
             responsive.put(new SizeF(109f, 72f), populateViews(context,
+                    BatteryWidgetLayoutRules.SHORT, state));
+            responsive.put(new SizeF(160f, 72f), populateViews(context,
                     BatteryWidgetLayoutRules.COMPACT, state));
             responsive.put(new SizeF(220f, 72f), populateViews(context,
                     BatteryWidgetLayoutRules.STANDARD, state));
@@ -82,7 +85,8 @@ public class BatteryWidgetProvider extends AppWidgetProvider {
                 ? R.layout.battery_widget_compact
                 : R.layout.battery_widget;
         RemoteViews views = new RemoteViews(context.getPackageName(), layout);
-        String statusText = statusText(state.status, state.charging);
+        String statusText = statusText(state.status, state.charging,
+                layoutType == BatteryWidgetLayoutRules.SHORT);
         String detailsText = detailsText(state.charging, state.currentMa, state.temperatureTenths, state.voltageMv);
         views.setTextViewText(R.id.widget_level, state.level >= 0 ? state.level + "%" : "—");
         views.setTextViewText(R.id.widget_status, statusText);
@@ -118,10 +122,10 @@ public class BatteryWidgetProvider extends AppWidgetProvider {
         }
     }
 
-    private static String statusText(int status, boolean charging) {
+    private static String statusText(int status, boolean charging, boolean shortLayout) {
         if (charging) return "Laden";
         if (status == BatteryManager.BATTERY_STATUS_UNKNOWN) return "Status unbekannt";
-        return "Akkubetrieb";
+        return shortLayout ? "Akku" : "Akkubetrieb";
     }
 
     private static String detailsText(boolean charging, int currentMa, int temperatureTenths, int voltageMv) {

@@ -403,6 +403,13 @@ public class BatteryRulesTest {
                 BatteryWidgetLayoutRules.select(180, 71));
     }
 
+    @Test public void widgetUsesShortLayoutWhenWidthCannotFitThreeColumns() {
+        assertEquals(BatteryWidgetLayoutRules.SHORT,
+                BatteryWidgetLayoutRules.select(109, 276));
+        assertEquals(BatteryWidgetLayoutRules.SHORT,
+                BatteryWidgetLayoutRules.select(159, 130));
+    }
+
     @Test public void widgetUsesCompactLayoutOnlyWhenHeightCanShowItsContent() {
         assertEquals(BatteryWidgetLayoutRules.COMPACT,
                 BatteryWidgetLayoutRules.select(180, 72));
@@ -422,8 +429,10 @@ public class BatteryRulesTest {
                 BatteryWidgetLayoutRules.select(109, 56));
         assertEquals(BatteryWidgetLayoutRules.SHORT,
                 BatteryWidgetLayoutRules.select(219, 71));
-        assertEquals(BatteryWidgetLayoutRules.COMPACT,
+        assertEquals(BatteryWidgetLayoutRules.SHORT,
                 BatteryWidgetLayoutRules.select(109, 72));
+        assertEquals(BatteryWidgetLayoutRules.COMPACT,
+                BatteryWidgetLayoutRules.select(160, 72));
         assertEquals(BatteryWidgetLayoutRules.COMPACT,
                 BatteryWidgetLayoutRules.select(219, 276));
         assertEquals(BatteryWidgetLayoutRules.STANDARD,

@@ -44,13 +44,21 @@ jobs:
           echo "$KEYSTORE_BASE64" | base64 --decode > android/ci-release.keystore
           echo "$OLD_KEYSTORE_BASE64" | base64 --decode > android/ci-old-release.keystore
 
-      - name: Build release APK
+      - name: Build direct-distribution release APK
         env:
           AMPERE_KEYSTORE_FILE: ${{ github.workspace }}/android/ci-release.keystore
           AMPERE_KEYSTORE_PASSWORD: ${{ secrets.AMPERE_ROTATED_KEYSTORE_PASSWORD }}
           AMPERE_KEY_ALIAS: ${{ secrets.AMPERE_ROTATED_KEY_ALIAS }}
           AMPERE_KEY_PASSWORD: ${{ secrets.AMPERE_ROTATED_KEY_PASSWORD }}
-        run: gradle -p android :app:assembleRelease -x lintVitalAnalyzeRelease
+        run: gradle -p android :app:assembleDirectRelease -x lintVitalAnalyzeRelease
+
+      - name: Build Google Play App Bundle
+        env:
+          AMPERE_KEYSTORE_FILE: ${{ github.workspace }}/android/ci-release.keystore
+          AMPERE_KEYSTORE_PASSWORD: ${{ secrets.AMPERE_ROTATED_KEYSTORE_PASSWORD }}
+          AMPERE_KEY_ALIAS: ${{ secrets.AMPERE_ROTATED_KEY_ALIAS }}
+          AMPERE_KEY_PASSWORD: ${{ secrets.AMPERE_ROTATED_KEY_PASSWORD }}
+        run: gradle -p android :app:bundlePlayRelease -x lintVitalAnalyzeRelease
 
       - name: Apply signing certificate rotation
         env:
@@ -61,7 +69,7 @@ jobs:
           NEW_KEY_ALIAS: ${{ secrets.AMPERE_ROTATED_KEY_ALIAS }}
           NEW_KEY_PASSWORD: ${{ secrets.AMPERE_ROTATED_KEY_PASSWORD }}
         run: |
-          "$ANDROID_HOME/build-tools/37.0.0/zipalign" -f 4 android/app/build/outputs/apk/release/app-release.apk android/app/build/outputs/apk/release/app-release-aligned.apk
+          "$ANDROID_HOME/build-tools/37.0.0/zipalign" -f 4 android/app/build/outputs/apk/direct/release/app-direct-release.apk android/app/build/outputs/apk/direct/release/app-direct-release-aligned.apk
           "$ANDROID_HOME/build-tools/37.0.0/apksigner" sign \
             --ks android/ci-old-release.keystore \
             --ks-pass env:OLD_KEYSTORE_PASSWORD \
@@ -74,27 +82,34 @@ jobs:
             --key-pass env:NEW_KEY_PASSWORD \
             --lineage android/ampere-release.lineage \
             --rotation-min-sdk-version 28 \
-            --in android/app/build/outputs/apk/release/app-release-aligned.apk \
-            --out android/app/build/outputs/apk/release/app-release-rotated.apk
-          mv android/app/build/outputs/apk/release/app-release-rotated.apk android/app/build/outputs/apk/release/app-release.apk
+            --in android/app/build/outputs/apk/direct/release/app-direct-release-aligned.apk \
+            --out android/app/build/outputs/apk/direct/release/app-direct-release-rotated.apk
+          mv android/app/build/outputs/apk/direct/release/app-direct-release-rotated.apk android/app/build/outputs/apk/direct/release/app-direct-release.apk
 
       - name: Verify release signing identity
         run: |
           expected="301bed44b5cc342485b485b24baeea404dbdb216e6e3e134ad2ebd6b28d1dce3"
-          actual=$("$ANDROID_HOME/build-tools/37.0.0/apksigner" verify --print-certs android/app/build/outputs/apk/release/app-release.apk | awk -F': ' '/SHA-256 digest/ { print $NF; exit }')
+          actual=$("$ANDROID_HOME/build-tools/37.0.0/apksigner" verify --print-certs android/app/build/outputs/apk/direct/release/app-direct-release.apk | awk -F': ' '/SHA-256 digest/ { print $NF; exit }')
           test "$actual" = "$expected"
-          ! "$ANDROID_HOME/build-tools/37.0.0/apksigner" verify --print-certs android/app/build/outputs/apk/release/app-release.apk | grep -q 'CN=Android Debug'
-          "$ANDROID_HOME/build-tools/37.0.0/apksigner" verify --min-sdk-version 23 android/app/build/outputs/apk/release/app-release.apk
-          "$ANDROID_HOME/build-tools/37.0.0/apksigner" verify --min-sdk-version 34 android/app/build/outputs/apk/release/app-release.apk
+          ! "$ANDROID_HOME/build-tools/37.0.0/apksigner" verify --print-certs android/app/build/outputs/apk/direct/release/app-direct-release.apk | grep -q 'CN=Android Debug'
+          "$ANDROID_HOME/build-tools/37.0.0/apksigner" verify --min-sdk-version 23 android/app/build/outputs/apk/direct/release/app-direct-release.apk
+          "$ANDROID_HOME/build-tools/37.0.0/apksigner" verify --min-sdk-version 34 android/app/build/outputs/apk/direct/release/app-direct-release.apk
+
+      - name: Keep the stable direct APK release filename
+        run: cp android/app/build/outputs/apk/direct/release/app-direct-release.apk android/app/build/outputs/apk/direct/release/app-release.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: ampere-battery-lab-${{ github.ref_name }}
-          path: android/app/build/outputs/apk/release/app-release.apk
+          path: |
+            android/app/build/outputs/apk/direct/release/app-release.apk
+            android/app/build/outputs/bundle/playRelease/app-play-release.aab
 
       - name: Attach APK to tagged release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
-          files: android/app/build/outputs/apk/release/app-release.apk
+          files: |
+            android/app/build/outputs/apk/direct/release/app-release.apk
+            android/app/build/outputs/bundle/playRelease/app-play-release.aab
