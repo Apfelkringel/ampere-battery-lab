@@ -34,6 +34,18 @@ final class BatteryTimelineRules {
     }
 
     /**
+     * Allows a short visual interpolation without hiding a real outage. The
+     * raw samples stay untouched; callers should render this segment as an
+     * estimate and never use it for totals or health calculations.
+     */
+    static boolean shouldInterpolate(long previous, long current, long intervalMs) {
+        if (!isForward(previous, current) || intervalMs <= 0L) return false;
+        long delta = current - previous;
+        long maximum = Math.min(TWO_HOURS_MS, intervalMs * 6L);
+        return delta > intervalMs && delta <= maximum;
+    }
+
+    /**
      * A long gap means the open session was not continuously observed. Reset
      * only when that session started before the last known sample; a session
      * that began after the sample is still a valid short event.

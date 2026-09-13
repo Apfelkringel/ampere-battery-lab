@@ -15,6 +15,7 @@ import android.graphics.Canvas;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
@@ -4332,11 +4333,14 @@ class BatteryDashboard extends View {
             // point instead of using the full time axis.
             int first = 0;
             int gapCount = 0;
+            int estimatedCount = 0;
             for (int i = 1; i < points.size(); i++) {
                 LevelPoint previous = points.get(i - 1);
                 LevelPoint point = points.get(i);
-                if (!BatteryTimelineRules.isSamplingGap(previous.timestamp,
-                        point.timestamp, samplingIntervalMs())) continue;
+                boolean interpolated = BatteryTimelineRules.shouldInterpolate(
+                        previous.timestamp, point.timestamp, samplingIntervalMs());
+                boolean missing = point.timestamp - previous.timestamp > samplingIntervalMs();
+                if (!missing || interpolated) continue;
                 gapCount++;
                 float previousFraction = Math.max(0f, Math.min(1f,
                         (previous.timestamp - start) / (float) chartWindowMs()));
@@ -4351,7 +4355,8 @@ class BatteryDashboard extends View {
                         (gapLeft + gapRight) / 2f, chartY + chartH - 9,
                         Color.argb(120, Color.red(faint), Color.green(faint), Color.blue(faint)), 1);
             }
-            Path path = new Path();
+            Path measuredPath = new Path();
+            Path estimatedPath = new Path();
             boolean pathStarted = false;
             for (int i = first; i < points.size(); i++) {
                 LevelPoint point = points.get(i);
@@ -4359,23 +4364,50 @@ class BatteryDashboard extends View {
                 float px = u(chartX + timeFraction * chartW);
                 float py = u(chartY + chartH - point.level / 100f * chartH);
                 if (!pathStarted) {
-                    path.moveTo(px, py);
+                    measuredPath.moveTo(px, py);
                     pathStarted = true;
-                } else if (BatteryTimelineRules.isSamplingGap(
-                        points.get(i - 1).timestamp, point.timestamp, samplingIntervalMs())) {
-                    // Missing monitoring data is not a measured ramp.
-                    path.moveTo(px, py);
                 } else {
-                    path.lineTo(px, py);
+                    LevelPoint previous = points.get(i - 1);
+                    float previousFraction = Math.max(0f, Math.min(1f,
+                            (previous.timestamp - start) / (float) chartWindowMs()));
+                    float previousX = u(chartX + previousFraction * chartW);
+                    float previousY = u(chartY + chartH - previous.level / 100f * chartH);
+                    boolean interpolated = BatteryTimelineRules.shouldInterpolate(
+                            previous.timestamp, point.timestamp, samplingIntervalMs());
+                    boolean missing = point.timestamp - previous.timestamp > samplingIntervalMs();
+                    if (missing && interpolated) {
+                        // This short segment is a display-only estimate. It is
+                        // deliberately dashed and never enters any KPI math.
+                        estimatedPath.moveTo(previousX, previousY);
+                        estimatedPath.lineTo(px, py);
+                        measuredPath.moveTo(px, py);
+                        estimatedCount++;
+                    } else if (missing) {
+                        // A longer outage is not a measured ramp.
+                        measuredPath.moveTo(px, py);
+                    } else {
+                        measuredPath.lineTo(px, py);
+                    }
                 }
             }
-            stroke(c, lime, 2); c.drawPath(path, p);
+            stroke(c, lime, 2);
+            c.drawPath(measuredPath, p);
+            if (estimatedCount > 0) {
+                p.setPathEffect(new DashPathEffect(new float[]{u(5f), u(4f)}, 0));
+                stroke(c, Color.rgb(154, 236, 225), 2);
+                c.drawPath(estimatedPath, p);
+                p.setPathEffect(null);
+            }
             LevelPoint last = points.get(points.size() - 1);
             float lastFraction = Math.max(0f, Math.min(1f, (last.timestamp - start) / (float) chartWindowMs()));
             fill(c, lime);
             c.drawCircle(u(chartX + lastFraction * chartW), u(chartY + chartH - last.level / 100f * chartH), u(4), p);
-            if (gapCount > 0) {
-                boundedText(c, gapCount == 1 ? "1 Messlücke · keine Messung" : gapCount + " Messlücken · keine Messung",
+            if (gapCount > 0 || estimatedCount > 0) {
+                String gapLabel = gapCount > 0
+                        ? (gapCount == 1 ? "1 Messlücke · keine Messung" : gapCount + " Messlücken · keine Messung")
+                        : "kurze Lücke interpoliert";
+                boundedText(c, estimatedCount > 0 && gapCount > 0
+                                ? gapLabel + " · gestrichelt = geschätzt" : gapLabel,
                         chartX, x + width - 18, y + 158, 8, faint, false);
             }
         }

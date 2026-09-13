@@ -863,6 +863,16 @@ public class BatteryRulesTest {
                 1_000L + 2L * twoHours + 1L, twoHours));
     }
 
+    @Test public void chartsInterpolateOnlyShortMissingRuns() {
+        long fifteenMinutes = 15L * 60L * 1000L;
+        assertFalse(BatteryTimelineRules.shouldInterpolate(1_000L, 1_000L + fifteenMinutes, fifteenMinutes));
+        assertTrue(BatteryTimelineRules.shouldInterpolate(1_000L,
+                1_000L + 4L * fifteenMinutes, fifteenMinutes));
+        assertFalse(BatteryTimelineRules.shouldInterpolate(1_000L,
+                1_000L + 7L * fifteenMinutes, fifteenMinutes));
+        assertFalse(BatteryTimelineRules.shouldInterpolate(2_000L, 1_000L, fifteenMinutes));
+    }
+
     @Test public void unobservedGapResetsOnlyAnOlderOpenSession() {
         long interval = 15L * 60L * 1000L;
         long previousSample = 2_000L;
