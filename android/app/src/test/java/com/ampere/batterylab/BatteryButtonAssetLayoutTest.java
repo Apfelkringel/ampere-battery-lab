@@ -269,6 +269,18 @@ public class BatteryButtonAssetLayoutTest {
                 dashboard.contains("Unter 25 % starten") && dashboard.contains("über 95 % laden"));
     }
 
+    @Test public void liveOverlayBoundsLongAppNamesOnSmallDisplays() throws IOException {
+        String overlay = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/BatteryOverlayService.java"),
+                StandardCharsets.UTF_8);
+        assertTrue("overlay text must be bounded to the current display width",
+                overlay.contains("setMaxWidth(Math.round(getResources().getDisplayMetrics().widthPixels * 0.78f))"));
+        assertTrue("overlay must cap lines and ellipsize long app labels",
+                overlay.contains("setMaxLines(4)") && overlay.contains("TextUtils.TruncateAt.END"));
+        assertTrue("overlay labels must describe foreground usage in German",
+                overlay.contains("Vordergrund-App") && overlay.contains("Prozesslast"));
+    }
+
     private static int countOccurrences(String value, String needle) {
         int count = 0;
         int offset = 0;

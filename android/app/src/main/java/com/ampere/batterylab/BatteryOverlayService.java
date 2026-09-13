@@ -22,6 +22,7 @@ import android.provider.Settings;
 import android.view.Gravity;
 import android.view.WindowManager;
 import android.widget.TextView;
+import android.text.TextUtils;
 import android.graphics.drawable.GradientDrawable;
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -63,6 +64,10 @@ public class BatteryOverlayService extends Service {
         overlay.setTextColor(Color.rgb(242, 244, 239));
         overlay.setTextSize(12f);
         overlay.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+        overlay.setIncludeFontPadding(false);
+        overlay.setMaxLines(4);
+        overlay.setEllipsize(TextUtils.TruncateAt.END);
+        overlay.setMaxWidth(Math.round(getResources().getDisplayMetrics().widthPixels * 0.78f));
         overlay.setPadding(18, 12, 18, 12);
         GradientDrawable background = new GradientDrawable();
         background.setColor(Color.rgb(25, 28, 35));
@@ -120,7 +125,7 @@ public class BatteryOverlayService extends Service {
         String levelText = level >= 0 ? level + "%" : "—";
         String voltageText = voltage > 0 ? String.format(Locale.GERMANY, "%.2f V", voltage / 1000f) : "— V";
         String temperatureText = temperature > 0 ? String.format(Locale.GERMANY, "%.1f°C", temperature / 10f) : "—°C";
-        overlay.setText(BatteryOverlayText.header(levelText, currentText) + "\n" + voltageText + "   " + temperatureText + "   CPU-Kerne " + coreCpu + "%\nTop-App: " + topLabel + " · Prozess " + processText);
+        overlay.setText(BatteryOverlayText.header(levelText, currentText) + "\n" + voltageText + "   " + temperatureText + "   CPU-Kerne " + coreCpu + "%\nVordergrund-App: " + topLabel + " · Prozesslast " + processText);
     }
 
     private int readCpuPercent() {
