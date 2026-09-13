@@ -4327,7 +4327,24 @@ class BatteryDashboard extends View {
             text(c, "Warte auf lokale Messwerte.", chartX, chartY + 52, 10, faint, false);
         } else {
             long end = System.currentTimeMillis();
-            long start = end - chartWindowMs();
+            long windowStart = end - chartWindowMs();
+            long axisStart = windowStart;
+            long axisEnd = end;
+            if (points.size() > 1) {
+                long observedStart = points.get(0).timestamp;
+                long observedEnd = points.get(points.size() - 1).timestamp;
+                // A newly started monitor may contain only a few hours inside
+                // a 7/30-day selection. Focus that short, real range so the
+                // measured line starts at the left edge instead of floating in
+                // the middle of an otherwise empty chart.
+                if (observedEnd > observedStart && observedStart > windowStart
+                        && observedEnd - observedStart < chartWindowMs()) {
+                    axisStart = observedStart;
+                    axisEnd = observedEnd;
+                }
+            }
+            long axisSpan = Math.max(1L, axisEnd - axisStart);
+            boolean focusedRange = axisStart != windowStart || axisEnd != end;
             // Keep the complete selected window. Limiting to the last 48
             // samples made a 7/30-day chart appear to start at an arbitrary
             // point instead of using the full time axis.
@@ -4343,9 +4360,9 @@ class BatteryDashboard extends View {
                 if (!missing || interpolated) continue;
                 gapCount++;
                 float previousFraction = Math.max(0f, Math.min(1f,
-                        (previous.timestamp - start) / (float) chartWindowMs()));
+                        (previous.timestamp - axisStart) / (float) axisSpan));
                 float pointFraction = Math.max(0f, Math.min(1f,
-                        (point.timestamp - start) / (float) chartWindowMs()));
+                        (point.timestamp - axisStart) / (float) axisSpan));
                 float gapLeft = chartX + previousFraction * chartW;
                 float gapRight = chartX + pointFraction * chartW;
                 fill(c, Color.argb(24, Color.red(lime), Color.green(lime), Color.blue(lime)));
@@ -4360,7 +4377,7 @@ class BatteryDashboard extends View {
             boolean pathStarted = false;
             for (int i = first; i < points.size(); i++) {
                 LevelPoint point = points.get(i);
-                float timeFraction = Math.max(0f, Math.min(1f, (point.timestamp - start) / (float) chartWindowMs()));
+                float timeFraction = Math.max(0f, Math.min(1f, (point.timestamp - axisStart) / (float) axisSpan));
                 float px = u(chartX + timeFraction * chartW);
                 float py = u(chartY + chartH - point.level / 100f * chartH);
                 if (!pathStarted) {
@@ -4369,7 +4386,7 @@ class BatteryDashboard extends View {
                 } else {
                     LevelPoint previous = points.get(i - 1);
                     float previousFraction = Math.max(0f, Math.min(1f,
-                            (previous.timestamp - start) / (float) chartWindowMs()));
+                            (previous.timestamp - axisStart) / (float) axisSpan));
                     float previousX = u(chartX + previousFraction * chartW);
                     float previousY = u(chartY + chartH - previous.level / 100f * chartH);
                     boolean interpolated = BatteryTimelineRules.shouldInterpolate(
@@ -4399,19 +4416,32 @@ class BatteryDashboard extends View {
                 p.setPathEffect(null);
             }
             LevelPoint last = points.get(points.size() - 1);
-            float lastFraction = Math.max(0f, Math.min(1f, (last.timestamp - start) / (float) chartWindowMs()));
+            float lastFraction = Math.max(0f, Math.min(1f, (last.timestamp - axisStart) / (float) axisSpan));
             fill(c, lime);
             c.drawCircle(u(chartX + lastFraction * chartW), u(chartY + chartH - last.level / 100f * chartH), u(4), p);
-            if (gapCount > 0 || estimatedCount > 0) {
+            if (gapCount > 0 || estimatedCount > 0 || focusedRange) {
                 String gapLabel = gapCount > 0
                         ? (gapCount == 1 ? "1 Messlücke · keine Messung" : gapCount + " Messlücken · keine Messung")
                         : "kurze Lücke interpoliert";
+                if (gapCount == 0 && estimatedCount == 0) gapLabel = "Messbereich · lokale Werte";
                 boundedText(c, estimatedCount > 0 && gapCount > 0
                                 ? gapLabel + " · gestrichelt = geschätzt" : gapLabel,
                         chartX, x + width - 18, y + 158, 8, faint, false);
             }
         }
-        text(c, chartAxisLabel(0f), chartX, y + 166, 9, faint, false); text(c, chartAxisLabel(.33f), chartX + chartW * .32f, y + 166, 9, faint, false); text(c, chartAxisLabel(.66f), chartX + chartW * .64f, y + 166, 9, faint, false); text(c, chartAxisLabel(1f), chartX + chartW - 23, y + 166, 9, faint, false);
+        long axisEnd = System.currentTimeMillis();
+        long axisStart = axisEnd - chartWindowMs();
+        ArrayList<LevelPoint> axisPoints = chartPoints();
+        if (axisPoints.size() > 1) {
+            long observedStart = axisPoints.get(0).timestamp;
+            long observedEnd = axisPoints.get(axisPoints.size() - 1).timestamp;
+            if (observedEnd > observedStart && observedStart > axisStart
+                    && observedEnd - observedStart < chartWindowMs()) {
+                axisStart = observedStart;
+                axisEnd = observedEnd;
+            }
+        }
+        text(c, chartAxisLabel(0f, axisStart, axisEnd), chartX, y + 166, 9, faint, false); text(c, chartAxisLabel(.33f, axisStart, axisEnd), chartX + chartW * .32f, y + 166, 9, faint, false); text(c, chartAxisLabel(.66f, axisStart, axisEnd), chartX + chartW * .64f, y + 166, 9, faint, false); text(c, chartAxisLabel(1f, axisStart, axisEnd), chartX + chartW - 23, y + 166, 9, faint, false);
         text(c, "Ø " + chartAverage() + " · Spanne " + chartRange(), x + 18, y + 189, 8, muted, false);
         text(c, "Letzte Sitzungen", x + 18, y + 204, 13, primary, true);
         if (sessions.isEmpty()) {
@@ -4579,9 +4609,7 @@ class BatteryDashboard extends View {
         return values;
     }
 
-    private String chartAxisLabel(float fraction) {
-        long end = System.currentTimeMillis();
-        long start = end - (historyDays == 30 ? 30L : 7L) * 24L * 60L * 60L * 1000L;
+    private String chartAxisLabel(float fraction, long start, long end) {
         String pattern = historyDays == 30 ? "d. MMM" : "EEE";
         return new SimpleDateFormat(pattern, Locale.GERMANY).format(new Date(start + (long) ((end - start) * fraction)));
     }
