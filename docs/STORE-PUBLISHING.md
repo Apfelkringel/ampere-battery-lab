@@ -11,4 +11,6 @@ Für einen Upload wird das Artefakt `app-play-release.aab` aus dem Release-Workf
 
 ## iOS
 
-Dieses Repository enthält aktuell keine iOS-App, kein Xcode-Projekt und keine Swift-Implementierung. Eine Veröffentlichung im Apple App Store kann daher erst nach einem echten iOS-Port erfolgen. Dafür werden ein Apple-Developer-Team, eine Bundle-ID, Zertifikate/Provisioning, App-Store-Connect-Metadaten und ein vollständiger Xcode-Build benötigt. Der Android-Batterie- und Hintergrunddienst kann nicht unverändert auf iOS übernommen werden.
+Das Repository enthält jetzt einen nativen SwiftUI-Port unter `ios/` mit eigenem Xcode-Projekt. Er zeigt die von `UIDevice` tatsächlich verfügbaren Werte (Akkustand und Ladezustand), speichert lokale Messpunkte und kennzeichnet Android-exklusive Strom-/Kapazitätsdaten als nicht verfügbar. Der Android-Batterie- und Hintergrunddienst wird nicht vorgetäuscht.
+
+Der iOS-Workflow erstellt auf einem macOS-Runner ein unsigniertes Release-Build zur Prüfung. Für die App-Store-Veröffentlichung müssen anschließend ein Apple-Developer-Team, eine Bundle-ID, Zertifikate/Provisioning, App-Store-Connect-Metadaten und ein signierter Archive-Upload hinterlegt werden.
