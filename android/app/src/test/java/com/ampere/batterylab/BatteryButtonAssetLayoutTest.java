@@ -281,6 +281,21 @@ public class BatteryButtonAssetLayoutTest {
                 overlay.contains("Vordergrund-App") && overlay.contains("Prozesslast"));
     }
 
+    @Test public void systemSurfaceCopyUsesGermanProductTerms() throws IOException {
+        String dashboard = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
+                StandardCharsets.UTF_8);
+        String overlay = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/BatteryOverlayService.java"),
+                StandardCharsets.UTF_8);
+        assertTrue("research export feedback must use the German product term",
+                dashboard.contains("Forschungs-Export gespeichert."));
+        assertFalse("the visible export feedback must not retain the English label",
+                dashboard.contains("Research-Export gespeichert."));
+        assertTrue("overlay CPU label must describe the aggregate percentage",
+                overlay.contains("CPU gesamt"));
+    }
+
     private static int countOccurrences(String value, String needle) {
         int count = 0;
         int offset = 0;

@@ -541,9 +541,9 @@ public class MainActivity extends Activity {
             byte[] output = root.toString(2).getBytes(StandardCharsets.UTF_8);
             if (output.length > MAX_BACKUP_BYTES) throw new IllegalArgumentException("Research export too large");
             stream.write(output);
-            Toast.makeText(this, "Research-Export gespeichert.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Forschungs-Export gespeichert.", Toast.LENGTH_LONG).show();
         } catch (Exception ignored) {
-            Toast.makeText(this, "Research-Export konnte nicht gespeichert werden.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Forschungs-Export konnte nicht gespeichert werden.", Toast.LENGTH_LONG).show();
         }
     }
 }
