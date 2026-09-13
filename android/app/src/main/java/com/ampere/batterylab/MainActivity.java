@@ -4327,7 +4327,30 @@ class BatteryDashboard extends View {
         } else {
             long end = System.currentTimeMillis();
             long start = end - chartWindowMs();
-            int first = Math.max(0, points.size() - 48);
+            // Keep the complete selected window. Limiting to the last 48
+            // samples made a 7/30-day chart appear to start at an arbitrary
+            // point instead of using the full time axis.
+            int first = 0;
+            int gapCount = 0;
+            for (int i = 1; i < points.size(); i++) {
+                LevelPoint previous = points.get(i - 1);
+                LevelPoint point = points.get(i);
+                if (!BatteryTimelineRules.isSamplingGap(previous.timestamp,
+                        point.timestamp, samplingIntervalMs())) continue;
+                gapCount++;
+                float previousFraction = Math.max(0f, Math.min(1f,
+                        (previous.timestamp - start) / (float) chartWindowMs()));
+                float pointFraction = Math.max(0f, Math.min(1f,
+                        (point.timestamp - start) / (float) chartWindowMs()));
+                float gapLeft = chartX + previousFraction * chartW;
+                float gapRight = chartX + pointFraction * chartW;
+                fill(c, Color.argb(24, Color.red(lime), Color.green(lime), Color.blue(lime)));
+                c.drawRect(u(gapLeft), u(chartY + 2), u(Math.max(gapLeft + 2f, gapRight)),
+                        u(chartY + chartH - 2), p);
+                line(c, (gapLeft + gapRight) / 2f, chartY + 9,
+                        (gapLeft + gapRight) / 2f, chartY + chartH - 9,
+                        Color.argb(120, Color.red(faint), Color.green(faint), Color.blue(faint)), 1);
+            }
             Path path = new Path();
             boolean pathStarted = false;
             for (int i = first; i < points.size(); i++) {
@@ -4351,6 +4374,10 @@ class BatteryDashboard extends View {
             float lastFraction = Math.max(0f, Math.min(1f, (last.timestamp - start) / (float) chartWindowMs()));
             fill(c, lime);
             c.drawCircle(u(chartX + lastFraction * chartW), u(chartY + chartH - last.level / 100f * chartH), u(4), p);
+            if (gapCount > 0) {
+                boundedText(c, gapCount == 1 ? "1 Messlücke · keine Messung" : gapCount + " Messlücken · keine Messung",
+                        chartX, x + width - 18, y + 158, 8, faint, false);
+            }
         }
         text(c, chartAxisLabel(0f), chartX, y + 166, 9, faint, false); text(c, chartAxisLabel(.33f), chartX + chartW * .32f, y + 166, 9, faint, false); text(c, chartAxisLabel(.66f), chartX + chartW * .64f, y + 166, 9, faint, false); text(c, chartAxisLabel(1f), chartX + chartW - 23, y + 166, 9, faint, false);
         text(c, "Ø " + chartAverage() + " · Spanne " + chartRange(), x + 18, y + 189, 8, muted, false);
@@ -4453,6 +4480,11 @@ class BatteryDashboard extends View {
                 if (matchesDirection && magnitude > 0) points.add(new CurrentPoint(timestamp, magnitude));
             } catch (NumberFormatException ignored) { }
         }
+        Collections.sort(points, new Comparator<CurrentPoint>() {
+            @Override public int compare(CurrentPoint left, CurrentPoint right) {
+                return Long.compare(left.timestamp, right.timestamp);
+            }
+        });
         return points;
     }
 
@@ -4488,7 +4520,17 @@ class BatteryDashboard extends View {
                 } catch (NumberFormatException ignored) { }
             }
         }
-        if (!points.isEmpty()) return points;
+        if (!points.isEmpty()) {
+            // Restored telemetry and service restarts can append rows in a
+            // different order. Sorting by wall-clock time keeps the newest
+            // reading on the right and makes gap detection deterministic.
+            Collections.sort(points, new Comparator<LevelPoint>() {
+                @Override public int compare(LevelPoint left, LevelPoint right) {
+                    return Long.compare(left.timestamp, right.timestamp);
+                }
+            });
+            return points;
+        }
         ArrayList<Integer> fallback = historyDays == 30 ? longHistory : history;
         long fallbackEnd = System.currentTimeMillis();
         long fallbackStart = fallbackEnd - Math.max(0, fallback.size() - 1) * samplingIntervalMs();
