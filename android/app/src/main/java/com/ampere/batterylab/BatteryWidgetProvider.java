@@ -85,9 +85,9 @@ public class BatteryWidgetProvider extends AppWidgetProvider {
                 ? R.layout.battery_widget_compact
                 : R.layout.battery_widget;
         RemoteViews views = new RemoteViews(context.getPackageName(), layout);
-        String statusText = statusText(state.status, state.charging,
-                layoutType == BatteryWidgetLayoutRules.SHORT);
-        String detailsText = detailsText(state.charging, state.currentMa, state.temperatureTenths, state.voltageMv);
+        String statusText = statusText(state.status, state.charging);
+        String detailsText = detailsText(state.charging, state.currentMa, state.temperatureTenths,
+                state.voltageMv, layoutType);
         views.setTextViewText(R.id.widget_level, state.level >= 0 ? state.level + "%" : "—");
         views.setTextViewText(R.id.widget_status, statusText);
         views.setTextViewText(R.id.widget_details, detailsText);
@@ -122,18 +122,32 @@ public class BatteryWidgetProvider extends AppWidgetProvider {
         }
     }
 
-    private static String statusText(int status, boolean charging, boolean shortLayout) {
+    private static String statusText(int status, boolean charging) {
         if (charging) return "Laden";
-        if (status == BatteryManager.BATTERY_STATUS_UNKNOWN) return "Status unbekannt";
-        return shortLayout ? "Akku" : "Akkubetrieb";
+        if (status == BatteryManager.BATTERY_STATUS_UNKNOWN) return "Unbekannt";
+        return "Akku";
     }
 
-    private static String detailsText(boolean charging, int currentMa, int temperatureTenths, int voltageMv) {
-        StringBuilder details = new StringBuilder();
+    private static String detailsText(boolean charging, int currentMa, int temperatureTenths,
+                                      int voltageMv, int layoutType) {
         String current = BatteryTelemetryText.current(currentMa, charging, true);
-        details.append(current.equals("—") ? "Strom —" : current);
-        if (temperatureTenths > 0) details.append(" · ").append(String.format(Locale.GERMANY, "%.1f °C", temperatureTenths / 10f));
-        if (voltageMv > 0) details.append(" · ").append(String.format(Locale.GERMANY, "%.2f V", voltageMv / 1000f));
-        return details.toString();
+        // Narrow layouts get one high-signal line so no important value is
+        // pushed under the percentage or clipped by the launcher.
+        if (layoutType != BatteryWidgetLayoutRules.STANDARD) {
+            return current.equals("—") ? "Strom —" : current;
+        }
+        if (!current.equals("—")) {
+            if (temperatureTenths > 0) {
+                return current + " · " + String.format(Locale.GERMANY, "%.1f °C", temperatureTenths / 10f);
+            }
+            return current;
+        }
+        if (temperatureTenths > 0) {
+            return String.format(Locale.GERMANY, "%.1f °C", temperatureTenths / 10f);
+        }
+        if (voltageMv > 0) {
+            return String.format(Locale.GERMANY, "%.2f V", voltageMv / 1000f);
+        }
+        return "Strom —";
     }
 }

@@ -6,12 +6,15 @@
     android:orientation="horizontal"
     android:gravity="center_vertical"
     android:baselineAligned="false"
-    android:padding="12dp"
+    android:paddingStart="12dp"
+    android:paddingTop="10dp"
+    android:paddingEnd="10dp"
+    android:paddingBottom="10dp"
     android:background="@drawable/widget_background">
 
     <ImageView
-        android:layout_width="32dp"
-        android:layout_height="32dp"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
         android:layout_marginEnd="8dp"
         android:contentDescription="Ampere"
         android:src="@drawable/ic_launcher" />
@@ -21,7 +24,8 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:orientation="vertical"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical"
+        android:minHeight="30dp">
 
         <TextView
             android:id="@+id/widget_status"
@@ -31,9 +35,9 @@
             android:fontFamily="sans"
             android:includeFontPadding="false"
             android:maxLines="1"
-            android:text="Akkubetrieb"
+            android:text="Akku"
             android:textColor="@color/widget_accent"
-            android:textSize="13sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <TextView
@@ -46,13 +50,13 @@
             android:maxLines="1"
             android:text="Strom —"
             android:textColor="@color/widget_muted"
-            android:textSize="10sp" />
+            android:textSize="9sp" />
     </LinearLayout>
 
     <LinearLayout
-        android:layout_width="66dp"
+        android:layout_width="62dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="6dp"
+        android:layout_marginStart="8dp"
         android:orientation="vertical"
         android:gravity="end|center_vertical">
 
