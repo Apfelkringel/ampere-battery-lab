@@ -3305,7 +3305,11 @@ class BatteryDashboard extends View {
 
         drawEditorialSurface(c, 18, y + 438, w - 18, y + 510, panel, border, lime);
         text(c, "SO ENTSTEHT DIE SCHÄTZUNG", 36, y + 465, 9f, muted, true);
-        text(c, healthMeasurementSource(), 36, y + 485, 9, primary, true);
+        // OEM source paths can be long (for example a full sysfs path). Use
+        // the human label and keep it inside the card instead of letting raw
+        // driver text escape the mobile surface.
+        boundedText(c, healthReading.source.isEmpty() ? "Keine Messung" : healthMeasurementSourceLabel(),
+                36, w - 36, y + 485, 9, primary, true);
         text(c, "Ampere-Vollzyklen: " + totalEquivalentCycles(), 36, y + 501, 8.8f, muted, false);
 
         // The button bounds below are the shared source for drawing, touch,

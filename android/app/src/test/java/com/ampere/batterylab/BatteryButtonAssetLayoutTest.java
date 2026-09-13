@@ -306,6 +306,15 @@ public class BatteryButtonAssetLayoutTest {
                         && dashboard.contains("rightText(c, \"Herstellung: \" + manufactureDate.label(), w - 30, y + 530"));
     }
 
+    @Test public void mobileHealthSourceUsesShortBoundedLabel() throws IOException {
+        String dashboard = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
+                StandardCharsets.UTF_8);
+        assertTrue("mobile health card must not render raw OEM source paths",
+                dashboard.contains("healthReading.source.isEmpty() ? \"Keine Messung\" : healthMeasurementSourceLabel()")
+                        && dashboard.contains("boundedText(c, healthReading.source.isEmpty() ? \"Keine Messung\" : healthMeasurementSourceLabel(),"));
+    }
+
     private static int countOccurrences(String value, String needle) {
         int count = 0;
         int offset = 0;
