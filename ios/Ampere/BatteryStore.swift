@@ -49,7 +49,6 @@ final class BatteryStore: ObservableObject {
     deinit {
         observerTokens.forEach(NotificationCenter.default.removeObserver)
         timer?.invalidate()
-        device.isBatteryMonitoringEnabled = false
     }
 
     func startSampling() {
@@ -68,7 +67,7 @@ final class BatteryStore: ObservableObject {
     func refresh() {
         let rawLevel = device.batteryLevel
         let rawState = device.batteryState
-        level = rawLevel >= 0 ? rawLevel : nil
+        level = rawLevel >= 0 ? Double(rawLevel) : nil
         state = rawState
         lastUpdated = .now
         guard let level else { return }
