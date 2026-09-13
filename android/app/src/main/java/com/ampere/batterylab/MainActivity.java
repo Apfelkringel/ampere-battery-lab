@@ -730,13 +730,18 @@ class BatteryDashboard extends View {
 
     /** Uses the legible mobile export composition instead of squeezing the desktop artwork. */
     private Bitmap historyExportArtwork(float width) {
-        return width < 390f ? actionCsvCompactArtwork : actionCsvWideArtwork;
+        return isCompactHistoryWidth(width) ? actionCsvCompactArtwork : actionCsvWideArtwork;
+    }
+
+    /** Four history columns become unreadable before the narrowest phone class. */
+    private boolean isCompactHistoryWidth(float width) {
+        return width < 480f;
     }
 
     private float historyRowHeight() {
         float width = getWidth() > 0 ? getWidth() / density
                 : getResources().getConfiguration().screenWidthDp;
-        return width < 390f ? 54f : 44f;
+        return isCompactHistoryWidth(width) ? 54f : 44f;
     }
 
     /** Leaves the diagnosis copy clear of the full-width export image button. */
@@ -3992,7 +3997,7 @@ class BatteryDashboard extends View {
         }
         float y = 182;
         int rowCount = Math.min(150, sessions.size());
-        boolean compactHistory = w < 390f;
+        boolean compactHistory = isCompactHistoryWidth(w);
         float rowHeight = compactHistory ? 54f : 44f;
         float listBottom = y + 160 + rowCount * rowHeight;
         float panelBottom = historyPanelBottom();

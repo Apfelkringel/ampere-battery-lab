@@ -62,8 +62,10 @@ public class BatteryButtonAssetLayoutTest {
                 StandardCharsets.UTF_8);
         assertTrue("narrow history export must select the legible compact image button",
                 dashboard.contains("historyExportArtwork(w)"));
-        assertTrue("compact export artwork must be available for narrow phones",
-                dashboard.contains("width < 390f ? actionCsvCompactArtwork : actionCsvWideArtwork"));
+        assertTrue("compact export artwork must be available through the shared mobile breakpoint",
+                dashboard.contains("isCompactHistoryWidth(width) ? actionCsvCompactArtwork : actionCsvWideArtwork"));
+        assertTrue("the mobile breakpoint must cover medium-width phones",
+                dashboard.contains("return width < 480f;"));
     }
 
     @Test public void historyDeepSleepSummaryIsRightBounded() throws IOException {
