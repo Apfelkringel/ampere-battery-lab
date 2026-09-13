@@ -296,6 +296,16 @@ public class BatteryButtonAssetLayoutTest {
                 overlay.contains("CPU gesamt"));
     }
 
+    @Test public void healthWideEstimationCardContainsOptionalManufactureDate() throws IOException {
+        String dashboard = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
+                StandardCharsets.UTF_8);
+        assertTrue("health estimation card must extend below the optional manufacture date",
+                dashboard.contains("rounded(c, 18, y + 438, w - 18, y + 540")
+                        && dashboard.contains("rect.set(u(18), u(y + 438), u(w - 18), u(y + 540))")
+                        && dashboard.contains("rightText(c, \"Herstellung: \" + manufactureDate.label(), w - 30, y + 530"));
+    }
+
     private static int countOccurrences(String value, String needle) {
         int count = 0;
         int offset = 0;

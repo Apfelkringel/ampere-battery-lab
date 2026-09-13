@@ -3860,7 +3860,10 @@ class BatteryDashboard extends View {
         }
         drawStat(c, 18, y + 316, (w - 48) / 2f, 105, "Spannung", voltageDisplay(), voltage > 0f ? "V" : "", blue, primary, muted, border, panel, "bolt");
         drawStat(c, 30 + (w - 48) / 2f, y + 316, (w - 48) / 2f, 105, "Ladezyklen", chargeCyclesDisplay(), "", secondaryTone, primary, muted, border, panel, "grid");
-        rounded(c, 18, y + 438, w - 18, y + 520, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 438), u(w - 18), u(y + 520)); c.drawRoundRect(rect, u(12), u(12), p);
+        // Keep the optional manufacture-date line inside the estimation card.
+        // Its baseline is y+530; the former y+520 edge let that real device
+        // value escape the surface and collide with the measurement CTA.
+        rounded(c, 18, y + 438, w - 18, y + 540, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 438), u(w - 18), u(y + 540)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, "So entsteht die Schätzung", 36, y + 468, 10, muted, true);
         boundedText(c, healthReading.source.isEmpty() ? "Keine Messung vorhanden" : "Kapazität aus " + healthMeasurementSource(),
                 36, w * .53f, y + 493, 9, primary, false);
