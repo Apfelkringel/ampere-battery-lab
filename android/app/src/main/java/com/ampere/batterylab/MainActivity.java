@@ -2907,6 +2907,8 @@ class BatteryDashboard extends View {
         else if ("clock".equals(glyph)) drawClock(c, l + 29.5f, t + 29.5f, lime);
         else if ("heart".equals(glyph)) drawHeart(c, l + 29.5f, t + 29.5f, lime, .65f);
         else if ("arrow".equals(glyph)) drawArrow(c, l + 29.5f, t + 29.5f, lime);
+        else if ("grid".equals(glyph)) drawGrid(c, l + 29.5f, t + 29.5f, lime);
+        else if ("moon".equals(glyph)) drawMoon(c, l + 29.5f, t + 29.5f, lime);
         else drawBolt(c, l + 29.5f, t + 29.5f, lime, .65f);
         text(c, eyebrow.toUpperCase(Locale.GERMANY), l + 14, t + 65, 8.8f, muted, true);
         boundedText(c, value, l + 14, r - 12, t + 88, value.length() > 12 ? 13 : 18, primary, true);
@@ -3080,7 +3082,7 @@ class BatteryDashboard extends View {
                 36, y + 58, 19, cream);
         displayText(c, levelDisplay(), 36, y + 107, 30, cream);
         text(c, "aktueller Akkustand", 38, y + 127, 9, Color.rgb(184, 226, 219), false);
-        text(c, charging && currentMa > 0 ? "+" + currentMa + " mA" : "Nicht verbunden",
+        text(c, charging ? (currentMa > 0 ? "+" + currentMa + " mA" : "Strom nicht verfügbar") : "Nicht verbunden",
                 36, y + 151, charging && currentMa > 0 ? 14 : 12, cream, true);
         boundedText(c, charging ? liveCurrentSubLabel(true) : "Sobald Strom fließt, bin ich da.",
                 36, w - 126, y + 166, 9f, Color.rgb(184, 226, 219), false);
@@ -3127,9 +3129,9 @@ class BatteryDashboard extends View {
         boundedText(c, chargeDurationForDisplay(), w * .58f, w - 36, y + 575, 13, primary, true);
         rounded(c, 36, y + 613, w - 36, y + 632, 9,
                 Color.argb(40, Color.red(lime), Color.green(lime), Color.blue(lime)));
-        text(c, healthPercent() > 0 ? "Kapazität " + healthDisplay() + "% · im gesunden Bereich"
+        boundedText(c, healthPercent() > 0 ? "Kapazität " + healthDisplay() + "% · " + healthGradeLabel(healthPercent())
                         : "Nach längeren Ladungen wird die Schätzung genauer",
-                46, y + 626, 8.8f, muted, false);
+                46, w - 46, y + 626, 8.8f, muted, false);
 
         BatteryTelemetryDiagnostics.Summary diagnostics = telemetryDiagnostics();
         float liveTop = y + 664;
@@ -3176,8 +3178,8 @@ class BatteryDashboard extends View {
             displayText(c, "deinen Rhythmus.", 36, y + 80, 18, cream);
         }
         displayText(c, percentDisplay(displayLevel), 36, y + 112, 38, cream);
-        text(c, "aktueller Akkustand", 38, y + 132, 9f, Color.rgb(184, 226, 219), false);
-        text(c, !charging && currentMa > 0 ? "−" + currentMa + " mA" : "Gerät wird geladen",
+        text(c, charging && hasHistory ? "am Ende der Entladung" : "aktueller Akkustand", 38, y + 132, 9f, Color.rgb(184, 226, 219), false);
+        text(c, charging ? "Gerät wird geladen" : (currentMa > 0 ? "−" + currentMa + " mA" : "Strom nicht verfügbar"),
                 36, y + 153, 12, cream, true);
         boundedText(c, !charging && currentMa > 0 ? "Akkustrom live"
                         : "Sitzung startet beim Abstecken",
@@ -3346,7 +3348,7 @@ class BatteryDashboard extends View {
                 "KAPAZITÄT", "Messung und Datenqualität", panel, border, primary, muted);
         float row = capacityTop + 66;
         drawTechnicalRow(c, 36, w - 36, row, "Nennkapazität", designCapacityDisplay(),
-                BatteryCapacity.hasManualOverride(getContext()) ? "SYSTEM" : "SYSTEM", primary, muted, border);
+                BatteryCapacity.hasManualOverride(getContext()) ? "MANUELL" : "SYSTEM", primary, muted, border);
         drawTechnicalRow(c, 36, w - 36, row + 48, "Geschätzte Vollkapazität", estimatedCapacityMah() > 0 ? mahDisplay(estimatedCapacityMah()) : "Noch offen", "GESCHÄTZT", primary, muted, border);
         drawTechnicalRow(c, 36, w - 36, row + 96, "Kapazitätsverlust", capacityLossMahDisplay(), "BERECHNET", primary, muted, border);
         drawTechnicalRow(c, 36, w - 36, row + 144, "Gesundheit", health > 0 ? health + " %" : "Noch offen", "GESCHÄTZT", primary, muted, border);
