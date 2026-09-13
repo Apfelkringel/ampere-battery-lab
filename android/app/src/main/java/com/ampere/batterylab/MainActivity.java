@@ -1640,6 +1640,14 @@ class BatteryDashboard extends View {
         return change > 0 && change <= 100 ? "+" + change + "%" : "—";
     }
 
+    /** Shows the session's actual level range, not only the derived delta. */
+    private String chargeLevelRangeForDisplay() {
+        if (!charging && prefs.getLong("lastChargeEndAt", 0L) <= 0L) return "—";
+        int start = chargeStartLevelForDisplay();
+        int end = chargeEndLevelForDisplay();
+        return (start >= 0 ? start + "%" : "—") + " → " + (end >= 0 ? end + "%" : "—");
+    }
+
     private String chargeDurationForDisplay() {
         if (!charging) return lastChargeDuration();
         long start = prefs.getLong("monitorSessionStartedAt", sessionStartedAt);
@@ -3131,16 +3139,20 @@ class BatteryDashboard extends View {
                 panel, border, primary, muted);
 
         drawEditorialSurface(c, 18, y + 510, w - 18, y + 646, panel, border, lime);
-        text(c, "DEINE LADEGESCHICHTE", 36, y + 539, 9f, muted, true);
-        displayText(c, chargeChangeForDisplay(), 36, y + 574, 22, primary);
-        text(c, "Akkustand seit " + chargeStartForDisplay(), 36, y + 595, 9, muted, false);
-        text(c, "Dauer", w * .58f, y + 553, 9, faint, false);
-        boundedText(c, chargeDurationForDisplay(), w * .58f, w - 36, y + 575, 13, primary, true);
-        rounded(c, 36, y + 613, w - 36, y + 632, 9,
-                Color.argb(40, Color.red(lime), Color.green(lime), Color.blue(lime)));
-        boundedText(c, healthPercent() > 0 ? "Kapazität " + healthDisplay() + "% · " + healthGradeLabel(healthPercent())
-                        : "Nach längeren Ladungen wird die Schätzung genauer",
-                46, w - 46, y + 626, 8.8f, muted, false);
+        text(c, "LADE-SITZUNG", 36, y + 539, 9f, muted, true);
+        float sessionSplit = w * .56f;
+        text(c, "AKKUSTAND", 36, y + 558, 8.5f, faint, true);
+        boundedText(c, chargeLevelRangeForDisplay(), 36, sessionSplit - 12, y + 580,
+                15, primary, true);
+        text(c, "ÄNDERUNG", 36, y + 603, 8.5f, faint, true);
+        boundedText(c, chargeChangeForDisplay(), 36, sessionSplit - 12, y + 622,
+                11, lime, true);
+        text(c, "DAUER", sessionSplit, y + 558, 8.5f, faint, true);
+        boundedText(c, chargeDurationForDisplay(), sessionSplit, w - 36, y + 580,
+                13, primary, true);
+        text(c, "GESTARTET", sessionSplit, y + 603, 8.5f, faint, true);
+        boundedText(c, chargeStartForDisplay(), sessionSplit, w - 36, y + 622,
+                9, muted, false);
 
         BatteryTelemetryDiagnostics.Summary diagnostics = telemetryDiagnostics();
         float liveTop = y + 664;
