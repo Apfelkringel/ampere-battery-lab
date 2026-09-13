@@ -1,0 +1,1 @@
+Akku-Widget für Standard-, Compact- und Short-Größen neu ausgerichtet. Status und echte Telemetrie bleiben auch bei kleinen Widget-Größen lesbar.

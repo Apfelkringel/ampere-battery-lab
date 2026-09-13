@@ -1,0 +1,1 @@
+Dein Akkustand, direkt von iOS gelesen – klar, lokal und ohne erfundene Werte.

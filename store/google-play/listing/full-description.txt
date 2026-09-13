@@ -1,0 +1,14 @@
+Ampere Battery Lab zeigt dir, was dein Akku gerade macht.
+
+• Akkustand und Ladezustand auf einen Blick
+• Lade- und Entladesitzungen mit echten Android-Systemdaten
+• Verlauf für Akkustand, Strom, Spannung und Temperatur
+• Akkugesundheit nur dann, wenn eine Messung belastbare Werte liefert
+• Widget, Benachrichtigung und Quick-Settings-Kachel für den schnellen Blick
+• CSV-Export deiner lokalen Messdaten
+
+Ampere arbeitet ohne Benutzerkonto, Werbung oder Standortzugriff. Messwerte bleiben auf deinem Gerät. Du entscheidest selbst, wann ein Export erstellt wird.
+
+Die Anzeige hängt von den Messmöglichkeiten deines Geräts ab. Manche Hersteller liefern keinen Strom- oder Kapazitätswert; Ampere kennzeichnet solche Werte als nicht verfügbar und erfindet keine Zahlen.
+
+Die App kann optional dauerhaft messen, während du sie ausdrücklich aktivierst. Dafür wird eine sichtbare Android-Benachrichtigung verwendet. Du kannst die Überwachung jederzeit in der App beenden.
