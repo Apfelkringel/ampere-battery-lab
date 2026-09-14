@@ -3317,11 +3317,19 @@ class BatteryDashboard extends View {
                 36, w - 126, y + 169, 8.8f, Color.rgb(184, 226, 219), false);
         drawEditorialBattery(c, w - 79, y + 121,
                 displayLevel < 0 ? 62 : displayLevel, false, cream, blue, deep);
-        rounded(c, 36, y + 187, w - 36, y + 265, 20, Color.rgb(7, 86, 90));
-        text(c, "GESCHÄTZTE RESTLAUFZEIT", 51, y + 209, 9f, Color.rgb(184, 226, 219), true);
-        displayText(c, runtimeEstimate(), 51, y + 238, 19, cream);
-        text(c, hasHistory ? "bei deiner typischen Nutzung" : "Ladegerät trennen und Gerät normal nutzen",
-                51, y + 254, 8.8f, Color.rgb(184, 226, 219), false);
+        rounded(c, 36, y + 187, w - 36, y + 290, 20, Color.rgb(7, 86, 90));
+        text(c, "GESCHÄTZTE RESTLAUFZEIT BIS 0 %", 51, y + 209, 9f, Color.rgb(184, 226, 219), true);
+        float modeWidth = (w - 126f) / 3f;
+        float modeOne = 51f;
+        float modeTwo = modeOne + modeWidth + 12f;
+        float modeThree = modeTwo + modeWidth + 12f;
+        text(c, "DAUERHAFT AN", modeOne, y + 232, 7.5f, Color.rgb(184, 226, 219), true);
+        text(c, "AUS", modeTwo, y + 232, 7.5f, Color.rgb(184, 226, 219), true);
+        text(c, "NORMAL", modeThree, y + 232, 7.5f, Color.rgb(184, 226, 219), true);
+        boundedText(c, dischargeRuntime(true), modeOne, modeOne + modeWidth, y + 255, 11, cream, true);
+        boundedText(c, dischargeRuntime(false), modeTwo, modeTwo + modeWidth, y + 255, 11, cream, true);
+        boundedText(c, runtimeEstimate(), modeThree, modeThree + modeWidth, y + 255, 11, cream, true);
+        text(c, "lokale Schätzung", 51, y + 277, 8.8f, Color.rgb(184, 226, 219), false);
 
         float cardW = (w - 48) / 2f;
         drawFriendlyMetric(c, 18, y + 306, 18 + cardW, y + 418,
@@ -3705,7 +3713,7 @@ class BatteryDashboard extends View {
         text(c, percentDisplay(displayLevel), 70, y + 153, 22, primary, true);
         text(c, displayLevel >= 0 ? "verbleibend" : "noch keine Entladung", 69, y + 173, 9, muted, false);
         line(c, w * .54f, y + 94, w * .54f, y + 196, border, 1);
-        text(c, "Gemischte Laufzeit", w * .6f, y + 106, 10, muted, false);
+        text(c, "Normale Nutzung", w * .6f, y + 106, 10, muted, false);
         text(c, runtimeEstimate(), w * .6f, y + 138, 20, primary, true);
         text(c, "basierend auf letzter Nutzung", w * .6f, y + 157, 9, faint, false);
         text(c, "Bildschirm an / aus", w * .6f, y + 187, 10, muted, false);
