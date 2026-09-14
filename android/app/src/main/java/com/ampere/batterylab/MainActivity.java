@@ -673,7 +673,7 @@ class BatteryDashboard extends View {
             else if (page == 4 && sessions.isEmpty()) contentDp = 1050;
             else if (page == 4) contentDp = Math.max(900,
                     650 + Math.round(rowCount * historyRowHeight()));
-            else contentDp = 1320;
+            else contentDp = 1500;
         } else {
             contentDp = page == 4 ? Math.max(1320,
                     650 + Math.round(rowCount * historyRowHeight()))
@@ -725,7 +725,7 @@ class BatteryDashboard extends View {
         float heroWidth = Math.min(bodyWidth - 36, 520);
         boolean compact = viewportWidthDp > 0f ? viewportWidthDp < 600f : width < 600f;
         float heroHeight = compact ? 410f : 320f;
-        return 182 + heroHeight + 14 + 234;
+        return 182 + heroHeight + 14 + 210 + 234;
     }
 
     private int sessionCount(String type) {
@@ -987,6 +987,25 @@ class BatteryDashboard extends View {
     private String liveCurrentDisplay() {
         if (currentMa <= 0) return "—";
         return (charging ? "+" : "−") + currentMa + " mA";
+    }
+
+    private String liveRateDisplay() {
+        if (currentMa <= 0) return "—";
+        String power = livePowerDisplay();
+        return power.equals("—") ? liveCurrentDisplay()
+                : liveCurrentDisplay() + " · " + power;
+    }
+
+    private String averageConsumptionDisplay() {
+        float percentPerHour = mixedDischargeRate();
+        int capacity = calculationCapacityMah();
+        if (percentPerHour <= 0f) return "—";
+        if (capacity > 0) {
+            int mahPerHour = Math.round(percentPerHour * capacity / 100f);
+            return String.format(Locale.GERMANY, "%d mAh/h · %.1f %%/h",
+                    mahPerHour, percentPerHour);
+        }
+        return String.format(Locale.GERMANY, "%.1f %%/h", percentPerHour);
     }
 
     private String livePowerDisplay() {
@@ -2732,7 +2751,11 @@ class BatteryDashboard extends View {
                     statusTop + 22, 9, charging ? lime : blue, false);
         }
 
-        float cardsTop = top + heroH + 14;
+        float liveTop = top + heroH + 14;
+        drawLiveEnergyFlow(c, 18, liveTop, w - 18, liveTop + 196,
+                panel, border, primary, muted, faint);
+
+        float cardsTop = liveTop + 210;
         float cardGap = 12;
         float cardW = (w - 36 - cardGap) / 2f;
         drawStat(c, 18, cardsTop, cardW, 105, "Akkugesundheit", healthDisplay(), health > 0 ? "%" : "", lime, primary, muted, border, panel, "heart");
@@ -2742,6 +2765,42 @@ class BatteryDashboard extends View {
 
         float lowerTop = cardsTop + 234;
         drawChart(c, 18, lowerTop, w - 36, 360, panel, border, primary, muted, faint);
+    }
+
+    /** Keeps the current direction and the two most useful rate perspectives together. */
+    private void drawLiveEnergyFlow(Canvas c, float left, float top, float right, float bottom,
+                                    int panel, int border, int primary, int muted, int faint) {
+        secondaryFrame(c, left, top, right, bottom, panel, border, lime);
+        text(c, "LIVE-ENERGIEFLUSS", left + 18, top + 27, 9f, muted, true);
+        String status = charging ? "Laden" : (level >= 0 ? "Entladen" : "Status unbekannt");
+        int statusColor = charging ? lime : (level >= 0 ? blue : muted);
+        text(c, status, left + 18, top + 57, 21f, primary, true);
+        rounded(c, right - 114, top + 17, right - 18, top + 43, 13,
+                Color.argb(42, Color.red(statusColor), Color.green(statusColor), Color.blue(statusColor)));
+        fill(c, statusColor);
+        c.drawCircle(u(right - 101), u(top + 30), u(3), p);
+        boundedText(c, "AKTUELL", right - 91, right - 27, top + 34, 8f, statusColor, true);
+
+        float column = (right - left - 54) / 3f;
+        float first = left + 18;
+        float second = first + column + 9;
+        float third = second + column + 9;
+        line(c, first, top + 72, right - 18, top + 72, border, 1);
+        text(c, "RATE JETZT", first, top + 94, 8f, faint, true);
+        boundedText(c, liveRateDisplay(), first, second + column, top + 116, 12f, statusColor, true);
+        text(c, charging ? "Ladeeingang" : "Akkuseite", first, top + 134, 8f, muted, false);
+        text(c, "Ø VERBRAUCH", second, top + 94, 8f, faint, true);
+        boundedText(c, averageConsumptionDisplay(), second, third + column, top + 116, 12f, primary, true);
+        text(c, "lokale 7 Tage", second, top + 134, 8f, muted, false);
+        text(c, "SENSOREN", third, top + 94, 8f, faint, true);
+        boundedText(c, temperature > 0f ? temperatureDisplay() + " °C" : "—",
+                third, right - 18, top + 116, 11f, primary, true);
+        boundedText(c, voltage > 0f ? voltageDisplay() + " V" : "—",
+                third, right - 18, top + 134, 10f, muted, false);
+        text(c, "Temperatur · Spannung", third, top + 153, 8f, faint, false);
+        boundedText(c, charging ? "Laderate basiert auf Messstrom und Ladehistorie"
+                        : "Verbrauch basiert auf aktuellen und lokalen Messwerten",
+                first, right - 18, top + 178, 8f, faint, false);
     }
 
     /**

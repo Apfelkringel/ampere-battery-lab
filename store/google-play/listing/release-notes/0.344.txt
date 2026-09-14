@@ -1,0 +1,1 @@
+Live-Energiefluss auf der Startseite: aktueller Lade- oder Entladestrom, Leistung, durchschnittlicher Akkuverbrauch, Temperatur und Spannung auf einen Blick.
