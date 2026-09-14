@@ -1,0 +1,1 @@
+Update-Hinweise erscheinen jetzt direkt in der App. Die Android-Release-Pipeline wurde für aktuelle SDK-Runner stabilisiert.
