@@ -1,0 +1,1 @@
+Verlaufskennzahlen passen sich jetzt korrekt an Tag, Woche und Monat an. Keine irreführende Summe mehr über mehrere Zeiträume.

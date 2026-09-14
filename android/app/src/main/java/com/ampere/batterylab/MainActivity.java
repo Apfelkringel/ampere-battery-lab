@@ -4209,14 +4209,15 @@ class BatteryDashboard extends View {
         drawHistoryPeriodButton(c, 60 + controlWidth * 2, controlTop, w - 36, "Monat", 30, primary, muted, border);
 
         ArrayList<BatteryHistoryStats.Bucket> buckets = historyStatsBuckets();
-        BatteryHistoryStats.Overall overall = BatteryHistoryStats.overall(buckets);
+        BatteryHistoryStats.Bucket selectedPeriod = selectedHistoryPeriod(buckets);
         float cardsTop = y + 179;
         float cardGap = 12;
         float cardW = (w - 36 - cardGap) / 2f;
-        drawStat(c, 18, cardsTop, cardW, 104, "Aufgeladen", overall.chargedMah > 0 ? "+" + overall.chargedMah : "—", "mAh", lime, primary, muted, border, panel, "bolt");
-        drawStat(c, 18 + cardW + cardGap, cardsTop, cardW, 104, "Akkuverbrauch", overall.consumedMah > 0 ? "−" + overall.consumedMah : "—", "mAh", blue, primary, muted, border, panel, "arrow");
-        drawStat(c, 18, cardsTop + 116, cardW, 104, "Akkuverschleiß", overall.wearCycles > 0f ? String.format(Locale.GERMANY, "%.2f", overall.wearCycles) : "—", "EFC", amber, primary, muted, border, panel, "heart");
-        drawStat(c, 18 + cardW + cardGap, cardsTop + 116, cardW, 104, "Effizienz", overall.efficiencyPercent > 0 ? overall.efficiencyPercent + "" : "—", overall.efficiencyPercent > 0 ? "%" : "", lime, primary, muted, border, panel, "grid");
+        text(c, historyPeriodRangeLabel(), 36, cardsTop - 8, 8, faint, false);
+        drawStat(c, 18, cardsTop, cardW, 104, "Aufgeladen", selectedPeriod.chargedMah > 0 ? "+" + selectedPeriod.chargedMah : "—", "mAh", lime, primary, muted, border, panel, "bolt");
+        drawStat(c, 18 + cardW + cardGap, cardsTop, cardW, 104, "Akkuverbrauch", selectedPeriod.consumedMah > 0 ? "−" + selectedPeriod.consumedMah : "—", "mAh", blue, primary, muted, border, panel, "arrow");
+        drawStat(c, 18, cardsTop + 116, cardW, 104, "Akkuverschleiß", selectedPeriod.wearCycles > 0f ? String.format(Locale.GERMANY, "%.2f", selectedPeriod.wearCycles) : "—", "EFC", amber, primary, muted, border, panel, "heart");
+        drawStat(c, 18 + cardW + cardGap, cardsTop + 116, cardW, 104, "Effizienz", selectedPeriod.efficiencyPercent > 0 ? selectedPeriod.efficiencyPercent + "" : "—", selectedPeriod.efficiencyPercent > 0 ? "%" : "", lime, primary, muted, border, panel, "grid");
 
         float chartTop = y + 430;
         rounded(c, 18, chartTop, w - 18, chartTop + 280, 16, panel);
@@ -4235,8 +4236,8 @@ class BatteryDashboard extends View {
         float insightTop = chartTop + 298;
         rounded(c, 18, insightTop, w - 18, insightTop + 92, 14, raised);
         text(c, "AUSWERTUNG", 36, insightTop + 25, 8, lime, true);
-        String efficiencyText = overall.efficiencyPercent > 0 ? overall.efficiencyPercent + "% Lade-/Verbrauchsquote" : "Noch keine Effizienzreihe";
-        String wearText = overall.wearCycles > 0f ? String.format(Locale.GERMANY, "%.2f EFC Verschleißäquivalent", overall.wearCycles) : "Verschleiß wird nach Messdaten berechnet";
+        String efficiencyText = selectedPeriod.efficiencyPercent > 0 ? selectedPeriod.efficiencyPercent + "% Lade-/Verbrauchsquote" : "Noch keine Effizienzreihe";
+        String wearText = selectedPeriod.wearCycles > 0f ? String.format(Locale.GERMANY, "%.2f EFC Verschleißäquivalent", selectedPeriod.wearCycles) : "Verschleiß wird nach Messdaten berechnet";
         boundedText(c, efficiencyText + " · " + wearText, 36, w - 36, insightTop + 51, 10, primary, true);
         boundedText(c, "EFC = äquivalente Vollzyklen; kein direkter chemischer Gesundheitsverlust.", 36, w - 36, insightTop + 72, 8, muted, false);
 
@@ -4314,8 +4315,20 @@ class BatteryDashboard extends View {
                 System.currentTimeMillis(), historyPeriodDays, calculationCapacityMah());
     }
 
+    /** The cards describe the selected period, while the chart shows its historical buckets. */
+    private BatteryHistoryStats.Bucket selectedHistoryPeriod(ArrayList<BatteryHistoryStats.Bucket> buckets) {
+        if (buckets == null || buckets.isEmpty()) return new BatteryHistoryStats.Bucket(0L, "");
+        return buckets.get(buckets.size() - 1);
+    }
+
     private String historyPeriodLabel() {
         return historyPeriodDays == 1 ? "Täglich" : historyPeriodDays == 7 ? "Wöchentlich" : "Monatlich";
+    }
+
+    private String historyPeriodRangeLabel() {
+        return historyPeriodDays == 1 ? "AKTUELLER ZEITRAUM · LETZTE 24 STUNDEN"
+                : historyPeriodDays == 7 ? "AKTUELLER ZEITRAUM · LETZTE 7 TAGE"
+                : "AKTUELLER ZEITRAUM · LETZTE 30 TAGE";
     }
 
     private void drawLegacyHistoryPage(Canvas c, float w, float h, int panel, int raised, int border, int primary, int muted, int faint) {
