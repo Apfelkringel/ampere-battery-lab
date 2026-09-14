@@ -107,11 +107,13 @@ jobs:
         run: sha256sum android/app/build/outputs/apk/direct/release/app-release.apk android/app/build/outputs/bundle/playRelease/app-play-release.aab > android/app/build/outputs/release-SHA256SUMS.txt
 
       - name: Attest direct APK provenance
+        if: github.repository_visibility == 'public'
         uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2
         with:
           subject-path: android/app/build/outputs/apk/direct/release/app-release.apk
 
       - name: Attest Play bundle provenance
+        if: github.repository_visibility == 'public'
         uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2
         with:
           subject-path: android/app/build/outputs/bundle/playRelease/app-play-release.aab

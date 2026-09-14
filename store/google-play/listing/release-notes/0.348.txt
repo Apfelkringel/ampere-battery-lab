@@ -1,0 +1,1 @@
+Sicherheits-Härtung: TLS-only Netzwerkzugriff, optimierte signierte Release-Builds, strengere Backup-Regeln und prüfbare Release-Checksummen.
