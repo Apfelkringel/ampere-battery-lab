@@ -181,6 +181,7 @@ struct HealthView: View {
 
 struct HistoryView: View {
     @EnvironmentObject private var battery: BatteryStore
+    @State private var showingClearConfirmation = false
     var body: some View {
         PageShell(title: "Verlauf") {
             Panel {
@@ -193,6 +194,17 @@ struct HistoryView: View {
                         .frame(height: 180)
                     Text("\(battery.samples.count) echte iOS-Messpunkte · keine künstliche Auffüllung")
                         .font(.system(size: 10, design: .rounded)).foregroundStyle(AmperePalette.muted)
+                    Button("Lokalen Verlauf löschen", role: .destructive) {
+                        showingClearConfirmation = true
+                    }
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .confirmationDialog("Lokalen Verlauf löschen?", isPresented: $showingClearConfirmation, titleVisibility: .visible) {
+                        Button("Verlauf löschen", role: .destructive) { battery.clearHistory() }
+                        Button("Abbrechen", role: .cancel) { }
+                    } message: {
+                        Text("Alle lokal gespeicherten iOS-Messpunkte werden entfernt.")
+                    }
                 }
             }
         }

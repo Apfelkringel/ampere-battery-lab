@@ -1,0 +1,1 @@
+Ladeziel und Ladealarm sind direkt aus den Einstellungen erreichbar. Der Akkustatus kann kopiert oder über Android geteilt werden. iOS bietet jetzt ein sicheres Zurücksetzen des lokalen Verlaufs.

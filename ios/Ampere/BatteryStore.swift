@@ -84,6 +84,11 @@ final class BatteryStore: ObservableObject {
         "Ampere Battery Lab\nAkkustand: \(levelText)\nStatus: \(statusTitle)\nLetzte Messung: \(lastUpdatedText)\nNur lokale iOS-Werte; Strom, Spannung und Gesundheit sind öffentlich nicht verfügbar."
     }
 
+    func clearHistory() {
+        samples = []
+        saveSamples()
+    }
+
     var isCharging: Bool {
         state == .charging || state == .full
     }

@@ -1813,7 +1813,7 @@ class BatteryDashboard extends View {
                 : "Tiefstandwarnung · aus";
         String samplingOption = "Datenerfassung · alle " + BatterySamplingPolicy.normalizeMinutes(
                 prefs.getInt("samplingIntervalMin", 15)) + " Minuten";
-        String[] options = {"Benachrichtigungen", temperatureOption, dischargeOption, "Overlay-Berechtigung", "Daten & Datenschutz", "Sicherung & Wiederherstellung", "Hintergrundüberwachung", samplingOption, "Nach Updates suchen", "Kurzanleitung", "Gesundheitsbasis zurücksetzen", "Aktuellen Status kopieren", "Lokale Daten löschen"};
+        String[] options = {"Benachrichtigungen", "Ladeziel & Ladealarm", temperatureOption, dischargeOption, "Overlay-Berechtigung", "Daten & Datenschutz", "Sicherung & Wiederherstellung", "Hintergrundüberwachung", samplingOption, "Nach Updates suchen", "Kurzanleitung", "Gesundheitsbasis zurücksetzen", "Aktuellen Status kopieren", "Aktuellen Status teilen", "Lokale Daten löschen"};
         LinearLayout titleBar = new LinearLayout(getContext());
         titleBar.setOrientation(LinearLayout.HORIZONTAL);
         titleBar.setGravity(Gravity.CENTER_VERTICAL);
@@ -1843,27 +1843,35 @@ class BatteryDashboard extends View {
                     getContext().startActivity(notificationSettings);
                 } catch (Exception ignored) { }
             } else if (which == 1) {
-                showTemperatureAlarmSettings();
+                itemDialog.dismiss();
+                page = 1;
+                updateAccessibilitySummary();
+                updateLayoutHeight();
+                invalidate();
             } else if (which == 2) {
-                showDischargeAlarmSettings();
+                showTemperatureAlarmSettings();
             } else if (which == 3) {
-                try { getContext().startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getContext().getPackageName()))); } catch (Exception ignored) { }
+                showDischargeAlarmSettings();
             } else if (which == 4) {
-                showDataPrivacy();
+                try { getContext().startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getContext().getPackageName()))); } catch (Exception ignored) { }
             } else if (which == 5) {
-                showBackupRestore();
+                showDataPrivacy();
             } else if (which == 6) {
-                requestBackgroundMonitoring();
+                showBackupRestore();
             } else if (which == 7) {
-                showDataCollection();
+                requestBackgroundMonitoring();
             } else if (which == 8) {
-                UpdateChecker.checkNow((Activity) getContext());
+                showDataCollection();
             } else if (which == 9) {
-                showTutorial(true);
+                UpdateChecker.checkNow((Activity) getContext());
             } else if (which == 10) {
-                confirmResetHealthBaseline();
+                showTutorial(true);
             } else if (which == 11) {
+                confirmResetHealthBaseline();
+            } else if (which == 12) {
                 copyCurrentStatus();
+            } else if (which == 13) {
+                shareCurrentStatus();
             } else {
                 confirmDeleteData();
             }
@@ -2002,7 +2010,7 @@ class BatteryDashboard extends View {
                 .show();
     }
 
-    private void copyCurrentStatus() {
+    private String currentStatusText() {
         StringBuilder status = new StringBuilder();
         status.append("Ampere Battery Lab\n")
                 .append("Akkustand: ").append(levelDisplay()).append(" · ")
@@ -2012,12 +2020,24 @@ class BatteryDashboard extends View {
                 .append("Spannung: ").append(voltageDisplay()).append(" V\n")
                 .append("Gesundheit: ").append(healthDisplay()).append('\n')
                 .append("Quelle: lokal auf Android, Version ").append(BuildConfig.VERSION_NAME);
+        return status.toString();
+    }
+
+    private void copyCurrentStatus() {
         android.content.ClipboardManager clipboard = (android.content.ClipboardManager)
                 getContext().getSystemService(Context.CLIPBOARD_SERVICE);
         if (clipboard != null) {
-            clipboard.setPrimaryClip(android.content.ClipData.newPlainText("Ampere-Akkustatus", status.toString()));
+            clipboard.setPrimaryClip(android.content.ClipData.newPlainText("Ampere-Akkustatus", currentStatusText()));
             Toast.makeText(getContext(), "Akkustatus kopiert.", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void shareCurrentStatus() {
+        Intent share = new Intent(Intent.ACTION_SEND)
+                .setType("text/plain")
+                .putExtra(Intent.EXTRA_SUBJECT, "Ampere-Akkustatus")
+                .putExtra(Intent.EXTRA_TEXT, currentStatusText());
+        getContext().startActivity(Intent.createChooser(share, "Akkustatus teilen"));
     }
 
     private void confirmDeleteData() {
