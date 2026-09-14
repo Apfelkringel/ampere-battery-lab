@@ -107,6 +107,13 @@ struct OverviewView: View {
                         .font(.system(size: 13, design: .rounded)).foregroundStyle(AmperePalette.muted).fixedSize(horizontal: false, vertical: true)
                     MetricGrid(items: [("Kapazität", "Nicht verfügbar"), ("Verschleiß", "Nicht verfügbar"), ("Zyklen", "Nicht verfügbar"), ("Quelle", "Apple UIDevice")])
                 }
+                Panel {
+                    SectionHeading(eyebrow: "IOS-GRENZEN", title: "Was lokal messbar ist")
+                    Text("iOS liefert Akkustand, Ladezustand und Ereignisse. Strom, Spannung, Vollkapazität und Zyklen werden Drittanbieter-Apps nicht öffentlich bereitgestellt.")
+                        .font(.system(size: 13, design: .rounded)).foregroundStyle(AmperePalette.muted).fixedSize(horizontal: false, vertical: true)
+                    Text("Ampere zeichnet deshalb nur echte Vordergrund-Messpunkte auf und kennzeichnet fehlende Werte ausdrücklich.")
+                        .font(.system(size: 12, design: .rounded)).foregroundStyle(AmperePalette.primary).fixedSize(horizontal: false, vertical: true)
+                }
                 MetricGrid(items: [("Akkustand", battery.levelText), ("Status", battery.statusTitle), ("Spannung", "Nicht verfügbar"), ("Strom", "Nicht verfügbar")])
             }
         }
@@ -176,7 +183,7 @@ struct HistoryView: View {
                 } else {
                     BatteryHistoryChart(samples: battery.samples)
                         .frame(height: 180)
-                    Text("Nur echte iOS-Messpunkte · keine künstliche Auffüllung")
+                    Text("\(battery.samples.count) echte iOS-Messpunkte · keine künstliche Auffüllung")
                         .font(.system(size: 10, design: .rounded)).foregroundStyle(AmperePalette.muted)
                 }
             }

@@ -90,7 +90,7 @@ public class BatteryMonitorService extends Service {
 
     @Override public void onCreate() {
         super.onCreate();
-        MainActivity.migrateTelemetryPrefs(this);
+        BatteryDataRepository.migrate(this);
         monitorThread = new HandlerThread("ampere-battery-monitor", android.os.Process.THREAD_PRIORITY_BACKGROUND);
         monitorThread.start();
         handler = new Handler(monitorThread.getLooper());
@@ -151,7 +151,7 @@ public class BatteryMonitorService extends Service {
             details += " · Restenergie " + BatteryEnergy.label(remainingEnergyNanoWattHours);
         }
         if (value >= 0) {
-            android.content.SharedPreferences prefs = getSharedPreferences("ampere-data", MODE_PRIVATE);
+            android.content.SharedPreferences prefs = BatteryDataRepository.data(this);
             int design = BatteryCapacity.designCapacityMah(this);
             int health = BatteryHealth.percent(this, prefs, design);
             int capacity = BatteryHealth.estimatedCapacityMah(this, prefs, design);
@@ -199,8 +199,8 @@ public class BatteryMonitorService extends Service {
         int scale = battery.getIntExtra(BatteryManager.EXTRA_SCALE, 100);
         int value = BatteryLevel.percent(raw, scale);
         if (value < 0) return;
-        android.content.SharedPreferences prefs = getSharedPreferences("ampere-data", Context.MODE_PRIVATE);
-        android.content.SharedPreferences telemetryPrefs = getSharedPreferences("ampere-telemetry", Context.MODE_PRIVATE);
+        android.content.SharedPreferences prefs = BatteryDataRepository.data(this);
+        android.content.SharedPreferences telemetryPrefs = BatteryDataRepository.telemetry(this);
         long now = System.currentTimeMillis();
         long previousMonitorSampleAt = prefs.getLong("monitorSampleAt", 0L);
         int status = battery.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN);
@@ -428,7 +428,7 @@ public class BatteryMonitorService extends Service {
 
     /** Counts screen wake events as a transparent, device-independent wakeup proxy. */
     private void recordScreenWakeup() {
-        android.content.SharedPreferences prefs = getSharedPreferences("ampere-data", MODE_PRIVATE);
+        android.content.SharedPreferences prefs = BatteryDataRepository.data(this);
         if (!prefs.getBoolean("monitorLastCharging", false)) {
             prefs.edit().putInt("dischargeWakeups", prefs.getInt("dischargeWakeups", 0) + 1).apply();
         }
@@ -469,16 +469,9 @@ public class BatteryMonitorService extends Service {
                                       String foregroundPackage, int systemCycleCount, int plugged) {
         long last = prefs.getLong("telemetryLastSampleAt", 0L);
         if (BatteryTimelineRules.isRollback(last, now)) last = 0L;
-        if (now - last < sampleInterval()) return;
-        String saved = prefs.getString("telemetrySamples", "");
-        ArrayList<String> existingRows = BatteryExportRules.validTelemetryRows(saved);
-        StringBuilder all = new StringBuilder(saved.length() + 96);
-        for (String existingRow : existingRows) {
-            if (all.length() > 0) all.append('\n');
-            all.append(existingRow);
-        }
-        if (all.length() > 0) all.append('\n');
-        all.append(now).append(',')
+        if (!BatterySamplingPolicy.shouldSample(last, now, sampleInterval())) return;
+        StringBuilder row = new StringBuilder(96);
+        row.append(now).append(',')
                 .append(level).append(',')
                 .append(isCharging ? 1 : 0).append(',')
                 .append(currentMa).append(',')
@@ -489,32 +482,23 @@ public class BatteryMonitorService extends Service {
                 .append(foregroundPackage == null ? "" : foregroundPackage).append(',')
                 .append(systemCycleCount).append(',')
                 .append(plugged);
-        String[] rows = all.toString().split("\\n");
-        int first = Math.max(0, rows.length - telemetryRetentionSamples());
-        StringBuilder trimmed = new StringBuilder();
-        for (int i = first; i < rows.length; i++) {
-            if (trimmed.length() > 0) trimmed.append('\n');
-            trimmed.append(rows[i]);
-        }
-        prefs.edit().putString("telemetrySamples", trimmed.toString())
-                .putLong("telemetryLastSampleAt", now).apply();
+        BatteryDataRepository.appendTelemetry(this, row.toString(), telemetryRetentionSamples());
+        prefs.edit().putLong("telemetryLastSampleAt", now).apply();
     }
 
     private long sampleInterval() {
-        android.content.SharedPreferences prefs = getSharedPreferences("ampere-data", Context.MODE_PRIVATE);
-        int minutes = prefs.getInt("samplingIntervalMin", 15);
-        if (minutes != 5 && minutes != 15 && minutes != 30 && minutes != 60) minutes = 15;
-        return minutes * 60L * 1000L;
+        android.content.SharedPreferences prefs = BatteryDataRepository.data(this);
+        return BatterySamplingPolicy.intervalMs(prefs.getInt("samplingIntervalMin", 15));
     }
 
     /** Keeps approximately thirty days of telemetry at every supported rate. */
     private int telemetryRetentionSamples() {
-        long thirtyDaysMs = 30L * 24L * 60L * 60L * 1000L;
-        return Math.max(1, (int) Math.ceil(thirtyDaysMs / (double) sampleInterval()));
+        return BatterySamplingPolicy.retentionSamples(
+                BatteryDataRepository.data(this).getInt("samplingIntervalMin", 15));
     }
 
     private int longHistoryRetentionSamples() {
-        return Math.max(1, (int) Math.ceil(30L * 24L * 60L * 60L * 1000L / (double) sampleInterval()));
+        return telemetryRetentionSamples();
     }
 
     /** Cap stale integration while honoring the selected sampling interval. */

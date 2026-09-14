@@ -34,6 +34,9 @@ jobs:
           sdkmanager "platforms;android-36" "platforms;android-37.0" "build-tools;37.0.0"
           test -e "$ANDROID_HOME/platforms/android-37" || ln -s "$ANDROID_HOME/platforms/android-37.0" "$ANDROID_HOME/platforms/android-37"
 
+      - name: Run direct flavor unit tests and lint
+        run: gradle -p android :app:testDirectDebugUnitTest :app:lintDirectDebug
+
       - name: Restore private signing keys
         env:
           KEYSTORE_BASE64: ${{ secrets.AMPERE_ROTATED_KEYSTORE_BASE64 }}

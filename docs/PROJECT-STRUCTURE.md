@@ -40,5 +40,12 @@ Build the Android debug variant from the canonical workspace with Java 17:
 cd /Volumes/MacSSD/02_PROJECTS/Active/AccuBattery/android
 JAVA_HOME=/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home \
   PATH=/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home/bin:$PATH \
-  gradle --no-daemon lintDebug assembleDebug
+gradle --no-daemon lintDebug assembleDebug
+```
+
+The project has `direct` and `play` distribution flavors. Use explicit flavor
+tasks; abbreviated tasks such as `lintDebug` are ambiguous in Gradle 9:
+
+```sh
+gradle --no-daemon :app:testDirectDebugUnitTest :app:lintDirectDebug :app:assembleDirectDebug
 ```

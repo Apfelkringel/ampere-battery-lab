@@ -1,0 +1,1 @@
+Persistenz und Sampling wurden robuster und besser testbar strukturiert. Die iOS-Version erklärt Plattformgrenzen klarer; Android-Buildprüfungen verwenden jetzt explizite Distribution-Tasks.

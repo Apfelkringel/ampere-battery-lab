@@ -2,7 +2,7 @@
 
 ## Aktueller Stand (13. September 2026)
 
-Der signierte Android-Release `0.338` ist als APK und Play-App-Bundle gebaut. Das
+Der signierte Android-Release `0.339` ist als APK und Play-App-Bundle gebaut. Das
 öffentliche Bundle liegt hier: <https://github.com/Apfelkringel/ampere-battery-lab-updates/raw/refs/heads/main/Ampere-Battery-Lab-play-release.aab>.
 Die zugehörige Prüfsumme steht in `latest.json` unter `aabSha256`.
 

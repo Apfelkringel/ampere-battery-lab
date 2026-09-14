@@ -75,8 +75,8 @@ public class MainActivity extends Activity {
     private static final int CSV_EXPORT_REQUEST = 1204;
     private static final int DIAGNOSTIC_EXPORT_REQUEST = 1205;
     private static final int MAX_BACKUP_BYTES = 4 * 1024 * 1024;
-    private static final String DATA_PREFS = "ampere-data";
-    private static final String TELEMETRY_PREFS = "ampere-telemetry";
+    private static final String DATA_PREFS = BatteryDataRepository.DATA_PREFS;
+    private static final String TELEMETRY_PREFS = BatteryDataRepository.TELEMETRY_PREFS;
     private static final Set<String> RESTORABLE_DATA_KEYS = new HashSet<>(Arrays.asList(
             "history", "historyLong", "lastSample", "healthSamples", "sessions",
             "sessionStartedAt", "sessionStartLevel", "sessionStartChargeCounterMah", "lastCharging",
@@ -248,10 +248,10 @@ public class MainActivity extends Activity {
             root.put("package", getPackageName());
             root.put("createdAt", System.currentTimeMillis());
             JSONObject values = new JSONObject();
-            encodePreferences(values, getSharedPreferences(DATA_PREFS, MODE_PRIVATE), RESTORABLE_DATA_KEYS);
+            encodePreferences(values, BatteryDataRepository.data(this), RESTORABLE_DATA_KEYS);
             root.put("preferences", values);
             JSONObject telemetryValues = new JSONObject();
-            encodePreferences(telemetryValues, getSharedPreferences(TELEMETRY_PREFS, MODE_PRIVATE), RESTORABLE_TELEMETRY_KEYS);
+            encodePreferences(telemetryValues, BatteryDataRepository.telemetry(this), RESTORABLE_TELEMETRY_KEYS);
             root.put("telemetryPreferences", telemetryValues);
             byte[] output = root.toString(2).getBytes(StandardCharsets.UTF_8);
             if (output.length > MAX_BACKUP_BYTES) throw new IllegalArgumentException("Backup too large");
@@ -277,9 +277,9 @@ public class MainActivity extends Activity {
             JSONObject root = new JSONObject(bytes.toString("UTF-8"));
             int schema = root.optInt("schema", 0);
             if (!getPackageName().equals(root.optString("package")) || (schema != 1 && schema != 2)) throw new IllegalArgumentException("Invalid backup");
-            SharedPreferences.Editor editor = getSharedPreferences(DATA_PREFS, MODE_PRIVATE).edit().clear();
+            SharedPreferences.Editor editor = BatteryDataRepository.data(this).edit().clear();
             restorePreferences(root.getJSONObject("preferences"), editor, RESTORABLE_DATA_KEYS);
-            SharedPreferences.Editor telemetryEditor = getSharedPreferences(TELEMETRY_PREFS, MODE_PRIVATE).edit().clear();
+            SharedPreferences.Editor telemetryEditor = BatteryDataRepository.telemetry(this).edit().clear();
             if (schema >= 2 && root.has("telemetryPreferences")) {
                 restorePreferences(root.getJSONObject("telemetryPreferences"), telemetryEditor, RESTORABLE_TELEMETRY_KEYS);
             } else {
@@ -288,7 +288,7 @@ public class MainActivity extends Activity {
             }
             editor.apply();
             telemetryEditor.apply();
-            SharedPreferences restoredTelemetryPrefs = getSharedPreferences(TELEMETRY_PREFS, MODE_PRIVATE);
+            SharedPreferences restoredTelemetryPrefs = BatteryDataRepository.telemetry(this);
             String restoredTelemetry = restoredTelemetryPrefs.getString("telemetrySamples", "");
             String normalizedTelemetry = BatteryExportRules.normalizeTelemetry(restoredTelemetry);
             if (!restoredTelemetry.equals(normalizedTelemetry)) {
@@ -335,21 +335,7 @@ public class MainActivity extends Activity {
     }
 
     static void migrateTelemetryPrefs(Context context) {
-        SharedPreferences oldPrefs = context.getSharedPreferences(DATA_PREFS, Context.MODE_PRIVATE);
-        SharedPreferences newPrefs = context.getSharedPreferences(TELEMETRY_PREFS, Context.MODE_PRIVATE);
-        if (!newPrefs.contains("telemetrySamples") && oldPrefs.contains("telemetrySamples")) {
-            SharedPreferences.Editor migration = newPrefs.edit()
-                    .putString("telemetrySamples", oldPrefs.getString("telemetrySamples", ""));
-            if (oldPrefs.contains("telemetryLastSampleAt")) {
-                migration.putLong("telemetryLastSampleAt", oldPrefs.getLong("telemetryLastSampleAt", 0L));
-            }
-            if (migration.commit()) {
-                oldPrefs.edit().remove("telemetrySamples").remove("telemetryLastSampleAt").commit();
-            }
-        }
-        String saved = newPrefs.getString("telemetrySamples", "");
-        String normalized = BatteryExportRules.normalizeTelemetry(saved);
-        if (!saved.equals(normalized)) newPrefs.edit().putString("telemetrySamples", normalized).commit();
+        BatteryDataRepository.migrate(context);
     }
 
     void createResearchExport() {
@@ -391,8 +377,7 @@ public class MainActivity extends Activity {
     private void writeDiagnosticExport(Uri uri) {
         try (OutputStream stream = getContentResolver().openOutputStream(uri)) {
             if (stream == null) throw new IllegalStateException("No output stream");
-            String telemetry = getSharedPreferences(TELEMETRY_PREFS, MODE_PRIVATE)
-                    .getString("telemetrySamples", "");
+            String telemetry = BatteryDataRepository.readTelemetry(this);
             long interval = dashboard == null ? 15L * 60L * 1000L : dashboard.samplingIntervalMs();
             byte[] output = BatteryDiagnosticReport.build(telemetry, interval,
                     System.currentTimeMillis()).getBytes(StandardCharsets.UTF_8);
@@ -473,7 +458,7 @@ public class MainActivity extends Activity {
             }
             root.put("cycleHistory", cycleRows);
 
-            SharedPreferences data = getSharedPreferences(DATA_PREFS, MODE_PRIVATE);
+            SharedPreferences data = BatteryDataRepository.data(this);
             JSONObject sinceCharge = new JSONObject();
             boolean sinceChargeActive = data.getBoolean("sinceFullActive", false);
             sinceCharge.put("active", sinceChargeActive);
@@ -496,7 +481,7 @@ public class MainActivity extends Activity {
             root.put("sinceCharge", sinceCharge);
 
             JSONArray telemetryRows = new JSONArray();
-            String telemetry = getSharedPreferences(TELEMETRY_PREFS, MODE_PRIVATE).getString("telemetrySamples", "");
+            String telemetry = BatteryDataRepository.readTelemetry(this);
             for (String sample : BatteryExportRules.validTelemetryRows(telemetry)) {
                 String[] parts = sample.split(",", -1);
                 JSONObject row = new JSONObject();
@@ -652,8 +637,8 @@ class BatteryDashboard extends View {
         p.setTypeface(Typeface.create("sans", Typeface.NORMAL));
         setFocusable(true);
         setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
-        prefs = context.getSharedPreferences("ampere-data", Context.MODE_PRIVATE);
-        telemetryPrefs = context.getSharedPreferences("ampere-telemetry", Context.MODE_PRIVATE);
+        prefs = BatteryDataRepository.data(context);
+        telemetryPrefs = BatteryDataRepository.telemetry(context);
         loadStoredData();
         refreshHealthReading();
         updateAccessibilitySummary();
@@ -975,13 +960,11 @@ class BatteryDashboard extends View {
     }
 
     long samplingIntervalMs() {
-        int minutes = prefs.getInt("samplingIntervalMin", 15);
-        if (minutes != 5 && minutes != 15 && minutes != 30 && minutes != 60) minutes = 15;
-        return minutes * 60L * 1000L;
+        return BatterySamplingPolicy.intervalMs(prefs.getInt("samplingIntervalMin", 15));
     }
 
     private int longHistoryRetentionSamples() {
-        return Math.max(1, (int) Math.ceil(30L * 24L * 60L * 60L * 1000L / (double) samplingIntervalMs()));
+        return BatterySamplingPolicy.retentionSamples(prefs.getInt("samplingIntervalMin", 15));
     }
 
     private String formatDuration(long minutes) {
@@ -2044,9 +2027,9 @@ class BatteryDashboard extends View {
                 .setNegativeButton("Abbrechen", null)
                 .setPositiveButton("Löschen", (dialog, which) -> {
                     Context context = getContext();
-                    SharedPreferences data = context.getSharedPreferences("ampere-data", Context.MODE_PRIVATE);
+                    SharedPreferences data = BatteryDataRepository.data(context);
                     data.edit().clear().apply();
-                    context.getSharedPreferences("ampere-telemetry", Context.MODE_PRIVATE).edit().clear().apply();
+                    BatteryDataRepository.telemetry(context).edit().clear().apply();
                     BackupManager.dataChanged(context.getPackageName());
                     reloadStoredData();
                     Intent battery = ((Activity) context).registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
@@ -2063,7 +2046,7 @@ class BatteryDashboard extends View {
                 .setNegativeButton("Abbrechen", null)
                 .setPositiveButton("Basis zurücksetzen", (dialog, which) -> {
                     Context context = getContext();
-                    SharedPreferences data = context.getSharedPreferences("ampere-data", Context.MODE_PRIVATE);
+                    SharedPreferences data = BatteryDataRepository.data(context);
                     data.edit()
                             .remove("healthSamples").remove("benchmarkCapacityMah")
                             .remove("benchmarkActive").remove("benchmarkStartLevel")
