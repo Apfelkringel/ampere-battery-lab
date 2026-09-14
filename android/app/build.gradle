@@ -13,8 +13,8 @@ android {
         // APK installable on older Android versions as a bonus.
         minSdk 23
         targetSdk 37
-        versionCode 346
-        versionName "0.346"
+        versionCode 347
+        versionName "0.347"
     }
 
     // The GitHub APK channel may offer an explicitly user-confirmed update.
@@ -70,7 +70,9 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             signingConfig signingConfigs.release
         }
     }

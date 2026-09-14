@@ -1,0 +1,1 @@
+Sicherheitsverbesserungen: verifizierbare Release-Herkunft, TLS-only Netzwerkregeln, härtere Backups und geschützte optimierte Release-Builds.
