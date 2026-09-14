@@ -1,0 +1,1 @@
+Verlaufsseite komplett überarbeitet: tägliche, wöchentliche und monatliche Balkendiagramme für Aufladung, Akkuverbrauch, Verschleiß und Effizienz.

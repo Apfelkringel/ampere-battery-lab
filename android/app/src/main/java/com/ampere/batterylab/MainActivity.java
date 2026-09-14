@@ -569,6 +569,7 @@ class BatteryDashboard extends View {
     private boolean benchmarkActive = false;
     private boolean overlayEnabled = false;
     private int historyDays = 7;
+    private int historyPeriodDays = 1;
     private int page = 0;
     private long lastTouch;
     private float touchDownY;
@@ -662,7 +663,7 @@ class BatteryDashboard extends View {
     }
 
     private void updateLayoutHeight() {
-        int rowCount = Math.min(150, sessions.size());
+        int rowCount = Math.min(5, sessions.size());
         boolean editorialPortrait = getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE
                 && getResources().getConfiguration().screenWidthDp < 600;
         int contentDp;
@@ -670,13 +671,12 @@ class BatteryDashboard extends View {
             if (page == 1) contentDp = 1810;
             else if (page == 2) contentDp = 1900;
             else if (page == 3) contentDp = 1700;
-            else if (page == 4 && sessions.isEmpty()) contentDp = 1050;
-            else if (page == 4) contentDp = Math.max(900,
-                    650 + Math.round(rowCount * historyRowHeight()));
+            else if (page == 4) contentDp = Math.max(1400,
+                    1050 + Math.round(rowCount * historyRowHeight()));
             else contentDp = 1500;
         } else {
-            contentDp = page == 4 ? Math.max(1320,
-                    650 + Math.round(rowCount * historyRowHeight()))
+            contentDp = page == 4 ? Math.max(1400,
+                    1050 + Math.round(rowCount * historyRowHeight()))
                     : (page == 1 ? 1550 : (page == 3 ? 1500 : 1320));
         }
         int contentPx = Math.round(contentDp * density);
@@ -690,7 +690,6 @@ class BatteryDashboard extends View {
     private float historyExportTop() {
         boolean editorialPortrait = getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE
                 && getResources().getConfiguration().screenWidthDp < 600;
-        if (editorialPortrait && sessions.isEmpty()) return 958;
         return historyPanelBottom() - 58;
     }
 
@@ -712,9 +711,9 @@ class BatteryDashboard extends View {
 
     /** Leaves the diagnosis copy clear of the full-width export image button. */
     private float historyPanelBottom() {
-        int rowCount = Math.min(150, sessions.size());
-        float listBottom = 182 + 160 + rowCount * historyRowHeight();
-        return Math.max(182 + 610, listBottom + 300);
+        int rowCount = Math.min(5, sessions.size());
+        float listBottom = 182 + 990 + rowCount * historyRowHeight();
+        return Math.max(182 + 1000, listBottom + 170);
     }
 
     private float overviewChartTop() {
@@ -898,6 +897,8 @@ class BatteryDashboard extends View {
         benchmarkActive = prefs.getBoolean("benchmarkActive", false);
         overlayEnabled = prefs.getBoolean("overlayEnabled", false) && (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(getContext()));
         historyDays = prefs.getInt("historyDays", 7) == 30 ? 30 : 7;
+        int storedPeriod = prefs.getInt("historyPeriodDays", 1);
+        historyPeriodDays = storedPeriod == 7 || storedPeriod == 30 ? storedPeriod : 1;
     }
 
     private int loadChargeLimit() {
@@ -2393,6 +2394,12 @@ class BatteryDashboard extends View {
         if (page == 1 && isWithinCanvasControl(BatteryAccessibilityLayout.CHARGE_OVERLAY, x, y, w)) return 22;
         if (page == 3 && isWithinCanvasControl(BatteryAccessibilityLayout.HEALTH_BENCHMARK, x, y, w)) return 30;
         if (page == 4 && isWithinCanvasControl(BatteryAccessibilityLayout.HISTORY_EXPORT, x, y, w)) return 40;
+        if (page == 4 && y >= 301 && y <= 339 && x >= 36 && x <= w - 36) {
+            float controlWidth = (w - 84f) / 3f;
+            if (x < 36 + controlWidth) return 41;
+            if (x < 48 + controlWidth * 2f) return 42;
+            return 43;
+        }
         return 0;
     }
 
@@ -4086,6 +4093,137 @@ class BatteryDashboard extends View {
     }
 
     private void drawHistoryPage(Canvas c, float w, float h, int panel, int raised, int border, int primary, int muted, int faint) {
+        drawHistoryStatsPage(c, w, h, panel, raised, border, primary, muted, faint);
+    }
+
+    private void drawHistoryStatsPage(Canvas c, float w, float h, int panel, int raised, int border, int primary, int muted, int faint) {
+        float y = 182;
+        rounded(c, 18, y, w - 18, historyPanelBottom(), 18, panel);
+        stroke(c, border, 1);
+        rect.set(u(18), u(y), u(w - 18), u(historyPanelBottom()));
+        c.drawRoundRect(rect, u(18), u(18), p);
+        text(c, "VERLAUF & STATISTIK", 36, y + 31, 10, muted, true);
+        text(c, "Dein Akku im Zeitverlauf", 36, y + 62, 21, primary, true);
+        text(c, "Lokal aus Messpunkten berechnet · keine Cloud", 36, y + 84, 9, faint, false);
+        line(c, 36, y + 104, w - 36, y + 104, border, 1);
+
+        float controlTop = y + 119;
+        float controlWidth = (w - 84) / 3f;
+        drawHistoryPeriodButton(c, 36, controlTop, 36 + controlWidth, historyPeriodDays == 1 ? "Tag" : "Tag", 1, primary, muted, border);
+        drawHistoryPeriodButton(c, 48 + controlWidth, controlTop, 48 + controlWidth * 2, "Woche", 7, primary, muted, border);
+        drawHistoryPeriodButton(c, 60 + controlWidth * 2, controlTop, w - 36, "Monat", 30, primary, muted, border);
+
+        ArrayList<BatteryHistoryStats.Bucket> buckets = historyStatsBuckets();
+        BatteryHistoryStats.Overall overall = BatteryHistoryStats.overall(buckets);
+        float cardsTop = y + 179;
+        float cardGap = 12;
+        float cardW = (w - 36 - cardGap) / 2f;
+        drawStat(c, 18, cardsTop, cardW, 104, "Aufgeladen", overall.chargedMah > 0 ? "+" + overall.chargedMah : "—", "mAh", lime, primary, muted, border, panel, "bolt");
+        drawStat(c, 18 + cardW + cardGap, cardsTop, cardW, 104, "Akkuverbrauch", overall.consumedMah > 0 ? "−" + overall.consumedMah : "—", "mAh", blue, primary, muted, border, panel, "arrow");
+        drawStat(c, 18, cardsTop + 116, cardW, 104, "Akkuverschleiß", overall.wearCycles > 0f ? String.format(Locale.GERMANY, "%.2f", overall.wearCycles) : "—", "EFC", amber, primary, muted, border, panel, "heart");
+        drawStat(c, 18 + cardW + cardGap, cardsTop + 116, cardW, 104, "Effizienz", overall.efficiencyPercent > 0 ? overall.efficiencyPercent + "" : "—", overall.efficiencyPercent > 0 ? "%" : "", lime, primary, muted, border, panel, "grid");
+
+        float chartTop = y + 430;
+        rounded(c, 18, chartTop, w - 18, chartTop + 280, 16, panel);
+        stroke(c, border, 1);
+        rect.set(u(18), u(chartTop), u(w - 18), u(chartTop + 280));
+        c.drawRoundRect(rect, u(16), u(16), p);
+        text(c, "AKKU-BILANZ", 36, chartTop + 29, 9, muted, true);
+        text(c, historyPeriodLabel(), 36, chartTop + 53, 16, primary, true);
+        drawHistoryLegend(c, 36, chartTop + 76, primary, muted);
+        drawHistoryBars(c, buckets, 36, chartTop + 100, w - 36, 128, primary, muted, faint);
+        text(c, "Aufgeladen", 36, chartTop + 252, 8, lime, false);
+        text(c, "Verbrauch", 112, chartTop + 252, 8, blue, false);
+        text(c, "Verschleiß", 183, chartTop + 252, 8, amber, false);
+        text(c, "Effizienz", 260, chartTop + 252, 8, secondaryTone, false);
+
+        float insightTop = chartTop + 298;
+        rounded(c, 18, insightTop, w - 18, insightTop + 92, 14, raised);
+        text(c, "AUSWERTUNG", 36, insightTop + 25, 8, lime, true);
+        String efficiencyText = overall.efficiencyPercent > 0 ? overall.efficiencyPercent + "% Lade-/Verbrauchsquote" : "Noch keine Effizienzreihe";
+        String wearText = overall.wearCycles > 0f ? String.format(Locale.GERMANY, "%.2f EFC Verschleißäquivalent", overall.wearCycles) : "Verschleiß wird nach Messdaten berechnet";
+        boundedText(c, efficiencyText + " · " + wearText, 36, w - 36, insightTop + 51, 10, primary, true);
+        boundedText(c, "EFC = äquivalente Vollzyklen; kein direkter chemischer Gesundheitsverlust.", 36, w - 36, insightTop + 72, 8, muted, false);
+
+        float sessionsTop = insightTop + 119;
+        text(c, "LETZTE SITZUNGEN", 36, sessionsTop, 9, muted, true);
+        int rowCount = Math.min(5, sessions.size());
+        if (rowCount == 0) {
+            text(c, "Noch keine abgeschlossenen Lade- oder Entladevorgänge.", 36, sessionsTop + 29, 9, faint, false);
+        } else {
+            for (int index = 0; index < rowCount; index++) {
+                String[] parts = sessions.get(index).split(",", -1);
+                if (parts.length < 4) continue;
+                float rowY = sessionsTop + 29 + index * 31;
+                text(c, parts[3], 36, rowY, 8, muted, false);
+                text(c, sessionTypeDisplay(parts[0]), 112, rowY, 8, parts[0].equals("Charge") ? lime : blue, true);
+                boundedText(c, parts[1], 184, w - 126, rowY, 8, primary, true);
+                rightText(c, parts[2], w - 36, rowY, 8, faint, false);
+                line(c, 36, rowY + 9, w - 36, rowY + 9, border, 1);
+            }
+        }
+        float exportTop = historyExportTop();
+        drawGeneratedButton(c, historyExportArtwork(w), 36, exportTop, w - 36, exportTop + 44, isPressed(40), false);
+    }
+
+    private void drawHistoryPeriodButton(Canvas c, float left, float top, float right, String label,
+                                         int days, int primary, int muted, int border) {
+        boolean selected = historyPeriodDays == days;
+        rounded(c, left, top, right, top + 38, 12, selected ? lime : Color.TRANSPARENT);
+        stroke(c, selected ? lime : border, 1);
+        centeredText(c, label, (left + right) / 2f, top + 24, 10,
+                selected ? accentForeground() : primary, true);
+    }
+
+    private void drawHistoryLegend(Canvas c, float x, float y, int primary, int muted) {
+        rounded(c, x, y - 8, x + 9, y + 1, 3, lime);
+        text(c, "geladen", x + 14, y, 8, muted, false);
+        rounded(c, x + 78, y - 8, x + 87, y + 1, 3, blue);
+        text(c, "verbraucht", x + 92, y, 8, muted, false);
+        rounded(c, x + 180, y - 8, x + 189, y + 1, 3, amber);
+        text(c, "EFC", x + 194, y, 8, muted, false);
+    }
+
+    private void drawHistoryBars(Canvas c, ArrayList<BatteryHistoryStats.Bucket> buckets,
+                                 float left, float top, float right, float height,
+                                 int primary, int muted, int faint) {
+        if (buckets == null || buckets.isEmpty()) return;
+        int maxMah = 1;
+        float maxWear = .01f;
+        for (BatteryHistoryStats.Bucket bucket : buckets) {
+            maxMah = Math.max(maxMah, Math.max(bucket.chargedMah, bucket.consumedMah));
+            maxWear = Math.max(maxWear, bucket.wearCycles);
+        }
+        line(c, left, top + height, right, top + height, muted, 1);
+        float groupWidth = (right - left) / buckets.size();
+        float barWidth = Math.max(3f, Math.min(12f, groupWidth / 5f));
+        for (int i = 0; i < buckets.size(); i++) {
+            BatteryHistoryStats.Bucket bucket = buckets.get(i);
+            float center = left + groupWidth * (i + .5f);
+            float chargedHeight = height * bucket.chargedMah / (float) maxMah;
+            float consumedHeight = height * bucket.consumedMah / (float) maxMah;
+            float wearHeight = height * bucket.wearCycles / maxWear;
+            rounded(c, center - barWidth * 1.6f, top + height - chargedHeight,
+                    center - barWidth * .6f, top + height, 2, lime);
+            rounded(c, center - barWidth * .45f, top + height - consumedHeight,
+                    center + barWidth * .55f, top + height, 2, blue);
+            rounded(c, center + barWidth * .7f, top + height - wearHeight,
+                    center + barWidth * 1.7f, top + height, 2, amber);
+            text(c, bucket.label, center - groupWidth * .35f, top + height + 17, 7, faint, false);
+        }
+    }
+
+    private ArrayList<BatteryHistoryStats.Bucket> historyStatsBuckets() {
+        return BatteryHistoryStats.aggregateRows(
+                BatteryExportRules.validTelemetryRows(telemetryPrefs.getString("telemetrySamples", "")),
+                System.currentTimeMillis(), historyPeriodDays, calculationCapacityMah());
+    }
+
+    private String historyPeriodLabel() {
+        return historyPeriodDays == 1 ? "Täglich" : historyPeriodDays == 7 ? "Wöchentlich" : "Monatlich";
+    }
+
+    private void drawLegacyHistoryPage(Canvas c, float w, float h, int panel, int raised, int border, int primary, int muted, int faint) {
         if (usesEditorialPortrait(w) && sessions.isEmpty()) {
             drawHistoryEditorialEmpty(c, w, panel, raised, border, primary, muted, faint);
             return;
@@ -4840,6 +4978,13 @@ class BatteryDashboard extends View {
             updateAccessibilitySummary();
             updateLayoutHeight();
             invalidate();
+        } else if (virtualViewId >= BatteryAccessibilityLayout.HISTORY_DAY
+                && virtualViewId <= BatteryAccessibilityLayout.HISTORY_MONTH) {
+            historyPeriodDays = virtualViewId == BatteryAccessibilityLayout.HISTORY_DAY ? 1
+                    : virtualViewId == BatteryAccessibilityLayout.HISTORY_WEEK ? 7 : 30;
+            prefs.edit().putInt("historyPeriodDays", historyPeriodDays).apply();
+            updateAccessibilitySummary();
+            invalidate();
         } else if (virtualViewId == BatteryAccessibilityLayout.OVERVIEW_7D
                 || virtualViewId == BatteryAccessibilityLayout.OVERVIEW_30D) {
             historyDays = BatteryAccessibilityLayout.historyDaysForControl(virtualViewId, historyDays);
@@ -5004,7 +5149,7 @@ class BatteryDashboard extends View {
             ArrayList<AccessibilityNodeInfo> result = new ArrayList<>();
             if (searched == null) return result;
             String query = searched.toLowerCase(Locale.GERMANY);
-            for (int id = 1; id <= BatteryAccessibilityLayout.HISTORY_EXPORT; id++) {
+            for (int id = 1; id <= BatteryAccessibilityLayout.HISTORY_MONTH; id++) {
                 if (!isVisibleVirtualView(id)) continue;
                 String label = virtualViewLabel(id);
                 if (label.toLowerCase(Locale.GERMANY).contains(query)) {
@@ -5205,6 +5350,14 @@ class BatteryDashboard extends View {
         // back into the same local coordinate system used by onDraw().
         float x = screenX - contentInset(w);
         float bodyW = contentWidth(w);
+        if (page == 4 && releasedRegion >= 41 && releasedRegion <= 43) {
+            hapticClick();
+            historyPeriodDays = releasedRegion == 41 ? 1 : releasedRegion == 42 ? 7 : 30;
+            prefs.edit().putInt("historyPeriodDays", historyPeriodDays).apply();
+            updateAccessibilitySummary();
+            invalidate();
+            return true;
+        }
         if (page == 0 && y > overviewChartTop() + 8 && y < overviewChartTop() + 60) {
             int rangeControl = 0;
             if (x >= bodyW - 112 && x <= bodyW - 58) {

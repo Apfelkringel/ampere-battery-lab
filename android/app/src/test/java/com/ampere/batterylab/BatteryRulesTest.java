@@ -55,6 +55,19 @@ public class BatteryRulesTest {
         assertEquals(0, BatteryAppAttribution.rateMahPerHour(60, 0L));
     }
 
+    @Test public void historyStatsAggregateChargeDrainWearAndEfficiencyByBucket() {
+        long now = 8L * 60L * 60L * 1000L;
+        ArrayList<String> rows = new ArrayList<>(Arrays.asList(
+                (now - 2L * 60L * 60L * 1000L) + ",50,1,1000,25.0,4.0,100,1,,0,1",
+                (now - 1L * 60L * 60L * 1000L) + ",51,0,-500,25.0,4.0,100,1,,0,0"));
+        ArrayList<BatteryHistoryStats.Bucket> buckets = BatteryHistoryStats.aggregateRows(rows, now, 1, 1000);
+        BatteryHistoryStats.Overall overall = BatteryHistoryStats.overall(buckets);
+        assertEquals(1000, overall.chargedMah);
+        assertEquals(500, overall.consumedMah);
+        assertEquals(200, overall.efficiencyPercent);
+        assertEquals(0.5f, overall.wearCycles, 0.001f);
+    }
+
     @Test public void pageAccessibilityControlsFollowTheActivePage() {
         assertTrue(BatteryAccessibilityLayout.isVisible(
                 BatteryAccessibilityLayout.OVERVIEW_7D, 0));

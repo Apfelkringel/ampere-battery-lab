@@ -11,6 +11,9 @@ final class BatteryAccessibilityLayout {
     static final int HEALTH_CAPACITY = 56;
     static final int DISCHARGE_USAGE = 57;
     static final int HISTORY_EXPORT = 58;
+    static final int HISTORY_DAY = 59;
+    static final int HISTORY_WEEK = 60;
+    static final int HISTORY_MONTH = 61;
 
     private BatteryAccessibilityLayout() { }
 
@@ -20,7 +23,9 @@ final class BatteryAccessibilityLayout {
                 || virtualViewId == CHARGE_LIMIT;
         if (page == 2) return virtualViewId == DISCHARGE_USAGE;
         if (page == 3) return virtualViewId == HEALTH_BENCHMARK || virtualViewId == HEALTH_CAPACITY;
-        if (page == 4) return virtualViewId == HISTORY_EXPORT;
+        if (page == 4) return virtualViewId == HISTORY_EXPORT
+                || virtualViewId == HISTORY_DAY || virtualViewId == HISTORY_WEEK
+                || virtualViewId == HISTORY_MONTH;
         return false;
     }
 
@@ -30,7 +35,7 @@ final class BatteryAccessibilityLayout {
             case 1: return new int[]{CHARGE_ALARM, CHARGE_OVERLAY, CHARGE_LIMIT};
             case 2: return new int[]{DISCHARGE_USAGE};
             case 3: return new int[]{HEALTH_BENCHMARK, HEALTH_CAPACITY};
-            case 4: return new int[]{HISTORY_EXPORT};
+            case 4: return new int[]{HISTORY_DAY, HISTORY_WEEK, HISTORY_MONTH, HISTORY_EXPORT};
             default: return new int[0];
         }
     }
@@ -53,6 +58,9 @@ final class BatteryAccessibilityLayout {
             case HEALTH_CAPACITY: return "Nennkapazität bearbeiten";
             case DISCHARGE_USAGE: return "Vordergrundverbrauch öffnen";
             case HISTORY_EXPORT: return "CSV exportieren";
+            case HISTORY_DAY: return "Verlauf täglich";
+            case HISTORY_WEEK: return "Verlauf wöchentlich";
+            case HISTORY_MONTH: return "Verlauf monatlich";
             default: return "";
         }
     }
@@ -136,6 +144,24 @@ final class BatteryAccessibilityLayout {
                 top = historyExportTop;
                 right = bodyInset + bodyWidth - 36f;
                 bottom = historyExportTop + 44f;
+                break;
+            case HISTORY_DAY:
+                left = bodyInset + 36f;
+                top = 301f;
+                right = bodyInset + 36f + (bodyWidth - 84f) / 3f;
+                bottom = 339f;
+                break;
+            case HISTORY_WEEK:
+                left = bodyInset + 48f + (bodyWidth - 84f) / 3f;
+                top = 301f;
+                right = bodyInset + 48f + 2f * (bodyWidth - 84f) / 3f;
+                bottom = 339f;
+                break;
+            case HISTORY_MONTH:
+                left = bodyInset + 60f + 2f * (bodyWidth - 84f) / 3f;
+                top = 301f;
+                right = bodyInset + bodyWidth - 36f;
+                bottom = 339f;
                 break;
             default:
                 return new int[]{0, 0, 0, 0};
