@@ -1803,7 +1803,17 @@ class BatteryDashboard extends View {
     }
 
     private void showSettings() {
-        String[] options = {"Benachrichtigungen", "Temperaturwarnung", "Tiefstandwarnung", "Overlay-Berechtigung", "Daten & Datenschutz", "Sicherung & Wiederherstellung", "Hintergrundüberwachung", "Datenerfassung", "Nach Updates suchen", "Kurzanleitung", "Gesundheitsbasis zurücksetzen", "Lokale Daten löschen"};
+        String temperatureOption = prefs.getBoolean("temperatureAlarm", true)
+                ? "Temperaturwarnung · ab " + (BatteryTemperatureAlarm.normalizeThreshold(
+                prefs.getInt("temperatureAlarmThresholdTenths", BatteryTemperatureAlarm.DEFAULT_THRESHOLD_TENTHS)) / 10) + " °C"
+                : "Temperaturwarnung · aus";
+        String dischargeOption = prefs.getBoolean("dischargeAlarm", true)
+                ? "Tiefstandwarnung · bei " + BatteryDischargeAlarm.normalizeThreshold(
+                prefs.getInt("dischargeAlarmThreshold", BatteryDischargeAlarm.DEFAULT_THRESHOLD)) + " %"
+                : "Tiefstandwarnung · aus";
+        String samplingOption = "Datenerfassung · alle " + BatterySamplingPolicy.normalizeMinutes(
+                prefs.getInt("samplingIntervalMin", 15)) + " Minuten";
+        String[] options = {"Benachrichtigungen", temperatureOption, dischargeOption, "Overlay-Berechtigung", "Daten & Datenschutz", "Sicherung & Wiederherstellung", "Hintergrundüberwachung", samplingOption, "Nach Updates suchen", "Kurzanleitung", "Gesundheitsbasis zurücksetzen", "Aktuellen Status kopieren", "Lokale Daten löschen"};
         LinearLayout titleBar = new LinearLayout(getContext());
         titleBar.setOrientation(LinearLayout.HORIZONTAL);
         titleBar.setGravity(Gravity.CENTER_VERTICAL);
@@ -1852,6 +1862,8 @@ class BatteryDashboard extends View {
                 showTutorial(true);
             } else if (which == 10) {
                 confirmResetHealthBaseline();
+            } else if (which == 11) {
+                copyCurrentStatus();
             } else {
                 confirmDeleteData();
             }
@@ -1990,6 +2002,24 @@ class BatteryDashboard extends View {
                 .show();
     }
 
+    private void copyCurrentStatus() {
+        StringBuilder status = new StringBuilder();
+        status.append("Ampere Battery Lab\n")
+                .append("Akkustand: ").append(levelDisplay()).append(" · ")
+                .append(batteryModeLabel()).append('\n')
+                .append("Strom: ").append(liveCurrentDisplay()).append('\n')
+                .append("Temperatur: ").append(temperatureDisplay()).append(" °C\n")
+                .append("Spannung: ").append(voltageDisplay()).append(" V\n")
+                .append("Gesundheit: ").append(healthDisplay()).append('\n')
+                .append("Quelle: lokal auf Android, Version ").append(BuildConfig.VERSION_NAME);
+        android.content.ClipboardManager clipboard = (android.content.ClipboardManager)
+                getContext().getSystemService(Context.CLIPBOARD_SERVICE);
+        if (clipboard != null) {
+            clipboard.setPrimaryClip(android.content.ClipData.newPlainText("Ampere-Akkustatus", status.toString()));
+            Toast.makeText(getContext(), "Akkustatus kopiert.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private void confirmDeleteData() {
         new AlertDialog.Builder(getContext())
                 .setTitle("Lokale Daten löschen?")
@@ -2064,11 +2094,14 @@ class BatteryDashboard extends View {
         if (!force && prefs.getBoolean("tutorialShown", false)) return;
         new AlertDialog.Builder(getContext())
                 .setTitle("Willkommen bei Ampere")
-                .setMessage("Ampere misst Akkustrom, Ladegeschwindigkeit, Verbrauch und geschätzte Kapazität lokal.\n\n1. Lass die Überwachungsbenachrichtigung für den Hintergrundverlauf aktiviert.\n2. Stelle den Ladealarm auf den Akkustand, bei dem du erinnert werden möchtest.\n3. Für eine möglichst genaue Gesundheitsbewertung starte die Kapazitätsmessung unter 25 % und beende sie über 95 %.\n\nOptional: Erlaube den Nutzungszugriff für App-Verbrauchsschätzungen und die Overlay-Berechtigung für Live-Werte über anderen Apps.")
-                .setNegativeButton("Überspringen", (dialog, which) -> prefs.edit().putBoolean("tutorialShown", true).apply())
-                .setPositiveButton("Kapazität festlegen", (dialog, which) -> {
+                .setMessage("Ampere arbeitet lokal auf deinem Gerät. Für einen guten Start:\n\n1. Lass die Überwachungsbenachrichtigung aktiv, damit Verlauf und Alarme weiterlaufen.\n2. Wähle im Tab „Laden“ dein Ladeziel.\n3. Für die Gesundheitsmessung: unter 25 % starten und über 95 % laden.\n\nOptional: Nutzungszugriff zeigt App-Verbrauch, Overlay zeigt Live-Werte über anderen Apps. Beide Zugriffe kannst du später in Einstellungen aktivieren.")
+                .setNegativeButton("Später", (dialog, which) -> prefs.edit().putBoolean("tutorialShown", true).apply())
+                .setNeutralButton("Nennkapazität setzen", (dialog, which) -> {
                     prefs.edit().putBoolean("tutorialShown", true).apply();
                     editDesignCapacity();
+                })
+                .setPositiveButton("Loslegen", (dialog, which) -> {
+                    prefs.edit().putBoolean("tutorialShown", true).apply();
                 }).show();
     }
 

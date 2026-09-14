@@ -115,6 +115,14 @@ struct OverviewView: View {
                         .font(.system(size: 12, design: .rounded)).foregroundStyle(AmperePalette.primary).fixedSize(horizontal: false, vertical: true)
                 }
                 MetricGrid(items: [("Akkustand", battery.levelText), ("Status", battery.statusTitle), ("Spannung", "Nicht verfügbar"), ("Strom", "Nicht verfügbar")])
+                ShareLink(item: battery.statusSummary, subject: Text("Ampere-Akkustatus")) {
+                    Label("Status teilen", systemImage: "square.and.arrow.up")
+                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .foregroundStyle(AmperePalette.background)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(AmperePalette.accent, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                }
             }
         }
     }

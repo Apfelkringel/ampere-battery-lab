@@ -72,11 +72,16 @@ final class BatteryStore: ObservableObject {
         lastUpdated = .now
         guard let level else { return }
         let sample = BatterySample(level: level, state: rawState)
-        if samples.last?.level != sample.level || samples.last?.state != sample.state {
+        let periodicSampleDue = samples.last.map { sample.date.timeIntervalSince($0.date) >= 300 } ?? true
+        if periodicSampleDue || samples.last?.level != sample.level || samples.last?.state != sample.state {
             samples.append(sample)
             samples = Array(samples.suffix(720))
             saveSamples()
         }
+    }
+
+    var statusSummary: String {
+        "Ampere Battery Lab\nAkkustand: \(levelText)\nStatus: \(statusTitle)\nLetzte Messung: \(lastUpdatedText)\nNur lokale iOS-Werte; Strom, Spannung und Gesundheit sind öffentlich nicht verfügbar."
     }
 
     var isCharging: Bool {

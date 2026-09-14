@@ -1,0 +1,1 @@
+Schnellere Orientierung: Einstellungen zeigen ihre aktuellen Werte, der Akkustatus kann kopiert und geteilt werden, und die Erstführung erklärt die wichtigsten nächsten Schritte. iOS speichert auch periodische Messpunkte bei unverändertem Akkustand und bietet Status teilen.
