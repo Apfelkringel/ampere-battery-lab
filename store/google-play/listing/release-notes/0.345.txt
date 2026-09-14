@@ -1,0 +1,1 @@
+App-Verbrauchsanalyse erweitert: Akkuverbrauch und geschätzte Entladungsgeschwindigkeit werden pro Vordergrund-App angezeigt.

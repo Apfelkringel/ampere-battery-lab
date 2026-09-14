@@ -3837,7 +3837,11 @@ class BatteryDashboard extends View {
                     usage.foregroundMs, totalForegroundMs)
                     : BatteryAppAttribution.estimateFallbackMah(totalEnergy, directAssignedMah,
                     usage.foregroundMs, fallbackForegroundMs);
-            rightText(c, fitText(minutes + " Min. · " + (appMah > 0 ? "~" + appMah : "—") + " mAh gesch.", infoWidth, 8, false), w - 36, y + row * 27, 8, muted, false);
+            int appRate = BatteryAppAttribution.rateMahPerHour(appMah, usage.foregroundMs);
+            String appEstimate = appMah > 0
+                    ? "~" + appMah + " mAh · " + appRate + " mAh/h"
+                    : "— Verbrauch · — Rate";
+            rightText(c, fitText(minutes + " Min. · " + appEstimate, infoWidth, 8, false), w - 36, y + row * 27, 8, muted, false);
             line(c, 36, y + row * 27 + 9, w - 36, y + row * 27 + 9, Color.rgb(43, 47, 56), 1);
             if (++row == 3) break;
         }
@@ -3870,7 +3874,7 @@ class BatteryDashboard extends View {
             if (value == null || value <= 0) fallbackForegroundMs += usage.foregroundMs;
         }
         StringBuilder details = new StringBuilder("Vordergrundzeit seit Beginn des aktuellen Entladevorgangs.\n"
-                + "mAh sind zeit-/telemetriebasierte Schätzungen, keine echten Android-Pro-App-Messungen.\n\n");
+                + "Verbrauch und Entladungsgeschwindigkeit sind lokale Schätzungen aus Telemetrie und Vordergrundzeit; Android liefert keine echten Pro-App-Akkumessungen.\n\n");
         int row = 0;
         for (AppUsageRow usage : rows) {
             String app = usage.packageName;
@@ -3882,8 +3886,11 @@ class BatteryDashboard extends View {
                     usage.foregroundMs, totalForegroundMs)
                     : BatteryAppAttribution.estimateFallbackMah(totalEnergy, directAssignedMah,
                     usage.foregroundMs, fallbackForegroundMs);
+            int appRate = BatteryAppAttribution.rateMahPerHour(appMah, usage.foregroundMs);
             details.append(app).append("\n").append(minutes).append(" Min. · ")
-                    .append(appMah > 0 ? "~" + appMah + " mAh geschätzt" : "mAh nicht verfügbar")
+                    .append(appMah > 0
+                            ? "~" + appMah + " mAh · ~" + appRate + " mAh/h Entladung"
+                            : "Verbrauch und Rate nicht verfügbar")
                     .append("\n\n");
             if (++row == 50) break;
         }

@@ -29,4 +29,11 @@ final class BatteryAppAttribution {
         long boundedIntervalMs = Math.min(intervalMs, maxIntervalMs);
         return Math.max(0, Math.round(currentMa * boundedIntervalMs / 3600000f));
     }
+
+    /** Converts an app's estimated charge loss into a foreground-time rate. */
+    static int rateMahPerHour(int estimatedMah, long foregroundMs) {
+        if (estimatedMah <= 0 || foregroundMs <= 0L) return 0;
+        long boundedMs = Math.min(foregroundMs, 30L * 24L * 60L * 60L * 1000L);
+        return Math.max(0, Math.round(estimatedMah * 3600000f / boundedMs));
+    }
 }

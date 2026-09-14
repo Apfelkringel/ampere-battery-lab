@@ -48,6 +48,13 @@ public class BatteryRulesTest {
         assertFalse(BatteryState.isCharging(BatteryManager.BATTERY_STATUS_CHARGING, 0, true));
     }
 
+    @Test public void appDrainRateUsesForegroundTimeAndRejectsInvalidSamples() {
+        assertEquals(240, BatteryAppAttribution.rateMahPerHour(120, 30L * 60L * 1000L));
+        assertEquals(60, BatteryAppAttribution.rateMahPerHour(60, 60L * 60L * 1000L));
+        assertEquals(0, BatteryAppAttribution.rateMahPerHour(0, 60L * 60L * 1000L));
+        assertEquals(0, BatteryAppAttribution.rateMahPerHour(60, 0L));
+    }
+
     @Test public void pageAccessibilityControlsFollowTheActivePage() {
         assertTrue(BatteryAccessibilityLayout.isVisible(
                 BatteryAccessibilityLayout.OVERVIEW_7D, 0));
