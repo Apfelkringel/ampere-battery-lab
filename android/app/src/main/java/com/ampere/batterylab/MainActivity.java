@@ -182,6 +182,7 @@ public class MainActivity extends Activity {
             getIntent().setAction(null);
             UpdateChecker.checkNow(this);
         } else {
+            UpdateChecker.showPendingUpdateIfAvailable(this);
             UpdateChecker.check(this);
         }
         Intent battery = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));

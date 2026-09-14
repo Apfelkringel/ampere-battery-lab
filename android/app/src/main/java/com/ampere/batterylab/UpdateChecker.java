@@ -45,6 +45,11 @@ final class UpdateChecker {
     private static final String DOWNLOAD_ID = "downloadId";
     private static final String DOWNLOAD_SHA256 = "downloadSha256";
     private static final String DOWNLOAD_VERSION_CODE = "downloadVersionCode";
+    private static final String PENDING_VERSION_CODE = "pendingVersionCode";
+    private static final String PENDING_VERSION_NAME = "pendingVersionName";
+    private static final String PENDING_APK_URL = "pendingApkUrl";
+    private static final String PENDING_SHA256 = "pendingSha256";
+    private static final String PENDING_NOTES = "pendingNotes";
     private static final String INSTALL_IN_PROGRESS = "installInProgress";
     private static final String EXPECTED_MANIFEST_PATH = "/repos/Apfelkringel/ampere-battery-lab-updates/contents/latest.json";
     private static final String EXPECTED_MANIFEST_RAW_PATH = "/Apfelkringel/ampere-battery-lab-updates/main/latest.json";
@@ -146,6 +151,7 @@ final class UpdateChecker {
                 if (update == null) return;
                 int notifiedVersion = prefs.getInt("notifiedVersionCode", 0);
                 if (update.versionCode <= notifiedVersion) return;
+                persistPendingUpdate(prefs, update);
                 notifyUpdateAvailable(app, update);
                 prefs.edit().putInt("notifiedVersionCode", update.versionCode).apply();
             } finally {
@@ -210,6 +216,35 @@ final class UpdateChecker {
                 .setPositiveButton("Erneut prüfen", (dialog, which) -> checkNow(activity))
                 .setNegativeButton("Schließen", null)
                 .show();
+    }
+
+    /** Shows a validated background result when the user next opens the app. */
+    static void showPendingUpdateIfAvailable(Activity activity) {
+        if (activity == null || activity.isFinishing() || activity.isDestroyed()) return;
+        SharedPreferences prefs = activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        int versionCode = prefs.getInt(PENDING_VERSION_CODE, 0);
+        String versionName = prefs.getString(PENDING_VERSION_NAME, "");
+        String apkUrl = prefs.getString(PENDING_APK_URL, "");
+        String sha256 = prefs.getString(PENDING_SHA256, "");
+        String notes = prefs.getString(PENDING_NOTES, "Neue Version verfügbar.");
+        if (versionCode <= BuildConfig.VERSION_CODE || versionName.isEmpty()
+                || apkUrl.isEmpty() || !sha256.matches("[0-9a-f]{64}")) return;
+        clearPendingUpdate(prefs);
+        showUpdateDialog(activity, new UpdateInfo(versionCode, versionName, apkUrl, sha256, notes));
+    }
+
+    private static void persistPendingUpdate(SharedPreferences prefs, UpdateInfo update) {
+        prefs.edit().putInt(PENDING_VERSION_CODE, update.versionCode)
+                .putString(PENDING_VERSION_NAME, update.versionName)
+                .putString(PENDING_APK_URL, update.apkUrl)
+                .putString(PENDING_SHA256, update.sha256)
+                .putString(PENDING_NOTES, update.notes)
+                .commit();
+    }
+
+    private static void clearPendingUpdate(SharedPreferences prefs) {
+        prefs.edit().remove(PENDING_VERSION_CODE).remove(PENDING_VERSION_NAME)
+                .remove(PENDING_APK_URL).remove(PENDING_SHA256).remove(PENDING_NOTES).apply();
     }
 
     private static FetchResult fetch(String manifestUrl) {
@@ -307,6 +342,7 @@ final class UpdateChecker {
 
     private static void showUpdateDialog(Activity activity, UpdateInfo update) {
         if (activity.isFinishing() || activity.isDestroyed()) return;
+        clearPendingUpdate(activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE));
         NotificationManager manager = (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
         if (manager != null) manager.cancel(UPDATE_NOTIFICATION_ID);
         new AlertDialog.Builder(activity)
