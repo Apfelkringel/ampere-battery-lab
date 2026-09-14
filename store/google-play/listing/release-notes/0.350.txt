@@ -1,0 +1,1 @@
+Neue App-Detailansicht: Akkuverbrauch und Entladungsgeschwindigkeit werden pro Programm getrennt und übersichtlich angezeigt.

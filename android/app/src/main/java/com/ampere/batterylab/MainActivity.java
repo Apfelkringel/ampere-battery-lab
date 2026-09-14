@@ -23,8 +23,10 @@ import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.graphics.LinearGradient;
 import android.graphics.Shader;
+import android.graphics.drawable.GradientDrawable;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.HapticFeedbackConstants;
 import android.view.Gravity;
@@ -3904,29 +3906,98 @@ class BatteryDashboard extends View {
             Integer value = directMah.get(usage.packageName);
             if (value == null || value <= 0) fallbackForegroundMs += usage.foregroundMs;
         }
-        StringBuilder details = new StringBuilder("Vordergrundzeit seit Beginn des aktuellen Entladevorgangs.\n"
-                + "Verbrauch und Entladungsgeschwindigkeit sind lokale Schätzungen aus Telemetrie und Vordergrundzeit; Android liefert keine echten Pro-App-Akkumessungen.\n\n");
-        int row = 0;
-        for (AppUsageRow usage : rows) {
-            String app = usage.packageName;
-            try { app = getContext().getPackageManager().getApplicationLabel(getContext().getPackageManager().getApplicationInfo(usage.packageName, 0)).toString(); } catch (Exception ignored) { }
-            long minutes = usage.foregroundMs / 60000L;
-            Integer directValue = directMah.get(usage.packageName);
-            int appMah = directValue != null && directValue > 0
-                    ? BatteryAppAttribution.estimateMah(directValue, directTotalMah, totalEnergy,
-                    usage.foregroundMs, totalForegroundMs)
-                    : BatteryAppAttribution.estimateFallbackMah(totalEnergy, directAssignedMah,
-                    usage.foregroundMs, fallbackForegroundMs);
-            int appRate = BatteryAppAttribution.rateMahPerHour(appMah, usage.foregroundMs);
-            details.append(app).append("\n").append(minutes).append(" Min. · ")
-                    .append(appMah > 0
-                            ? "~" + appMah + " mAh · ~" + appRate + " mAh/h Entladung"
-                            : "Verbrauch und Rate nicht verfügbar")
-                    .append("\n\n");
-            if (++row == 50) break;
+        LinearLayout content = new LinearLayout(getContext());
+        content.setOrientation(LinearLayout.VERTICAL);
+        content.setPadding(dp(20), dp(4), dp(20), dp(12));
+
+        TextView intro = usageText("Seit Beginn des aktuellen Entladevorgangs. Alle Werte sind lokale Schätzungen aus Android-Vordergrundzeit und Akku-Telemetrie; Android liefert keine echten Pro-App-Akkumessungen.", 13, Color.rgb(90, 100, 110), false);
+        content.addView(intro, new LinearLayout.LayoutParams(-1, -2));
+
+        if (rows.isEmpty()) {
+            TextView empty = usageText("Seit dem Trennen wurde keine App-Nutzung erfasst.", 14, Color.DKGRAY, true);
+            empty.setPadding(0, dp(20), 0, dp(20));
+            content.addView(empty, new LinearLayout.LayoutParams(-1, -2));
+        } else {
+            int row = 0;
+            for (AppUsageRow usage : rows) {
+                String app = usage.packageName;
+                try { app = getContext().getPackageManager().getApplicationLabel(getContext().getPackageManager().getApplicationInfo(usage.packageName, 0)).toString(); } catch (Exception ignored) { }
+                Integer directValue = directMah.get(usage.packageName);
+                int appMah = directValue != null && directValue > 0
+                        ? BatteryAppAttribution.estimateMah(directValue, directTotalMah, totalEnergy,
+                        usage.foregroundMs, totalForegroundMs)
+                        : BatteryAppAttribution.estimateFallbackMah(totalEnergy, directAssignedMah,
+                        usage.foregroundMs, fallbackForegroundMs);
+                int appRate = BatteryAppAttribution.rateMahPerHour(appMah, usage.foregroundMs);
+                content.addView(appUsageCard(app, usage.foregroundMs, appMah, appRate, totalEnergy),
+                        new LinearLayout.LayoutParams(-1, -2));
+                if (++row == 50) break;
+            }
         }
-        if (row == 0) details.append("Seit dem Trennen keine App-Nutzung erfasst.");
-        new AlertDialog.Builder(getContext()).setTitle("App-Details").setMessage(details.toString()).setPositiveButton("Schließen", null).show();
+
+        ScrollView scroll = new ScrollView(getContext());
+        scroll.setFillViewport(true);
+        scroll.addView(content, new ScrollView.LayoutParams(-1, -2));
+        new AlertDialog.Builder(getContext())
+                .setTitle("App-Akkuverbrauch")
+                .setView(scroll)
+                .setPositiveButton("Schließen", null)
+                .show();
+    }
+
+    private int dp(float value) {
+        return Math.round(value * density);
+    }
+
+    private TextView usageText(String value, float size, int color, boolean bold) {
+        TextView text = new TextView(getContext());
+        text.setText(value);
+        text.setTextSize(size);
+        text.setTextColor(color);
+        text.setTypeface(Typeface.DEFAULT, bold ? Typeface.BOLD : Typeface.NORMAL);
+        return text;
+    }
+
+    private View appUsageCard(String app, long foregroundMs, int appMah, int appRate, int totalEnergy) {
+        LinearLayout card = new LinearLayout(getContext());
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setPadding(dp(14), dp(12), dp(14), dp(12));
+        GradientDrawable background = new GradientDrawable();
+        background.setColor(Color.rgb(246, 249, 249));
+        background.setCornerRadius(dp(12));
+        background.setStroke(dp(1), Color.rgb(218, 228, 227));
+        card.setBackground(background);
+
+        TextView title = usageText(app, 16, Color.rgb(24, 53, 56), true);
+        card.addView(title, new LinearLayout.LayoutParams(-1, -2));
+        TextView time = usageText((foregroundMs / 60000L) + " Min. Vordergrundzeit", 12, Color.rgb(86, 103, 105), false);
+        LinearLayout.LayoutParams timeParams = new LinearLayout.LayoutParams(-1, -2);
+        timeParams.bottomMargin = dp(10);
+        card.addView(time, timeParams);
+
+        card.addView(usageText("AKKUVERBRAUCH", 11, Color.rgb(20, 145, 137), true));
+        String amount = appMah > 0 ? "~" + appMah + " mAh" : "Nicht verfügbar";
+        if (appMah > 0 && totalEnergy > 0) {
+            amount += " · " + String.format(Locale.GERMANY, "~%.1f %% des Entladevorgangs", appMah * 100f / totalEnergy);
+        }
+        TextView amountText = usageText(amount, 15, Color.rgb(27, 70, 72), true);
+        LinearLayout.LayoutParams amountParams = new LinearLayout.LayoutParams(-1, -2);
+        amountParams.bottomMargin = dp(9);
+        card.addView(amountText, amountParams);
+
+        card.addView(usageText("ENTLADUNGSGESCHWINDIGKEIT", 11, Color.rgb(20, 145, 137), true));
+        String speed = appRate > 0 ? "~" + appRate + " mAh/h" : "Nicht verfügbar";
+        int capacity = calculationCapacityMah();
+        if (appRate > 0 && capacity > 0) {
+            speed += String.format(Locale.GERMANY, " · ~%.1f %%/h", appRate * 100f / capacity);
+        }
+        card.addView(usageText(speed, 15, Color.rgb(27, 70, 72), true));
+
+        LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(-1, -2);
+        cardParams.topMargin = dp(8);
+        cardParams.bottomMargin = dp(4);
+        card.setLayoutParams(cardParams);
+        return card;
     }
 
     /** Estimate direct app-attributed drain from local telemetry intervals. */
