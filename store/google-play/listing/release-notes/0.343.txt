@@ -1,0 +1,1 @@
+Benachrichtigungen erklären jetzt vor der Berechtigungsabfrage ihren Zweck. Der iOS-Verlauf bietet bei leerem Zustand eine direkte Messaktion.

@@ -89,6 +89,10 @@ final class BatteryStore: ObservableObject {
         saveSamples()
     }
 
+    func recordNow() {
+        refresh()
+    }
+
     var isCharging: Bool {
         state == .charging || state == .full
     }

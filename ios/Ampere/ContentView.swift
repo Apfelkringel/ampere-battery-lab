@@ -189,6 +189,12 @@ struct HistoryView: View {
                 if battery.samples.isEmpty {
                     Text("Öffne Ampere regelmäßig, damit iOS-Akkustände lokal aufgezeichnet werden können.")
                         .font(.system(size: 13, design: .rounded)).foregroundStyle(AmperePalette.muted).fixedSize(horizontal: false, vertical: true)
+                    Button("Jetzt messen") { battery.recordNow() }
+                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .foregroundStyle(AmperePalette.background)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(AmperePalette.accent, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                 } else {
                     BatteryHistoryChart(samples: battery.samples)
                         .frame(height: 180)

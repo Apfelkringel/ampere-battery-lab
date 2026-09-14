@@ -157,9 +157,7 @@ public class MainActivity extends Activity {
         scroll.addView(dashboard, new ScrollView.LayoutParams(-1, contentHeight));
         setContentView(scroll);
         startMonitorService();
-        if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission("android.permission.POST_NOTIFICATIONS") != getPackageManager().PERMISSION_GRANTED) {
-            requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"}, 44);
-        }
+        requestNotificationPermissionWithContext();
         dashboard.startSavedOverlay();
         dashboard.postDelayed(() -> dashboard.showTutorial(false), 1200L);
         IntentFilter batteryFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
@@ -198,6 +196,18 @@ public class MainActivity extends Activity {
         } catch (IllegalStateException ignored) {
             // The next visible app resume will retry after Android allows it.
         }
+    }
+
+    private void requestNotificationPermissionWithContext() {
+        if (Build.VERSION.SDK_INT < 33
+                || checkSelfPermission("android.permission.POST_NOTIFICATIONS") == getPackageManager().PERMISSION_GRANTED) return;
+        new AlertDialog.Builder(this)
+                .setTitle("Verlauf im Hintergrund behalten")
+                .setMessage("Ampere nutzt eine leise, dauerhafte Benachrichtigung, damit Android den lokalen Akku-Monitor und deine Ladealarme zuverlässig weiterlaufen lässt. Es werden keine Daten versendet.")
+                .setNegativeButton("Später", null)
+                .setPositiveButton("Benachrichtigung erlauben", (dialog, which) ->
+                        requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"}, 44))
+                .show();
     }
 
     void restartMonitorService() {
