@@ -36,6 +36,8 @@ import android.widget.Toast;
 import android.text.InputType;
 import android.content.SharedPreferences;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.app.AppOpsManager;
 import android.app.usage.UsageStats;
 import android.app.usage.UsageStatsManager;
@@ -515,6 +517,7 @@ public class MainActivity extends Activity {
 }
 
 class BatteryDashboard extends View {
+    private static final long LIVE_REFRESH_INTERVAL_MS = 1_000L;
     private final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final RectF rect = new RectF();
     private final float density;
@@ -557,6 +560,16 @@ class BatteryDashboard extends View {
     private int sessionStartChargeCounterMah = 0;
     private final SharedPreferences prefs;
     private final SharedPreferences telemetryPrefs;
+    private final Handler liveRefreshHandler = new Handler(Looper.getMainLooper());
+    private final Runnable liveRefreshTask = new Runnable() {
+        @Override public void run() {
+            if (!isAttachedToWindow()) return;
+            Intent battery = ((Activity) getContext()).registerReceiver(
+                    null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+            if (battery != null) readBattery(battery);
+            liveRefreshHandler.postDelayed(this, LIVE_REFRESH_INTERVAL_MS);
+        }
+    };
     private final ArrayList<Integer> history = new ArrayList<>();
     private final ArrayList<Integer> longHistory = new ArrayList<>();
     private final ArrayList<Integer> healthSamples = new ArrayList<>();
@@ -623,6 +636,17 @@ class BatteryDashboard extends View {
         loadStoredData();
         refreshHealthReading();
         updateAccessibilitySummary();
+    }
+
+    @Override protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        liveRefreshHandler.removeCallbacks(liveRefreshTask);
+        liveRefreshHandler.post(liveRefreshTask);
+    }
+
+    @Override protected void onDetachedFromWindow() {
+        liveRefreshHandler.removeCallbacks(liveRefreshTask);
+        super.onDetachedFromWindow();
     }
 
     /** Exposes the Canvas controls as real logical controls to TalkBack. */

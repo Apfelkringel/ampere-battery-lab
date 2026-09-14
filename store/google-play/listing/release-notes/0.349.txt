@@ -1,0 +1,1 @@
+Live-Akkudaten aktualisieren sich jetzt jede Sekunde – inklusive Ladestatus, Strom, Leistung, Temperatur und Spannung.
