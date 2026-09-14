@@ -398,18 +398,18 @@ public class BatteryMonitorService extends Service {
     private Boolean stabilizeChargingState(android.content.SharedPreferences prefs, boolean detectedCharging, long now) {
         boolean stableCharging = prefs.getBoolean("monitorLastCharging", detectedCharging);
         boolean hasPending = prefs.contains("pendingChargingState");
-        if (detectedCharging == stableCharging) {
+        if (BatteryChargingTransition.agreesWithStable(detectedCharging, stableCharging)) {
             if (hasPending) prefs.edit().remove("pendingChargingState").remove("pendingChargingSince").apply();
             return stableCharging;
         }
         boolean pendingCharging = hasPending && prefs.getBoolean("pendingChargingState", detectedCharging);
         long pendingSince = prefs.getLong("pendingChargingSince", 0L);
-        if (!hasPending || pendingCharging != detectedCharging) {
+        if (BatteryChargingTransition.startsNewPending(hasPending, pendingCharging, detectedCharging)) {
             prefs.edit().putBoolean("pendingChargingState", detectedCharging).putLong("pendingChargingSince", now).apply();
             scheduleTransitionCheck();
             return null;
         }
-        if (now - pendingSince < CHARGING_STATE_CONFIRMATION_MS) {
+        if (!BatteryChargingTransition.confirmationElapsed(now, pendingSince, CHARGING_STATE_CONFIRMATION_MS)) {
             scheduleTransitionCheck();
             return null;
         }

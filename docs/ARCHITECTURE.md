@@ -17,6 +17,13 @@ SQLite-/Room-Adapter kann dieselbe fachliche Schnittstelle bedienen.
 sind Messintervall, Rollback-Verhalten und 30-Tage-Aufbewahrung unabhängig vom
 Android-Service testbar.
 
+## Backup und Zustandsübergänge
+
+`BatteryBackupCodec` hält die Allowlist- und Typkodierung außerhalb der
+Activity. `BatteryChargingTransition` beschreibt die reine Entscheidung, wann
+ein widersprüchlicher Android-Ladezustand bestätigt werden darf. Beide Module
+haben kleine Interfaces und direkte Unit-Tests.
+
 ## Android-UI und Monitor
 
 `MainActivity` bleibt der Android-Lifecycle-Adapter; `BatteryDashboard` bleibt

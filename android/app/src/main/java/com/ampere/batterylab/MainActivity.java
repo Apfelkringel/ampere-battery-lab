@@ -248,10 +248,10 @@ public class MainActivity extends Activity {
             root.put("package", getPackageName());
             root.put("createdAt", System.currentTimeMillis());
             JSONObject values = new JSONObject();
-            encodePreferences(values, BatteryDataRepository.data(this), RESTORABLE_DATA_KEYS);
+            BatteryBackupCodec.encode(values, BatteryDataRepository.data(this), RESTORABLE_DATA_KEYS);
             root.put("preferences", values);
             JSONObject telemetryValues = new JSONObject();
-            encodePreferences(telemetryValues, BatteryDataRepository.telemetry(this), RESTORABLE_TELEMETRY_KEYS);
+            BatteryBackupCodec.encode(telemetryValues, BatteryDataRepository.telemetry(this), RESTORABLE_TELEMETRY_KEYS);
             root.put("telemetryPreferences", telemetryValues);
             byte[] output = root.toString(2).getBytes(StandardCharsets.UTF_8);
             if (output.length > MAX_BACKUP_BYTES) throw new IllegalArgumentException("Backup too large");
@@ -278,13 +278,13 @@ public class MainActivity extends Activity {
             int schema = root.optInt("schema", 0);
             if (!getPackageName().equals(root.optString("package")) || (schema != 1 && schema != 2)) throw new IllegalArgumentException("Invalid backup");
             SharedPreferences.Editor editor = BatteryDataRepository.data(this).edit().clear();
-            restorePreferences(root.getJSONObject("preferences"), editor, RESTORABLE_DATA_KEYS);
+            BatteryBackupCodec.restore(root.getJSONObject("preferences"), editor, RESTORABLE_DATA_KEYS);
             SharedPreferences.Editor telemetryEditor = BatteryDataRepository.telemetry(this).edit().clear();
             if (schema >= 2 && root.has("telemetryPreferences")) {
-                restorePreferences(root.getJSONObject("telemetryPreferences"), telemetryEditor, RESTORABLE_TELEMETRY_KEYS);
+                BatteryBackupCodec.restore(root.getJSONObject("telemetryPreferences"), telemetryEditor, RESTORABLE_TELEMETRY_KEYS);
             } else {
                 // Schema 1 stored all values in one object; migrate only the two known telemetry keys.
-                restorePreferences(root.getJSONObject("preferences"), telemetryEditor, RESTORABLE_TELEMETRY_KEYS);
+                BatteryBackupCodec.restore(root.getJSONObject("preferences"), telemetryEditor, RESTORABLE_TELEMETRY_KEYS);
             }
             editor.apply();
             telemetryEditor.apply();
@@ -301,36 +301,6 @@ public class MainActivity extends Activity {
             Toast.makeText(this, "Backup wiederhergestellt.", Toast.LENGTH_LONG).show();
         } catch (Exception error) {
             Toast.makeText(this, "Backup ist ungültig oder konnte nicht gelesen werden.", Toast.LENGTH_LONG).show();
-        }
-    }
-
-    private static void encodePreferences(JSONObject target, SharedPreferences source, Set<String> allowedKeys) throws Exception {
-        for (java.util.Map.Entry<String, ?> entry : source.getAll().entrySet()) {
-            if (!allowedKeys.contains(entry.getKey())) continue;
-            Object value = entry.getValue();
-            JSONObject encoded = new JSONObject();
-            if (value instanceof Boolean) { encoded.put("type", "boolean"); encoded.put("value", value); }
-            else if (value instanceof Integer) { encoded.put("type", "int"); encoded.put("value", value); }
-            else if (value instanceof Long) { encoded.put("type", "long"); encoded.put("value", value); }
-            else if (value instanceof Float) { encoded.put("type", "float"); encoded.put("value", value); }
-            else if (value instanceof String) { encoded.put("type", "string"); encoded.put("value", value); }
-            else continue;
-            target.put(entry.getKey(), encoded);
-        }
-    }
-
-    private static void restorePreferences(JSONObject values, SharedPreferences.Editor editor, Set<String> allowedKeys) throws Exception {
-        java.util.Iterator<String> keys = values.keys();
-        while (keys.hasNext()) {
-            String key = keys.next();
-            if (!allowedKeys.contains(key)) continue;
-            JSONObject encoded = values.getJSONObject(key);
-            String type = encoded.optString("type");
-            if ("boolean".equals(type)) editor.putBoolean(key, encoded.getBoolean("value"));
-            else if ("int".equals(type)) editor.putInt(key, encoded.getInt("value"));
-            else if ("long".equals(type)) editor.putLong(key, encoded.getLong("value"));
-            else if ("float".equals(type)) editor.putFloat(key, (float) encoded.getDouble("value"));
-            else if ("string".equals(type)) editor.putString(key, encoded.getString("value"));
         }
     }
 
