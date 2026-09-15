@@ -1017,23 +1017,18 @@ class BatteryDashboard extends View {
         return (charging ? "+" : "−") + currentMa + " mA";
     }
 
-    private String liveRateDisplay() {
-        if (currentMa <= 0) return "—";
-        String power = livePowerDisplay();
-        return power.equals("—") ? liveCurrentDisplay()
-                : liveCurrentDisplay() + " · " + power;
-    }
-
     private String averageConsumptionDisplay() {
         float percentPerHour = mixedDischargeRate();
         int capacity = calculationCapacityMah();
-        if (percentPerHour <= 0f) return "—";
-        if (capacity > 0) {
-            int mahPerHour = Math.round(percentPerHour * capacity / 100f);
-            return String.format(Locale.GERMANY, "%d mAh/h · %.1f %%/h",
-                    mahPerHour, percentPerHour);
-        }
-        return String.format(Locale.GERMANY, "%.1f %%/h", percentPerHour);
+        if (percentPerHour <= 0f || capacity <= 0) return "—";
+        int mahPerHour = Math.round(percentPerHour * capacity / 100f);
+        return String.format(Locale.GERMANY, "%d mAh/h", mahPerHour);
+    }
+
+    private String averageConsumptionPercentDisplay() {
+        float percentPerHour = mixedDischargeRate();
+        return percentPerHour > 0f
+                ? String.format(Locale.GERMANY, "%.1f %%/h", percentPerHour) : "—";
     }
 
     private String livePowerDisplay() {
@@ -2853,17 +2848,20 @@ class BatteryDashboard extends View {
         float third = second + column + 9;
         line(c, first, top + 72, right - 18, top + 72, border, 1);
         text(c, "RATE JETZT", first, top + 94, 8f, faint, true);
-        boundedText(c, liveRateDisplay(), first, second + column, top + 116, 12f, statusColor, true);
-        text(c, charging ? "Ladeeingang" : "Akkuseite", first, top + 134, 8f, muted, false);
+        boundedText(c, liveCurrentDisplay(), first, first + column, top + 116, 12f, statusColor, true);
+        boundedText(c, livePowerDisplay().equals("—")
+                        ? (charging ? "Ladeeingang" : "Akkuseite") : livePowerDisplay(),
+                first, first + column, top + 135, 8f, muted, false);
         text(c, "Ø VERBRAUCH", second, top + 94, 8f, faint, true);
-        boundedText(c, averageConsumptionDisplay(), second, third + column, top + 116, 12f, primary, true);
-        text(c, "lokale 7 Tage", second, top + 134, 8f, muted, false);
+        boundedText(c, averageConsumptionDisplay(), second, second + column, top + 116, 12f, primary, true);
+        boundedText(c, averageConsumptionPercentDisplay(), second, second + column,
+                top + 135, 8f, muted, false);
+        text(c, "lokale 7 Tage", second, top + 153, 8f, faint, false);
         text(c, "SENSOREN", third, top + 94, 8f, faint, true);
         boundedText(c, temperature > 0f ? temperatureDisplay() + " °C" : "—",
                 third, right - 18, top + 116, 11f, primary, true);
         boundedText(c, voltage > 0f ? voltageDisplay() + " V" : "—",
                 third, right - 18, top + 134, 10f, muted, false);
-        text(c, "Temperatur · Spannung", third, top + 153, 8f, faint, false);
         boundedText(c, charging ? "Laderate basiert auf Messstrom und Ladehistorie"
                         : "Verbrauch basiert auf aktuellen und lokalen Messwerten",
                 first, right - 18, top + 178, 8f, faint, false);

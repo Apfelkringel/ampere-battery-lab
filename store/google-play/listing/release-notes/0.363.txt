@@ -1,0 +1,1 @@
+Die Live-Energiefluss-Karte hält Messwerte jetzt innerhalb ihrer jeweiligen Spalte. Strom, Leistung, durchschnittlicher Verbrauch, Entladerate, Temperatur und Spannung überlagern sich auf schmalen Bildschirmen nicht mehr.
