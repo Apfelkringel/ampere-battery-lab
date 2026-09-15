@@ -25,6 +25,11 @@ on:
         options:
           - draft
           - completed
+      validate_only:
+        description: "Validate bundle and Play credential without uploading"
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -50,7 +55,25 @@ jobs:
           actual="$(sha256sum build/Ampere-Battery-Lab-play-release.aab | awk '{print $1}')"
           test "$expected" = "$actual"
 
+      - name: Validate Play publisher credential
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.AMPERE_PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$PLAY_SERVICE_ACCOUNT_JSON" ]]; then
+            echo "::error title=Missing Play API credential::Add AMPERE_PLAY_SERVICE_ACCOUNT_JSON as a repository Actions secret."
+            exit 1
+          fi
+          if ! printf '%s' "$PLAY_SERVICE_ACCOUNT_JSON" | jq --exit-status \
+            --arg expected_email 'ampere-play-publisher@ampere-battery-lab-analytics.iam.gserviceaccount.com' \
+            '.type == "service_account" and .client_email == $expected_email and (.private_key | type == "string" and length > 0)' \
+            >/dev/null; then
+            echo "::error title=Invalid Play API credential::The secret must contain the ampere-play-publisher service-account JSON."
+            exit 1
+          fi
+
       - name: Upload bundle to Google Play
+        if: ${{ !inputs.validate_only }}
         uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5 # v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.AMPERE_PLAY_SERVICE_ACCOUNT_JSON }}
