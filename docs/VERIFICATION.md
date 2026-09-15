@@ -1,6 +1,13 @@
 # Verification record
 
-Last verified: 2026-09-11 (Europe/Berlin)
+Last verified: 2026-09-15 (Europe/Berlin)
+
+Version `0.382` aligns calendar-period labels between the history screen and
+screen-reader summary, and exposes all four independently scaled history-chart
+series (charge, consumption, wear and efficiency) to screen readers. Regression
+tests cover the period labels and chart summary. Direct and Play debug tests and
+lint pass locally; public release publication remains pending the configured
+signed-tag credential.
 
 ## Current development change
 

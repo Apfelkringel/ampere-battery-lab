@@ -248,9 +248,10 @@ public class BatteryButtonAssetLayoutTest {
         String dashboard = Files.readString(findRepositoryRoot()
                 .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
                 StandardCharsets.UTF_8);
-        assertTrue(dashboard.contains("HEUTE · SEIT MITTERNACHT"));
-        assertTrue(dashboard.contains("DIESE WOCHE · MONTAG BIS HEUTE"));
-        assertTrue(dashboard.contains("DIESER MONAT · MONATSANFANG BIS HEUTE"));
+        assertTrue(dashboard.contains("BatteryHistoryStats.rangeLabel(historyPeriodDays).toUpperCase(Locale.GERMANY)"));
+        assertTrue("Heute · seit Mitternacht".equals(BatteryHistoryStats.rangeLabel(1)));
+        assertTrue("Diese Woche · Montag bis heute".equals(BatteryHistoryStats.rangeLabel(7)));
+        assertTrue("Dieser Monat · Monatsanfang bis heute".equals(BatteryHistoryStats.rangeLabel(30)));
         assertTrue(dashboard.contains("7 KALENDERTAGE"));
         assertTrue(dashboard.contains("5 KALENDERWOCHEN"));
         assertTrue(dashboard.contains("6 KALENDERMONATE"));

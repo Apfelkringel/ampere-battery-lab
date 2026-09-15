@@ -149,6 +149,12 @@ public class BatteryRulesTest {
         }
     }
 
+    @Test public void historyRangeLabelsMatchCalendarBuckets() {
+        assertEquals("Heute · seit Mitternacht", BatteryHistoryStats.rangeLabel(1));
+        assertEquals("Diese Woche · Montag bis heute", BatteryHistoryStats.rangeLabel(7));
+        assertEquals("Dieser Monat · Monatsanfang bis heute", BatteryHistoryStats.rangeLabel(30));
+    }
+
     @Test public void pageAccessibilityControlsFollowTheActivePage() {
         assertTrue(BatteryAccessibilityLayout.isVisible(
                 BatteryAccessibilityLayout.OVERVIEW_7D, 0));
@@ -342,14 +348,15 @@ public class BatteryRulesTest {
         buckets.add(selected);
 
         String summary = BatteryAccessibilitySummary.history(
-                "Täglich", "letzte 24 Stunden", selected, buckets, true);
+                "Täglich", BatteryHistoryStats.rangeLabel(1), selected, buckets, true);
         assertTrue(summary.contains("Verlauf Täglich"));
         assertTrue(summary.contains("Aufgeladen: 400 mAh"));
         assertTrue(summary.contains("Akkuverbrauch: 250 mAh"));
         assertTrue(summary.contains("Akkuverschleiß: 0,13 EFC"));
         assertTrue(summary.contains("Effizienz: 160 Prozent"));
         assertTrue(summary.contains("Montag: aufgeladen 300 mAh, verbraucht 200 mAh"));
-        assertTrue(summary.contains("Dienstag: aufgeladen 400 mAh, verbraucht 250 mAh"));
+        assertTrue(summary.contains("Dienstag: aufgeladen 400 mAh, verbraucht 250 mAh, Verschleiß 0,13 EFC, Effizienz 160 Prozent"));
+        assertTrue(summary.contains("jede Kennzahl ist separat skaliert"));
         assertTrue(summary.contains("kein direkt gemessener chemischer Gesundheitsverlust"));
     }
 

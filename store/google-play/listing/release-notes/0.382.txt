@@ -1,0 +1,1 @@
+Die Verlaufsstatistik benennt Kalenderzeiträume jetzt identisch in Ansicht und Screenreader. Die Balkenwerte für Ladung, Verbrauch, Verschleiß und Effizienz werden vollständig vorgelesen und ihre getrennte Skalierung wird erklärt.

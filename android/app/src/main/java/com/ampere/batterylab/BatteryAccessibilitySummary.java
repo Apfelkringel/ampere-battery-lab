@@ -65,7 +65,7 @@ final class BatteryAccessibilitySummary {
             append(summary, "Effizienz", selected.efficiencyPercent > 0
                     ? selected.efficiencyPercent + " Prozent" : "nicht verfügbar");
         }
-        summary.append(". Balkenwerte: ");
+        summary.append(". Balkenwerte (jede Kennzahl ist separat skaliert): ");
         boolean hasBars = false;
         if (buckets != null) {
             for (BatteryHistoryStats.Bucket bucket : buckets) {
@@ -77,6 +77,9 @@ final class BatteryAccessibilitySummary {
                     summary.append(", Verschleiß ")
                             .append(String.format(Locale.GERMANY, "%.2f EFC", bucket.wearCycles));
                 }
+                summary.append(", Effizienz ")
+                        .append(bucket.efficiencyPercent > 0
+                                ? bucket.efficiencyPercent + " Prozent" : "nicht verfügbar");
                 hasBars = true;
             }
         }

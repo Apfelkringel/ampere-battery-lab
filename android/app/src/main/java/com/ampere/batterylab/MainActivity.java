@@ -4739,9 +4739,7 @@ class BatteryDashboard extends View {
     }
 
     private String historyPeriodRangeLabel() {
-        return historyPeriodDays == 1 ? "HEUTE · SEIT MITTERNACHT"
-                : historyPeriodDays == 7 ? "DIESE WOCHE · MONTAG BIS HEUTE"
-                : "DIESER MONAT · MONATSANFANG BIS HEUTE";
+        return BatteryHistoryStats.rangeLabel(historyPeriodDays).toUpperCase(Locale.GERMANY);
     }
 
     private String historyChartRangeLabel() {
@@ -5512,8 +5510,7 @@ class BatteryDashboard extends View {
             } else if (page == 4) {
                 ArrayList<BatteryHistoryStats.Bucket> buckets = historyStatsBuckets();
                 liveDetails = BatteryAccessibilitySummary.history(historyPeriodLabel(),
-                        historyPeriodDays == 1 ? "letzte 24 Stunden"
-                                : historyPeriodDays == 7 ? "letzte 7 Tage" : "letzte 30 Tage",
+                        BatteryHistoryStats.rangeLabel(historyPeriodDays),
                         selectedHistoryPeriod(buckets), buckets, calculationCapacityMah() > 0);
             } else if (page == 3) {
                 liveDetails = BatteryAccessibilitySummary.health(

@@ -137,6 +137,12 @@ final class BatteryHistoryStats {
         return new SimpleDateFormat(pattern, Locale.GERMANY).format(new Date(timestamp));
     }
 
+    static String rangeLabel(int periodDays) {
+        if (periodDays == 1) return "Heute · seit Mitternacht";
+        if (periodDays == 7) return "Diese Woche · Montag bis heute";
+        return "Dieser Monat · Monatsanfang bis heute";
+    }
+
     static final class Bucket {
         final long start;
         final String label;
