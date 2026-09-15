@@ -21,6 +21,7 @@ import android.app.usage.UsageStatsManager;
 import android.provider.Settings;
 import android.view.Gravity;
 import android.view.WindowManager;
+import android.view.View;
 import android.widget.TextView;
 import android.text.TextUtils;
 import android.graphics.drawable.GradientDrawable;
@@ -61,18 +62,21 @@ public class BatteryOverlayService extends Service {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForeground(9, notification());
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
         overlay = new TextView(this);
-        overlay.setTextColor(Color.rgb(242, 244, 239));
+        overlay.setTextColor(Color.rgb(255, 247, 232));
         overlay.setTextSize(12f);
-        overlay.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+        overlay.setTypeface(android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL));
         overlay.setIncludeFontPadding(false);
         overlay.setMaxLines(4);
         overlay.setEllipsize(TextUtils.TruncateAt.END);
         overlay.setMaxWidth(Math.round(getResources().getDisplayMetrics().widthPixels * 0.78f));
-        overlay.setPadding(18, 12, 18, 12);
+        float density = getResources().getDisplayMetrics().density;
+        int horizontalPadding = Math.round(14f * density);
+        int verticalPadding = Math.round(10f * density);
+        overlay.setPadding(horizontalPadding, verticalPadding, horizontalPadding, verticalPadding);
         GradientDrawable background = new GradientDrawable();
-        background.setColor(Color.rgb(25, 28, 35));
-        background.setCornerRadius(18f);
-        background.setStroke(1, Color.rgb(199, 243, 107));
+        background.setColor(Color.rgb(4, 52, 56));
+        background.setCornerRadius(14f * density);
+        background.setStroke(Math.max(1, Math.round(density)), Color.rgb(20, 114, 111));
         overlay.setBackground(background);
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
@@ -83,6 +87,7 @@ public class BatteryOverlayService extends Service {
         params.gravity = Gravity.TOP | Gravity.END;
         params.x = 18;
         params.y = 120;
+        overlay.setVisibility(shouldDisplayOverlay() ? View.VISIBLE : View.GONE);
         try { windowManager.addView(overlay, params); } catch (WindowManager.BadTokenException ignored) { stopSelf(); return; }
         handler.post(refresh);
     }
@@ -106,8 +111,18 @@ public class BatteryOverlayService extends Service {
                 .build();
     }
 
+    private boolean shouldDisplayOverlay() {
+        boolean enabled = BatteryDataRepository.data(this).getBoolean("overlayEnabled", false);
+        boolean activityVisible = getSharedPreferences("ampere-ui-state", MODE_PRIVATE)
+                .getBoolean("mainActivityVisible", false);
+        return BatteryOverlayVisibility.shouldShow(enabled, activityVisible);
+    }
+
     private void updateText() {
         if (overlay == null) return;
+        boolean visible = shouldDisplayOverlay();
+        overlay.setVisibility(visible ? View.VISIBLE : View.GONE);
+        if (!visible) return;
         Intent battery = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         if (battery == null) return;
         BatteryReading reading = BatteryReading.read(this, battery);
@@ -262,7 +277,10 @@ public class BatteryOverlayService extends Service {
         }
     }
 
-    @Override public int onStartCommand(Intent intent, int flags, int startId) { return START_STICKY; }
+    @Override public int onStartCommand(Intent intent, int flags, int startId) {
+        if (overlay != null) updateText();
+        return START_STICKY;
+    }
 
     @Override public void onDestroy() {
         handler.removeCallbacksAndMessages(null);

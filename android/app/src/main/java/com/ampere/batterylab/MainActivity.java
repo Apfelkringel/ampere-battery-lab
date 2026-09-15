@@ -80,6 +80,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class MainActivity extends Activity {
+    private static final String UI_STATE_PREFS = "ampere-ui-state";
+    private static final String MAIN_ACTIVITY_VISIBLE = "mainActivityVisible";
     private static final int CREATE_BACKUP_REQUEST = 1201;
     private static final int RESTORE_BACKUP_REQUEST = 1202;
     private static final int RESEARCH_EXPORT_REQUEST = 1203;
@@ -147,6 +149,8 @@ public class MainActivity extends Activity {
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        getSharedPreferences(UI_STATE_PREFS, MODE_PRIVATE).edit()
+                .putBoolean(MAIN_ACTIVITY_VISIBLE, true).apply();
         migrateTelemetryPrefs(this);
         AnalyticsTracker.restoreConsent(this);
         Window window = getWindow();
@@ -184,6 +188,8 @@ public class MainActivity extends Activity {
 
     @Override protected void onResume() {
         super.onResume();
+        getSharedPreferences(UI_STATE_PREFS, MODE_PRIVATE).edit()
+                .putBoolean(MAIN_ACTIVITY_VISIBLE, true).apply();
         if (dashboard == null) return;
         UpdateChecker.onActivityResumed(this);
         startMonitorService();
@@ -197,6 +203,18 @@ public class MainActivity extends Activity {
         }
         Intent battery = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         if (battery != null) dashboard.readBattery(battery);
+    }
+
+    @Override protected void onStart() {
+        super.onStart();
+        getSharedPreferences(UI_STATE_PREFS, MODE_PRIVATE).edit()
+                .putBoolean(MAIN_ACTIVITY_VISIBLE, true).apply();
+    }
+
+    @Override protected void onStop() {
+        getSharedPreferences(UI_STATE_PREFS, MODE_PRIVATE).edit()
+                .putBoolean(MAIN_ACTIVITY_VISIBLE, false).apply();
+        super.onStop();
     }
 
     @Override protected void onNewIntent(Intent intent) {

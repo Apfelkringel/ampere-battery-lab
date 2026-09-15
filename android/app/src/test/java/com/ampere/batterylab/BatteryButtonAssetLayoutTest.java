@@ -305,12 +305,24 @@ public class BatteryButtonAssetLayoutTest {
         String overlay = Files.readString(findRepositoryRoot()
                 .resolve("android/app/src/main/java/com/ampere/batterylab/BatteryOverlayService.java"),
                 StandardCharsets.UTF_8);
+        String dashboard = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
+                StandardCharsets.UTF_8);
         assertTrue("overlay text must be bounded to the current display width",
                 overlay.contains("setMaxWidth(Math.round(getResources().getDisplayMetrics().widthPixels * 0.78f))"));
         assertTrue("overlay must cap lines and ellipsize long app labels",
                 overlay.contains("setMaxLines(4)") && overlay.contains("TextUtils.TruncateAt.END"));
         assertTrue("overlay labels must describe foreground usage in German",
                 overlay.contains("Vordergrund-App") && overlay.contains("Prozesslast"));
+        assertTrue("the live overlay must not cover Ampere while its screen is visible",
+                overlay.contains("BatteryOverlayVisibility.shouldShow(enabled, activityVisible)")
+                        && dashboard.contains("putBoolean(MAIN_ACTIVITY_VISIBLE, true)")
+                        && dashboard.contains("putBoolean(MAIN_ACTIVITY_VISIBLE, false)"));
+        assertTrue("the floating surface must use Ampere's petrol and turquoise palette",
+                overlay.contains("background.setColor(Color.rgb(4, 52, 56))")
+                        && overlay.contains("Color.rgb(20, 114, 111)"));
+        assertFalse("the live overlay must not reintroduce the off-palette lime accent",
+                overlay.contains("Color.rgb(199, 243, 107)"));
     }
 
     @Test public void systemSurfaceCopyUsesGermanProductTerms() throws IOException {

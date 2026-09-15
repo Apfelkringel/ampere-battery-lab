@@ -776,6 +776,13 @@ public class BatteryRulesTest {
                 BatteryOverlayText.header("88%", "+900 mA"));
     }
 
+    @Test public void liveOverlayHidesOnlyWhileAmpereIsOnScreen() {
+        assertTrue(BatteryOverlayVisibility.shouldShow(true, false));
+        assertFalse(BatteryOverlayVisibility.shouldShow(true, true));
+        assertFalse(BatteryOverlayVisibility.shouldShow(false, false));
+        assertFalse(BatteryOverlayVisibility.shouldShow(false, true));
+    }
+
     @Test public void metricCardsStackBeforeTheirLabelLaneBecomesTooNarrow() {
         assertTrue(BatteryMetricLayout.shouldStack(136f));
         assertFalse(BatteryMetricLayout.shouldStack(181f));
