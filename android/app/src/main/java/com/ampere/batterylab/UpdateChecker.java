@@ -17,6 +17,7 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.Settings;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -376,6 +377,12 @@ final class UpdateChecker {
     }
 
     private static void download(Activity activity, UpdateInfo update) {
+        if (requiresInstallPermissionPrompt(Build.VERSION.SDK_INT,
+                Build.VERSION.SDK_INT < Build.VERSION_CODES.O
+                        || activity.getPackageManager().canRequestPackageInstalls())) {
+            requestInstallPermission(activity, update);
+            return;
+        }
         DownloadManager manager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
         if (manager == null) {
             Toast.makeText(activity, "Download ist auf diesem Gerät nicht verfügbar.", Toast.LENGTH_LONG).show();
@@ -422,6 +429,30 @@ final class UpdateChecker {
             finishDownload();
             Toast.makeText(activity, "Update konnte nicht gestartet werden.", Toast.LENGTH_LONG).show();
         }
+    }
+
+    static boolean requiresInstallPermissionPrompt(int sdkInt, boolean canRequestInstalls) {
+        return sdkInt >= Build.VERSION_CODES.O && !canRequestInstalls;
+    }
+
+    private static void requestInstallPermission(Activity activity, UpdateInfo update) {
+        SharedPreferences prefs = activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        persistPendingUpdate(prefs, update);
+        new AlertDialog.Builder(activity)
+                .setTitle("Installation einmal erlauben")
+                .setMessage("Android braucht deine Freigabe, damit Ampere eine APK zur Installation übergeben darf. Es wird noch nichts heruntergeladen. Nach der Freigabe erscheint das Update hier erneut; Android fragt vor der Installation zusätzlich nach deiner Bestätigung.")
+                .setNegativeButton("Abbrechen", (dialog, which) -> clearPendingUpdate(prefs))
+                .setPositiveButton("Einstellung öffnen", (dialog, which) -> {
+                    try {
+                        Intent intent = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                                Uri.parse("package:" + activity.getPackageName()));
+                        activity.startActivity(intent);
+                    } catch (Exception error) {
+                        Toast.makeText(activity,
+                                "Installationsfreigabe bitte in den App-Einstellungen aktivieren.",
+                                Toast.LENGTH_LONG).show();
+                    }
+                }).show();
     }
 
     private static boolean tryStartDownload(Context context) {

@@ -722,6 +722,13 @@ public class BatteryRulesTest {
         assertFalse(UpdateChecker.shouldResumePersistedDownload(DownloadManager.STATUS_FAILED));
     }
 
+    @Test public void apkUpdateChecksUnknownSourcePermissionBeforeDownloading() {
+        assertFalse(UpdateChecker.requiresInstallPermissionPrompt(25, false));
+        assertTrue(UpdateChecker.requiresInstallPermissionPrompt(26, false));
+        assertTrue(UpdateChecker.requiresInstallPermissionPrompt(37, false));
+        assertFalse(UpdateChecker.requiresInstallPermissionPrompt(37, true));
+    }
+
     @Test public void compactDurationsNeverNeedEllipsisForMetricCards() {
         assertEquals("—", BatteryDuration.compact(0));
         assertEquals("45 m", BatteryDuration.compact(45));
