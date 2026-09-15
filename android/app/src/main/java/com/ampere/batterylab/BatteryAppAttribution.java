@@ -4,6 +4,12 @@ package com.ampere.batterylab;
 final class BatteryAppAttribution {
     private BatteryAppAttribution() { }
 
+    static String sourceLabel(boolean hasAppTelemetry) {
+        return hasAppTelemetry
+                ? "Quelle: zugeordnete Akku-Telemetrie (Schätzung)"
+                : "Quelle: anteilig nach Vordergrundzeit (Schätzung)";
+    }
+
     static int estimateMah(int directMah, int directTotalMah, int observedTotalMah,
                            long foregroundMs, long totalForegroundMs) {
         if (directMah <= 0) {

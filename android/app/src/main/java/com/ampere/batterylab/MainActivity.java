@@ -3975,7 +3975,8 @@ class BatteryDashboard extends View {
                         : BatteryAppAttribution.estimateFallbackMah(totalEnergy, directAssignedMah,
                         usage.foregroundMs, fallbackForegroundMs);
                 int appRate = BatteryAppAttribution.rateMahPerHour(appMah, usage.foregroundMs);
-                content.addView(appUsageCard(app, usage.foregroundMs, appMah, appRate, totalEnergy),
+                content.addView(appUsageCard(app, usage.foregroundMs, appMah, appRate, totalEnergy,
+                                directValue != null && directValue > 0),
                         new LinearLayout.LayoutParams(-1, -2));
                 if (++row == 50) break;
             }
@@ -4004,7 +4005,8 @@ class BatteryDashboard extends View {
         return text;
     }
 
-    private View appUsageCard(String app, long foregroundMs, int appMah, int appRate, int totalEnergy) {
+    private View appUsageCard(String app, long foregroundMs, int appMah, int appRate,
+                              int totalEnergy, boolean hasAppTelemetry) {
         LinearLayout card = new LinearLayout(getContext());
         card.setOrientation(LinearLayout.VERTICAL);
         card.setPadding(dp(14), dp(12), dp(14), dp(12));
@@ -4020,6 +4022,9 @@ class BatteryDashboard extends View {
         LinearLayout.LayoutParams timeParams = new LinearLayout.LayoutParams(-1, -2);
         timeParams.bottomMargin = dp(10);
         card.addView(time, timeParams);
+
+        card.addView(usageText(BatteryAppAttribution.sourceLabel(hasAppTelemetry),
+                11, Color.rgb(86, 103, 105), false));
 
         card.addView(usageText("AKKUVERBRAUCH", 11, Color.rgb(20, 145, 137), true));
         String amount = appMah > 0 ? "~" + appMah + " mAh" : "Nicht verfügbar";

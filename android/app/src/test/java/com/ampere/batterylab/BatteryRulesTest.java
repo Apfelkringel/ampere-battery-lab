@@ -55,6 +55,13 @@ public class BatteryRulesTest {
         assertEquals(0, BatteryAppAttribution.rateMahPerHour(60, 0L));
     }
 
+    @Test public void appAttributionExplainsTelemetryAndForegroundTimeEstimateSources() {
+        assertTrue(BatteryAppAttribution.sourceLabel(true)
+                .contains("zugeordnete Akku-Telemetrie (Schätzung)"));
+        assertTrue(BatteryAppAttribution.sourceLabel(false)
+                .contains("anteilig nach Vordergrundzeit (Schätzung)"));
+    }
+
     @Test public void historyStatsAggregateChargeDrainWearAndEfficiencyByBucket() {
         long now = 8L * 60L * 60L * 1000L;
         ArrayList<String> rows = new ArrayList<>(Arrays.asList(

@@ -1,0 +1,2 @@
+App-Verbrauchswerte zeigen jetzt direkt ihre Berechnungsquelle: zugeordnete Akku-Telemetrie oder anteilige Verteilung nach Vordergrundzeit.
+Beide Methoden sind ausdrücklich als Schätzungen gekennzeichnet, damit mAh- und mAh/h-Werte pro App transparent eingeordnet werden können.
