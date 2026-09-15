@@ -5071,6 +5071,15 @@ class BatteryDashboard extends View {
                         historyPeriodDays == 1 ? "letzte 24 Stunden"
                                 : historyPeriodDays == 7 ? "letzte 7 Tage" : "letzte 30 Tage",
                         selectedHistoryPeriod(buckets), buckets, calculationCapacityMah() > 0);
+            } else if (page == 3) {
+                liveDetails = BatteryAccessibilitySummary.health(
+                        health > 0 ? health + " Prozent" : "—",
+                        estimatedCapacityMah() > 0 ? mahDisplay(estimatedCapacityMah()) : "—",
+                        designCapacityMah() > 0 ? designCapacityDisplay() : "—",
+                        healthReading.source.isEmpty() ? "Keine Messung" : healthMeasurementSourceLabel(),
+                        healthEstimateStatus(), chargeCyclesDisplay(), wearImpactToTarget(),
+                        temperature > 0f ? temperatureDisplay() + " Grad Celsius" : "—",
+                        voltage > 0f ? voltageDisplay() + " Volt" : "—");
             }
         }
         String capacity = BatteryCapacityLevel.isAvailable(capacityLevel)

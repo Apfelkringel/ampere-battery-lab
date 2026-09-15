@@ -85,6 +85,23 @@ final class BatteryAccessibilitySummary {
         return summary.toString();
     }
 
+    static String health(String health, String capacity, String designCapacity,
+                         String source, String status, String cycles, String wearImpact,
+                         String temperature, String voltage) {
+        StringBuilder summary = new StringBuilder("Akkugesundheit");
+        append(summary, "Gesundheit", health);
+        append(summary, "Geschätzte Vollkapazität", capacity);
+        append(summary, "Designkapazität", designCapacity);
+        append(summary, "Messquelle", source);
+        append(summary, "Messstatus", status);
+        append(summary, "Ladezyklen", cycles);
+        append(summary, "Belastung bis zum Ladeziel", wearImpact);
+        append(summary, "Temperatur", temperature);
+        append(summary, "Spannung", voltage);
+        summary.append(". Kapazität und Belastung sind Schätzungen, keine direkte chemische Messung.");
+        return summary.toString();
+    }
+
     private static String amount(int mah) {
         return mah > 0 ? mah + " mAh" : "keine Messdaten";
     }

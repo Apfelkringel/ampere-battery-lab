@@ -263,6 +263,25 @@ public class BatteryRulesTest {
         assertTrue(summary.contains("keine Messdaten im Diagramm"));
     }
 
+    @Test public void screenReaderHealthSummaryDistinguishesEstimateSourceAndMissingValues() {
+        String measured = BatteryAccessibilitySummary.health("87 Prozent", "4.350 mAh",
+                "5.000 mAh", "Lokale Ladesitzungen", "Wird nach dem Ladevorgang einbezogen",
+                "312", "Erreicht", "32,0 Grad Celsius", "3,9 Volt");
+        assertTrue(measured.contains("Gesundheit: 87 Prozent"));
+        assertTrue(measured.contains("Geschätzte Vollkapazität: 4.350 mAh"));
+        assertTrue(measured.contains("Messquelle: Lokale Ladesitzungen"));
+        assertTrue(measured.contains("Ladezyklen: 312"));
+        assertTrue(measured.contains("Temperatur: 32,0 Grad Celsius"));
+        assertTrue(measured.contains("keine direkte chemische Messung"));
+
+        String unavailable = BatteryAccessibilitySummary.health("—", "—", "—",
+                "Keine Messung", "Längere Ladevorgänge verbessern die Genauigkeit",
+                "—", "—", "—", "—");
+        assertTrue(unavailable.contains("Gesundheit: nicht verfügbar"));
+        assertTrue(unavailable.contains("Geschätzte Vollkapazität: nicht verfügbar"));
+        assertTrue(unavailable.contains("Messquelle: Keine Messung"));
+    }
+
     @Test public void accessibilityChargeLimitUsesTheSameSafeRangeAsTheUi() {
         assertEquals(50, BatteryAccessibilityLayout.normalizeChargeLimit(1));
         assertEquals(80, BatteryAccessibilityLayout.normalizeChargeLimit(80));

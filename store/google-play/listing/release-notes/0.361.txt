@@ -1,0 +1,2 @@
+Die Gesundheitsseite enthält jetzt eine vollständige TalkBack-Zusammenfassung mit Kapazität, Messquelle, Zyklen, Temperatur und Spannung.
+Nicht verfügbare Messwerte werden klar gekennzeichnet; Schätzungen werden ausdrücklich von direkten Messungen unterschieden.
