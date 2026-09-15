@@ -124,6 +124,7 @@ public class MainActivity extends Activity {
     ));
     private BatteryDashboard dashboard;
     private boolean batteryReceiverRegistered;
+    private boolean awaitingNotificationPermissionResult;
     private final BroadcastReceiver batteryReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
             if (dashboard == null || intent == null) return;
@@ -145,11 +146,13 @@ public class MainActivity extends Activity {
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         migrateTelemetryPrefs(this);
+        AnalyticsTracker.restoreConsent(this);
         Window window = getWindow();
         window.setStatusBarColor(Color.rgb(9, 18, 23));
         window.setNavigationBarColor(Color.rgb(9, 18, 23));
         window.getDecorView().setSystemUiVisibility(0);
         dashboard = new BatteryDashboard(this);
+        if (AnalyticsTracker.isEnabled(this)) AnalyticsTracker.logSection(this, 0);
         dashboard.applySystemBarTheme();
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
@@ -166,9 +169,9 @@ public class MainActivity extends Activity {
         scroll.addView(dashboard, new ScrollView.LayoutParams(-1, contentHeight));
         setContentView(scroll);
         startMonitorService();
-        requestNotificationPermissionWithContext();
+        boolean notificationPromptShown = requestNotificationPermissionWithContext();
         dashboard.startSavedOverlay();
-        dashboard.postDelayed(() -> dashboard.showTutorial(false), 1200L);
+        if (!notificationPromptShown) dashboard.postDelayed(this::showStartupDisclosure, 1000L);
         IntentFilter batteryFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         batteryFilter.addAction(Intent.ACTION_POWER_CONNECTED);
         batteryFilter.addAction(Intent.ACTION_POWER_DISCONNECTED);
@@ -199,6 +202,14 @@ public class MainActivity extends Activity {
         setIntent(intent);
     }
 
+    @Override public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 44) {
+            awaitingNotificationPermissionResult = false;
+            if (dashboard != null) dashboard.postDelayed(this::showStartupDisclosure, 350L);
+        }
+    }
+
     private void startMonitorService() {
         Intent service = new Intent(this, BatteryMonitorService.class);
         try {
@@ -208,16 +219,32 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void requestNotificationPermissionWithContext() {
+    private boolean requestNotificationPermissionWithContext() {
         if (Build.VERSION.SDK_INT < 33
-                || checkSelfPermission("android.permission.POST_NOTIFICATIONS") == getPackageManager().PERMISSION_GRANTED) return;
-        new AlertDialog.Builder(this)
+                || checkSelfPermission("android.permission.POST_NOTIFICATIONS") == getPackageManager().PERMISSION_GRANTED) return false;
+        AlertDialog notificationDialog = new AlertDialog.Builder(this)
                 .setTitle("Verlauf im Hintergrund behalten")
-                .setMessage("Ampere nutzt eine leise, dauerhafte Benachrichtigung, damit Android den lokalen Akku-Monitor und deine Ladealarme zuverlässig weiterlaufen lässt. Es werden keine Daten versendet.")
+                .setMessage("Ampere nutzt eine leise, dauerhafte Benachrichtigung, damit Android den lokalen Akku-Monitor und deine Ladealarme zuverlässig weiterlaufen lässt. Die Akku-Messwerte bleiben lokal. Eine getrennte, optionale Nutzungsanalyse ist nur nach deiner Zustimmung aktiv.")
                 .setNegativeButton("Später", null)
                 .setPositiveButton("Benachrichtigung erlauben", (dialog, which) ->
-                        requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"}, 44))
-                .show();
+                        awaitingNotificationPermissionResult = true)
+                .create();
+        notificationDialog.setOnDismissListener(dialog -> {
+            if (awaitingNotificationPermissionResult) {
+                dashboard.postDelayed(() -> {
+                    if (!isFinishing()) requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"}, 44);
+                }, 200L);
+            } else {
+                dashboard.postDelayed(this::showStartupDisclosure, 350L);
+            }
+        });
+        notificationDialog.show();
+        return true;
+    }
+
+    private void showStartupDisclosure() {
+        if (dashboard == null || isFinishing()) return;
+        if (!dashboard.offerAnalyticsConsentIfNeeded()) dashboard.showTutorial(false);
     }
 
     void restartMonitorService() {
@@ -1219,6 +1246,7 @@ class BatteryDashboard extends View {
             Toast.makeText(getContext(), "Starte die Kapazitätsmessung getrennt vom Ladegerät unter 25 %.", Toast.LENGTH_LONG).show();
         } else {
             benchmarkActive = true;
+            AnalyticsTracker.logFeature(getContext(), "health_measurement");
             SharedPreferences.Editor editor = prefs.edit().putBoolean("benchmarkActive", true)
                     .putInt("benchmarkStartLevel", level).putInt("benchmarkChargeAddedMah", 0)
                     .remove("benchmarkChargeLastCounterMah")
@@ -1893,6 +1921,7 @@ class BatteryDashboard extends View {
         prefs.edit().putBoolean("overlayEnabled", overlayEnabled).apply();
         Intent service = new Intent(getContext(), BatteryOverlayService.class);
         if (overlayEnabled) {
+            AnalyticsTracker.logFeature(getContext(), "overlay");
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) getContext().startForegroundService(service); else getContext().startService(service);
         } else {
             getContext().stopService(service);
@@ -1942,7 +1971,7 @@ class BatteryDashboard extends View {
                 } catch (Exception ignored) { }
             } else if (which == 1) {
                 itemDialog.dismiss();
-                page = 1;
+                selectPage(1);
                 updateAccessibilitySummary();
                 updateLayoutHeight();
                 invalidate();
@@ -2020,6 +2049,7 @@ class BatteryDashboard extends View {
                     prefs.edit().putBoolean("temperatureAlarm", enabled)
                             .putInt("temperatureAlarmThresholdTenths", threshold)
                             .remove("temperatureAlarmSent").apply();
+                    AnalyticsTracker.logFeature(getContext(), "temperature_alarm");
                     Toast.makeText(getContext(), enabled ? labels[choice[0]] : "Temperaturwarnung ausgeschaltet", Toast.LENGTH_LONG).show();
                 }).show();
     }
@@ -2046,6 +2076,7 @@ class BatteryDashboard extends View {
                     prefs.edit().putBoolean("dischargeAlarm", alarmEnabled)
                             .putInt("dischargeAlarmThreshold", threshold)
                             .remove("dischargeAlarmSent").remove("dischargeAlarmLastLevel").apply();
+                    AnalyticsTracker.logFeature(getContext(), "discharge_alarm");
                     Toast.makeText(getContext(), alarmEnabled ? labels[choice[0]] : "Tiefstandwarnung ausgeschaltet", Toast.LENGTH_LONG).show();
                 }).show();
     }
@@ -2097,12 +2128,52 @@ class BatteryDashboard extends View {
         String[] exportChoices = {"CSV exportieren", "Forschungs-JSON", "Diagnosebericht"};
         new AlertDialog.Builder(getContext())
                 .setTitle("Daten & Datenschutz")
-                .setMessage("Ampere erfasst Messwerte lokal für Verlauf und Analyse: Zeit, Akkustand, Ladezustand, Strom, Temperatur, Spannung und Bildschirmstatus. Wenn du den Nutzungszugriff erlaubst, wird zusätzlich die aktive Vordergrund-App lokal gespeichert, um ihren Anteil am Verbrauch zu schätzen.\n\nEs werden keine Messwerte, Kontokennungen, Standortdaten oder Listen installierter Apps an einen Ampere-Server gesendet. Android-Sicherungen können Verlauf, Einstellungen und lokale Telemetrie über einen geeigneten verschlüsselten Sicherungsdienst enthalten; Gerät und Android bestimmen, ob und wann gesichert wird. Die Update-Prüfung ruft nur die konfigurierte Versionsdatei ab.\n\nCSV ist eine flache Tabelle. Der Forschungs-Export ist strukturiertes JSON und enthält Gerätemodell und Android-Version, aber keine Seriennummer oder Werbe-ID. Exporte starten erst, wenn du sie auswählst.")
+                .setMessage("Ampere speichert Messwerte lokal für Verlauf und Analyse: Zeit, Akkustand, Ladezustand, Strom, Temperatur, Spannung und Bildschirmstatus. Wenn du den Nutzungszugriff erlaubst, wird zusätzlich die aktive Vordergrund-App lokal gespeichert, um ihren Anteil am Verbrauch zu schätzen.\n\nEine optionale Nutzungsanalyse sendet besuchte App-Bereiche und festgelegte Funktionsnutzungen über Firebase an Google. Firebase erfasst außerdem App-Starts und Sitzungen, bei Google Play gegebenenfalls Installations-/Update-Quelle, eine zufällige pseudonyme Kennung je App-Installation sowie technische Angaben wie Gerätemodell, Betriebssystem und App-Version. Google kann bei der Übertragung aus der IP-Adresse ungefähre Standortinformationen ableiten und verwirft die IP-Adresse danach. Werbe-ID und personalisierte Werbung sind deaktiviert. Akku-Messwerte, Vordergrund-App-Namen, Konten und genaue Standorte werden nicht für diese Analyse übertragen. Ereignis- und Nutzerdaten werden im Analytics-Projekt jeweils zwei Monate aufbewahrt; aggregierte Berichte können länger bestehen bleiben. Zustimmung und Widerruf findest du unter „Nutzungsanalyse“; ohne Zustimmung bleibt sie aus.\n\nAndroid-Sicherungen können Verlauf, Einstellungen und lokale Telemetrie über einen geeigneten verschlüsselten Sicherungsdienst enthalten; Gerät und Android bestimmen, ob und wann gesichert wird. Die Update-Prüfung ruft nur die konfigurierte Versionsdatei ab. CSV und Forschungs-JSON werden erst nach deiner Auswahl erzeugt; der Forschungs-Export enthält Gerätemodell und Android-Version, aber keine Seriennummer oder Werbe-ID.")
                 .setItems(exportChoices, (dialog, which) -> {
                     MainActivity activity = (MainActivity) getContext();
                     if (which == 0) activity.createCsvExport();
                     else if (which == 1) activity.createResearchExport();
                     else activity.createDiagnosticExport();
+                })
+                .setNeutralButton("Nutzungsanalyse", (dialog, which) -> showAnalyticsSettings())
+                .setNegativeButton("Schließen", null)
+                .show();
+    }
+
+    boolean offerAnalyticsConsentIfNeeded() {
+        if (AnalyticsTracker.hasDecision(getContext())) return false;
+        showAnalyticsConsent();
+        return true;
+    }
+
+    private void showAnalyticsConsent() {
+        AlertDialog disclosure = new AlertDialog.Builder(getContext())
+                .setTitle("Nutzungsanalyse aktivieren?")
+                .setMessage("Hilf uns, Ampere gezielt zu verbessern: Wenn du zustimmst, sendet die App an Google über Firebase, welche Bereiche du öffnest und welche ausgewählten Funktionen du nutzt. Firebase erfasst außerdem App-Starts und Sitzungen, bei Google Play gegebenenfalls die Installations-/Update-Quelle, eine zufällige Kennung dieser App-Installation sowie technische Angaben wie Gerätemodell, Betriebssystem und App-Version. Google kann bei der Übertragung aus deiner IP-Adresse ungefähre Standortinformationen ableiten und verwirft die IP-Adresse danach.\n\nWerbe-ID und personalisierte Werbung sind deaktiviert. Das Analytics-Konto kann nur zusammengefasste, anonymisierte Messwerte für Branchen-Benchmarks nutzen; eine zusätzliche Freigabe für Google-Produkte und -Dienste ist ausgeschaltet. Akku-Messwerte, Namen anderer geöffneter Apps, Konten und genauer Standort werden nicht für diese Analyse übertragen. Ereignis- und Nutzerdaten werden jeweils zwei Monate aufbewahrt; aggregierte Berichte können länger bestehen bleiben. Die Zustimmung ist freiwillig und ändert keine Funktion. Du kannst sie jederzeit unter Einstellungen → Daten & Datenschutz → Nutzungsanalyse widerrufen.")
+                .setPositiveButton("Zustimmen", (dialog, which) -> {
+                    AnalyticsTracker.setConsent(getContext(), true);
+                    AnalyticsTracker.logSection(getContext(), page);
+                    showTutorial(false);
+                })
+                .setNegativeButton("Nein danke", (dialog, which) -> {
+                    AnalyticsTracker.setConsent(getContext(), false);
+                    showTutorial(false);
+                })
+                .create();
+        disclosure.setOnCancelListener(dialog -> showTutorial(false));
+        disclosure.show();
+    }
+
+    private void showAnalyticsSettings() {
+        boolean enabled = AnalyticsTracker.isEnabled(getContext());
+        String state = enabled ? "Derzeit aktiv." : "Derzeit aus.";
+        new AlertDialog.Builder(getContext())
+                .setTitle("Nutzungsanalyse · " + (enabled ? "aktiv" : "aus"))
+                .setMessage(state + "\n\n" + "Ampere sendet nur besuchte App-Bereiche und ausgewählte Funktionsnutzungen an Google über Firebase. Firebase verarbeitet außerdem eine pseudonyme App-Instanzkennung, Sitzungen sowie technische App-/Geräteinformationen. Google kann bei der Übertragung aus deiner IP-Adresse ungefähre Standortinformationen ableiten und verwirft die IP-Adresse danach. Das Analytics-Konto kann nur zusammengefasste, anonymisierte Messwerte für Branchen-Benchmarks nutzen; die zusätzliche Freigabe für Google-Produkte und -Dienste ist ausgeschaltet. Akku-Messwerte, aktive App-Namen, Konten, genaue Standortdaten und Werbe-IDs werden nicht für diese Analyse übertragen. Ereignis- und Nutzerdaten werden jeweils zwei Monate aufbewahrt; aggregierte Berichte können länger bestehen bleiben.\n\nDie Analyse ist freiwillig und ändert keine App-Funktion. Beim Ausschalten stoppt Ampere künftige Erfassung und setzt die lokale Analytics-Kennung zurück; bereits erstellte aggregierte Statistiken können länger bestehen bleiben.")
+                .setPositiveButton(enabled ? "Ausschalten" : "Zustimmen und aktivieren", (dialog, which) -> {
+                    AnalyticsTracker.setConsent(getContext(), !enabled);
+                    if (!enabled) AnalyticsTracker.logSection(getContext(), page);
+                    Toast.makeText(getContext(), enabled ? "Nutzungsanalyse ausgeschaltet." : "Nutzungsanalyse aktiviert.", Toast.LENGTH_LONG).show();
                 })
                 .setNegativeButton("Schließen", null)
                 .show();
@@ -2145,6 +2216,7 @@ class BatteryDashboard extends View {
                 .setNegativeButton("Abbrechen", null)
                 .setPositiveButton("Löschen", (dialog, which) -> {
                     Context context = getContext();
+                    AnalyticsTracker.setConsent(context, false);
                     SharedPreferences data = BatteryDataRepository.data(context);
                     data.edit().clear().apply();
                     BatteryDataRepository.telemetry(context).edit().clear().apply();
@@ -2212,7 +2284,7 @@ class BatteryDashboard extends View {
         if (!force && prefs.getBoolean("tutorialShown", false)) return;
         new AlertDialog.Builder(getContext())
                 .setTitle("Willkommen bei Ampere")
-                .setMessage("Ampere arbeitet lokal auf deinem Gerät. Für einen guten Start:\n\n1. Lass die Überwachungsbenachrichtigung aktiv, damit Verlauf und Alarme weiterlaufen.\n2. Wähle im Tab „Laden“ dein Ladeziel.\n3. Für die Gesundheitsmessung: unter 25 % starten und über 95 % laden.\n\nOptional: Nutzungszugriff zeigt App-Verbrauch, Overlay zeigt Live-Werte über anderen Apps. Beide Zugriffe kannst du später in Einstellungen aktivieren.")
+                .setMessage("Ampere speichert Akku-Messwerte lokal auf deinem Gerät. Für einen guten Start:\n\n1. Lass die Überwachungsbenachrichtigung aktiv, damit Verlauf und Alarme weiterlaufen.\n2. Wähle im Tab „Laden“ dein Ladeziel.\n3. Für die Gesundheitsmessung: unter 25 % starten und über 95 % laden.\n\nOptional: Nutzungszugriff zeigt App-Verbrauch, Overlay zeigt Live-Werte über anderen Apps. Eine getrennte Nutzungsanalyse ist nur nach Zustimmung aktiv und lässt sich in Einstellungen → Daten & Datenschutz jederzeit ausschalten.")
                 .setNegativeButton("Später", (dialog, which) -> prefs.edit().putBoolean("tutorialShown", true).apply())
                 .setNeutralButton("Nennkapazität setzen", (dialog, which) -> {
                     prefs.edit().putBoolean("tutorialShown", true).apply();
@@ -4742,6 +4814,7 @@ class BatteryDashboard extends View {
     }
 
     private void exportHistory() {
+        AnalyticsTracker.logFeature(getContext(), "history_export");
         ((MainActivity) getContext()).createCsvExport();
     }
 
@@ -4823,7 +4896,7 @@ class BatteryDashboard extends View {
                 .setMessage(details.toString())
                 .setNegativeButton("Schließen", null)
                 .setPositiveButton(charge ? "Laden öffnen" : "Entladen öffnen", (dialog, which) -> {
-                    page = charge ? 1 : 2;
+                    selectPage(charge ? 1 : 2);
                     updateLayoutHeight();
                     if (getParent() instanceof ScrollView) ((ScrollView) getParent()).smoothScrollTo(0, 0);
                     invalidate();
@@ -5286,6 +5359,13 @@ class BatteryDashboard extends View {
 
     private String pageName() { return page == 1 ? "Laden" : page == 2 ? "Entladen" : page == 3 ? "Akkugesundheit" : page == 4 ? "Verlauf" : "Übersicht"; }
 
+    private void selectPage(int selectedPage) {
+        int normalizedPage = Math.max(0, Math.min(4, selectedPage));
+        if (page == normalizedPage) return;
+        page = normalizedPage;
+        AnalyticsTracker.logSection(getContext(), page);
+    }
+
     private String levelDisplay() { return percentDisplay(level); }
     private String percentDisplay(int value) { return value >= 0 && value <= 100 ? value + "%" : "—"; }
 
@@ -5433,7 +5513,7 @@ class BatteryDashboard extends View {
             if (battery != null) readBattery(battery);
             Toast.makeText(getContext(), "Live-Daten aktualisiert.", Toast.LENGTH_SHORT).show();
         } else if (virtualViewId >= 10 && virtualViewId <= 14) {
-            page = virtualViewId - 10;
+            selectPage(virtualViewId - 10);
             updateAccessibilitySummary();
             updateLayoutHeight();
             invalidate();
@@ -5452,6 +5532,7 @@ class BatteryDashboard extends View {
             invalidate();
         } else if (virtualViewId == BatteryAccessibilityLayout.CHARGE_ALARM) {
             chargeAlarm = !chargeAlarm;
+            AnalyticsTracker.logFeature(getContext(), "charge_alarm");
                     prefs.edit().putBoolean("chargeAlarm", chargeAlarm)
                             .remove("chargeAlarmSent").remove("chargeAlarmLastLevel").apply();
             if (!chargeAlarm) {
@@ -5795,7 +5876,7 @@ class BatteryDashboard extends View {
         if (y >= 124 && y < 174) {
             if (releasedRegion >= 10 && releasedRegion <= 14) hapticClick();
             float cell = (w - 36) / 5f;
-            page = Math.max(0, Math.min(4, (int) ((screenX - 18) / cell)));
+            selectPage((int) ((screenX - 18) / cell));
             updateAccessibilitySummary();
             updateLayoutHeight();
             invalidate();
@@ -5835,6 +5916,7 @@ class BatteryDashboard extends View {
         if (page == 1 && isWithinCanvasControl(BatteryAccessibilityLayout.CHARGE_ALARM, screenX, y, w)) {
             hapticClick();
             chargeAlarm = !chargeAlarm;
+            AnalyticsTracker.logFeature(getContext(), "charge_alarm");
             prefs.edit().putBoolean("chargeAlarm", chargeAlarm)
                     .remove("chargeAlarmSent").remove("chargeAlarmLastLevel").apply();
             if (!chargeAlarm) {

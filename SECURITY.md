@@ -1,8 +1,10 @@
 # Security
 
 Ampere Battery Lab is designed as a local-first battery monitor. Battery
-telemetry, usage attribution and backups are processed locally; the app does
-not upload battery data to an Ampere server.
+telemetry, foreground-app names and backups are processed locally. If a user
+opts in, the app sends allow-listed product-usage events and technical app/device
+metadata to Google Analytics for Firebase. The app does not upload battery data
+to an Ampere server.
 
 ## Release verification
 

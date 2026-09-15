@@ -1,0 +1,28 @@
+{
+  "project_info": {
+    "project_number": "167887103214",
+    "project_id": "ampere-battery-lab-analytics",
+    "storage_bucket": "ampere-battery-lab-analytics.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:167887103214:android:25f61b45aeb66301fdbfff",
+        "android_client_info": {
+          "package_name": "com.ampere.batterylab"
+        }
+      },
+      "api_key": [
+        {
+          "current_key": "AIzaSyDlyZ7GZ-UnBHp3mZLIzRQLat3THsBZ3qo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -13,8 +13,8 @@ android {
         // APK installable on older Android versions as a bonus.
         minSdk 23
         targetSdk 37
-        versionCode 371
-        versionName "0.371"
+        versionCode 372
+        versionName "0.372"
     }
 
     // The GitHub APK channel may offer an explicitly user-confirmed update.
@@ -37,6 +37,8 @@ android {
     }
 
     dependencies {
+        implementation platform("com.google.firebase:firebase-bom:34.19.0")
+        implementation "com.google.firebase:firebase-analytics"
         testImplementation "junit:junit:4.13.2"
     }
 
@@ -77,4 +79,10 @@ android {
         }
     }
 
+}
+
+// Keep builds without a Firebase config usable. The app's checked-in
+// google-services.json is public project configuration, not a secret.
+if (file("google-services.json").exists()) {
+    apply plugin: "com.google.gms.google-services"
 }

@@ -1,14 +1,10 @@
 # Store-Veröffentlichung
 
-## Aktueller Stand (13. September 2026)
+## Aktueller Stand (15. September 2026)
 
-Der signierte Android-Release `0.339` ist als APK und Play-App-Bundle gebaut. Das
-öffentliche Bundle liegt hier: <https://github.com/Apfelkringel/ampere-battery-lab-updates/raw/refs/heads/main/Ampere-Battery-Lab-play-release.aab>.
-Die zugehörige Prüfsumme steht in `latest.json` unter `aabSha256`.
-
-Der Play-Eintrag und der App-Store-Eintrag sind noch nicht angelegt. Die
-folgenden Zugangsschritte sind deshalb einmalig erforderlich; sie verändern
-keine App-Daten und können nach Prüfung manuell ausgeführt werden.
+Der aktuelle Android-Release wird über den signierten GitHub-Workflow und das
+öffentliche Updates-Repository veröffentlicht. Die jeweils gültige Version,
+Download-Adressen und Prüfsummen stehen in `latest.json` im Updates-Repository.
 
 ## Android
 
@@ -17,13 +13,13 @@ Das Projekt erzeugt zwei bewusst getrennte Varianten:
 - `directRelease` ist die signierte GitHub-APK für Nutzer außerhalb von Google Play. Sie darf den ausdrücklich bestätigten APK-Update-Dialog verwenden.
 - `playRelease` ist das Google-Play-App-Bundle. Es enthält weder `REQUEST_INSTALL_PACKAGES` noch den APK-Update-Receiver; Aktualisierungen kommen ausschließlich über Google Play.
 
-Für einen Upload wird das Artefakt `app-play-release.aab` aus dem Release-Workflow in die Play Console hochgeladen. Vor dem ersten Upload müssen dort App-ID `com.ampere.batterylab`, Play App Signing, Store-Eintrag, Datenschutz-URL, Data-Safety-Angaben und die Erklärung für die beiden `specialUse`-Foreground-Services eingerichtet werden.
+Für einen Upload wird das Artefakt `app-play-release.aab` aus dem Release-Workflow in die Play Console hochgeladen. Vor dem Upload müssen dort App-ID `com.ampere.batterylab`, Play App Signing, Store-Eintrag, Datenschutz-URL, Data-Safety-Angaben und die Erklärung für die beiden `specialUse`-Foreground-Services eingerichtet werden.
 
 Für den ersten Play-Upload:
 
 1. In der Play Console eine App mit Paketname `com.ampere.batterylab` anlegen und Play App Signing aktivieren.
 2. Datenschutz-URL auf `https://github.com/Apfelkringel/ampere-battery-lab-updates/blob/main/PRIVACY.md` setzen.
-3. Data-Safety-Formular als lokale Verarbeitung ohne Konto, Werbung, Standort oder Weitergabe ausfüllen.
+3. Data-Safety-Formular passend zur optionalen, erst nach Zustimmung aktiven Firebase-Analytics ausfüllen. Mindestens App-Interaktionen, Geräte- oder andere IDs (Firebase-App-Instanzkennung) und ungefähre Standortinformationen (aus der IP-Adresse abgeleitet; die IP-Adresse wird danach verworfen) als erhoben und für Analytics verwendet berücksichtigen. Firebase überträgt diese Daten verschlüsselt. Werbe-ID, präziser Standort, Konten und Akku-Messwerte werden von dieser Integration nicht erfasst. Ereignis- und Nutzerdaten sind im Analytics-Projekt jeweils auf zwei Monate begrenzt; die Frist wird bei neuer Nutzeraktivität nicht zurückgesetzt. Für Version 0.372 ist die Analytics-Freigabe „Google-Produkte und -Dienste“ ausgeschaltet; Google Analytics bleibt damit Auftragsverarbeiter. Anonymisierte, aggregierte Beiträge für Benchmarks sind aktiviert. Vor jeder Änderung des Play-Formulars müssen die Konto-Freigaben erneut geprüft werden; Daten an einen Analytics-Auftragsverarbeiter zählen gemäß Play-Definition nicht als „geteilt“.
 4. Für beide `specialUse`-Foreground-Services den sichtbaren Anwendungsfall „lokale Akku-Telemetrie und vom Nutzer aktivierte Überwachung“ erklären.
 5. Das öffentliche `Ampere-Battery-Lab-play-release.aab` im internen Testtrack hochladen und die Release-Prüfung abwarten.
 
