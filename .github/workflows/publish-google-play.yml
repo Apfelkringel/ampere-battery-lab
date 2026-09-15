@@ -72,6 +72,35 @@ jobs:
             exit 1
           fi
 
+          # Prove that Google's OAuth service accepts this key and that the
+          # account can reach this app through a read-only Play API endpoint.
+          tmp_dir="$(mktemp -d)"
+          trap 'rm -rf "$tmp_dir"' EXIT
+          now="$(date +%s)"
+          client_email="$(printf '%s' "$PLAY_SERVICE_ACCOUNT_JSON" | jq -er '.client_email')"
+          printf '%s' "$PLAY_SERVICE_ACCOUNT_JSON" | jq -er '.private_key' > "$tmp_dir/private-key.pem"
+          header="$(printf '%s' '{"alg":"RS256","typ":"JWT"}' | openssl base64 -A | tr '+/' '-_' | tr -d '=')"
+          payload="$(jq -cn \
+            --arg iss "$client_email" \
+            --arg scope 'https://www.googleapis.com/auth/androidpublisher' \
+            --arg aud 'https://oauth2.googleapis.com/token' \
+            --argjson iat "$now" \
+            --argjson exp "$((now + 3600))" \
+            '{iss:$iss,scope:$scope,aud:$aud,iat:$iat,exp:$exp}' | openssl base64 -A | tr '+/' '-_' | tr -d '=')"
+          unsigned_token="$header.$payload"
+          signature="$(printf '%s' "$unsigned_token" | openssl dgst -sha256 -sign "$tmp_dir/private-key.pem" | openssl base64 -A | tr '+/' '-_' | tr -d '=')"
+          assertion="$unsigned_token.$signature"
+          curl --fail --silent --show-error \
+            --output "$tmp_dir/oauth-token.json" \
+            --header 'Content-Type: application/x-www-form-urlencoded' \
+            --data "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=$assertion" \
+            'https://oauth2.googleapis.com/token'
+          access_token="$(jq -er '.access_token' "$tmp_dir/oauth-token.json")"
+          curl --fail --silent --show-error --output /dev/null \
+            --header "Authorization: Bearer $access_token" \
+            'https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.ampere.batterylab/reviews?maxResults=1'
+          echo 'Google OAuth and read-only Play API access validated.'
+
       - name: Upload bundle to Google Play
         if: ${{ !inputs.validate_only }}
         uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5 # v1
