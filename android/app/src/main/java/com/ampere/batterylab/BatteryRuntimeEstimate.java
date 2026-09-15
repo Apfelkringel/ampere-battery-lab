@@ -37,6 +37,15 @@ final class BatteryRuntimeEstimate {
         return isValidRate(rate) ? rate : 0f;
     }
 
+    /** Whether a last-discharge runtime can be computed from real local evidence. */
+    static boolean hasHistoricalEstimate(int referenceLevel, float observedPercent,
+                                         long durationMs, float ratePercentPerHour) {
+        if (referenceLevel < 0 || referenceLevel > 100) return false;
+        if (Float.isFinite(ratePercentPerHour) && ratePercentPerHour > 0f) return true;
+        return Float.isFinite(observedPercent) && observedPercent > 0f
+                && durationMs >= 5L * 60L * 1000L;
+    }
+
     private static boolean isValidRate(float rate) {
         return Float.isFinite(rate) && rate > 0f && rate <= MAX_RATE_PERCENT_PER_HOUR;
     }

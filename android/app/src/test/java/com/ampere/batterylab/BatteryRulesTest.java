@@ -672,6 +672,14 @@ public class BatteryRulesTest {
                 5L * 60L * 1000L), 0.001f);
     }
 
+    @Test public void chargingRuntimeSourceRequiresUsableDischargeEvidence() {
+        assertTrue(BatteryRuntimeEstimate.hasHistoricalEstimate(75, 0f, 0L, 12f));
+        assertTrue(BatteryRuntimeEstimate.hasHistoricalEstimate(75, 4f, 5L * 60L * 1000L, 0f));
+        assertFalse(BatteryRuntimeEstimate.hasHistoricalEstimate(75, 4f, 4L * 60L * 1000L, 0f));
+        assertFalse(BatteryRuntimeEstimate.hasHistoricalEstimate(-1, 4f, 10L * 60L * 1000L, 12f));
+        assertFalse(BatteryRuntimeEstimate.hasHistoricalEstimate(75, Float.NaN, 10L * 60L * 1000L, 0f));
+    }
+
     @Test public void timelineCapsUnobservedIntegrationGaps() {
         assertEquals(30L * 60L * 1000L,
                 BatteryTimelineRules.cappedElapsed(1_000L, 4_000_000L, 30L * 60L * 1000L));

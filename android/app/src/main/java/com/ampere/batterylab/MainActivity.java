@@ -1478,8 +1478,10 @@ class BatteryDashboard extends View {
             int historicalLevel = lastDischargeEndLevel();
             if (historicalLevel < 0) return "—";
             float rate = mixedDischargeRate();
+            long durationMs = minutes * 60_000L;
+            if (!BatteryRuntimeEstimate.hasHistoricalEstimate(historicalLevel, used, durationMs, rate)) return "—";
             return rate > 0f ? formatDuration(Math.max(1, Math.round(historicalLevel * 60f / rate)))
-                    : (used > 0f && minutes >= 5 ? formatDuration(Math.max(1, Math.round(historicalLevel * minutes / used))) : "—");
+                    : formatDuration(Math.max(1, Math.round(historicalLevel * minutes / used)));
         }
         float historicalRate = mixedDischargeRate();
         float rate = BatteryRuntimeEstimate.blendRate(historicalRate,
@@ -1518,7 +1520,14 @@ class BatteryDashboard extends View {
     }
 
     private String runtimeEstimateSource() {
-        if (charging) return "Basierend auf letzter Entladephase";
+        if (charging) {
+            float used = BatteryPercentage.normalizePhase(prefs.getFloat("lastDischargeScreenOnPercent", 0f))
+                    + BatteryPercentage.normalizePhase(prefs.getFloat("lastDischargeScreenOffPercent", 0f));
+            long durationMs = prefs.getLong("lastDischargeScreenOnMs", 0L)
+                    + prefs.getLong("lastDischargeScreenOffMs", 0L);
+            return BatteryRuntimeEstimate.hasHistoricalEstimate(lastDischargeEndLevel(), used,
+                    durationMs, mixedDischargeRate()) ? "Letzte Entladephase" : "Keine Daten";
+        }
         float historicalRate = mixedDischargeRate();
         float currentRate = currentDischargeRate();
         if (currentRate > 0f && historicalRate > 0f) {

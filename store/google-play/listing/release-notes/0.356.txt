@@ -1,0 +1,1 @@
+Die Quelle der Restlaufzeit-Schätzung während des Ladens wird nur noch angezeigt, wenn tatsächlich verwertbare Daten aus der letzten Entladephase vorliegen. Randfälle sind durch Unit-Tests abgesichert.
