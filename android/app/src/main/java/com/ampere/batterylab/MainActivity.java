@@ -720,6 +720,15 @@ class BatteryDashboard extends View {
         return historyPanelBottom() - 58;
     }
 
+    /** Top edge of the first visible session row in the history composition. */
+    private float historySessionsTop() {
+        return 182 + 430 + 298 + 119;
+    }
+
+    private float historySessionRowTop(int index) {
+        return historySessionsTop() + 29 + index * 31f;
+    }
+
     /** Uses the legible mobile export composition instead of squeezing the desktop artwork. */
     private Bitmap historyExportArtwork(float width) {
         return isCompactHistoryWidth(width) ? actionCsvCompactArtwork : actionCsvWideArtwork;
@@ -4284,7 +4293,7 @@ class BatteryDashboard extends View {
         stroke(c, border, 1);
         rect.set(u(18), u(chartTop), u(w - 18), u(chartTop + 280));
         c.drawRoundRect(rect, u(16), u(16), p);
-        text(c, "AKKU-BILANZ", 36, chartTop + 29, 9, muted, true);
+        text(c, "AKKU-BILANZ · " + historyPeriodRangeLabel(), 36, chartTop + 29, 9, muted, true);
         text(c, historyPeriodLabel(), 36, chartTop + 53, 16, primary, true);
         drawHistoryLegend(c, 36, chartTop + 76, primary, muted);
         drawHistoryBars(c, buckets, 36, chartTop + 100, w - 36, 128, primary, muted, faint);
@@ -4301,7 +4310,7 @@ class BatteryDashboard extends View {
         boundedText(c, efficiencyText + " · " + wearText, 36, w - 36, insightTop + 51, 10, primary, true);
         boundedText(c, "EFC = äquivalente Vollzyklen; kein direkter chemischer Gesundheitsverlust.", 36, w - 36, insightTop + 72, 8, muted, false);
 
-        float sessionsTop = insightTop + 119;
+        float sessionsTop = historySessionsTop();
         text(c, "LETZTE SITZUNGEN", 36, sessionsTop, 9, muted, true);
         int rowCount = Math.min(5, sessions.size());
         if (rowCount == 0) {
@@ -4310,13 +4319,15 @@ class BatteryDashboard extends View {
             for (int index = 0; index < rowCount; index++) {
                 String[] parts = sessions.get(index).split(",", -1);
                 if (parts.length < 4) continue;
-                float rowY = sessionsTop + 29 + index * 31;
+                float rowY = historySessionRowTop(index);
+                if (index % 2 == 0) rounded(c, 30, rowY - 14, w - 30, rowY + 13, 6, raised);
                 text(c, parts[3], 36, rowY, 8, muted, false);
                 text(c, sessionTypeDisplay(parts[0]), 112, rowY, 8, parts[0].equals("Charge") ? lime : blue, true);
                 boundedText(c, parts[1], 184, w - 126, rowY, 8, primary, true);
                 rightText(c, parts[2], w - 36, rowY, 8, faint, false);
                 line(c, 36, rowY + 9, w - 36, rowY + 9, border, 1);
             }
+            text(c, "Sitzung antippen für Details", 36, sessionsTop + 29 + rowCount * 31, 8, faint, false);
         }
         float exportTop = historyExportTop();
         drawGeneratedButton(c, historyExportArtwork(w), 36, exportTop, w - 36, exportTop + 44, isPressed(40), false);
@@ -5671,13 +5682,15 @@ class BatteryDashboard extends View {
             setOverlayEnabled(!overlayEnabled);
             return true;
         }
-        int historyRows = Math.min(150, sessions.size());
-        float historyRowHeight = historyRowHeight();
-        if (page == 4 && y >= 342 && y < 342 + historyRows * historyRowHeight
-                && x >= 36 && x <= bodyW - 36 && !sessions.isEmpty()) {
-            int index = (int) ((y - 342) / historyRowHeight);
-            showSessionDetails(index);
-            return true;
+        int visibleHistoryRows = Math.min(5, sessions.size());
+        if (page == 4 && x >= 30 && x <= bodyW - 30) {
+            for (int index = 0; index < visibleHistoryRows; index++) {
+                float rowTop = historySessionRowTop(index);
+                if (y >= rowTop - 15 && y <= rowTop + 14) {
+                    showSessionDetails(index);
+                    return true;
+                }
+            }
         }
         if (page == 4 && isWithinCanvasControl(BatteryAccessibilityLayout.HISTORY_EXPORT, screenX, y, w)) {
             hapticClick();
