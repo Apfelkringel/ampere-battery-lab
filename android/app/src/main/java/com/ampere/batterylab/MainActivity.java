@@ -4589,7 +4589,7 @@ class BatteryDashboard extends View {
         text(c, historyPeriodLabel(), 36, chartTop + 53, 16, primary, true);
         drawHistoryLegend(c, 36, w - 36, chartTop + 76, muted);
         drawHistoryBars(c, buckets, 36, chartTop + 100, w - 36, 128, primary, muted, faint);
-        text(c, "Balkenhöhen je Kennzahl skaliert", 36, chartTop + 252, 8, faint, false);
+        text(c, "Balkenhöhen je Kennzahl skaliert", 36, chartTop + 270, 8, faint, false);
 
         float insightTop = chartTop + 298;
         rounded(c, 18, insightTop, w - 18, insightTop + 92, 14, raised);
