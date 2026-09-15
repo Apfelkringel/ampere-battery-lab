@@ -34,6 +34,7 @@ public class BatteryMonitorService extends Service {
     private static final String ALARM_CHANNEL_ID = "ampere-charge-alarm";
     private static final long CHARGING_STATE_CONFIRMATION_MS = 2500L;
     private static final long HEARTBEAT_INTERVAL_MS = 10L * 60L * 1000L;
+    private static final long LIVE_NOTIFICATION_INTERVAL_MS = 1000L;
     private Handler handler;
     private HandlerThread monitorThread;
     private boolean transitionCheckScheduled;
@@ -79,6 +80,14 @@ public class BatteryMonitorService extends Service {
             handler.postDelayed(this, sampleInterval());
         }
     };
+    /** Refreshes the user-visible live card without recording a history sample. */
+    private final Runnable liveNotificationTask = new Runnable() {
+        @Override public void run() {
+            if (handler == null) return;
+            refreshLiveNotification();
+            handler.postDelayed(this, LIVE_NOTIFICATION_INTERVAL_MS);
+        }
+    };
     private final Runnable heartbeatTask = new Runnable() {
         @Override public void run() {
             if (handler == null) return;
@@ -111,6 +120,7 @@ public class BatteryMonitorService extends Service {
         if (Build.VERSION.SDK_INT >= 33) registerReceiver(screenReceiver, screenFilter, Context.RECEIVER_NOT_EXPORTED); else registerReceiver(screenReceiver, screenFilter);
         handler.post(this::recordSample);
         handler.postDelayed(sampleTask, sampleInterval());
+        handler.post(liveNotificationTask);
         UpdateChecker.checkInBackground(this);
     }
 
@@ -130,6 +140,56 @@ public class BatteryMonitorService extends Service {
     private Notification notification() {
         return statusNotification(-1, false, 0, 0, 0, BatteryManager.BATTERY_HEALTH_UNKNOWN, -1, 0,
                 BatteryChargerCapability.Reading.empty(), BatteryThermalStatus.UNKNOWN);
+    }
+
+    private void refreshLiveNotification() {
+        Intent battery = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        if (battery == null) return;
+        int raw = battery.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+        int scale = battery.getIntExtra(BatteryManager.EXTRA_SCALE, 100);
+        int value = BatteryLevel.percent(raw, scale);
+        if (value < 0) return;
+
+        android.content.SharedPreferences prefs = BatteryDataRepository.data(this);
+        int status = battery.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN);
+        int plugged = battery.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0);
+        boolean isCharging = prefs.getBoolean("monitorLastCharging",
+                BatteryState.isCharging(status, plugged, battery.hasExtra(BatteryManager.EXTRA_PLUGGED)));
+        int currentMa = BatteryCurrent.milliAmps((BatteryManager) getSystemService(BATTERY_SERVICE));
+        int signedCurrentMa = currentMa == 0 ? 0 : (isCharging ? currentMa : -currentMa);
+        int temperature = BatteryTemperature.normalizeTenths(
+                battery.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0));
+        int voltageMv = BatteryVoltage.readMilliVolts(battery);
+        NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        if (manager != null) manager.notify(7, liveStatusNotification(value, isCharging,
+                signedCurrentMa, temperature, voltageMv));
+    }
+
+    private Notification liveStatusNotification(int value, boolean isCharging, int currentMa,
+                                                int temperatureTenths, int voltageMv) {
+        Intent launch = new Intent(this, MainActivity.class);
+        PendingIntent pending = PendingIntent.getActivity(this, 0, launch,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+                ? new Notification.Builder(this, CHANNEL_ID) : new Notification.Builder(this);
+        String title = value + "% · " + (isCharging ? "Laden" : "Akku entlädt");
+        String currentText = BatteryTelemetryText.current(Math.abs(currentMa), isCharging, true);
+        StringBuilder details = new StringBuilder("Aktualisiert live · ")
+                .append("Laderate ").append("—".equals(currentText) ? "nicht verfügbar" : currentText);
+        if (temperatureTenths > 0) details.append(" · ").append(String.format(Locale.GERMANY,
+                "%.1f °C", temperatureTenths / 10f));
+        if (voltageMv > 0) details.append(" · ").append(String.format(Locale.GERMANY,
+                "%.2f V", voltageMv / 1000f));
+        return builder.setSmallIcon(com.ampere.batterylab.R.drawable.ic_launcher)
+                .setContentTitle(title)
+                .setContentText(details.toString())
+                .setStyle(new Notification.BigTextStyle().bigText(details.toString()))
+                .setSubText("Lokale Akkuüberwachung · jede Sekunde")
+                .setContentIntent(pending)
+                .setOngoing(true)
+                .setOnlyAlertOnce(true)
+                .setShowWhen(false)
+                .build();
     }
 
     private Notification statusNotification(int value, boolean isCharging, int currentMa, int temperatureTenths,

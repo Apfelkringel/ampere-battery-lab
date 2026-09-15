@@ -2080,7 +2080,7 @@ class BatteryDashboard extends View {
         }
         new AlertDialog.Builder(getContext())
                 .setTitle("Hintergrundüberwachung")
-                .setMessage("Android kann Hintergrund-Apps zum Energiesparen pausieren. Darf Ampere auch bei geschlossener App den Akkuverlauf und Ladealarme aufzeichnen?")
+                .setMessage("Damit die Live-Benachrichtigung und Ladealarme bei geschlossener App weiterlaufen, braucht Ampere erlaubte Benachrichtigungen und Hintergrundaktivität. Android oder der Gerätehersteller kann Apps im Energiesparmodus trotzdem pausieren. Erlaube Ampere in den Akku-Einstellungen bei Bedarf uneingeschränkte Hintergrundnutzung. Ein erzwungenes Beenden über Android stoppt die Überwachung bis zum nächsten App-Start.")
                 .setNegativeButton("Später", null)
                 .setPositiveButton("Systemeinstellung öffnen", (dialog, which) -> {
                     try {
