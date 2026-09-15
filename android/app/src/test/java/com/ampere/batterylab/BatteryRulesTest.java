@@ -7,6 +7,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Locale;
+import java.util.TimeZone;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
@@ -76,18 +79,68 @@ public class BatteryRulesTest {
     }
 
     @Test public void historyStatsSplitMeasurementEnergyAcrossBucketBoundaries() {
-        long now = 200L * 24L * 60L * 60L * 1000L;
-        long windowStart = now - 7L * 24L * 60L * 60L * 1000L;
-        long boundary = windowStart + 24L * 60L * 60L * 1000L;
-        ArrayList<String> rows = new ArrayList<>(Arrays.asList(
-                (boundary - 30L * 60L * 1000L) + ",50,1,1000,25.0,4.0,100,1,,0,1",
-                (boundary + 30L * 60L * 1000L) + ",50,1,0,25.0,4.0,100,1,,0,1"));
+        TimeZone previous = TimeZone.getDefault();
+        TimeZone.setDefault(TimeZone.getTimeZone("Europe/Berlin"));
+        try {
+            Calendar nowCalendar = Calendar.getInstance(TimeZone.getDefault(), Locale.GERMANY);
+            nowCalendar.clear();
+            nowCalendar.set(2026, Calendar.MARCH, 31, 12, 0);
+            long now = nowCalendar.getTimeInMillis();
+            ArrayList<BatteryHistoryStats.Bucket> empty =
+                    BatteryHistoryStats.aggregateRows(new ArrayList<>(), now, 1, 1000);
+            long boundary = empty.get(1).start;
+            ArrayList<String> rows = new ArrayList<>(Arrays.asList(
+                    (boundary - 30L * 60L * 1000L) + ",50,1,1000,25.0,4.0,100,1,,0,1",
+                    (boundary + 30L * 60L * 1000L) + ",50,1,0,25.0,4.0,100,1,,0,1"));
 
-        ArrayList<BatteryHistoryStats.Bucket> buckets = BatteryHistoryStats.aggregateRows(rows, now, 1, 1000);
+            ArrayList<BatteryHistoryStats.Bucket> buckets =
+                    BatteryHistoryStats.aggregateRows(rows, now, 1, 1000);
 
-        assertEquals(500, buckets.get(0).chargedMah);
-        assertEquals(500, buckets.get(1).chargedMah);
-        assertEquals(1000, BatteryHistoryStats.overall(buckets).chargedMah);
+            assertEquals(500, buckets.get(0).chargedMah);
+            assertEquals(500, buckets.get(1).chargedMah);
+            assertEquals(1000, BatteryHistoryStats.overall(buckets).chargedMah);
+        } finally {
+            TimeZone.setDefault(previous);
+        }
+    }
+
+    @Test public void historyBucketsFollowLocalDaysWeeksMonthsAndDaylightSaving() {
+        TimeZone berlin = TimeZone.getTimeZone("Europe/Berlin");
+        Calendar current = Calendar.getInstance(berlin, Locale.GERMANY);
+        current.clear();
+        current.set(2026, Calendar.MARCH, 31, 12, 0);
+        long now = current.getTimeInMillis();
+
+        ArrayList<BatteryHistoryStats.Bucket> daily =
+                BatteryHistoryStats.calendarBuckets(now, 1, 7, berlin);
+        assertEquals(7, daily.size());
+        Calendar boundary = Calendar.getInstance(berlin, Locale.GERMANY);
+        for (BatteryHistoryStats.Bucket bucket : daily) {
+            boundary.setTimeInMillis(bucket.start);
+            assertEquals(0, boundary.get(Calendar.HOUR_OF_DAY));
+            assertEquals(0, boundary.get(Calendar.MINUTE));
+        }
+        assertEquals(23L * 60L * 60L * 1000L, daily.get(5).start - daily.get(4).start);
+
+        current.set(2026, Calendar.MAY, 20, 12, 0);
+        ArrayList<BatteryHistoryStats.Bucket> weekly =
+                BatteryHistoryStats.calendarBuckets(current.getTimeInMillis(), 7, 5, berlin);
+        assertEquals(5, weekly.size());
+        for (BatteryHistoryStats.Bucket bucket : weekly) {
+            boundary.setTimeInMillis(bucket.start);
+            assertEquals(Calendar.MONDAY, boundary.get(Calendar.DAY_OF_WEEK));
+            assertEquals(0, boundary.get(Calendar.HOUR_OF_DAY));
+        }
+
+        current.set(2026, Calendar.MARCH, 31, 12, 0);
+        ArrayList<BatteryHistoryStats.Bucket> monthly =
+                BatteryHistoryStats.calendarBuckets(current.getTimeInMillis(), 30, 6, berlin);
+        assertEquals(6, monthly.size());
+        for (BatteryHistoryStats.Bucket bucket : monthly) {
+            boundary.setTimeInMillis(bucket.start);
+            assertEquals(1, boundary.get(Calendar.DAY_OF_MONTH));
+            assertEquals(0, boundary.get(Calendar.HOUR_OF_DAY));
+        }
     }
 
     @Test public void pageAccessibilityControlsFollowTheActivePage() {
@@ -466,6 +519,13 @@ public class BatteryRulesTest {
         assertEquals(0, BatteryAppAttribution.sampleMah(1000, 0L, 30L * 60L * 1000L));
     }
 
+    @Test public void appAttributionUsesEnergyFromTheSameSelectedWindow() {
+        assertEquals(420, BatteryAppAttribution.observedWindowMah(420, true, 900, 250));
+        assertEquals(900, BatteryAppAttribution.observedWindowMah(0, true, 900, 250));
+        assertEquals(250, BatteryAppAttribution.observedWindowMah(0, false, 900, 250));
+        assertEquals(0, BatteryAppAttribution.observedWindowMah(0, true, -1, 250));
+    }
+
     @Test public void appAttributionApportionsRemaindersWithoutExceedingObservedEnergy() {
         Map<String, Integer> measured = new HashMap<>();
         measured.put("app.c", 1);
@@ -673,6 +733,13 @@ public class BatteryRulesTest {
     @Test public void metricCardsStackBeforeTheirLabelLaneBecomesTooNarrow() {
         assertTrue(BatteryMetricLayout.shouldStack(136f));
         assertFalse(BatteryMetricLayout.shouldStack(181f));
+    }
+
+    @Test public void liveOverviewUsesRoomierTwoColumnMetricsOnPhones() {
+        assertTrue(BatteryMetricLayout.shouldUseCompactLiveFlow(284f));
+        assertTrue(BatteryMetricLayout.shouldUseCompactLiveFlow(430f));
+        assertFalse(BatteryMetricLayout.shouldUseCompactLiveFlow(480f));
+        assertFalse(BatteryMetricLayout.shouldUseCompactLiveFlow(640f));
     }
 
     @Test public void finalHealthGateNeverReturnsAnImpossiblePercentage() {

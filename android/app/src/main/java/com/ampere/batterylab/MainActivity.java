@@ -2676,7 +2676,8 @@ class BatteryDashboard extends View {
         }
         // The page name appears once. Removing the former AMPERE · PAGE kicker
         // makes room for hierarchy instead of repeating the navigation.
-        text(c, page == 0 ? "Hallo, dein Akku." : pageName(), 18, 105, 21.5f, headerText, true);
+        text(c, page == 0 ? "Beobachte deinen Akku" : pageName(),
+                18, 105, 21.5f, headerText, true);
         final float controlTop = 12f;
         final float controlBottom = 60f;
         if (w < 390f) {
@@ -2919,10 +2920,11 @@ class BatteryDashboard extends View {
         }
 
         float liveTop = top + heroH + 14;
-        drawLiveEnergyFlow(c, 18, liveTop, w - 18, liveTop + 196,
+        float liveHeight = BatteryMetricLayout.shouldUseCompactLiveFlow(w - 36f) ? 230f : 196f;
+        drawLiveEnergyFlow(c, 18, liveTop, w - 18, liveTop + liveHeight,
                 panel, border, primary, muted, faint);
 
-        float cardsTop = liveTop + 210;
+        float cardsTop = liveTop + liveHeight + 14f;
         float cardGap = 12;
         float cardW = (w - 36 - cardGap) / 2f;
         drawStat(c, 18, cardsTop, cardW, 105, "Akkugesundheit", healthDisplay(), health > 0 ? "%" : "", lime, primary, muted, border, panel, "heart");
@@ -2953,6 +2955,30 @@ class BatteryDashboard extends View {
         float second = first + column + 9;
         float third = second + column + 9;
         line(c, first, top + 72, right - 18, top + 72, border, 1);
+        if (BatteryMetricLayout.shouldUseCompactLiveFlow(right - left)) {
+            float compactColumn = (right - left - 58f) / 2f;
+            float compactSecond = first + compactColumn + 22f;
+            text(c, "RATE JETZT", first, top + 94, 8f, faint, true);
+            boundedText(c, liveCurrentDisplay(), first, first + compactColumn,
+                    top + 116, 12f, statusColor, true);
+            boundedText(c, livePowerDisplay().equals("—")
+                            ? (charging ? "Ladeeingang" : "Akkuseite") : livePowerDisplay(),
+                    first, first + compactColumn, top + 135, 8f, muted, false);
+            text(c, "Ø VERBRAUCH", compactSecond, top + 94, 8f, faint, true);
+            boundedText(c, averageConsumptionDisplay(), compactSecond,
+                    compactSecond + compactColumn, top + 116, 12f, primary, true);
+            boundedText(c, averageConsumptionPercentDisplay(), compactSecond,
+                    compactSecond + compactColumn, top + 135, 8f, muted, false);
+            text(c, "lokale 7 Tage", compactSecond, top + 153, 8f, faint, false);
+            text(c, "TEMPERATUR · SPANNUNG", first, top + 178, 8f, faint, true);
+            String sensors = (temperature > 0f ? temperatureDisplay() + " °C" : "—")
+                    + "  ·  " + (voltage > 0f ? voltageDisplay() + " V" : "—");
+            boundedRightText(c, sensors, first, right - 18, top + 178, 9f, primary, true);
+            boundedText(c, charging ? "Laderate aus Messstrom und lokaler Ladehistorie"
+                            : "Verbrauch aus aktuellem Strom und lokalen Messwerten",
+                    first, right - 18, top + 204, 8f, faint, false);
+            return;
+        }
         text(c, "RATE JETZT", first, top + 94, 8f, faint, true);
         boundedText(c, liveCurrentDisplay(), first, first + column, top + 116, 12f, statusColor, true);
         boundedText(c, livePowerDisplay().equals("—")
@@ -4013,12 +4039,20 @@ class BatteryDashboard extends View {
 
     private void drawUsageRows(Canvas c, float w, float y, int primary, int muted, int faint) {
         long end = System.currentTimeMillis();
-        long start = prefs.getBoolean("sinceFullActive", false)
+        boolean sinceFullWindow = prefs.getBoolean("sinceFullActive", false);
+        long start = sinceFullWindow
                 ? prefs.getLong("sinceFullStartAt", end - 24 * 60 * 60 * 1000L)
                 : prefs.getLong(charging ? "lastDischargeStartAt" : "dischargeStartAt", end - 24 * 60 * 60 * 1000L);
-        if (start >= end) start = end - 60 * 60 * 1000L;
+        if (start <= 0L || start >= end) {
+            sinceFullWindow = false;
+            start = prefs.getLong(charging ? "lastDischargeStartAt" : "dischargeStartAt",
+                    end - 60L * 60L * 1000L);
+            if (start <= 0L || start >= end) start = end - 60L * 60L * 1000L;
+        }
         List<AppUsageRow> rows = appUsageRows(start, end);
-        int totalEnergy = dischargeMah();
+        int totalEnergy = BatteryAppAttribution.observedWindowMah(
+                telemetryDischargeMah(start, end), sinceFullWindow,
+                prefs.getInt("sinceFullMah", 0), dischargeMah());
         Map<String, Integer> directMah = telemetryAppMahByPackage(start, end);
         Map<String, Integer> directEstimates = BatteryAppAttribution.scaleDirectMah(directMah, totalEnergy);
         int directAssignedMah = 0;
@@ -4531,7 +4565,7 @@ class BatteryDashboard extends View {
 
         float controlTop = y + 119;
         float controlWidth = (w - 84) / 3f;
-        drawHistoryPeriodButton(c, 36, controlTop, 36 + controlWidth, historyPeriodDays == 1 ? "Tag" : "Tag", 1, primary, muted, border);
+        drawHistoryPeriodButton(c, 36, controlTop, 36 + controlWidth, "Tag", 1, primary, muted, border);
         drawHistoryPeriodButton(c, 48 + controlWidth, controlTop, 48 + controlWidth * 2, "Woche", 7, primary, muted, border);
         drawHistoryPeriodButton(c, 60 + controlWidth * 2, controlTop, w - 36, "Monat", 30, primary, muted, border);
 
@@ -4551,14 +4585,11 @@ class BatteryDashboard extends View {
         stroke(c, border, 1);
         rect.set(u(18), u(chartTop), u(w - 18), u(chartTop + 280));
         c.drawRoundRect(rect, u(16), u(16), p);
-        text(c, "AKKU-BILANZ · " + historyPeriodRangeLabel(), 36, chartTop + 29, 9, muted, true);
+        text(c, "AKKU-BILANZ · " + historyChartRangeLabel(), 36, chartTop + 29, 9, muted, true);
         text(c, historyPeriodLabel(), 36, chartTop + 53, 16, primary, true);
-        drawHistoryLegend(c, 36, chartTop + 76, primary, muted);
+        drawHistoryLegend(c, 36, w - 36, chartTop + 76, muted);
         drawHistoryBars(c, buckets, 36, chartTop + 100, w - 36, 128, primary, muted, faint);
-        text(c, "Aufgeladen", 36, chartTop + 252, 8, historyChargedColor, false);
-        text(c, "Verbrauch", 112, chartTop + 252, 8, historyConsumedColor, false);
-        text(c, "Verschleiß", 183, chartTop + 252, 8, historyWearColor, false);
-        text(c, "Effizienz", 260, chartTop + 252, 8, secondaryTone, false);
+        text(c, "Balkenhöhen je Kennzahl skaliert", 36, chartTop + 252, 8, faint, false);
 
         float insightTop = chartTop + 298;
         rounded(c, 18, insightTop, w - 18, insightTop + 92, 14, raised);
@@ -4600,13 +4631,16 @@ class BatteryDashboard extends View {
                 selected ? accentForeground() : primary, true);
     }
 
-    private void drawHistoryLegend(Canvas c, float x, float y, int primary, int muted) {
-        rounded(c, x, y - 8, x + 9, y + 1, 3, historyChargedColor);
-        text(c, "geladen", x + 14, y, 8, muted, false);
-        rounded(c, x + 78, y - 8, x + 87, y + 1, 3, historyConsumedColor);
-        text(c, "verbraucht", x + 92, y, 8, muted, false);
-        rounded(c, x + 180, y - 8, x + 189, y + 1, 3, historyWearColor);
-        text(c, "EFC", x + 194, y, 8, muted, false);
+    private void drawHistoryLegend(Canvas c, float left, float right, float y, int muted) {
+        String[] labels = {"geladen", "Verbrauch", "EFC", "Effizienz"};
+        int[] colors = {historyChargedColor, historyConsumedColor, historyWearColor, secondaryTone};
+        float cellWidth = Math.max(1f, (right - left) / labels.length);
+        for (int i = 0; i < labels.length; i++) {
+            float x = left + i * cellWidth;
+            rounded(c, x, y - 8, x + 8, y, 3, colors[i]);
+            boundedText(c, labels[i], x + 12, Math.min(right, x + cellWidth), y,
+                    7.5f, muted, false);
+        }
     }
 
     private void drawHistoryBars(Canvas c, ArrayList<BatteryHistoryStats.Bucket> buckets,
@@ -4615,27 +4649,39 @@ class BatteryDashboard extends View {
         if (buckets == null || buckets.isEmpty()) return;
         int maxMah = 1;
         float maxWear = .01f;
+        int maxEfficiency = 1;
         for (BatteryHistoryStats.Bucket bucket : buckets) {
             maxMah = Math.max(maxMah, Math.max(bucket.chargedMah, bucket.consumedMah));
             maxWear = Math.max(maxWear, bucket.wearCycles);
+            maxEfficiency = Math.max(maxEfficiency, bucket.efficiencyPercent);
         }
         line(c, left, top + height, right, top + height, muted, 1);
         float groupWidth = (right - left) / buckets.size();
-        float barWidth = Math.max(3f, Math.min(12f, groupWidth / 5f));
+        float barWidth = Math.max(3f, Math.min(10f, groupWidth / 7f));
         for (int i = 0; i < buckets.size(); i++) {
             BatteryHistoryStats.Bucket bucket = buckets.get(i);
             float center = left + groupWidth * (i + .5f);
             float chargedHeight = height * bucket.chargedMah / (float) maxMah;
             float consumedHeight = height * bucket.consumedMah / (float) maxMah;
             float wearHeight = height * bucket.wearCycles / maxWear;
-            rounded(c, center - barWidth * 1.6f, top + height - chargedHeight,
-                    center - barWidth * .6f, top + height, 2, historyChargedColor);
-            rounded(c, center - barWidth * .45f, top + height - consumedHeight,
-                    center + barWidth * .55f, top + height, 2, historyConsumedColor);
-            rounded(c, center + barWidth * .7f, top + height - wearHeight,
-                    center + barWidth * 1.7f, top + height, 2, historyWearColor);
+            float efficiencyHeight = height * bucket.efficiencyPercent / (float) maxEfficiency;
+            drawHistoryBar(c, center - barWidth * 2.65f, barWidth, top, height,
+                    chargedHeight, historyChargedColor);
+            drawHistoryBar(c, center - barWidth * 1.55f, barWidth, top, height,
+                    consumedHeight, historyConsumedColor);
+            drawHistoryBar(c, center - barWidth * .45f, barWidth, top, height,
+                    wearHeight, historyWearColor);
+            drawHistoryBar(c, center + barWidth * .65f, barWidth, top, height,
+                    efficiencyHeight, secondaryTone);
             text(c, bucket.label, center - groupWidth * .35f, top + height + 17, 7, faint, false);
         }
+    }
+
+    private void drawHistoryBar(Canvas c, float left, float width, float top, float height,
+                                float barHeight, int color) {
+        if (barHeight <= 0f) return;
+        rounded(c, left, top + height - barHeight, left + width, top + height,
+                Math.min(2f, width / 2f), color);
     }
 
     private ArrayList<BatteryHistoryStats.Bucket> historyStatsBuckets() {
@@ -4655,9 +4701,14 @@ class BatteryDashboard extends View {
     }
 
     private String historyPeriodRangeLabel() {
-        return historyPeriodDays == 1 ? "AKTUELLER ZEITRAUM · LETZTE 24 STUNDEN"
-                : historyPeriodDays == 7 ? "AKTUELLER ZEITRAUM · LETZTE 7 TAGE"
-                : "AKTUELLER ZEITRAUM · LETZTE 30 TAGE";
+        return historyPeriodDays == 1 ? "HEUTE · SEIT MITTERNACHT"
+                : historyPeriodDays == 7 ? "DIESE WOCHE · MONTAG BIS HEUTE"
+                : "DIESER MONAT · MONATSANFANG BIS HEUTE";
+    }
+
+    private String historyChartRangeLabel() {
+        return historyPeriodDays == 1 ? "7 KALENDERTAGE"
+                : historyPeriodDays == 7 ? "5 KALENDERWOCHEN" : "6 KALENDERMONATE";
     }
 
     private void drawLegacyHistoryPage(Canvas c, float w, float h, int panel, int raised, int border, int primary, int muted, int faint) {

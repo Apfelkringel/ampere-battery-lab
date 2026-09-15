@@ -17,6 +17,14 @@ final class BatteryAppAttribution {
                 : "Quelle: anteilig nach Vordergrundzeit (Schätzung)";
     }
 
+    /** Uses the whole-device energy from the same window used for foreground attribution. */
+    static int observedWindowMah(int telemetryWindowMah, boolean sinceFullWindow,
+                                 int sinceFullMah, int dischargeSessionMah) {
+        if (telemetryWindowMah > 0) return telemetryWindowMah;
+        int fallback = sinceFullWindow ? sinceFullMah : dischargeSessionMah;
+        return Math.max(0, fallback);
+    }
+
     static int estimateMah(int directMah, int directTotalMah, int observedTotalMah,
                            long foregroundMs, long totalForegroundMs) {
         if (directMah <= 0) {

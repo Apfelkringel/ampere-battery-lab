@@ -233,6 +233,33 @@ public class BatteryButtonAssetLayoutTest {
                 dashboard.contains("else if (icon.equals(\"moon\")) drawMoon"));
     }
 
+    @Test public void overviewHeaderUsesNaturalBatteryFocusedCopy() throws IOException {
+        String dashboard = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
+                StandardCharsets.UTF_8);
+        assertTrue("overview title should invite users to monitor their battery",
+                dashboard.contains("page == 0 ? \"Beobachte deinen Akku\" : pageName()"));
+        assertTrue("the ungrammatical greeting should not return",
+                !dashboard.contains("Hallo, dein Akku."));
+    }
+
+    @Test public void historyPeriodLabelsMatchCalendarBucketsAndEveryLegendMetricHasBars()
+            throws IOException {
+        String dashboard = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
+                StandardCharsets.UTF_8);
+        assertTrue(dashboard.contains("HEUTE · SEIT MITTERNACHT"));
+        assertTrue(dashboard.contains("DIESE WOCHE · MONTAG BIS HEUTE"));
+        assertTrue(dashboard.contains("DIESER MONAT · MONATSANFANG BIS HEUTE"));
+        assertTrue(dashboard.contains("7 KALENDERTAGE"));
+        assertTrue(dashboard.contains("5 KALENDERWOCHEN"));
+        assertTrue(dashboard.contains("6 KALENDERMONATE"));
+        assertTrue("the chart should plot efficiency rather than label a missing series",
+                dashboard.contains("bucket.efficiencyPercent / (float) maxEfficiency"));
+        assertTrue("independent metric scales must be disclosed",
+                dashboard.contains("Balkenhöhen je Kennzahl skaliert"));
+    }
+
     @Test public void mobileCopyStaysConcreteAndLocalized() throws IOException {
         String dashboard = Files.readString(findRepositoryRoot()
                 .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
