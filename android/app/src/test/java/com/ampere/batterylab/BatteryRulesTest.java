@@ -91,6 +91,31 @@ public class BatteryRulesTest {
                 BatteryAccessibilityLayout.HISTORY_EXPORT, 4));
     }
 
+    @Test public void screenReaderOverviewReportsLiveValuesAndSkipsDischargeEtaWhileCharging() {
+        String discharging = BatteryAccessibilitySummary.overview(false, "8 Std.",
+                "Android-Systemschätzung", "−400 mA", "32,0 Grad Celsius", "3,90 Volt");
+        assertTrue(discharging.contains("Akkustrom: −400 mA"));
+        assertTrue(discharging.contains("Temperatur: 32,0 Grad Celsius"));
+        assertTrue(discharging.contains("Spannung: 3,90 Volt"));
+        assertTrue(discharging.contains("Restlaufzeit bei normaler Nutzung: 8 Std."));
+        assertTrue(discharging.contains("Datenquelle: Android-Systemschätzung"));
+
+        String charging = BatteryAccessibilitySummary.overview(true, "8 Std.",
+                "Android-Systemschätzung", "+900 mA", "—", "—");
+        assertFalse(charging.contains("Restlaufzeit"));
+        assertTrue(charging.contains("Temperatur: nicht verfügbar"));
+        assertTrue(charging.contains("Spannung: nicht verfügbar"));
+    }
+
+    @Test public void screenReaderDischargeSummaryNamesAllModesAndTheirSources() {
+        String summary = BatteryAccessibilitySummary.discharge("5 Std.", "Aktuelle Sitzung",
+                "12 Std.", "Standby-Modell", "7 Std.", "Lokale 7-Tage-Nutzung");
+        assertTrue(summary.contains("dauerhaft eingeschaltetem Bildschirm: 5 Std."));
+        assertTrue(summary.contains("ausgeschaltetem Bildschirm: 12 Std."));
+        assertTrue(summary.contains("normaler Nutzung: 7 Std."));
+        assertTrue(summary.contains("Datenquelle: Standby-Modell"));
+    }
+
     @Test public void pageAccessibilityBoundsStayInsideTheCenteredBody() {
         for (int page = 0; page <= 4; page++) {
             for (int id : BatteryAccessibilityLayout.pageControlsFor(page)) {

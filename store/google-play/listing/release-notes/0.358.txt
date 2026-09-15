@@ -1,0 +1,1 @@
+TalkBack liest auf der Übersicht wichtige Live-Messwerte vor. Die Entladeseite nennt Restlaufzeiten für Bildschirm an, aus und normale Nutzung jeweils mit ihrer Datenquelle.

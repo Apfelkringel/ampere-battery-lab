@@ -5041,6 +5041,17 @@ class BatteryDashboard extends View {
     private void updateAccessibilitySummary() {
         String state = level < 0 ? "Akku nicht verfügbar" : (charging ? "Laden erkannt" : "Akkubetrieb");
         int health = healthPercent();
+        String liveDetails = "";
+        if (page == 0) {
+            liveDetails = BatteryAccessibilitySummary.overview(charging, runtimeEstimate(),
+                    runtimeEstimateSource(), liveCurrentDisplay(),
+                    temperature > 0f ? temperatureDisplay() + " Grad Celsius" : "—",
+                    voltage > 0f ? voltageDisplay() + " Volt" : "—");
+        } else if (page == 2) {
+            liveDetails = BatteryAccessibilitySummary.discharge(dischargeRuntime(true),
+                    dischargeRuntimeSource(true), dischargeRuntime(false),
+                    dischargeRuntimeSource(false), runtimeEstimate(), runtimeEstimateSource());
+        }
         String capacity = BatteryCapacityLevel.isAvailable(capacityLevel)
                 ? " Kapazitätsniveau " + BatteryCapacityLevel.label(capacityLevel) + "." : "";
         String chargingProfile = charging && BatteryChargingState.isSpecial(chargingStatus)
@@ -5050,6 +5061,7 @@ class BatteryDashboard extends View {
                 + "Akkugesundheit " + (health > 0 ? health + " Prozent" : "nicht gemessen") + ". "
                 + "Android-Zustand " + BatteryPlatformHealth.label(platformHealth) + "." + capacity
                 + chargingProfile
+                + (liveDetails.isEmpty() ? "" : " " + liveDetails + ".")
                 + " Tabs: Übersicht, Laden, Entladen, Gesundheit, Verlauf. Aktiver Tab: " + pageName() + ".");
         sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED);
     }
