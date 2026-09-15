@@ -26,16 +26,41 @@ final class BatteryAccessibilitySummary {
         return summary.toString();
     }
 
+    static String charging(boolean active, String state, String current, String target,
+                           String remaining, String estimateSource, String screenOnRate,
+                           String screenOffRate, String sessionEnergy, String sessionDuration,
+                           String temperature, String voltage, String charger) {
+        StringBuilder summary = new StringBuilder();
+        append(summary, "Ladestatus", state);
+        if (active) append(summary, "Akkustrom", current);
+        append(summary, "Ladeziel", target);
+        appendEstimate(summary, "Zeit bis Ladeziel", remaining, estimateSource);
+        append(summary, "Laderate bei Bildschirm an", screenOnRate);
+        append(summary, "Laderate bei Bildschirm aus", screenOffRate);
+        append(summary, "Geladene Energie", sessionEnergy);
+        append(summary, "Sitzungsdauer", sessionDuration);
+        append(summary, "Temperatur", temperature);
+        append(summary, "Spannung", voltage);
+        append(summary, "Ladequelle", charger);
+        return summary.toString();
+    }
+
     private static void appendEstimate(StringBuilder summary, String label,
                                        String value, String source) {
         append(summary, label, value);
-        append(summary, "Datenquelle", source);
+        if (isAvailable(value) && !"Erreicht".equals(value) && !"Voll".equals(value)) {
+            append(summary, "Datenquelle", source);
+        }
     }
 
     private static void append(StringBuilder summary, String label, String value) {
         if (summary.length() > 0) summary.append(". ");
         summary.append(label).append(": ");
-        summary.append(value == null || value.trim().isEmpty() || "—".equals(value)
+        summary.append(!isAvailable(value)
                 ? "nicht verfügbar" : value.trim());
+    }
+
+    private static boolean isAvailable(String value) {
+        return value != null && !value.trim().isEmpty() && !"—".equals(value.trim());
     }
 }

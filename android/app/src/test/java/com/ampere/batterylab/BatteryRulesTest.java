@@ -116,6 +116,29 @@ public class BatteryRulesTest {
         assertTrue(summary.contains("Datenquelle: Standby-Modell"));
     }
 
+    @Test public void screenReaderChargingSummaryIncludesRateTargetAndSession() {
+        String summary = BatteryAccessibilitySummary.charging(true, "Lädt schnell", "+1.200 mA",
+                "80 Prozent", "42 Min.", "Lokale 7-Tage-Schätzung", "1.000 mAh/h",
+                "700 mAh/h", "350 mAh", "25 Min.", "31,0 Grad Celsius", "4,1 Volt", "USB");
+        assertTrue(summary.contains("Ladestatus: Lädt schnell"));
+        assertTrue(summary.contains("Akkustrom: +1.200 mA"));
+        assertTrue(summary.contains("Ladeziel: 80 Prozent"));
+        assertTrue(summary.contains("Zeit bis Ladeziel: 42 Min."));
+        assertTrue(summary.contains("Datenquelle: Lokale 7-Tage-Schätzung"));
+        assertTrue(summary.contains("Laderate bei Bildschirm aus: 700 mAh/h"));
+        assertTrue(summary.contains("Geladene Energie: 350 mAh"));
+        assertTrue(summary.contains("Ladequelle: USB"));
+    }
+
+    @Test public void screenReaderChargingSummaryDoesNotClaimAnEtaSourceWhenUnavailable() {
+        String summary = BatteryAccessibilitySummary.charging(false, "Nicht verbunden", "—",
+                "80 Prozent", "—", "Momentanschätzung", "—", "—", "—", "—",
+                "—", "—", "Nicht verbunden");
+        assertTrue(summary.contains("Zeit bis Ladeziel: nicht verfügbar"));
+        assertFalse(summary.contains("Datenquelle:"));
+        assertFalse(summary.contains("Akkustrom:"));
+    }
+
     @Test public void pageAccessibilityBoundsStayInsideTheCenteredBody() {
         for (int page = 0; page <= 4; page++) {
             for (int id : BatteryAccessibilityLayout.pageControlsFor(page)) {

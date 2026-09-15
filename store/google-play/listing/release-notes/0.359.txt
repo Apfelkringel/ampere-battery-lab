@@ -1,0 +1,1 @@
+TalkBack liest in der Ladeansicht jetzt Ladeziel, verfügbare Zeitprognose samt Quelle, getrennte Laderaten für Bildschirm an/aus sowie Sitzungs- und Umgebungswerte vor.

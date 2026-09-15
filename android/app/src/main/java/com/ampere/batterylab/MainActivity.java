@@ -5051,6 +5051,17 @@ class BatteryDashboard extends View {
             liveDetails = BatteryAccessibilitySummary.discharge(dischargeRuntime(true),
                     dischargeRuntimeSource(true), dischargeRuntime(false),
                     dischargeRuntimeSource(false), runtimeEstimate(), runtimeEstimateSource());
+        } else if (page == 1) {
+            String remaining = charging
+                    ? (chargeLimit >= 100 ? timeToFull() : timeToLimit()) : "—";
+            liveDetails = BatteryAccessibilitySummary.charging(charging,
+                    chargingStateDisplay(), charging ? liveCurrentDisplay() : "—",
+                    chargeLimit + " Prozent", remaining, chargeTimeEstimateLabel(),
+                    chargeSpeed(true), chargeSpeed(false),
+                    chargeEnergyForDisplay() > 0 ? chargeEnergyForDisplay() + " mAh" : "—",
+                    chargeDurationForDisplay(),
+                    temperature > 0f ? temperatureDisplay() + " Grad Celsius" : "—",
+                    voltage > 0f ? voltageDisplay() + " Volt" : "—", chargerTypeDisplay());
         }
         String capacity = BatteryCapacityLevel.isAvailable(capacityLevel)
                 ? " Kapazitätsniveau " + BatteryCapacityLevel.label(capacityLevel) + "." : "";
