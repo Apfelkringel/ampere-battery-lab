@@ -231,41 +231,61 @@ public class BatteryRulesTest {
         int[] bounds = BatteryAccessibilityLayout.bounds(
                 BatteryAccessibilityLayout.HISTORY_EXPORT, 0f, 320f, 0f, 500f);
         assertEquals(36, bounds[0]);
-        assertEquals(500, bounds[1]);
+        assertEquals(498, bounds[1]);
         assertEquals(284, bounds[2]);
-        assertEquals(544, bounds[3]);
+        assertEquals(546, bounds[3]);
     }
 
     @Test public void healthBenchmarkBoundsMatchTheRenderedPortraitAndWideButtons() {
         int[] portrait = BatteryAccessibilityLayout.bounds(
                 BatteryAccessibilityLayout.HEALTH_BENCHMARK, 0f, 320f, 0f, 0f);
         assertEquals(104, portrait[0]);
-        assertEquals(710, portrait[1]);
+        assertEquals(704, portrait[1]);
         assertEquals(284, portrait[2]);
-        assertEquals(746, portrait[3]);
+        assertEquals(752, portrait[3]);
 
         int[] wide = BatteryAccessibilityLayout.bounds(
                 BatteryAccessibilityLayout.HEALTH_BENCHMARK, 0f, 600f, 0f, 0f);
         assertEquals(384, wide[0]);
-        assertEquals(740, wide[1]);
+        assertEquals(734, wide[1]);
         assertEquals(564, wide[2]);
-        assertEquals(776, wide[3]);
+        assertEquals(782, wide[3]);
     }
 
     @Test public void chargingControlBoundsMatchTheirVisibleRows() {
         int[] editorialAlarm = BatteryAccessibilityLayout.bounds(
                 BatteryAccessibilityLayout.CHARGE_ALARM, 0f, 320f, 0f, 0f, true);
         assertEquals(22, editorialAlarm[0]);
-        assertEquals(462, editorialAlarm[1]);
+        assertEquals(459, editorialAlarm[1]);
         assertEquals(298, editorialAlarm[2]);
-        assertEquals(504, editorialAlarm[3]);
+        assertEquals(507, editorialAlarm[3]);
 
         int[] wideOverlay = BatteryAccessibilityLayout.bounds(
                 BatteryAccessibilityLayout.CHARGE_OVERLAY, 0f, 600f, 0f, 0f, false);
         assertEquals(36, wideOverlay[0]);
-        assertEquals(508, wideOverlay[1]);
+        assertEquals(507, wideOverlay[1]);
         assertEquals(564, wideOverlay[2]);
-        assertEquals(548, wideOverlay[3]);
+        assertEquals(555, wideOverlay[3]);
+    }
+
+    @Test public void primaryCanvasControlsProvideAtLeast48DpTouchTargets() {
+        int[] controls = {
+                BatteryAccessibilityLayout.OVERVIEW_7D,
+                BatteryAccessibilityLayout.OVERVIEW_30D,
+                BatteryAccessibilityLayout.CHARGE_ALARM,
+                BatteryAccessibilityLayout.CHARGE_OVERLAY,
+                BatteryAccessibilityLayout.CHARGE_LIMIT,
+                BatteryAccessibilityLayout.HEALTH_BENCHMARK,
+                BatteryAccessibilityLayout.HISTORY_DAY,
+                BatteryAccessibilityLayout.HISTORY_WEEK,
+                BatteryAccessibilityLayout.HISTORY_MONTH
+        };
+        for (int control : controls) {
+            int[] bounds = BatteryAccessibilityLayout.bounds(control, 0f, 411f,
+                    430f, 1280f, true);
+            assertTrue("control " + control + " needs a 48dp-high target",
+                    bounds[3] - bounds[1] >= 48);
+        }
     }
 
     @Test public void rangeTapSelectsItsOwnRangeInsteadOfTogglingTheOtherOne() {
@@ -706,10 +726,16 @@ public class BatteryRulesTest {
     @Test public void liveHeaderRefreshHasASeparateWideHitbox() {
         assertEquals(BatteryHeaderLayout.LIVE_REFRESH,
                 BatteryHeaderLayout.actionAt(379f, 36f, 411f));
+        assertEquals(BatteryHeaderLayout.LIVE_REFRESH,
+                BatteryHeaderLayout.actionAt(379f, 12f, 411f));
+        assertEquals(BatteryHeaderLayout.LIVE_REFRESH,
+                BatteryHeaderLayout.actionAt(379f, 59f, 411f));
         assertEquals(BatteryHeaderLayout.NONE,
                 BatteryHeaderLayout.actionAt(350f, 36f, 360f));
         assertEquals(BatteryHeaderLayout.NONE,
-                BatteryHeaderLayout.actionAt(379f, 72f, 411f));
+                BatteryHeaderLayout.actionAt(379f, 60f, 411f));
+        assertEquals(BatteryHeaderLayout.OVERFLOW,
+                BatteryHeaderLayout.actionAt(284f, 12f, 320f));
     }
 
     @Test public void headerActionsDoNotCaptureTheVisibleGuttersBetweenImageButtons() {

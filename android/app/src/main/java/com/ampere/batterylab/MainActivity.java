@@ -2555,7 +2555,7 @@ class BatteryDashboard extends View {
         if (page == 1 && isWithinCanvasControl(BatteryAccessibilityLayout.CHARGE_OVERLAY, x, y, w)) return 22;
         if (page == 3 && isWithinCanvasControl(BatteryAccessibilityLayout.HEALTH_BENCHMARK, x, y, w)) return 30;
         if (page == 4 && isWithinCanvasControl(BatteryAccessibilityLayout.HISTORY_EXPORT, x, y, w)) return 40;
-        if (page == 4 && y >= 301 && y <= 339 && x >= 36 && x <= w - 36) {
+        if (page == 4 && y >= 296 && y < 344 && x >= 36 && x < w - 36) {
             float controlWidth = (w - 84f) / 3f;
             if (x < 36 + controlWidth) return 41;
             if (x < 48 + controlWidth * 2f) return 42;
@@ -2569,7 +2569,8 @@ class BatteryDashboard extends View {
         int[] bounds = BatteryAccessibilityLayout.bounds(virtualViewId,
                 contentInset(screenWidth), contentWidth(screenWidth), overviewChartTop(),
                 historyExportTop(), usesEditorialPortrait(screenWidth));
-        return screenX >= bounds[0] && screenX <= bounds[2] && y >= bounds[1] && y <= bounds[3];
+        return screenX >= bounds[0] && screenX < bounds[2]
+                && y >= bounds[1] && y < bounds[3];
     }
 
     private String fitText(String value, float maxWidthDp, float size, boolean bold) {
@@ -5526,13 +5527,13 @@ class BatteryDashboard extends View {
         float w = getWidth() / density;
         if (virtualViewId == BatteryHeaderLayout.OVERFLOW) {
             return new Rect(Math.round((w < 390f ? w - 60f : w - 140f) * density),
-                    Math.round(18f * density),
+                    Math.round(12f * density),
                     Math.round((w < 390f ? w - 12f : w - 92f) * density),
-                    Math.round(54f * density));
+                    Math.round(60f * density));
         }
         if (virtualViewId == BatteryHeaderLayout.LIVE_REFRESH) {
-            return new Rect(Math.round((w - 80f) * density), Math.round(20f * density),
-                    Math.round((w - 16f) * density), Math.round(52f * density));
+            return new Rect(Math.round((w - 80f) * density), Math.round(12f * density),
+                    Math.round((w - 16f) * density), Math.round(60f * density));
         }
         if (BatteryAccessibilityLayout.isVisible(virtualViewId, page)) {
             float bodyWidth = contentWidth(w);
@@ -5561,7 +5562,7 @@ class BatteryDashboard extends View {
         for (int id : BatteryAccessibilityLayout.pageControlsFor(page)) {
             int[] bounds = BatteryAccessibilityLayout.bounds(id, bodyInset, bodyWidth,
                     overviewChartTop(), historyExportTop(), usesEditorialPortrait(w));
-            if (x >= bounds[0] && x <= bounds[2] && y >= bounds[1] && y <= bounds[3]) return id;
+            if (x >= bounds[0] && x < bounds[2] && y >= bounds[1] && y < bounds[3]) return id;
         }
         return AccessibilityNodeProvider.HOST_VIEW_ID;
     }

@@ -99,39 +99,39 @@ final class BatteryAccessibilityLayout {
         switch (virtualViewId) {
             case OVERVIEW_7D:
                 left = bodyInset + bodyWidth - 112f;
-                top = overviewChartTop + 12f;
+                top = overviewChartTop + 2f;
                 right = bodyInset + bodyWidth - 58f;
-                bottom = overviewChartTop + 40f;
+                bottom = overviewChartTop + 50f;
                 break;
             case OVERVIEW_30D:
                 left = bodyInset + bodyWidth - 54f;
-                top = overviewChartTop + 12f;
+                top = overviewChartTop + 2f;
                 right = bodyInset + bodyWidth;
-                bottom = overviewChartTop + 40f;
+                bottom = overviewChartTop + 50f;
                 break;
             case CHARGE_ALARM:
                 left = bodyInset + (editorialPortrait ? 22f : 36f);
-                top = 462f;
+                top = 459f;
                 right = bodyInset + bodyWidth - (editorialPortrait ? 22f : 36f);
-                bottom = editorialPortrait ? 504f : 502f;
+                bottom = 507f;
                 break;
             case CHARGE_OVERLAY:
                 left = bodyInset + (editorialPortrait ? 22f : 36f);
-                top = 508f;
+                top = 507f;
                 right = bodyInset + bodyWidth - (editorialPortrait ? 22f : 36f);
-                bottom = 548f;
+                bottom = 555f;
                 break;
             case CHARGE_LIMIT:
                 left = bodyInset + 36f;
-                top = 368f;
+                top = 365f;
                 right = bodyInset + bodyWidth - 36f;
-                bottom = 410f;
+                bottom = 413f;
                 break;
             case HEALTH_BENCHMARK:
                 left = bodyInset + bodyWidth - 216f;
-                top = editorialPortrait ? 710f : 740f;
+                top = editorialPortrait ? 704f : 734f;
                 right = bodyInset + bodyWidth - 36f;
-                bottom = editorialPortrait ? 746f : 776f;
+                bottom = editorialPortrait ? 752f : 782f;
                 break;
             case HEALTH_CAPACITY:
                 left = bodyInset + 18f;
@@ -147,27 +147,27 @@ final class BatteryAccessibilityLayout {
                 break;
             case HISTORY_EXPORT:
                 left = bodyInset + 36f;
-                top = historyExportTop;
+                top = historyExportTop - 2f;
                 right = bodyInset + bodyWidth - 36f;
-                bottom = historyExportTop + 44f;
+                bottom = historyExportTop + 46f;
                 break;
             case HISTORY_DAY:
                 left = bodyInset + 36f;
-                top = 301f;
+                top = 296f;
                 right = bodyInset + 36f + (bodyWidth - 84f) / 3f;
-                bottom = 339f;
+                bottom = 344f;
                 break;
             case HISTORY_WEEK:
                 left = bodyInset + 48f + (bodyWidth - 84f) / 3f;
-                top = 301f;
+                top = 296f;
                 right = bodyInset + 48f + 2f * (bodyWidth - 84f) / 3f;
-                bottom = 339f;
+                bottom = 344f;
                 break;
             case HISTORY_MONTH:
                 left = bodyInset + 60f + 2f * (bodyWidth - 84f) / 3f;
-                top = 301f;
+                top = 296f;
                 right = bodyInset + bodyWidth - 36f;
-                bottom = 339f;
+                bottom = 344f;
                 break;
             default:
                 return new int[]{0, 0, 0, 0};
