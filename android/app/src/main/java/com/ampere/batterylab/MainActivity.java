@@ -4108,10 +4108,13 @@ class BatteryDashboard extends View {
             int appMah = directValue != null && directValue > 0
                     ? BatteryAppAttribution.allocatedMah(directEstimates, usage.packageName)
                     : BatteryAppAttribution.allocatedMah(fallbackEstimates, usage.packageName);
-            int appRate = BatteryAppAttribution.rateMahPerHour(appMah, usage.foregroundMs);
+            boolean hasDirectTelemetry = directValue != null && directValue > 0;
+            int appRate = BatteryAppAttribution.appRateMahPerHour(
+                    appMah, usage.foregroundMs, hasDirectTelemetry);
+            String rateLabel = BatteryAppAttribution.appRateLabel(appRate, hasDirectTelemetry);
             String appEstimate = appMah > 0
-                    ? "~" + appMah + " mAh · " + appRate + " mAh/h"
-                    : "— Verbrauch · — Rate";
+                    ? "~" + appMah + " mAh · " + rateLabel
+                    : "— Verbrauch · Rate n/v";
             rightText(c, fitText(minutes + " Min. · " + appEstimate, infoWidth, 8, false), w - 36, y + row * 27, 8, muted, false);
             line(c, 36, y + row * 27 + 9, w - 36, y + row * 27 + 9, Color.rgb(43, 47, 56), 1);
             if (++row == 3) break;
@@ -4170,9 +4173,11 @@ class BatteryDashboard extends View {
             int appMah = directValue != null && directValue > 0
                     ? BatteryAppAttribution.allocatedMah(directEstimates, usage.packageName)
                     : BatteryAppAttribution.allocatedMah(fallbackEstimates, usage.packageName);
-            int appRate = BatteryAppAttribution.rateMahPerHour(appMah, usage.foregroundMs);
+            boolean hasDirectTelemetry = directValue != null && directValue > 0;
+            int appRate = BatteryAppAttribution.appRateMahPerHour(
+                    appMah, usage.foregroundMs, hasDirectTelemetry);
             estimates.add(new AppUsageEstimate(usage, label, appMah, appRate,
-                    directValue != null && directValue > 0));
+                    hasDirectTelemetry));
             totalAssignedMah += appMah;
         }
         Collections.sort(estimates, new Comparator<AppUsageEstimate>() {
@@ -4250,7 +4255,7 @@ class BatteryDashboard extends View {
                 list.addView(appUsageListRow(estimate, totalEnergy, ink, secondary, divider, accent));
             }
         }
-        TextView disclaimer = usageText("Die mAh-Werte und Anteile sind Schätzungen aus Vordergrundzeit und lokaler Akku-Telemetrie. Android stellt keine exakten Akkuwerte je App bereit.", 11, secondary, false);
+        TextView disclaimer = usageText("mAh und Anteile sind Schätzungen aus Vordergrundzeit und lokaler Akku-Telemetrie. Eine individuelle mAh/h-Rate zeigen wir nur bei direkter App-Telemetrie; Android stellt keine exakten Akkuwerte je App bereit.", 11, secondary, false);
         disclaimer.setPadding(dp(2), dp(18), dp(2), dp(12));
         list.addView(disclaimer);
         scroll.addView(list, new ScrollView.LayoutParams(-1, -2));
@@ -4311,8 +4316,8 @@ class BatteryDashboard extends View {
         name.setMaxLines(1);
         name.setEllipsize(android.text.TextUtils.TruncateAt.END);
         labels.addView(name, new LinearLayout.LayoutParams(-1, -2));
-        String rateLabel = estimate.rateMahPerHour > 0
-                ? "~" + estimate.rateMahPerHour + " mAh/h" : "Rate n/v";
+        String rateLabel = BatteryAppAttribution.appRateLabel(
+                estimate.rateMahPerHour, estimate.directTelemetry);
         String usageDetail = String.format(Locale.GERMANY, "%d Min. · %s · %s",
                 Math.max(1L, estimate.usage.foregroundMs / 60000L),
                 estimate.directTelemetry ? "Telemetrie-Schätzung" : "Vordergrundzeit-Schätzung", rateLabel);

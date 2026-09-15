@@ -56,6 +56,12 @@ public class BatteryRulesTest {
         assertEquals(60, BatteryAppAttribution.rateMahPerHour(60, 60L * 60L * 1000L));
         assertEquals(0, BatteryAppAttribution.rateMahPerHour(0, 60L * 60L * 1000L));
         assertEquals(0, BatteryAppAttribution.rateMahPerHour(60, 0L));
+        assertEquals("direct app telemetry supports a per-app rate", 240,
+                BatteryAppAttribution.appRateMahPerHour(120, 30L * 60L * 1000L, true));
+        assertEquals("foreground-time apportionment must not masquerade as a per-app rate", 0,
+                BatteryAppAttribution.appRateMahPerHour(120, 30L * 60L * 1000L, false));
+        assertEquals("~240 mAh/h", BatteryAppAttribution.appRateLabel(240, true));
+        assertEquals("Rate n/v", BatteryAppAttribution.appRateLabel(240, false));
     }
 
     @Test public void appAttributionExplainsTelemetryAndForegroundTimeEstimateSources() {

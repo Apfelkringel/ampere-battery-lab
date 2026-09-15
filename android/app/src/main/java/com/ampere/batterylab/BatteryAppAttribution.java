@@ -153,4 +153,15 @@ final class BatteryAppAttribution {
         long boundedMs = Math.min(foregroundMs, 30L * 24L * 60L * 60L * 1000L);
         return Math.max(0, Math.round(estimatedMah * 3600000f / boundedMs));
     }
+
+    /** Only direct app telemetry can support a genuinely app-specific rate. */
+    static int appRateMahPerHour(int estimatedMah, long foregroundMs,
+                                 boolean hasDirectAppTelemetry) {
+        return hasDirectAppTelemetry ? rateMahPerHour(estimatedMah, foregroundMs) : 0;
+    }
+
+    static String appRateLabel(int rateMahPerHour, boolean hasDirectAppTelemetry) {
+        return hasDirectAppTelemetry && rateMahPerHour > 0
+                ? "~" + rateMahPerHour + " mAh/h" : "Rate n/v";
+    }
 }
