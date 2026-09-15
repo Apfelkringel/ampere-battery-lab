@@ -75,6 +75,12 @@ final class BatteryAccessibilityLayout {
         return currentDays == 30 ? 30 : 7;
     }
 
+    static boolean isHistoryPeriodSelected(int virtualViewId, int selectedPeriodDays) {
+        return (virtualViewId == HISTORY_DAY && selectedPeriodDays == 1)
+                || (virtualViewId == HISTORY_WEEK && selectedPeriodDays == 7)
+                || (virtualViewId == HISTORY_MONTH && selectedPeriodDays == 30);
+    }
+
     /** Returns left, top, right, bottom in dashboard dp coordinates. */
     static int[] bounds(int virtualViewId, float bodyInset, float bodyWidth,
                         float overviewChartTop, float historyExportTop) {

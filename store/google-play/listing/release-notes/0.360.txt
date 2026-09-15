@@ -1,0 +1,1 @@
+TalkBack liest die periodengerechten Verlaufsstatistiken und Balkenwerte vor. Tag, Woche und Monat melden außerdem ihre aktive Auswahl; EFC-Werte werden als Vollzyklus-Äquivalent erklärt.

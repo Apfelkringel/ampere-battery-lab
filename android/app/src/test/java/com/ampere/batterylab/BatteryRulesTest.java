@@ -215,6 +215,54 @@ public class BatteryRulesTest {
                 BatteryAccessibilityLayout.HEALTH_BENCHMARK, false, true, false, true));
     }
 
+    @Test public void historyPeriodAccessibilitySelectionTracksTheActiveRange() {
+        assertTrue(BatteryAccessibilityLayout.isHistoryPeriodSelected(
+                BatteryAccessibilityLayout.HISTORY_DAY, 1));
+        assertTrue(BatteryAccessibilityLayout.isHistoryPeriodSelected(
+                BatteryAccessibilityLayout.HISTORY_WEEK, 7));
+        assertTrue(BatteryAccessibilityLayout.isHistoryPeriodSelected(
+                BatteryAccessibilityLayout.HISTORY_MONTH, 30));
+        assertFalse(BatteryAccessibilityLayout.isHistoryPeriodSelected(
+                BatteryAccessibilityLayout.HISTORY_DAY, 30));
+    }
+
+    @Test public void screenReaderHistorySummaryExposesSelectedTotalsAndChartBars() {
+        ArrayList<BatteryHistoryStats.Bucket> buckets = new ArrayList<>();
+        BatteryHistoryStats.Bucket prior = new BatteryHistoryStats.Bucket(1L, "Montag");
+        prior.chargedMah = 300;
+        prior.consumedMah = 200;
+        prior.wearCycles = .1f;
+        buckets.add(prior);
+        BatteryHistoryStats.Bucket selected = new BatteryHistoryStats.Bucket(2L, "Dienstag");
+        selected.chargedMah = 400;
+        selected.consumedMah = 250;
+        selected.wearCycles = .125f;
+        selected.efficiencyPercent = 160;
+        buckets.add(selected);
+
+        String summary = BatteryAccessibilitySummary.history(
+                "Täglich", "letzte 24 Stunden", selected, buckets, true);
+        assertTrue(summary.contains("Verlauf Täglich"));
+        assertTrue(summary.contains("Aufgeladen: 400 mAh"));
+        assertTrue(summary.contains("Akkuverbrauch: 250 mAh"));
+        assertTrue(summary.contains("Akkuverschleiß: 0,13 EFC"));
+        assertTrue(summary.contains("Effizienz: 160 Prozent"));
+        assertTrue(summary.contains("Montag: aufgeladen 300 mAh, verbraucht 200 mAh"));
+        assertTrue(summary.contains("Dienstag: aufgeladen 400 mAh, verbraucht 250 mAh"));
+        assertTrue(summary.contains("kein direkt gemessener chemischer Gesundheitsverlust"));
+    }
+
+    @Test public void screenReaderHistorySummaryExplainsEmptyAndUnavailableWearData() {
+        ArrayList<BatteryHistoryStats.Bucket> buckets = new ArrayList<>();
+        BatteryHistoryStats.Bucket empty = new BatteryHistoryStats.Bucket(1L, "Heute");
+        buckets.add(empty);
+        String summary = BatteryAccessibilitySummary.history(
+                "Monatlich", "letzte 30 Tage", empty, buckets, false);
+        assertTrue(summary.contains("Aufgeladen: keine Messdaten"));
+        assertTrue(summary.contains("Akkuverschleiß: nicht berechenbar, Kapazität fehlt"));
+        assertTrue(summary.contains("keine Messdaten im Diagramm"));
+    }
+
     @Test public void accessibilityChargeLimitUsesTheSameSafeRangeAsTheUi() {
         assertEquals(50, BatteryAccessibilityLayout.normalizeChargeLimit(1));
         assertEquals(80, BatteryAccessibilityLayout.normalizeChargeLimit(80));

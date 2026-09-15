@@ -1,5 +1,8 @@
 package com.ampere.batterylab;
 
+import java.util.ArrayList;
+import java.util.Locale;
+
 /** Builds concise, localized summaries of live dashboard values for screen readers. */
 final class BatteryAccessibilitySummary {
     private BatteryAccessibilitySummary() { }
@@ -43,6 +46,47 @@ final class BatteryAccessibilitySummary {
         append(summary, "Spannung", voltage);
         append(summary, "Ladequelle", charger);
         return summary.toString();
+    }
+
+    static String history(String period, String selectedRange,
+                          BatteryHistoryStats.Bucket selected,
+                          ArrayList<BatteryHistoryStats.Bucket> buckets,
+                          boolean capacityAvailable) {
+        StringBuilder summary = new StringBuilder("Verlauf ").append(period);
+        append(summary, "Ausgewählter Zeitraum", selectedRange);
+        if (selected == null) {
+            append(summary, "Statistik", "keine Messdaten");
+        } else {
+            append(summary, "Aufgeladen", amount(selected.chargedMah));
+            append(summary, "Akkuverbrauch", amount(selected.consumedMah));
+            append(summary, "Akkuverschleiß", capacityAvailable
+                    ? String.format(Locale.GERMANY, "%.2f EFC", selected.wearCycles)
+                    : "nicht berechenbar, Kapazität fehlt");
+            append(summary, "Effizienz", selected.efficiencyPercent > 0
+                    ? selected.efficiencyPercent + " Prozent" : "nicht verfügbar");
+        }
+        summary.append(". Balkenwerte: ");
+        boolean hasBars = false;
+        if (buckets != null) {
+            for (BatteryHistoryStats.Bucket bucket : buckets) {
+                if (bucket.chargedMah <= 0 && bucket.consumedMah <= 0 && bucket.wearCycles <= 0f) continue;
+                if (hasBars) summary.append(". ");
+                summary.append(bucket.label).append(": aufgeladen ").append(amount(bucket.chargedMah))
+                        .append(", verbraucht ").append(amount(bucket.consumedMah));
+                if (capacityAvailable) {
+                    summary.append(", Verschleiß ")
+                            .append(String.format(Locale.GERMANY, "%.2f EFC", bucket.wearCycles));
+                }
+                hasBars = true;
+            }
+        }
+        if (!hasBars) summary.append("keine Messdaten im Diagramm");
+        summary.append(". EFC sind äquivalente Vollzyklen, kein direkt gemessener chemischer Gesundheitsverlust.");
+        return summary.toString();
+    }
+
+    private static String amount(int mah) {
+        return mah > 0 ? mah + " mAh" : "keine Messdaten";
     }
 
     private static void appendEstimate(StringBuilder summary, String label,

@@ -5042,26 +5042,36 @@ class BatteryDashboard extends View {
         String state = level < 0 ? "Akku nicht verfügbar" : (charging ? "Laden erkannt" : "Akkubetrieb");
         int health = healthPercent();
         String liveDetails = "";
-        if (page == 0) {
-            liveDetails = BatteryAccessibilitySummary.overview(charging, runtimeEstimate(),
-                    runtimeEstimateSource(), liveCurrentDisplay(),
-                    temperature > 0f ? temperatureDisplay() + " Grad Celsius" : "—",
-                    voltage > 0f ? voltageDisplay() + " Volt" : "—");
-        } else if (page == 2) {
-            liveDetails = BatteryAccessibilitySummary.discharge(dischargeRuntime(true),
-                    dischargeRuntimeSource(true), dischargeRuntime(false),
-                    dischargeRuntimeSource(false), runtimeEstimate(), runtimeEstimateSource());
-        } else if (page == 1) {
-            String remaining = charging
-                    ? (chargeLimit >= 100 ? timeToFull() : timeToLimit()) : "—";
-            liveDetails = BatteryAccessibilitySummary.charging(charging,
-                    chargingStateDisplay(), charging ? liveCurrentDisplay() : "—",
-                    chargeLimit + " Prozent", remaining, chargeTimeEstimateLabel(),
-                    chargeSpeed(true), chargeSpeed(false),
-                    chargeEnergyForDisplay() > 0 ? chargeEnergyForDisplay() + " mAh" : "—",
-                    chargeDurationForDisplay(),
-                    temperature > 0f ? temperatureDisplay() + " Grad Celsius" : "—",
-                    voltage > 0f ? voltageDisplay() + " Volt" : "—", chargerTypeDisplay());
+        AccessibilityManager manager = (AccessibilityManager)
+                getContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
+        if (manager != null && manager.isEnabled()) {
+            if (page == 0) {
+                liveDetails = BatteryAccessibilitySummary.overview(charging, runtimeEstimate(),
+                        runtimeEstimateSource(), liveCurrentDisplay(),
+                        temperature > 0f ? temperatureDisplay() + " Grad Celsius" : "—",
+                        voltage > 0f ? voltageDisplay() + " Volt" : "—");
+            } else if (page == 2) {
+                liveDetails = BatteryAccessibilitySummary.discharge(dischargeRuntime(true),
+                        dischargeRuntimeSource(true), dischargeRuntime(false),
+                        dischargeRuntimeSource(false), runtimeEstimate(), runtimeEstimateSource());
+            } else if (page == 1) {
+                String remaining = charging
+                        ? (chargeLimit >= 100 ? timeToFull() : timeToLimit()) : "—";
+                liveDetails = BatteryAccessibilitySummary.charging(charging,
+                        chargingStateDisplay(), charging ? liveCurrentDisplay() : "—",
+                        chargeLimit + " Prozent", remaining, chargeTimeEstimateLabel(),
+                        chargeSpeed(true), chargeSpeed(false),
+                        chargeEnergyForDisplay() > 0 ? chargeEnergyForDisplay() + " mAh" : "—",
+                        chargeDurationForDisplay(),
+                        temperature > 0f ? temperatureDisplay() + " Grad Celsius" : "—",
+                        voltage > 0f ? voltageDisplay() + " Volt" : "—", chargerTypeDisplay());
+            } else if (page == 4) {
+                ArrayList<BatteryHistoryStats.Bucket> buckets = historyStatsBuckets();
+                liveDetails = BatteryAccessibilitySummary.history(historyPeriodLabel(),
+                        historyPeriodDays == 1 ? "letzte 24 Stunden"
+                                : historyPeriodDays == 7 ? "letzte 7 Tage" : "letzte 30 Tage",
+                        selectedHistoryPeriod(buckets), buckets, calculationCapacityMah() > 0);
+            }
         }
         String capacity = BatteryCapacityLevel.isAvailable(capacityLevel)
                 ? " Kapazitätsniveau " + BatteryCapacityLevel.label(capacityLevel) + "." : "";
@@ -5260,7 +5270,8 @@ class BatteryDashboard extends View {
             node.setClickable(true);
             node.setSelected((virtualViewId >= 10 && virtualViewId - 10 == page)
                     || (virtualViewId == BatteryAccessibilityLayout.OVERVIEW_7D && historyDays == 7)
-                    || (virtualViewId == BatteryAccessibilityLayout.OVERVIEW_30D && historyDays == 30));
+                    || (virtualViewId == BatteryAccessibilityLayout.OVERVIEW_30D && historyDays == 30)
+                    || BatteryAccessibilityLayout.isHistoryPeriodSelected(virtualViewId, historyPeriodDays));
             if (toggle) {
                 node.setCheckable(true);
                 node.setChecked(virtualViewId == BatteryAccessibilityLayout.CHARGE_ALARM
