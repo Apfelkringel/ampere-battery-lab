@@ -641,8 +641,8 @@ class BatteryDashboard extends View {
     private final int blue = Color.rgb(115, 228, 216);
     private final int amber = Color.rgb(38, 169, 160);
     private final int historyChargedColor = Color.rgb(53, 211, 200);
-    private final int historyConsumedColor = Color.rgb(126, 232, 219);
-    private final int historyWearColor = Color.rgb(34, 177, 184);
+    private final int historyConsumedColor = Color.rgb(127, 230, 155);
+    private final int historyWearColor = Color.rgb(81, 177, 228);
     // Secondary telemetry is context, not a competing alert. A quiet
     // blue-grey tone keeps it inside the same cool instrument palette.
     private final int secondaryTone = Color.rgb(111, 185, 180);
