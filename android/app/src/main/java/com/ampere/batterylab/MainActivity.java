@@ -640,6 +640,9 @@ class BatteryDashboard extends View {
     private int lime = Color.rgb(53, 211, 200);
     private final int blue = Color.rgb(115, 228, 216);
     private final int amber = Color.rgb(38, 169, 160);
+    private final int historyChargedColor = Color.rgb(53, 211, 200);
+    private final int historyConsumedColor = Color.rgb(126, 232, 219);
+    private final int historyWearColor = Color.rgb(34, 177, 184);
     // Secondary telemetry is context, not a competing alert. A quiet
     // blue-grey tone keeps it inside the same cool instrument palette.
     private final int secondaryTone = Color.rgb(111, 185, 180);
@@ -4543,9 +4546,9 @@ class BatteryDashboard extends View {
         text(c, historyPeriodLabel(), 36, chartTop + 53, 16, primary, true);
         drawHistoryLegend(c, 36, chartTop + 76, primary, muted);
         drawHistoryBars(c, buckets, 36, chartTop + 100, w - 36, 128, primary, muted, faint);
-        text(c, "Aufgeladen", 36, chartTop + 252, 8, lime, false);
-        text(c, "Verbrauch", 112, chartTop + 252, 8, blue, false);
-        text(c, "Verschleiß", 183, chartTop + 252, 8, amber, false);
+        text(c, "Aufgeladen", 36, chartTop + 252, 8, historyChargedColor, false);
+        text(c, "Verbrauch", 112, chartTop + 252, 8, historyConsumedColor, false);
+        text(c, "Verschleiß", 183, chartTop + 252, 8, historyWearColor, false);
         text(c, "Effizienz", 260, chartTop + 252, 8, secondaryTone, false);
 
         float insightTop = chartTop + 298;
@@ -4589,11 +4592,11 @@ class BatteryDashboard extends View {
     }
 
     private void drawHistoryLegend(Canvas c, float x, float y, int primary, int muted) {
-        rounded(c, x, y - 8, x + 9, y + 1, 3, lime);
+        rounded(c, x, y - 8, x + 9, y + 1, 3, historyChargedColor);
         text(c, "geladen", x + 14, y, 8, muted, false);
-        rounded(c, x + 78, y - 8, x + 87, y + 1, 3, blue);
+        rounded(c, x + 78, y - 8, x + 87, y + 1, 3, historyConsumedColor);
         text(c, "verbraucht", x + 92, y, 8, muted, false);
-        rounded(c, x + 180, y - 8, x + 189, y + 1, 3, amber);
+        rounded(c, x + 180, y - 8, x + 189, y + 1, 3, historyWearColor);
         text(c, "EFC", x + 194, y, 8, muted, false);
     }
 
@@ -4617,11 +4620,11 @@ class BatteryDashboard extends View {
             float consumedHeight = height * bucket.consumedMah / (float) maxMah;
             float wearHeight = height * bucket.wearCycles / maxWear;
             rounded(c, center - barWidth * 1.6f, top + height - chargedHeight,
-                    center - barWidth * .6f, top + height, 2, lime);
+                    center - barWidth * .6f, top + height, 2, historyChargedColor);
             rounded(c, center - barWidth * .45f, top + height - consumedHeight,
-                    center + barWidth * .55f, top + height, 2, blue);
+                    center + barWidth * .55f, top + height, 2, historyConsumedColor);
             rounded(c, center + barWidth * .7f, top + height - wearHeight,
-                    center + barWidth * 1.7f, top + height, 2, amber);
+                    center + barWidth * 1.7f, top + height, 2, historyWearColor);
             text(c, bucket.label, center - groupWidth * .35f, top + height + 17, 7, faint, false);
         }
     }
