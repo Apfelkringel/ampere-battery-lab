@@ -45,6 +45,11 @@ final class BatteryTimelineRules {
         return delta > intervalMs && delta <= maximum;
     }
 
+    /** A path containing only moveTo has no visible stroke; render its sample as a point. */
+    static boolean shouldRenderSingleSampleMarker(int visibleSampleCount) {
+        return visibleSampleCount == 1;
+    }
+
     /**
      * A long gap means the open session was not continuously observed. Reset
      * only when that session started before the last known sample; a session

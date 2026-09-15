@@ -1,0 +1,1 @@
+Verbesserte Verlaufsstatistiken mit korrekt aufgeteilten Messintervallen an Zeitgrenzen. Einzelne Live-Messpunkte sind nun sichtbar; Sitzungszeilen bleiben auf schmalen Bildschirmen lesbar.

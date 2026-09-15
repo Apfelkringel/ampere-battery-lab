@@ -41,10 +41,21 @@ final class BatteryHistoryStats {
                 end = Math.min(now, Math.min(end, timestamp + 2L * 60L * 60L * 1000L));
                 if (end <= timestamp) continue;
                 int mah = Math.max(0, Math.round(current * (end - timestamp) / 3600000f));
-                int bucket = (int) ((timestamp - windowStart) / bucketMs);
-                if (bucket < 0 || bucket >= result.size()) continue;
-                if ("1".equals(parts[2])) result.get(bucket).chargedMah += mah;
-                else if ("0".equals(parts[2])) result.get(bucket).consumedMah += mah;
+                int assignedMah = 0;
+                long cursor = timestamp;
+                while (cursor < end) {
+                    int bucket = (int) ((cursor - windowStart) / bucketMs);
+                    long nextBoundary = windowStart + (bucket + 1L) * bucketMs;
+                    long segmentEnd = Math.min(end, nextBoundary);
+                    if (bucket < 0 || bucket >= result.size() || segmentEnd <= cursor) break;
+                    int segmentMah = segmentEnd == end ? mah - assignedMah
+                            : Math.round(mah * (segmentEnd - timestamp) / (float) (end - timestamp))
+                            - assignedMah;
+                    if ("1".equals(parts[2])) result.get(bucket).chargedMah += segmentMah;
+                    else if ("0".equals(parts[2])) result.get(bucket).consumedMah += segmentMah;
+                    assignedMah += segmentMah;
+                    cursor = segmentEnd;
+                }
             } catch (RuntimeException ignored) { }
         }
         for (Bucket bucket : result) {

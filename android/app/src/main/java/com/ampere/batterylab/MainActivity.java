@@ -4656,6 +4656,12 @@ class BatteryDashboard extends View {
         return "Charge".equals(type) ? "Laden" : "Discharge".equals(type) ? "Entladen" : type;
     }
 
+    private String compactSessionDuration(String value, float availableWidth) {
+        if (availableWidth >= 58f || value == null) return value;
+        return value.replace(" Std. ", "h ").replace(" Std.", "h")
+                .replace(" Min.", "m").replace(" Minute", "m").replace(" Minuten", "m");
+    }
+
     private void drawStat(Canvas c, float x, float y, float width, float height, String label, String value, String unit, int accent, int primary, int muted, int border, int panel, String icon) {
         frame(c, x, y, x + width, y + height, panel, border, accent);
         if (BatteryMetricLayout.shouldStack(width)) {
@@ -4867,10 +4873,19 @@ class BatteryDashboard extends View {
                 if (parts.length < 4) continue;
                 float rowY = y + 244 + row * 25;
                 line(c, x + 18, rowY - 14, x + width - 18, rowY - 14, border, 1);
-                text(c, parts[3], x + 18, rowY, 9, muted, false);
-                text(c, sessionTypeDisplay(parts[0]), x + width * .53f, rowY, 9, parts[0].equals("Charge") ? lime : blue, false);
-                text(c, parts[1], x + width * .72f, rowY, 9, primary, true);
-                text(c, parts[2], x + width - 62, rowY, 9, faint, false);
+                float rowLeft = x + 18;
+                float rowRight = x + width - 18;
+                float rowWidth = rowRight - rowLeft;
+                boundedText(c, parts[3], rowLeft, rowLeft + rowWidth * .32f,
+                        rowY, 8.5f, muted, false);
+                boundedText(c, sessionTypeDisplay(parts[0]), rowLeft + rowWidth * .36f,
+                        rowLeft + rowWidth * .56f, rowY, 8.5f,
+                        parts[0].equals("Charge") ? lime : blue, false);
+                boundedText(c, parts[1], rowLeft + rowWidth * .60f,
+                        rowLeft + rowWidth * .77f, rowY, 8.5f, primary, true);
+                float durationLeft = rowLeft + rowWidth * .80f;
+                boundedRightText(c, compactSessionDuration(parts[2], rowRight - durationLeft),
+                        durationLeft, rowRight, rowY, 8.5f, faint, false);
                 row++;
             }
             if (sessions.size() > row) text(c, "Weitere Sitzungen im Verlauf", x + 18, y + 344, 8, faint, false);
@@ -4920,6 +4935,15 @@ class BatteryDashboard extends View {
         }
         stroke(c, chargingFilter ? lime : blue, 2);
         c.drawPath(path, p);
+        if (BatteryTimelineRules.shouldRenderSingleSampleMarker(count)) {
+            CurrentPoint sample = points.get(first);
+            float sampleY = chartY + chartH - sample.magnitudeMa * chartH / (float) scaleMax;
+            int accent = chargingFilter ? lime : blue;
+            fill(c, panel);
+            c.drawCircle(u(chartX), u(sampleY), u(5.5f), p);
+            fill(c, accent);
+            c.drawCircle(u(chartX), u(sampleY), u(3f), p);
+        }
         boundedText(c, "Min " + stats.minimumMa + " · Ø " + stats.averageMa
                         + " · Max " + stats.maximumMa + " mA",
                 chartX, x + width - 18, y + 181, 8, muted, false);

@@ -75,6 +75,21 @@ public class BatteryRulesTest {
         assertEquals(0.5f, overall.wearCycles, 0.001f);
     }
 
+    @Test public void historyStatsSplitMeasurementEnergyAcrossBucketBoundaries() {
+        long now = 200L * 24L * 60L * 60L * 1000L;
+        long windowStart = now - 7L * 24L * 60L * 60L * 1000L;
+        long boundary = windowStart + 24L * 60L * 60L * 1000L;
+        ArrayList<String> rows = new ArrayList<>(Arrays.asList(
+                (boundary - 30L * 60L * 1000L) + ",50,1,1000,25.0,4.0,100,1,,0,1",
+                (boundary + 30L * 60L * 1000L) + ",50,1,0,25.0,4.0,100,1,,0,1"));
+
+        ArrayList<BatteryHistoryStats.Bucket> buckets = BatteryHistoryStats.aggregateRows(rows, now, 1, 1000);
+
+        assertEquals(500, buckets.get(0).chargedMah);
+        assertEquals(500, buckets.get(1).chargedMah);
+        assertEquals(1000, BatteryHistoryStats.overall(buckets).chargedMah);
+    }
+
     @Test public void pageAccessibilityControlsFollowTheActivePage() {
         assertTrue(BatteryAccessibilityLayout.isVisible(
                 BatteryAccessibilityLayout.OVERVIEW_7D, 0));
@@ -1038,6 +1053,12 @@ public class BatteryRulesTest {
         assertFalse(BatteryTimelineRules.shouldInterpolate(1_000L,
                 1_000L + 7L * fifteenMinutes, fifteenMinutes));
         assertFalse(BatteryTimelineRules.shouldInterpolate(2_000L, 1_000L, fifteenMinutes));
+    }
+
+    @Test public void isolatedCurrentChartSampleNeedsAVisibleMarker() {
+        assertFalse(BatteryTimelineRules.shouldRenderSingleSampleMarker(0));
+        assertTrue(BatteryTimelineRules.shouldRenderSingleSampleMarker(1));
+        assertFalse(BatteryTimelineRules.shouldRenderSingleSampleMarker(2));
     }
 
     @Test public void unobservedGapResetsOnlyAnOlderOpenSession() {
