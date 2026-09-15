@@ -488,6 +488,17 @@ public class BatteryRulesTest {
         assertEquals(0, fallback.get("app.c").intValue());
     }
 
+    @Test public void bucketedUsageIntervalsAreMergedPerPackageBeforeAttribution() {
+        Map<String, Long> foreground = new HashMap<>();
+        BatteryAppAttribution.addForegroundTime(foreground, "app.a", 40L * 60L * 1000L);
+        BatteryAppAttribution.addForegroundTime(foreground, "app.b", 20L * 60L * 1000L);
+        BatteryAppAttribution.addForegroundTime(foreground, "app.a", 30L * 60L * 1000L);
+        BatteryAppAttribution.addForegroundTime(foreground, "app.c", -1L);
+        assertEquals(70L * 60L * 1000L, foreground.get("app.a").longValue());
+        assertEquals(20L * 60L * 1000L, foreground.get("app.b").longValue());
+        assertFalse(foreground.containsKey("app.c"));
+    }
+
     @Test public void healthCannotExceedOneHundredPercent() {
         assertEquals(85, BatteryHealth.percent(8500, 10000));
         assertEquals(100, BatteryHealth.percent(12000, 10000));

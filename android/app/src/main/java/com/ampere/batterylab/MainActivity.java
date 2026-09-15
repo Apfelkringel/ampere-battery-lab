@@ -3829,10 +3829,17 @@ class BatteryDashboard extends View {
         if (rows.isEmpty() && exact.isEmpty()) {
             List<UsageStats> stats = manager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, start, end);
             if (stats != null) {
+                Map<String, Long> bucketedForeground = new HashMap<>();
                 for (UsageStats stat : stats) {
-                    if (!stat.getPackageName().equals(getContext().getPackageName())
-                            && stat.getTotalTimeInForeground() >= 60L * 1000L) {
-                        rows.add(new AppUsageRow(stat.getPackageName(), stat.getTotalTimeInForeground()));
+                    String packageName = stat.getPackageName();
+                    if (!getContext().getPackageName().equals(packageName)) {
+                        BatteryAppAttribution.addForegroundTime(bucketedForeground,
+                                packageName, stat.getTotalTimeInForeground());
+                    }
+                }
+                for (Map.Entry<String, Long> entry : bucketedForeground.entrySet()) {
+                    if (entry.getValue() >= 60L * 1000L) {
+                        rows.add(new AppUsageRow(entry.getKey(), entry.getValue()));
                     }
                 }
             }

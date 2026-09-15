@@ -63,6 +63,14 @@ final class BatteryAppAttribution {
         return value == null ? 0 : value;
     }
 
+    static void addForegroundTime(Map<String, Long> totals, String packageName, long foregroundMs) {
+        if (totals == null || packageName == null || packageName.isEmpty() || foregroundMs <= 0L) return;
+        Long previous = totals.get(packageName);
+        long current = previous == null ? 0L : previous;
+        totals.put(packageName, current > Long.MAX_VALUE - foregroundMs
+                ? Long.MAX_VALUE : current + foregroundMs);
+    }
+
     /** Divides a remaining energy budget by non-negative foreground-time weights. */
     static Map<String, Integer> apportion(int budgetMah, Map<String, Long> weights) {
         Map<String, Integer> result = new HashMap<>();

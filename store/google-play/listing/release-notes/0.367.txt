@@ -1,0 +1,1 @@
+Mehrere Android-Nutzungsintervalle derselben App werden vor der Verbrauchsschätzung zusammengeführt, sodass die App nicht doppelt in der Liste erscheint.
