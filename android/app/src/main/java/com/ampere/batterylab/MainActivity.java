@@ -2245,6 +2245,14 @@ class BatteryDashboard extends View {
         type(size, color, bold);
         c.drawText(fitted, u(centerX) - p.measureText(fitted) / 2f, u(y), p);
     }
+    private void centeredBoundedText(Canvas c, String value, float leftX, float rightX,
+                                    float y, float size, int color, boolean bold) {
+        float left = Math.max(8f, leftX);
+        float right = Math.max(left + 1f, rightX);
+        String fitted = fitText(value, right - left, size, bold);
+        type(size, color, bold);
+        c.drawText(fitted, u((left + right) / 2f) - p.measureText(fitted) / 2f, u(y), p);
+    }
     private void rightText(Canvas c, String value, float rightX, float y, float size, int color, boolean bold) {
         float viewWidth = layoutWidthDp > 0f ? layoutWidthDp : getWidth() / density;
         float safeRight = Math.max(8f, Math.min(rightX, viewWidth - 8f));
@@ -4694,14 +4702,26 @@ class BatteryDashboard extends View {
         drawGeneratedButton(c, range30dArtwork,
                 x + width - 54, y + 12, x + width, y + 40,
                 isPressed(BatteryAccessibilityLayout.OVERVIEW_30D), false);
-        float chartX = x + 18, chartY = y + 51, chartW = width - 36, chartH = 94;
-        for (int i = 0; i < 3; i++) line(c, chartX, chartY + i * 45, chartX + chartW, chartY + i * 45, border, 1);
-        rightText(c, "100%", x + width - 18, chartY + 9, 7, faint, false);
-        rightText(c, "50%", x + width - 18, chartY + 54, 7, faint, false);
-        rightText(c, "0%", x + width - 18, chartY + 99, 7, faint, false);
+        float chartX = x + 18, chartY = y + 51, chartW = width - 66, chartH = 94;
+        float chartRight = chartX + chartW;
+        int grid = Color.argb(64, Color.red(border), Color.green(border), Color.blue(border));
+        for (int i = 0; i < 3; i++) {
+            float gridY = chartY + i * chartH / 2f;
+            line(c, chartX, gridY, chartRight, gridY, grid, 1);
+        }
+        line(c, chartX + chartW / 3f, chartY, chartX + chartW / 3f,
+                chartY + chartH, grid, .7f);
+        line(c, chartX + chartW * 2f / 3f, chartY, chartX + chartW * 2f / 3f,
+                chartY + chartH, grid, .7f);
+        boundedRightText(c, "100%", chartRight + 4, x + width - 10, chartY + 8, 7, faint, false);
+        boundedRightText(c, "50%", chartRight + 4, x + width - 10,
+                chartY + chartH / 2f + 3, 7, faint, false);
+        boundedRightText(c, "0%", chartRight + 4, x + width - 10,
+                chartY + chartH, 7, faint, false);
         ArrayList<LevelPoint> points = chartPoints();
         if (points.isEmpty()) {
-            text(c, "Warte auf lokale Messwerte.", chartX, chartY + 52, 10, faint, false);
+            centeredBoundedText(c, "Noch keine lokalen Messwerte", chartX, chartRight,
+                    chartY + 52, 10, faint, false);
         } else {
             long end = System.currentTimeMillis();
             long windowStart = end - chartWindowMs();
@@ -4742,12 +4762,15 @@ class BatteryDashboard extends View {
                         (point.timestamp - axisStart) / (float) axisSpan));
                 float gapLeft = chartX + previousFraction * chartW;
                 float gapRight = chartX + pointFraction * chartW;
-                fill(c, Color.argb(24, Color.red(lime), Color.green(lime), Color.blue(lime)));
-                c.drawRect(u(gapLeft), u(chartY + 2), u(Math.max(gapLeft + 2f, gapRight)),
+                fill(c, Color.argb(10, Color.red(lime), Color.green(lime), Color.blue(lime)));
+                c.drawRect(u(gapLeft), u(chartY + 2),
+                        u(Math.min(chartRight, Math.max(gapLeft + 2f, gapRight))),
                         u(chartY + chartH - 2), p);
-                line(c, (gapLeft + gapRight) / 2f, chartY + 9,
-                        (gapLeft + gapRight) / 2f, chartY + chartH - 9,
-                        Color.argb(120, Color.red(faint), Color.green(faint), Color.blue(faint)), 1);
+                p.setPathEffect(new DashPathEffect(new float[]{u(3f), u(3f)}, 0));
+                line(c, (gapLeft + gapRight) / 2f, chartY + 7,
+                        (gapLeft + gapRight) / 2f, chartY + chartH - 7,
+                        Color.argb(72, Color.red(faint), Color.green(faint), Color.blue(faint)), .8f);
+                p.setPathEffect(null);
             }
             Path measuredPath = new Path();
             Path estimatedPath = new Path();
@@ -4773,6 +4796,7 @@ class BatteryDashboard extends View {
                         // This short segment is a display-only estimate. It is
                         // deliberately dashed and never enters any KPI math.
                         estimatedPath.moveTo(previousX, previousY);
+                        estimatedPath.lineTo(px, previousY);
                         estimatedPath.lineTo(px, py);
                         measuredPath.moveTo(px, py);
                         estimatedCount++;
@@ -4780,11 +4804,15 @@ class BatteryDashboard extends View {
                         // A longer outage is not a measured ramp.
                         measuredPath.moveTo(px, py);
                     } else {
+                        // Battery level is quantized to whole percentages. A
+                        // stepped trace shows when the reported value changed
+                        // without suggesting a smooth, continuously measured ramp.
+                        measuredPath.lineTo(px, previousY);
                         measuredPath.lineTo(px, py);
                     }
                 }
             }
-            stroke(c, lime, 2);
+            stroke(c, lime, 1.8f);
             c.drawPath(measuredPath, p);
             if (estimatedCount > 0) {
                 p.setPathEffect(new DashPathEffect(new float[]{u(5f), u(4f)}, 0));
@@ -4794,17 +4822,16 @@ class BatteryDashboard extends View {
             }
             LevelPoint last = points.get(points.size() - 1);
             float lastFraction = Math.max(0f, Math.min(1f, (last.timestamp - axisStart) / (float) axisSpan));
+            float lastX = chartX + lastFraction * chartW;
+            float lastY = chartY + chartH - last.level / 100f * chartH;
+            fill(c, panel);
+            c.drawCircle(u(lastX), u(lastY), u(5.5f), p);
             fill(c, lime);
-            c.drawCircle(u(chartX + lastFraction * chartW), u(chartY + chartH - last.level / 100f * chartH), u(4), p);
-            if (gapCount > 0 || estimatedCount > 0 || focusedRange) {
-                String gapLabel = gapCount > 0
-                        ? (gapCount == 1 ? "1 Messlücke · keine Messung" : gapCount + " Messlücken · keine Messung")
-                        : "kurze Lücke interpoliert";
-                if (gapCount == 0 && estimatedCount == 0) gapLabel = "Messbereich · lokale Werte";
-                boundedText(c, estimatedCount > 0 && gapCount > 0
-                                ? gapLabel + " · gestrichelt = geschätzt" : gapLabel,
-                        chartX, x + width - 18, y + 158, 8, faint, false);
-            }
+            c.drawCircle(u(lastX), u(lastY), u(3f), p);
+            String qualityLabel = estimatedCount > 0 ? "Gestrichelt = geschätzt"
+                    : gapCount > 0 ? "Schattiert = Messlücke"
+                    : focusedRange ? "Lokaler Messbereich" : "Gemessener Akkustand";
+            boundedText(c, qualityLabel, chartX, chartRight, y + 158, 8, faint, false);
         }
         long axisEnd = System.currentTimeMillis();
         long axisStart = axisEnd - chartWindowMs();
@@ -4818,18 +4845,27 @@ class BatteryDashboard extends View {
                 axisEnd = observedEnd;
             }
         }
-        text(c, chartAxisLabel(0f, axisStart, axisEnd), chartX, y + 166, 9, faint, false); text(c, chartAxisLabel(.33f, axisStart, axisEnd), chartX + chartW * .32f, y + 166, 9, faint, false); text(c, chartAxisLabel(.66f, axisStart, axisEnd), chartX + chartW * .64f, y + 166, 9, faint, false); text(c, chartAxisLabel(1f, axisStart, axisEnd), chartX + chartW - 23, y + 166, 9, faint, false);
-        text(c, "Ø " + chartAverage() + " · Spanne " + chartRange(), x + 18, y + 189, 8, muted, false);
-        text(c, "Letzte Sitzungen", x + 18, y + 204, 13, primary, true);
+        float axisY = y + 176;
+        float tickThird = chartX + chartW / 3f;
+        float tickTwoThirds = chartX + chartW * 2f / 3f;
+        text(c, chartAxisLabel(0f, axisStart, axisEnd), chartX, axisY, 8, faint, false);
+        centeredBoundedText(c, chartAxisLabel(.33f, axisStart, axisEnd),
+                tickThird - chartW / 6f, tickThird + chartW / 6f, axisY, 8, faint, false);
+        centeredBoundedText(c, chartAxisLabel(.66f, axisStart, axisEnd),
+                tickTwoThirds - chartW / 6f, tickTwoThirds + chartW / 6f, axisY, 8, faint, false);
+        boundedRightText(c, chartAxisLabel(1f, axisStart, axisEnd),
+                chartRight - chartW / 6f, chartRight, axisY, 8, faint, false);
+        text(c, "Ø " + chartAverage() + "   ·   Spanne " + chartRange(), x + 18, y + 199, 8, muted, false);
+        text(c, "Letzte Sitzungen", x + 18, y + 218, 13, primary, true);
         if (sessions.isEmpty()) {
-            text(c, "Nach dem ersten Zyklus sichtbar.", x + 18, y + 230, 9, faint, false);
+            text(c, "Nach dem ersten Zyklus sichtbar.", x + 18, y + 244, 9, faint, false);
         } else {
             int row = 0;
             for (String session : sessions) {
                 if (row == 4) break;
                 String[] parts = session.split(",", -1);
                 if (parts.length < 4) continue;
-                float rowY = y + 230 + row * 25;
+                float rowY = y + 244 + row * 25;
                 line(c, x + 18, rowY - 14, x + width - 18, rowY - 14, border, 1);
                 text(c, parts[3], x + 18, rowY, 9, muted, false);
                 text(c, sessionTypeDisplay(parts[0]), x + width * .53f, rowY, 9, parts[0].equals("Charge") ? lime : blue, false);
@@ -4837,7 +4873,7 @@ class BatteryDashboard extends View {
                 text(c, parts[2], x + width - 62, rowY, 9, faint, false);
                 row++;
             }
-            if (sessions.size() > row) text(c, "Weitere Sitzungen im Verlauf", x + 18, y + 337, 8, faint, false);
+            if (sessions.size() > row) text(c, "Weitere Sitzungen im Verlauf", x + 18, y + 344, 8, faint, false);
         }
     }
 
@@ -4968,7 +5004,19 @@ class BatteryDashboard extends View {
                     return Long.compare(left.timestamp, right.timestamp);
                 }
             });
-            return points;
+            ArrayList<LevelPoint> uniqueTimestamps = new ArrayList<>(points.size());
+            for (LevelPoint point : points) {
+                int lastIndex = uniqueTimestamps.size() - 1;
+                if (lastIndex >= 0
+                        && uniqueTimestamps.get(lastIndex).timestamp == point.timestamp) {
+                    // Keep the last stored reading for an identical timestamp;
+                    // drawing both would create a false vertical spike.
+                    uniqueTimestamps.set(lastIndex, point);
+                } else {
+                    uniqueTimestamps.add(point);
+                }
+            }
+            return uniqueTimestamps;
         }
         ArrayList<Integer> fallback = historyDays == 30 ? longHistory : history;
         long fallbackEnd = System.currentTimeMillis();
