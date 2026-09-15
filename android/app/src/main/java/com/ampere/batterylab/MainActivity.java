@@ -1969,7 +1969,14 @@ class BatteryDashboard extends View {
         AlertDialog dialog = new AlertDialog.Builder(getContext()).setCustomTitle(titleBar).setItems(options, (itemDialog, which) -> {
             if (which == 0) {
                 try {
-                    Intent notificationSettings = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, getContext().getPackageName());
+                    Intent notificationSettings;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        notificationSettings = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                                .putExtra(Settings.EXTRA_APP_PACKAGE, getContext().getPackageName());
+                    } else {
+                        notificationSettings = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                Uri.parse("package:" + getContext().getPackageName()));
+                    }
                     getContext().startActivity(notificationSettings);
                 } catch (Exception ignored) { }
             } else if (which == 1) {
@@ -2118,11 +2125,13 @@ class BatteryDashboard extends View {
                 .setNegativeButton("Später", null)
                 .setPositiveButton("Systemeinstellung öffnen", (dialog, which) -> {
                     try {
-                        Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-                                Uri.parse("package:" + getContext().getPackageName()));
+                        Intent intent = new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
                         getContext().startActivity(intent);
                     } catch (Exception ignored) {
-                        getContext().startActivity(new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS));
+                        try {
+                            getContext().startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                    Uri.parse("package:" + getContext().getPackageName())));
+                        } catch (Exception ignoredAgain) { }
                     }
                 }).show();
     }
