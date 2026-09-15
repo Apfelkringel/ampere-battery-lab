@@ -4580,6 +4580,7 @@ class BatteryDashboard extends View {
         drawStat(c, 18 + cardW + cardGap, cardsTop, cardW, 104, "Akkuverbrauch", selectedPeriod.consumedMah > 0 ? "−" + selectedPeriod.consumedMah : "—", "mAh", blue, primary, muted, border, panel, "arrow");
         drawStat(c, 18, cardsTop + 116, cardW, 104, "Akkuverschleiß", selectedPeriod.wearCycles > 0f ? String.format(Locale.GERMANY, "%.2f", selectedPeriod.wearCycles) : "—", "EFC", amber, primary, muted, border, panel, "heart");
         drawStat(c, 18 + cardW + cardGap, cardsTop + 116, cardW, 104, "Effizienz", selectedPeriod.efficiencyPercent > 0 ? selectedPeriod.efficiencyPercent + "" : "—", selectedPeriod.efficiencyPercent > 0 ? "%" : "", lime, primary, muted, border, panel, "grid");
+        text(c, "— = keine auswertbaren Messwerte", 36, cardsTop + 232, 8, faint, false);
 
         float chartTop = y + 430;
         rounded(c, 18, chartTop, w - 18, chartTop + 280, 16, panel);

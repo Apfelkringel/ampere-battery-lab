@@ -256,6 +256,8 @@ public class BatteryButtonAssetLayoutTest {
         assertTrue(dashboard.contains("6 KALENDERMONATE"));
         assertTrue("the chart should plot efficiency rather than label a missing series",
                 dashboard.contains("bucket.efficiencyPercent / (float) maxEfficiency"));
+        assertTrue("dash values should be explained as unavailable, not zero",
+                dashboard.contains("— = keine auswertbaren Messwerte"));
         assertTrue("independent metric scales must be disclosed",
                 dashboard.contains("Balkenhöhen je Kennzahl skaliert"));
     }
