@@ -1,0 +1,1 @@
+Die Restlaufzeit aus dem Momentanstrom benötigt jetzt auch eine gültige Akkukapazität. Wenn diese fehlt oder unplausibel ist, zeigt die App keine irreführende Laufzeit an.

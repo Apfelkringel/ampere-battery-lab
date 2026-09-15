@@ -1757,8 +1757,11 @@ class BatteryDashboard extends View {
         float rate = averageDischargeRate(screenOn);
         if (rate > 0f) return formatDuration(Math.max(1, Math.round(referenceLevel * 60f / rate)));
         if (currentMa < 50) return "—";
+        int capacityMah = calculationCapacityMah();
         int modeCurrent = screenOn ? currentMa : Math.max(50, Math.round(currentMa * .35f));
-        return formatDuration(Math.max(1, Math.round(calculationCapacityMah() * referenceLevel / 100f * 60f / modeCurrent)));
+        long currentEstimateMinutes = BatteryRuntimeEstimate.minutesFromCurrent(
+                referenceLevel, capacityMah, modeCurrent);
+        return currentEstimateMinutes > 0L ? formatDuration(currentEstimateMinutes) : "—";
     }
 
     private String dischargeRuntimeSource(boolean screenOn) {

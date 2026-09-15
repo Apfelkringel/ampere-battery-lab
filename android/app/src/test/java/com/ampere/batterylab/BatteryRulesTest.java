@@ -680,6 +680,14 @@ public class BatteryRulesTest {
         assertFalse(BatteryRuntimeEstimate.hasHistoricalEstimate(75, Float.NaN, 10L * 60L * 1000L, 0f));
     }
 
+    @Test public void liveCurrentRuntimeRequiresPlausibleCapacityAndSignal() {
+        assertEquals(900L, BatteryRuntimeEstimate.minutesFromCurrent(75, 4000, 200));
+        assertEquals(0L, BatteryRuntimeEstimate.minutesFromCurrent(75, 0, 200));
+        assertEquals(0L, BatteryRuntimeEstimate.minutesFromCurrent(75, 4000, 49));
+        assertEquals(0L, BatteryRuntimeEstimate.minutesFromCurrent(101, 4000, 200));
+        assertEquals(0L, BatteryRuntimeEstimate.minutesFromCurrent(75, 30001, 200));
+    }
+
     @Test public void timelineCapsUnobservedIntegrationGaps() {
         assertEquals(30L * 60L * 1000L,
                 BatteryTimelineRules.cappedElapsed(1_000L, 4_000_000L, 30L * 60L * 1000L));

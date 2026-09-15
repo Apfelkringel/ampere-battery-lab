@@ -46,6 +46,16 @@ final class BatteryRuntimeEstimate {
                 && durationMs >= 5L * 60L * 1000L;
     }
 
+    /** Estimates remaining minutes from a live current only when capacity is known. */
+    static long minutesFromCurrent(int levelPercent, int capacityMah, int currentMa) {
+        if (levelPercent < 0 || levelPercent > 100 || capacityMah <= 0 || capacityMah > 30_000
+                || currentMa < 50) return 0L;
+        float remainingMah = capacityMah * levelPercent / 100f;
+        float minutes = remainingMah * 60f / currentMa;
+        if (!Float.isFinite(minutes) || minutes < 0f) return 0L;
+        return Math.max(1L, Math.round(minutes));
+    }
+
     private static boolean isValidRate(float rate) {
         return Float.isFinite(rate) && rate > 0f && rate <= MAX_RATE_PERCENT_PER_HOUR;
     }

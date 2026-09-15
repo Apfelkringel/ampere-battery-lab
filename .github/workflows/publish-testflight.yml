@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Marketing version to archive (for example 0.356)"
+        description: "Marketing version to archive (for example 0.357)"
         required: true
-        default: "0.356"
+        default: "0.357"
         type: string
 
 permissions:
