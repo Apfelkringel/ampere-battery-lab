@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Release version to upload (for example 0.354)"
+        description: "Release version to upload (for example 0.355)"
         required: true
-        default: "0.354"
+        default: "0.355"
         type: string
       track:
         description: "Play testing/release track"

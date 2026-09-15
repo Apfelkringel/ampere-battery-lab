@@ -1752,6 +1752,26 @@ class BatteryDashboard extends View {
         return formatDuration(Math.max(1, Math.round(calculationCapacityMah() * referenceLevel / 100f * 60f / modeCurrent)));
     }
 
+    private String dischargeRuntimeSource(boolean screenOn) {
+        if (level < 0 || (charging && lastDischargeEndLevel() < 0)) return "Keine Daten";
+        String percentKey = screenOn ? "dischargeScreenOnPercent" : "dischargeScreenOffPercent";
+        String durationKey = screenOn ? "dischargeScreenOnMs" : "dischargeScreenOffMs";
+        if (charging) {
+            percentKey = "last" + Character.toUpperCase(percentKey.charAt(0)) + percentKey.substring(1);
+            durationKey = "last" + Character.toUpperCase(durationKey.charAt(0)) + durationKey.substring(1);
+        }
+        float percent = BatteryPercentage.normalizePhase(prefs.getFloat(percentKey, 0f));
+        long duration = prefs.getLong(durationKey, 0L);
+        if (percent > 0f && duration >= 5L * 60L * 1000L) {
+            return charging ? "Letzte Sitzung" : "Aktuelle Sitzung";
+        }
+        if (!charging && averageDischargeRate(screenOn) > 0f) return "Lokaler Verlauf";
+        if (!charging && currentMa >= 50 && calculationCapacityMah() > 0) {
+            return screenOn ? "Momentanstrom" : "Standby-Modell";
+        }
+        return "Keine Daten";
+    }
+
     private int chargeSpeedMahPerHour(boolean screenOn) {
         String mahKey = screenOn ? "chargeScreenOnMah" : "chargeScreenOffMah";
         String durationKey = screenOn ? "chargeScreenOnMs" : "chargeScreenOffMs";
@@ -3329,7 +3349,12 @@ class BatteryDashboard extends View {
         boundedText(c, dischargeRuntime(true), modeOne, modeOne + modeWidth, y + 255, 11, cream, true);
         boundedText(c, dischargeRuntime(false), modeTwo, modeTwo + modeWidth, y + 255, 11, cream, true);
         boundedText(c, runtimeEstimate(), modeThree, modeThree + modeWidth, y + 255, 11, cream, true);
-        text(c, "lokale Schätzung", 51, y + 277, 8.8f, Color.rgb(184, 226, 219), false);
+        boundedText(c, dischargeRuntimeSource(true), modeOne, modeOne + modeWidth, y + 277, 7.7f,
+                Color.rgb(184, 226, 219), false);
+        boundedText(c, dischargeRuntimeSource(false), modeTwo, modeTwo + modeWidth, y + 277, 7.7f,
+                Color.rgb(184, 226, 219), false);
+        boundedText(c, runtimeEstimateSource(), modeThree, modeThree + modeWidth, y + 277, 7.7f,
+                Color.rgb(184, 226, 219), false);
 
         float cardW = (w - 48) / 2f;
         drawFriendlyMetric(c, 18, y + 306, 18 + cardW, y + 418,

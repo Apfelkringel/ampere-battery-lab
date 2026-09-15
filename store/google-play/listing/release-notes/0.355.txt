@@ -1,0 +1,1 @@
+Restlaufzeit-Prognosen zeigen jetzt für jeden Nutzungsmodus, worauf die Schätzung basiert – etwa auf der aktuellen oder letzten Sitzung, dem lokalen Verlauf oder einem Standby-Modell.
