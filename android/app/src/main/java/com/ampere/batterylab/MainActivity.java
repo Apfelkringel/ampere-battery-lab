@@ -634,6 +634,7 @@ class BatteryDashboard extends View {
     private float layoutWidthDp;
     private float viewportWidthDp;
     private float viewportHeightDp;
+    private final Rect visibleWindowRect = new Rect();
     // The reference language uses one assertive accent. Ampere uses a
     // blue-green signal instead of the old yellow-green, with a dark-surface
     // accessible tone and a luminous accent.
@@ -2608,10 +2609,9 @@ class BatteryDashboard extends View {
         super.onDraw(c);
         float w = getWidth() / density;
         float h = getHeight() / density;
-        Rect visibleWindow = new Rect();
-        getWindowVisibleDisplayFrame(visibleWindow);
-        viewportWidthDp = visibleWindow.width() > 0 ? visibleWindow.width() / density : w;
-        viewportHeightDp = visibleWindow.height() > 0 ? visibleWindow.height() / density : h;
+        getWindowVisibleDisplayFrame(visibleWindowRect);
+        viewportWidthDp = visibleWindowRect.width() > 0 ? visibleWindowRect.width() / density : w;
+        viewportHeightDp = visibleWindowRect.height() > 0 ? visibleWindowRect.height() / density : h;
         layoutWidthDp = w;
         int bg = Color.rgb(4, 52, 56);
         int panel = Color.rgb(6, 63, 68);

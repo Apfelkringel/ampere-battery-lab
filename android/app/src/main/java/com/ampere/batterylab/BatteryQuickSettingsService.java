@@ -82,6 +82,7 @@ public class BatteryQuickSettingsService extends TileService {
     }
 
     /** Requests a refresh while the monitor process is alive. */
+    @SuppressLint("NewApi")
     static void requestRefresh(Context context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) return;
         try {

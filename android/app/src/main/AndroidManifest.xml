@@ -87,6 +87,7 @@
         </receiver>
         <service
             android:name=".BatteryQuickSettingsService"
+            tools:targetApi="n"
             android:enabled="true"
             android:exported="true"
             android:icon="@drawable/ic_launcher"
