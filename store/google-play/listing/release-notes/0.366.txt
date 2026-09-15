@@ -1,0 +1,1 @@
+App-Verbrauchsschätzungen werden jetzt mit kontrollierter Restwertverteilung aufgeteilt. Die Summe pro App kann die gemessene Akku-Gesamtenergie nicht mehr durch Rundungsfehler überschreiten.

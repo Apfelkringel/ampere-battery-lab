@@ -3896,18 +3896,18 @@ class BatteryDashboard extends View {
                 : prefs.getLong(charging ? "lastDischargeStartAt" : "dischargeStartAt", end - 24 * 60 * 60 * 1000L);
         if (start >= end) start = end - 60 * 60 * 1000L;
         List<AppUsageRow> rows = appUsageRows(start, end);
-        long totalForegroundMs = 0L;
-        for (AppUsageRow row : rows) totalForegroundMs += row.foregroundMs;
         int totalEnergy = dischargeMah();
         Map<String, Integer> directMah = telemetryAppMahByPackage(start, end);
-        int directTotalMah = 0;
-        for (Integer value : directMah.values()) directTotalMah += Math.max(0, value);
-        int directAssignedMah = Math.min(Math.max(0, totalEnergy), directTotalMah);
-        long fallbackForegroundMs = 0L;
+        Map<String, Integer> directEstimates = BatteryAppAttribution.scaleDirectMah(directMah, totalEnergy);
+        int directAssignedMah = 0;
+        for (Integer value : directEstimates.values()) directAssignedMah += value;
+        Map<String, Long> fallbackWeights = new HashMap<>();
         for (AppUsageRow usage : rows) {
             Integer value = directMah.get(usage.packageName);
-            if (value == null || value <= 0) fallbackForegroundMs += usage.foregroundMs;
+            if (value == null || value <= 0) fallbackWeights.put(usage.packageName, usage.foregroundMs);
         }
+        Map<String, Integer> fallbackEstimates = BatteryAppAttribution.apportion(
+                Math.max(0, totalEnergy - directAssignedMah), fallbackWeights);
         int row = 0;
         for (AppUsageRow usage : rows) {
             String app = usage.packageName;
@@ -3918,10 +3918,8 @@ class BatteryDashboard extends View {
             text(c, fitText(app, appWidth, 10, true), 36, y + row * 27, 10, primary, true);
             Integer directValue = directMah.get(usage.packageName);
             int appMah = directValue != null && directValue > 0
-                    ? BatteryAppAttribution.estimateMah(directValue, directTotalMah, totalEnergy,
-                    usage.foregroundMs, totalForegroundMs)
-                    : BatteryAppAttribution.estimateFallbackMah(totalEnergy, directAssignedMah,
-                    usage.foregroundMs, fallbackForegroundMs);
+                    ? BatteryAppAttribution.allocatedMah(directEstimates, usage.packageName)
+                    : BatteryAppAttribution.allocatedMah(fallbackEstimates, usage.packageName);
             int appRate = BatteryAppAttribution.rateMahPerHour(appMah, usage.foregroundMs);
             String appEstimate = appMah > 0
                     ? "~" + appMah + " mAh · " + appRate + " mAh/h"
@@ -3946,18 +3944,18 @@ class BatteryDashboard extends View {
                 : prefs.getLong(charging ? "lastDischargeStartAt" : "dischargeStartAt", end - 24 * 60 * 60 * 1000L);
         if (start >= end) start = end - 60 * 60 * 1000L;
         List<AppUsageRow> rows = appUsageRows(start, end);
-        long totalForegroundMs = 0L;
-        for (AppUsageRow row : rows) totalForegroundMs += row.foregroundMs;
         int totalEnergy = Math.max(0, dischargeMah());
         Map<String, Integer> directMah = telemetryAppMahByPackage(start, end);
-        int directTotalMah = 0;
-        for (Integer value : directMah.values()) directTotalMah += Math.max(0, value);
-        int directAssignedMah = Math.min(Math.max(0, totalEnergy), directTotalMah);
-        long fallbackForegroundMs = 0L;
+        Map<String, Integer> directEstimates = BatteryAppAttribution.scaleDirectMah(directMah, totalEnergy);
+        int directAssignedMah = 0;
+        for (Integer value : directEstimates.values()) directAssignedMah += value;
+        Map<String, Long> fallbackWeights = new HashMap<>();
         for (AppUsageRow usage : rows) {
             Integer value = directMah.get(usage.packageName);
-            if (value == null || value <= 0) fallbackForegroundMs += usage.foregroundMs;
+            if (value == null || value <= 0) fallbackWeights.put(usage.packageName, usage.foregroundMs);
         }
+        Map<String, Integer> fallbackEstimates = BatteryAppAttribution.apportion(
+                Math.max(0, totalEnergy - directAssignedMah), fallbackWeights);
         LinearLayout content = new LinearLayout(getContext());
         content.setOrientation(LinearLayout.VERTICAL);
         content.setPadding(dp(20), dp(4), dp(20), dp(12));
@@ -3976,10 +3974,8 @@ class BatteryDashboard extends View {
                 try { app = getContext().getPackageManager().getApplicationLabel(getContext().getPackageManager().getApplicationInfo(usage.packageName, 0)).toString(); } catch (Exception ignored) { }
                 Integer directValue = directMah.get(usage.packageName);
                 int appMah = directValue != null && directValue > 0
-                        ? BatteryAppAttribution.estimateMah(directValue, directTotalMah, totalEnergy,
-                        usage.foregroundMs, totalForegroundMs)
-                        : BatteryAppAttribution.estimateFallbackMah(totalEnergy, directAssignedMah,
-                        usage.foregroundMs, fallbackForegroundMs);
+                        ? BatteryAppAttribution.allocatedMah(directEstimates, usage.packageName)
+                        : BatteryAppAttribution.allocatedMah(fallbackEstimates, usage.packageName);
                 int appRate = BatteryAppAttribution.rateMahPerHour(appMah, usage.foregroundMs);
                 content.addView(appUsageCard(app, usage.foregroundMs, appMah, appRate, totalEnergy,
                                 directValue != null && directValue > 0),

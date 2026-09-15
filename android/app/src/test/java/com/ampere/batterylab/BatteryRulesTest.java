@@ -466,6 +466,28 @@ public class BatteryRulesTest {
         assertEquals(0, BatteryAppAttribution.sampleMah(1000, 0L, 30L * 60L * 1000L));
     }
 
+    @Test public void appAttributionApportionsRemaindersWithoutExceedingObservedEnergy() {
+        Map<String, Integer> measured = new HashMap<>();
+        measured.put("app.c", 1);
+        measured.put("app.a", 1);
+        measured.put("app.b", 1);
+        Map<String, Integer> direct = BatteryAppAttribution.scaleDirectMah(measured, 2);
+        assertEquals(2, direct.get("app.a") + direct.get("app.b") + direct.get("app.c"));
+        assertEquals(1, direct.get("app.a").intValue());
+        assertEquals(1, direct.get("app.b").intValue());
+        assertEquals(0, direct.get("app.c").intValue());
+
+        Map<String, Long> foreground = new HashMap<>();
+        foreground.put("app.c", 10L);
+        foreground.put("app.a", 10L);
+        foreground.put("app.b", 10L);
+        Map<String, Integer> fallback = BatteryAppAttribution.apportion(2, foreground);
+        assertEquals(2, fallback.get("app.a") + fallback.get("app.b") + fallback.get("app.c"));
+        assertEquals(1, fallback.get("app.a").intValue());
+        assertEquals(1, fallback.get("app.b").intValue());
+        assertEquals(0, fallback.get("app.c").intValue());
+    }
+
     @Test public void healthCannotExceedOneHundredPercent() {
         assertEquals(85, BatteryHealth.percent(8500, 10000));
         assertEquals(100, BatteryHealth.percent(12000, 10000));
