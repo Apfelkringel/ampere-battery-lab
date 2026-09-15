@@ -30,7 +30,7 @@ import java.util.Locale;
  * broadcast at the configured interval and keeps short and 30-day local histories.
  */
 public class BatteryMonitorService extends Service {
-    private static final String CHANNEL_ID = "ampere-monitor";
+    static final String CHANNEL_ID = "ampere-monitor";
     private static final String ALARM_CHANNEL_ID = "ampere-charge-alarm";
     private static final long CHARGING_STATE_CONFIRMATION_MS = 2500L;
     private static final long HEARTBEAT_INTERVAL_MS = 10L * 60L * 1000L;

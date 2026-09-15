@@ -3,6 +3,8 @@ package com.ampere.batterylab;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.backup.BackupManager;
 import android.os.BatteryManager;
 import android.os.PowerManager;
@@ -2116,15 +2118,44 @@ class BatteryDashboard extends View {
             return;
         }
         PowerManager power = (PowerManager) getContext().getSystemService(Context.POWER_SERVICE);
-        if (power != null && power.isIgnoringBatteryOptimizations(getContext().getPackageName())) {
-            Toast.makeText(getContext(), "Hintergrundüberwachung ist bereits erlaubt.", Toast.LENGTH_LONG).show();
-            return;
+        boolean exemptFromOptimization = power != null
+                && power.isIgnoringBatteryOptimizations(getContext().getPackageName());
+        boolean permissionGranted = Build.VERSION.SDK_INT < 33
+                || getContext().checkSelfPermission("android.permission.POST_NOTIFICATIONS")
+                == getContext().getPackageManager().PERMISSION_GRANTED;
+        NotificationManager notifications = (NotificationManager)
+                getContext().getSystemService(Context.NOTIFICATION_SERVICE);
+        boolean appNotificationsEnabled = Build.VERSION.SDK_INT < 24 || notifications == null
+                || notifications.areNotificationsEnabled();
+        boolean monitoringChannelEnabled = true;
+        if (Build.VERSION.SDK_INT >= 26 && notifications != null) {
+            NotificationChannel channel = notifications.getNotificationChannel(
+                    BatteryMonitorService.CHANNEL_ID);
+            monitoringChannelEnabled = channel == null
+                    || channel.getImportance() != NotificationManager.IMPORTANCE_NONE;
         }
+        String notificationStatus = BatteryBackgroundStatus.notificationStatus(
+                permissionGranted, appNotificationsEnabled, monitoringChannelEnabled);
+        String optimizationStatus = BatteryBackgroundStatus.batteryOptimizationStatus(
+                exemptFromOptimization);
         new AlertDialog.Builder(getContext())
                 .setTitle("Hintergrundüberwachung")
-                .setMessage("Damit die Live-Benachrichtigung und Ladealarme bei geschlossener App weiterlaufen, braucht Ampere erlaubte Benachrichtigungen und Hintergrundaktivität. Android oder der Gerätehersteller kann Apps im Energiesparmodus trotzdem pausieren. Erlaube Ampere in den Akku-Einstellungen bei Bedarf uneingeschränkte Hintergrundnutzung. Ein erzwungenes Beenden über Android stoppt die Überwachung bis zum nächsten App-Start.")
-                .setNegativeButton("Später", null)
-                .setPositiveButton("Systemeinstellung öffnen", (dialog, which) -> {
+                .setMessage(BatteryBackgroundStatus.explanation(notificationStatus,
+                        optimizationStatus))
+                .setNegativeButton("Schließen", null)
+                .setPositiveButton("Benachrichtigungen", (dialog, which) -> {
+                    try {
+                        Intent intent = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                                .putExtra(Settings.EXTRA_APP_PACKAGE, getContext().getPackageName());
+                        getContext().startActivity(intent);
+                    } catch (Exception ignored) {
+                        try {
+                            getContext().startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                    Uri.parse("package:" + getContext().getPackageName())));
+                        } catch (Exception ignoredAgain) { }
+                    }
+                })
+                .setNeutralButton("Akku-Einstellungen", (dialog, which) -> {
                     try {
                         Intent intent = new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
                         getContext().startActivity(intent);
