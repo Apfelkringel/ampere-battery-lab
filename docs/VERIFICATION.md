@@ -10,7 +10,15 @@ and weekly history actions were visible and tappable; the remaining history
 actions are reachable by vertical scrolling. Changing the font scale back to
 100% recreated the activity and restored the selected History tab. Direct and
 Play each pass 199 unit tests (0 failures); both lint tasks and debug APK
-builds pass. Signed release and public artifact verification follow below.
+builds pass. Release workflow `35163373951` succeeded, and GitHub verified the
+SSH-signed `v0.397` tag (`94a1075`). The public update repository was updated
+in commit `725fa2d`; APK and AAB SHA-256 values are
+`bf4781f66880fbaeba8efcfd0cbe180171df600c7a3b16841edfa818dda950a0` and
+`4ef329638305d20a10b282b92b11a00cf3deb1ae109ee8f99cd53e171b4d1eff`.
+Live downloads match `latest.json`. The APK reports package
+`com.ampere.batterylab`, version `0.397` (versionCode 397), and the expected
+release certificate SHA-256 `301bed44b5cc342485b485b24baeea404dbdb216e6e3e134ad2ebd6b28d1dce3`.
+Google Play upload workflow `35163813206` completed on the alpha testing track.
 
 Version `0.396` exposes every daily, weekly, and monthly balance-chart bucket
 as its own focusable, clickable accessibility item. Each item announces its
