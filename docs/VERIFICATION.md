@@ -1,6 +1,22 @@
 # Verification record
 
-Last verified: 2026-09-16 (Europe/Berlin)
+Last verified: 2026-09-17 (Europe/Berlin)
+
+Version `0.393` lays out discharge-runtime forecasts as three larger, readable
+rows on narrow screens and exposes each mode as its own non-interactive
+accessibility node. When an estimate is unavailable, its screen-reader entry
+also states the next step (such as completing a discharge or gathering more
+data). On a 320-dp API-36 emulator, the updated card was visually checked and
+TalkBack's accessibility hierarchy exposed each forecast and hint separately.
+Direct and Play each pass 188 unit tests; both lint tasks and both debug APK
+builds pass locally. Signed release workflow `35154827377` succeeded and
+GitHub verified signed tag `v0.393`. Internal Google Play draft upload
+`35155364137` succeeded. Public APK/AAB SHA-256 values are
+`56b312b5b7c0487e8049547ea9f64560e6e0130b55f3da16d7befe22af08e98d` and
+`10cc406f903f30a5ffc08db96a3b5da0b7179da2b2580751d34a3b01b7a130ed`;
+downloaded artifacts match the public manifest. The APK reports package
+`com.ampere.batterylab`, version `0.393` (versionCode 393), and the expected
+signing certificate.
 
 Version `0.392` makes unavailable battery-runtime forecasts actionable without
 inventing estimates: the screen-on/off modes say when an initial discharge or
