@@ -89,3 +89,11 @@ The current UI checks cover dark and light themes, all five tabs, compact
 charging details, scroll reachability and fatal-exception log scans on Android
 API 34. Release verification for API 34, 36 and 37 is recorded in
 `docs/VERIFICATION.md`.
+
+At enlarged system font sizes (font scale 1.25 and above), the dashboard uses a
+native, vertically scrolling layout with scalable `sp` text and wrapping rather
+than shrinking Canvas-drawn labels. All five sections remain reachable through
+a horizontal tab row; their key actions are recreated as native buttons and
+controls. The selected section is restored after Android recreates the
+activity. At normal font sizes the existing illustrated Canvas dashboard is
+unchanged.

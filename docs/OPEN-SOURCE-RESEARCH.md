@@ -793,3 +793,12 @@ fehlende Gerätemessungen von nicht zuordenbarem Verbrauch und lässt den
 Restverbrauch ausdrücklich offen. Das Zurück-Ziel wurde zugleich auf
 mindestens 48 dp Breite gebracht, entsprechend Androids Empfehlung für
 interaktive Ziele.
+
+Für vergrößerte Schrift folgt das Dashboard Androids Hinweisen zu skalierbarer
+`sp`-Schrift und der seit Android 14 nichtlinearen Schriftvergrößerung
+([Schriftvergrößerung](https://developer.android.com/about/versions/14/features),
+[`TypedValue.applyDimension`](https://developer.android.com/reference/android/util/TypedValue),
+[`FontScaleConverter`](https://developer.android.com/reference/android/util/FontScaleConverter)).
+Da sich die gezeichnete Hauptansicht nicht umbrechen lässt, wechselt sie bei
+großer Systemschrift zu einer nativen, umbrechenden und scrollbar bedienbaren Ansicht.
+Es wurde kein externer Code übernommen.

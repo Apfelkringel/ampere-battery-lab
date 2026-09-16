@@ -42,6 +42,9 @@ import android.widget.LinearLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Button;
+import android.widget.HorizontalScrollView;
+import android.widget.SeekBar;
 import android.widget.Toast;
 import android.text.InputType;
 import android.content.SharedPreferences;
@@ -129,6 +132,12 @@ public class MainActivity extends Activity {
             "telemetrySamples", "telemetryLastSampleAt"
     ));
     private BatteryDashboard dashboard;
+    private TextView largeTextSummaryView;
+    private LinearLayout largeTextActions;
+    private Button[] largeTextTabs;
+    private boolean nativeLargeTextMode;
+    private int largeTextRenderedPage = -1;
+    private String largeTextRenderedActions = "";
     private boolean batteryReceiverRegistered;
     private final BroadcastReceiver batteryReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
@@ -159,6 +168,9 @@ public class MainActivity extends Activity {
         window.setNavigationBarColor(Color.rgb(9, 18, 23));
         window.getDecorView().setSystemUiVisibility(0);
         dashboard = new BatteryDashboard(this);
+        nativeLargeTextMode = BatteryLargeTextMode.shouldUseNativeLayout(
+                getResources().getConfiguration().fontScale);
+        dashboard.setLargeTextMode(nativeLargeTextMode);
         if (AnalyticsTracker.isEnabled(this)) AnalyticsTracker.logSection(this, 0);
         dashboard.applySystemBarTheme();
         ScrollView scroll = new ScrollView(this);
@@ -173,8 +185,19 @@ public class MainActivity extends Activity {
         }
         int contentHeight = Math.round(1320 * getResources().getDisplayMetrics().density);
         dashboard.setMinimumHeight(contentHeight);
-        scroll.addView(dashboard, new ScrollView.LayoutParams(-1, contentHeight));
+        LinearLayout content = new LinearLayout(this);
+        content.setOrientation(LinearLayout.VERTICAL);
+        if (nativeLargeTextMode) addLargeTextDashboard(content);
+        dashboard.setVisibility(nativeLargeTextMode ? View.GONE : View.VISIBLE);
+        content.addView(dashboard, new LinearLayout.LayoutParams(-1, contentHeight));
+        scroll.addView(content, new ScrollView.LayoutParams(-1, -2));
         setContentView(scroll);
+        if (state != null) dashboard.restorePageFromState(
+                state.getInt("ampere:selectedPage", 0));
+        if (nativeLargeTextMode) {
+            dashboard.setLargeTextSummaryListener(this::refreshLargeTextDashboard);
+            refreshLargeTextDashboard();
+        }
         startMonitorService();
         dashboard.startSavedOverlay();
         dashboard.postDelayed(this::showStartupDisclosure, 1000L);
@@ -184,6 +207,217 @@ public class MainActivity extends Activity {
         Intent battery = Build.VERSION.SDK_INT >= 33 ? registerReceiver(batteryReceiver, batteryFilter, Context.RECEIVER_NOT_EXPORTED) : registerReceiver(batteryReceiver, batteryFilter);
         batteryReceiverRegistered = true;
         if (battery != null) dashboard.readBattery(battery);
+    }
+
+    @Override protected void onSaveInstanceState(Bundle outState) {
+        if (dashboard != null) outState.putInt("ampere:selectedPage", dashboard.largeTextPage());
+        super.onSaveInstanceState(outState);
+    }
+
+    private int dp(float value) {
+        return Math.round(value * getResources().getDisplayMetrics().density);
+    }
+
+    private void addLargeTextDashboard(LinearLayout content) {
+        LinearLayout panel = new LinearLayout(this);
+        panel.setOrientation(LinearLayout.VERTICAL);
+        panel.setPadding(dp(18), dp(16), dp(18), dp(18));
+        GradientDrawable panelBackground = new GradientDrawable();
+        panelBackground.setColor(Color.rgb(7, 86, 90));
+        panelBackground.setCornerRadius(dp(18));
+        panelBackground.setStroke(dp(1), Color.rgb(20, 145, 137));
+        panel.setBackground(panelBackground);
+        LinearLayout.LayoutParams panelParams = new LinearLayout.LayoutParams(-1, -2);
+        panelParams.setMargins(dp(16), dp(16), dp(16), dp(12));
+        content.addView(panel, panelParams);
+
+        TextView brand = new TextView(this);
+        brand.setText("Ampere · Großschrift");
+        brand.setTextColor(Color.rgb(255, 247, 232));
+        brand.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 24f);
+        brand.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        panel.addView(brand, new LinearLayout.LayoutParams(-1, -2));
+        Button settings = largeTextButton("Einstellungen");
+        settings.setOnClickListener(view -> dashboard.showSettingsFromLargeText());
+        LinearLayout.LayoutParams settingsParams = new LinearLayout.LayoutParams(-1, -2);
+        settingsParams.topMargin = dp(8);
+        panel.addView(settings, settingsParams);
+
+        TextView description = new TextView(this);
+        description.setText("Gut lesbare Akkuwerte · live aktualisiert");
+        description.setTextColor(Color.rgb(184, 226, 219));
+        description.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 14f);
+        LinearLayout.LayoutParams descriptionParams = new LinearLayout.LayoutParams(-1, -2);
+        descriptionParams.topMargin = dp(5);
+        panel.addView(description, descriptionParams);
+
+        HorizontalScrollView tabScroller = new HorizontalScrollView(this);
+        tabScroller.setHorizontalScrollBarEnabled(false);
+        LinearLayout tabRow = new LinearLayout(this);
+        tabRow.setOrientation(LinearLayout.HORIZONTAL);
+        String[] tabNames = {"Übersicht", "Laden", "Entladen", "Akku", "Verlauf"};
+        largeTextTabs = new Button[tabNames.length];
+        for (int index = 0; index < tabNames.length; index++) {
+            final int page = index;
+            Button tab = largeTextButton(tabNames[index]);
+            tab.setContentDescription(tabNames[index] + " anzeigen");
+            tab.setOnClickListener(view -> dashboard.selectPageFromLargeText(page));
+            LinearLayout.LayoutParams tabParams = new LinearLayout.LayoutParams(-2, -2);
+            tabParams.setMargins(0, dp(12), dp(8), dp(4));
+            tabRow.addView(tab, tabParams);
+            largeTextTabs[index] = tab;
+        }
+        tabScroller.addView(tabRow, new HorizontalScrollView.LayoutParams(-2, -2));
+        panel.addView(tabScroller, new LinearLayout.LayoutParams(-1, -2));
+
+        largeTextActions = new LinearLayout(this);
+        largeTextActions.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams actionsParams = new LinearLayout.LayoutParams(-1, -2);
+        actionsParams.topMargin = dp(10);
+        panel.addView(largeTextActions, actionsParams);
+
+        TextView sectionTitle = new TextView(this);
+        sectionTitle.setText("Werte des aktiven Bereichs");
+        sectionTitle.setTextColor(Color.rgb(115, 228, 216));
+        sectionTitle.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16f);
+        sectionTitle.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        LinearLayout.LayoutParams sectionParams = new LinearLayout.LayoutParams(-1, -2);
+        sectionParams.topMargin = dp(12);
+        panel.addView(sectionTitle, sectionParams);
+
+        largeTextSummaryView = new TextView(this);
+        largeTextSummaryView.setTextColor(Color.rgb(255, 247, 232));
+        largeTextSummaryView.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 18f);
+        largeTextSummaryView.setLineSpacing(dp(5), 1f);
+        largeTextSummaryView.setTextIsSelectable(true);
+        largeTextSummaryView.setText("Akkuinformationen werden geladen.");
+        LinearLayout.LayoutParams summaryParams = new LinearLayout.LayoutParams(-1, -2);
+        summaryParams.topMargin = dp(8);
+        panel.addView(largeTextSummaryView, summaryParams);
+    }
+
+    private Button largeTextButton(String label) {
+        Button button = new Button(this);
+        button.setText(label);
+        button.setAllCaps(false);
+        button.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16f);
+        button.setTextColor(Color.rgb(255, 247, 232));
+        button.setMinHeight(dp(52));
+        button.setPadding(dp(14), dp(8), dp(14), dp(8));
+        GradientDrawable background = new GradientDrawable();
+        background.setColor(Color.rgb(6, 63, 68));
+        background.setCornerRadius(dp(12));
+        background.setStroke(dp(1), Color.rgb(20, 145, 137));
+        button.setBackground(background);
+        return button;
+    }
+
+    private void refreshLargeTextDashboard() {
+        if (!nativeLargeTextMode || dashboard == null) return;
+        String summary = dashboard.largeTextPageSummary();
+        String displayedSummary = summary == null || summary.isEmpty()
+                ? "Akkuinformationen werden geladen." : summary;
+        if (!displayedSummary.contentEquals(largeTextSummaryView.getText())) {
+            largeTextSummaryView.setText(displayedSummary);
+        }
+        int page = dashboard.largeTextPage();
+        for (int index = 0; index < largeTextTabs.length; index++) {
+            boolean selected = index == page;
+            if (selected != largeTextTabs[index].isSelected()) {
+                largeTextTabs[index].setSelected(selected);
+                largeTextTabs[index].setTextColor(selected
+                        ? Color.rgb(5, 35, 38) : Color.rgb(255, 247, 232));
+                GradientDrawable tabBackground = new GradientDrawable();
+                tabBackground.setColor(selected ? Color.rgb(48, 205, 188) : Color.rgb(6, 63, 68));
+                tabBackground.setCornerRadius(dp(12));
+                tabBackground.setStroke(dp(1), selected
+                        ? Color.rgb(115, 228, 216) : Color.rgb(20, 145, 137));
+                largeTextTabs[index].setBackground(tabBackground);
+            }
+        }
+        String actionsSignature = dashboard.largeTextControlsSignature();
+        if (page != largeTextRenderedPage || !actionsSignature.equals(largeTextRenderedActions)) {
+            rebuildLargeTextActions(page);
+            largeTextRenderedPage = page;
+            largeTextRenderedActions = actionsSignature;
+        }
+    }
+
+    private void rebuildLargeTextActions(int page) {
+        largeTextActions.removeAllViews();
+        TextView heading = new TextView(this);
+        heading.setText("Aktionen");
+        heading.setTextColor(Color.rgb(184, 226, 219));
+        heading.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16f);
+        heading.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        largeTextActions.addView(heading, new LinearLayout.LayoutParams(-1, -2));
+
+        if (page == 0) {
+            addLargeTextAction(dashboard.isLargeTextBenchmarkActive()
+                    ? "Kapazitätsmessung stoppen" : "Kapazität messen",
+                    dashboard::toggleBenchmarkFromLargeText);
+            addLargeTextAction(dashboard.largeTextControlLabel(BatteryAccessibilityLayout.OVERVIEW_7D),
+                    () -> dashboard.performLargeTextControl(BatteryAccessibilityLayout.OVERVIEW_7D));
+            addLargeTextAction(dashboard.largeTextControlLabel(BatteryAccessibilityLayout.OVERVIEW_30D),
+                    () -> dashboard.performLargeTextControl(BatteryAccessibilityLayout.OVERVIEW_30D));
+        } else if (page == 1) {
+            addLargeTextAction(dashboard.largeTextAlarmLabel(),
+                    () -> dashboard.performLargeTextControl(BatteryAccessibilityLayout.CHARGE_ALARM));
+            addLargeTextAction(dashboard.largeTextOverlayLabel(),
+                    () -> dashboard.performLargeTextControl(BatteryAccessibilityLayout.CHARGE_OVERLAY));
+            addLargeTextChargeLimit();
+        } else if (page == 2) {
+            addLargeTextAction("Akkuverbrauch pro App anzeigen",
+                    () -> dashboard.performLargeTextControl(BatteryAccessibilityLayout.DISCHARGE_USAGE));
+        } else if (page == 3) {
+            addLargeTextAction(dashboard.isLargeTextBenchmarkActive()
+                    ? "Kapazitätsmessung stoppen" : "Kapazität messen",
+                    () -> dashboard.performLargeTextControl(BatteryAccessibilityLayout.HEALTH_BENCHMARK));
+            addLargeTextAction("Nennkapazität bearbeiten",
+                    () -> dashboard.performLargeTextControl(BatteryAccessibilityLayout.HEALTH_CAPACITY));
+        } else {
+            addLargeTextAction("Täglichen Verlauf anzeigen",
+                    () -> dashboard.performLargeTextControl(BatteryAccessibilityLayout.HISTORY_DAY));
+            addLargeTextAction("Wöchentlichen Verlauf anzeigen",
+                    () -> dashboard.performLargeTextControl(BatteryAccessibilityLayout.HISTORY_WEEK));
+            addLargeTextAction("Monatlichen Verlauf anzeigen",
+                    () -> dashboard.performLargeTextControl(BatteryAccessibilityLayout.HISTORY_MONTH));
+            addLargeTextAction("Verlauf als CSV exportieren",
+                    () -> dashboard.performLargeTextControl(BatteryAccessibilityLayout.HISTORY_EXPORT));
+        }
+    }
+
+    private void addLargeTextAction(String label, Runnable action) {
+        Button button = largeTextButton(label);
+        button.setOnClickListener(view -> action.run());
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
+        params.topMargin = dp(8);
+        largeTextActions.addView(button, params);
+    }
+
+    private void addLargeTextChargeLimit() {
+        TextView label = new TextView(this);
+        label.setText("Ladeziel: " + dashboard.largeTextChargeLimit() + " Prozent");
+        label.setTextColor(Color.rgb(255, 247, 232));
+        label.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16f);
+        LinearLayout.LayoutParams labelParams = new LinearLayout.LayoutParams(-1, -2);
+        labelParams.topMargin = dp(10);
+        largeTextActions.addView(label, labelParams);
+        SeekBar seekBar = new SeekBar(this);
+        seekBar.setMax(50);
+        seekBar.setProgress(dashboard.largeTextChargeLimit() - 50);
+        seekBar.setContentDescription("Ladeziel zwischen 50 und 100 Prozent");
+        largeTextActions.addView(seekBar, new LinearLayout.LayoutParams(-1, -2));
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(SeekBar view, int progress, boolean fromUser) {
+                int limit = 50 + progress;
+                label.setText("Ladeziel: " + limit + " Prozent");
+                if (fromUser) dashboard.setChargeLimitFromLargeText(limit);
+            }
+
+            @Override public void onStartTrackingTouch(SeekBar view) { }
+            @Override public void onStopTrackingTouch(SeekBar view) { }
+        });
     }
 
     @Override protected void onResume() {
@@ -762,6 +996,9 @@ class BatteryDashboard extends View {
     private int historyDays = 7;
     private int historyPeriodDays = 1;
     private int page = 0;
+    private boolean largeTextMode;
+    private String largeTextPageSummary = "";
+    private Runnable largeTextSummaryListener;
     private long lastTouch;
     private float touchDownY;
     private float lastTouchY;
@@ -2778,10 +3015,20 @@ class BatteryDashboard extends View {
     private float contentInset(float viewWidth) { return Math.max(0f, (viewWidth - contentWidth(viewWidth)) / 2f); }
 
     private float visibleViewportHeight() {
-        android.view.ViewParent parent = getParent();
-        if (parent instanceof ScrollView && ((View) parent).getHeight() > 0) return ((View) parent).getHeight() / density;
+        ScrollView scroll = parentScrollView();
+        if (scroll != null && scroll.getHeight() > 0) return scroll.getHeight() / density;
         if (viewportHeightDp > 0f) return viewportHeightDp;
         return getHeight() / density;
+    }
+
+    private ScrollView parentScrollView() {
+        ViewParent parent = getParent();
+        while (parent != null) {
+            if (parent instanceof ScrollView) return (ScrollView) parent;
+            if (!(parent instanceof View)) return null;
+            parent = ((View) parent).getParent();
+        }
+        return null;
     }
 
     @Override protected void onDraw(Canvas c) {
@@ -5194,7 +5441,8 @@ class BatteryDashboard extends View {
                 .setPositiveButton(charge ? "Laden öffnen" : "Entladen öffnen", (dialog, which) -> {
                     selectPage(charge ? 1 : 2);
                     updateLayoutHeight();
-                    if (getParent() instanceof ScrollView) ((ScrollView) getParent()).smoothScrollTo(0, 0);
+                    ScrollView scroll = parentScrollView();
+                    if (scroll != null) scroll.smoothScrollTo(0, 0);
                     invalidate();
                 })
                 .show();
@@ -5663,10 +5911,17 @@ class BatteryDashboard extends View {
     private String pageName() { return page == 1 ? "Laden" : page == 2 ? "Entladen" : page == 3 ? "Akkugesundheit" : page == 4 ? "Verlauf" : "Übersicht"; }
 
     private void selectPage(int selectedPage) {
-        int normalizedPage = Math.max(0, Math.min(4, selectedPage));
+        int normalizedPage = BatteryPageState.normalize(selectedPage);
         if (page == normalizedPage) return;
         page = normalizedPage;
         AnalyticsTracker.logSection(getContext(), page);
+    }
+
+    void restorePageFromState(int savedPage) {
+        page = BatteryPageState.normalize(savedPage);
+        updateLayoutHeight();
+        updateAccessibilitySummary();
+        invalidate();
     }
 
     private String levelDisplay() { return percentDisplay(level); }
@@ -5690,16 +5945,22 @@ class BatteryDashboard extends View {
         String liveDetails = "";
         AccessibilityManager manager = (AccessibilityManager)
                 getContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
-        if (manager != null && manager.isEnabled()) {
+        if ((manager != null && manager.isEnabled()) || largeTextMode) {
             if (page == 0) {
                 liveDetails = BatteryAccessibilitySummary.overview(charging, runtimeEstimate(),
                         runtimeEstimateSource(), liveCurrentDisplay(),
                         temperature > 0f ? temperatureDisplay() + " Grad Celsius" : "—",
                         voltage > 0f ? voltageDisplay() + " Volt" : "—");
             } else if (page == 2) {
-                // Each forecast has its own virtual accessibility node below;
-                // don't repeat all three in the page's host description.
-                liveDetails = "";
+                if (largeTextMode) {
+                    liveDetails = BatteryAccessibilitySummary.discharge(
+                            dischargeRuntime(true), dischargeRuntimeSource(true),
+                            dischargeRuntime(false), dischargeRuntimeSource(false),
+                            runtimeEstimate(), runtimeEstimateSource());
+                } else {
+                    // Each forecast has its own virtual accessibility node below.
+                    liveDetails = "";
+                }
             } else if (page == 1) {
                 String remaining = charging
                         ? (chargeLimit >= 100 ? timeToFull() : timeToLimit()) : "—";
@@ -5731,14 +5992,70 @@ class BatteryDashboard extends View {
                 ? " Kapazitätsniveau " + BatteryCapacityLevel.label(capacityLevel) + "." : "";
         String chargingProfile = charging && BatteryChargingState.isSpecial(chargingStatus)
                 ? " Ladeprofil " + BatteryChargingState.label(chargingStatus) + "." : "";
-        setContentDescription(pageName() + ". " + state + ". Akkustand "
+        largeTextPageSummary = pageName() + ". " + state + ". Akkustand "
                 + (level >= 0 ? level + " Prozent" : "nicht verfügbar") + ". "
                 + "Akkugesundheit " + (health > 0 ? health + " Prozent" : "nicht gemessen") + ". "
                 + "Android-Zustand " + BatteryPlatformHealth.label(platformHealth) + "." + capacity
                 + chargingProfile
-                + (liveDetails.isEmpty() ? "" : " " + liveDetails + ".")
-                + " Tabs: Übersicht, Laden, Entladen, Gesundheit, Verlauf. Aktiver Tab: " + pageName() + ".");
+                + (liveDetails.isEmpty() ? "" : " " + liveDetails + ".");
+        setContentDescription(largeTextMode
+                ? "Grafische " + pageName() + "-Ansicht. Die Werte stehen oben in der Großschrift-Ansicht."
+                : largeTextPageSummary + " Tabs: Übersicht, Laden, Entladen, Gesundheit, Verlauf. Aktiver Tab: " + pageName() + ".");
         sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED);
+        if (largeTextSummaryListener != null) largeTextSummaryListener.run();
+    }
+
+    void setLargeTextMode(boolean enabled) {
+        largeTextMode = enabled;
+        updateAccessibilitySummary();
+    }
+
+    void setLargeTextSummaryListener(Runnable listener) {
+        largeTextSummaryListener = listener;
+        if (largeTextSummaryListener != null) largeTextSummaryListener.run();
+    }
+
+    String largeTextPageSummary() { return largeTextPageSummary; }
+
+    int largeTextPage() { return page; }
+
+    String largeTextControlsSignature() {
+        return page + ":" + chargeAlarm + ":" + overlayEnabled + ":" + benchmarkActive
+                + ":" + historyDays + ":" + historyPeriodDays;
+    }
+
+    String largeTextAlarmLabel() {
+        return chargeAlarm ? "Ladealarm ausschalten · derzeit aktiv"
+                : "Ladealarm einschalten · derzeit aus";
+    }
+
+    String largeTextOverlayLabel() {
+        return overlayEnabled ? "Live-Anzeige ausschalten · derzeit aktiv"
+                : "Live-Anzeige einschalten · derzeit aus";
+    }
+
+    String largeTextControlLabel(int virtualViewId) {
+        return BatteryAccessibilityLayout.label(virtualViewId, historyDays == 30,
+                chargeAlarm, overlayEnabled, benchmarkActive, chargeLimit);
+    }
+
+    boolean isLargeTextBenchmarkActive() { return benchmarkActive; }
+
+    int largeTextChargeLimit() { return chargeLimit; }
+
+    void setChargeLimitFromLargeText(int value) { setChargeLimitFromAccessibility(value); }
+
+    void performLargeTextControl(int virtualViewId) { performVirtualClick(virtualViewId); }
+
+    void toggleBenchmarkFromLargeText() { toggleBenchmark(); }
+
+    void showSettingsFromLargeText() { showSettings(); }
+
+    void selectPageFromLargeText(int selectedPage) {
+        selectPage(selectedPage);
+        updateAccessibilitySummary();
+        updateLayoutHeight();
+        invalidate();
     }
 
     private boolean isVisibleVirtualView(int virtualViewId) {
@@ -6201,9 +6518,8 @@ class BatteryDashboard extends View {
                 invalidate();
             }
             if (touchDragged && getParent() != null) getParent().requestDisallowInterceptTouchEvent(true);
-            if (touchDragged && getParent() instanceof ScrollView) {
-                ((ScrollView) getParent()).scrollBy(0, Math.round(delta));
-            }
+            ScrollView scroll = parentScrollView();
+            if (touchDragged && scroll != null) scroll.scrollBy(0, Math.round(delta));
             lastTouchY = currentY;
             return true;
         }

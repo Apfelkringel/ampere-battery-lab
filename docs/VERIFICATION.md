@@ -2,6 +2,16 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.397` switches to a native, scalable, reflowable dashboard when the
+system font scale is at least 1.25; the normal-size illustrated Canvas UI is
+unchanged. On a 320×640 API-36 emulator at 200% font scale, the title and
+summary wrapped, the navigation remained horizontally scrollable, and daily
+and weekly history actions were visible and tappable; the remaining history
+actions are reachable by vertical scrolling. Changing the font scale back to
+100% recreated the activity and restored the selected History tab. Direct and
+Play each pass 199 unit tests (0 failures); both lint tasks and debug APK
+builds pass. Signed release and public artifact verification follow below.
+
 Version `0.396` exposes every daily, weekly, and monthly balance-chart bucket
 as its own focusable, clickable accessibility item. Each item announces its
 period and actual charge, consumption, wear, and ratio values; periods without

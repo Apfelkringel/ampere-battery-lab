@@ -1,0 +1,1 @@
+Die App passt sich jetzt besser an große und vergrößerte Systemschrift an: Inhalte umbrechen, bleiben scrollbar und wichtige Aktionen erreichbar. Der ausgewählte Bereich bleibt auch nach einer Android-Neuerstellung der App erhalten.
