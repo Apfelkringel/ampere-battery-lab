@@ -2,6 +2,22 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.395` makes the Akku-Bilanz's normalized bars interpretable at a glance:
+the legend gives each series its actual maximum and unit, with charge and
+consumption scaled independently. Missing readings remain `—`, and tapping a
+bar still opens its exact values. On a 320-dp API-36 emulator, the daily and
+monthly charts were visually checked and the monthly period showed six calendar
+months with the correct per-series scale. Direct and Play each pass 191 unit
+tests; both lint tasks and both debug APK builds pass locally. Release workflow
+`35159724591` succeeded and GitHub verifies the SSH-signed `v0.395` tag. The
+public update repository was updated in commit `0def856`; the APK and AAB
+SHA-256 values are `c3d6e33975db1e6da4a0eeb7b2f407133742e4214bb80404c737aa1e752f9e32`
+and `941244e3034c1065a3b9a7f761249cc3b0685d2b06964228cb492f0ce5451cab`.
+Live public downloads match `latest.json`. The APK reports package
+`com.ampere.batterylab`, version `0.395` (versionCode 395), and the expected
+signing certificate. Google Play upload workflow `35160194493` completed on
+the alpha testing track.
+
 Version `0.394` fixes the permission checklist: its three actionable access
 rows now appear together with a concise explanation, show the current Android
 grant state, and remain first in the scrollable dialog so they are reachable
