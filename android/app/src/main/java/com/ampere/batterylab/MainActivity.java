@@ -825,7 +825,7 @@ class BatteryDashboard extends View {
         int contentDp;
         if (editorialPortrait) {
             if (page == 1) contentDp = 1810;
-            else if (page == 2) contentDp = 1900;
+            else if (page == 2) contentDp = 1964;
             else if (page == 3) contentDp = 1700;
             else if (page == 4) contentDp = Math.max(1400,
                     1050 + Math.round(rowCount * historyRowHeight()));
@@ -3329,6 +3329,17 @@ class BatteryDashboard extends View {
         boundedText(c, caption, l + 14, r - 12, t + 105, 9.2f, muted, false);
     }
 
+    private void drawRuntimeForecastRow(Canvas c, float left, float right, float top,
+                                        String label, String value, String source,
+                                        int valueColor, int labelColor) {
+        float valueLeft = Math.max(left + 112f, right - 82f);
+        boundedText(c, label, left, valueLeft - 8f, top, 9.5f, labelColor, true);
+        boundedRightText(c, value, valueLeft, right, top, 12f, valueColor, true);
+        boundedText(c, source, left, right, top + 17f, 9.2f, labelColor, false);
+        if (top < 500f) line(c, left, top + 25f, right, top + 25f,
+                Color.rgb(24, 118, 119), .7f);
+    }
+
     private void drawFriendlyToggleRow(Canvas c, float l, float t, float r, float b,
                                        String label, String caption, boolean enabled, boolean pressed,
                                        int primary, int muted) {
@@ -3591,7 +3602,7 @@ class BatteryDashboard extends View {
         int savedEnd = lastDischargeEndLevel();
         boolean hasHistory = savedEnd >= 0;
         int displayLevel = charging ? (savedEnd >= 0 ? savedEnd : level) : level;
-        drawEditorialSurface(c, 18, y, w - 18, y + 290, deep, Color.rgb(11, 143, 138), blue);
+        drawEditorialSurface(c, 18, y, w - 18, y + 354, deep, Color.rgb(11, 143, 138), blue);
         text(c, "UNTERWEGS MIT AKKU", 36, y + 29, 9f, blue, true);
         if (hasHistory || !charging) {
             displayText(c, "Dein Tagesrhythmus.", 36, y + 58, 18, cream);
@@ -3608,60 +3619,55 @@ class BatteryDashboard extends View {
                 36, w - 126, y + 169, 8.8f, Color.rgb(184, 226, 219), false);
         drawEditorialBattery(c, w - 79, y + 121,
                 displayLevel < 0 ? 62 : displayLevel, false, cream, blue, deep);
-        rounded(c, 36, y + 187, w - 36, y + 290, 20, Color.rgb(7, 86, 90));
+        rounded(c, 36, y + 187, w - 36, y + 354, 20, Color.rgb(7, 86, 90));
         text(c, "GESCHÄTZTE RESTLAUFZEIT BIS 0 %", 51, y + 209, 9f, Color.rgb(184, 226, 219), true);
-        float modeWidth = (w - 126f) / 3f;
-        float modeOne = 51f;
-        float modeTwo = modeOne + modeWidth + 12f;
-        float modeThree = modeTwo + modeWidth + 12f;
-        text(c, "DAUERHAFT AN", modeOne, y + 232, 7.5f, Color.rgb(184, 226, 219), true);
-        text(c, "AUS", modeTwo, y + 232, 7.5f, Color.rgb(184, 226, 219), true);
-        text(c, "NORMAL", modeThree, y + 232, 7.5f, Color.rgb(184, 226, 219), true);
-        boundedText(c, dischargeRuntime(true), modeOne, modeOne + modeWidth, y + 255, 11, cream, true);
-        boundedText(c, dischargeRuntime(false), modeTwo, modeTwo + modeWidth, y + 255, 11, cream, true);
-        boundedText(c, runtimeEstimate(), modeThree, modeThree + modeWidth, y + 255, 11, cream, true);
-        boundedText(c, dischargeRuntimeSource(true), modeOne, modeOne + modeWidth, y + 277, 7.7f,
-                Color.rgb(184, 226, 219), false);
-        boundedText(c, dischargeRuntimeSource(false), modeTwo, modeTwo + modeWidth, y + 277, 7.7f,
-                Color.rgb(184, 226, 219), false);
-        boundedText(c, runtimeEstimateSource(), modeThree, modeThree + modeWidth, y + 277, 7.7f,
-                Color.rgb(184, 226, 219), false);
+        int forecastLabel = Color.rgb(184, 226, 219);
+        float forecastLeft = 51f;
+        float forecastRight = w - 51f;
+        drawRuntimeForecastRow(c, forecastLeft, forecastRight, y + 232,
+                "Bildschirm an", dischargeRuntime(true), dischargeRuntimeSource(true),
+                cream, forecastLabel);
+        drawRuntimeForecastRow(c, forecastLeft, forecastRight, y + 272,
+                "Bildschirm aus", dischargeRuntime(false), dischargeRuntimeSource(false),
+                cream, forecastLabel);
+        drawRuntimeForecastRow(c, forecastLeft, forecastRight, y + 312,
+                "Normale Nutzung", runtimeEstimate(), runtimeEstimateSource(), cream, forecastLabel);
 
         float cardW = (w - 48) / 2f;
-        drawFriendlyMetric(c, 18, y + 306, 18 + cardW, y + 418,
+        drawFriendlyMetric(c, 18, y + 370, 18 + cardW, y + 482,
                 "Bildschirm", dischargeDurationCompact(true), "aktive Nutzung", "clock",
                 panel, border, primary, muted);
-        drawFriendlyMetric(c, 30 + cardW, y + 306, w - 18, y + 418,
+        drawFriendlyMetric(c, 30 + cardW, y + 370, w - 18, y + 482,
                 "Verbrauch", dischargeMah() > 0 ? dischargeMah() + " mAh" : "Keine Daten",
                 "seit dem Abstecken", "arrow", panel, border, primary, muted);
 
-        drawEditorialSurface(c, 18, y + 434, w - 18, y + 540, panel, border, lime);
-        text(c, "DEIN AKKU-MUSTER", 36, y + 462, 9f, muted, true);
-        displayText(c, deepSleepPercent(), 36, y + 494, 19, primary);
-        text(c, "Tiefschlaf · " + deepSleepTime(), 36, y + 514, 9, muted, false);
-        text(c, "Ø Entladerate", w * .58f, y + 476, 9, muted, false);
-        boundedText(c, averageDischargeRateDisplay(), w * .58f, w - 36, y + 501, 13, primary, true);
+        drawEditorialSurface(c, 18, y + 498, w - 18, y + 604, panel, border, lime);
+        text(c, "DEIN AKKU-MUSTER", 36, y + 526, 9f, muted, true);
+        displayText(c, deepSleepPercent(), 36, y + 558, 19, primary);
+        text(c, "Tiefschlaf · " + deepSleepTime(), 36, y + 578, 9, muted, false);
+        text(c, "Ø Entladerate", w * .58f, y + 540, 9, muted, false);
+        boundedText(c, averageDischargeRateDisplay(), w * .58f, w - 36, y + 565, 13, primary, true);
 
         // This complete card remains one accessible tap target for the
         // optional Android usage permission/details action.
-        drawEditorialSurface(c, 18, y + 560, w - 18, y + 735, panel, border, lime);
-        rounded(c, 36, y + 579, 73, y + 616, 15,
+        drawEditorialSurface(c, 18, y + 624, w - 18, y + 799, panel, border, lime);
+        rounded(c, 36, y + 643, 73, y + 680, 15,
                 Color.argb(42, Color.red(lime), Color.green(lime), Color.blue(lime)));
-        drawGrid(c, 54.5f, y + 597.5f, lime);
-        displayText(c, "Was braucht heute Strom?", 36, y + 651, 17, primary);
+        drawGrid(c, 54.5f, y + 661.5f, lime);
+        displayText(c, "Was braucht heute Strom?", 36, y + 715, 17, primary);
         if (hasUsageAccess()) {
-            text(c, "Tippe für deine Verbrauchsdetails", 36, y + 677, 9, muted, false);
-            text(c, "Nur lokal aus Android-Daten berechnet", 36, y + 697, 9, faint, false);
+            text(c, "Tippe für deine Verbrauchsdetails", 36, y + 741, 9, muted, false);
+            text(c, "Nur lokal aus Android-Daten berechnet", 36, y + 761, 9, faint, false);
         } else {
-            text(c, "Aktiviere optional den Nutzungszugriff,", 36, y + 677, 9, muted, false);
-            text(c, "damit Ampere Stromfresser sichtbar macht.", 36, y + 695, 9, muted, false);
+            text(c, "Aktiviere optional den Nutzungszugriff,", 36, y + 741, 9, muted, false);
+            text(c, "damit Ampere Stromfresser sichtbar macht.", 36, y + 759, 9, muted, false);
         }
-        rounded(c, 36, y + 708, w - 36, y + 725, 9, Color.argb(35, Color.red(lime), Color.green(lime), Color.blue(lime)));
+        rounded(c, 36, y + 772, w - 36, y + 789, 9, Color.argb(35, Color.red(lime), Color.green(lime), Color.blue(lime)));
         text(c, hasUsageAccess() ? "APP-DETAILS ÖFFNEN" : "ANDROID-ZUGRIFF ÖFFNEN",
-                46, y + 720, 8.5f, lime, true);
+                46, y + 784, 8.5f, lime, true);
 
         BatteryTelemetryDiagnostics.Summary diagnostics = telemetryDiagnostics();
-        float liveTop = y + 754;
+        float liveTop = y + 818;
         drawTechnicalPanel(c, 18, liveTop, w - 18, liveTop + 356,
                 "LIVE & SITZUNG", "Verbrauch seit dem Abstecken", panel, border, primary, muted);
         float row = liveTop + 66;
@@ -5637,9 +5643,9 @@ class BatteryDashboard extends View {
                         temperature > 0f ? temperatureDisplay() + " Grad Celsius" : "—",
                         voltage > 0f ? voltageDisplay() + " Volt" : "—");
             } else if (page == 2) {
-                liveDetails = BatteryAccessibilitySummary.discharge(dischargeRuntime(true),
-                        dischargeRuntimeSource(true), dischargeRuntime(false),
-                        dischargeRuntimeSource(false), runtimeEstimate(), runtimeEstimateSource());
+                // Each forecast has its own virtual accessibility node below;
+                // don't repeat all three in the page's host description.
+                liveDetails = "";
             } else if (page == 1) {
                 String remaining = charging
                         ? (chargeLimit >= 100 ? timeToFull() : timeToLimit()) : "—";
@@ -5691,6 +5697,18 @@ class BatteryDashboard extends View {
     private String virtualViewLabel(int virtualViewId) {
         if (virtualViewId == BatteryHeaderLayout.OVERFLOW) return "Einstellungen";
         if (virtualViewId == BatteryHeaderLayout.LIVE_REFRESH) return "Live-Daten aktualisieren";
+        if (virtualViewId == BatteryAccessibilityLayout.DISCHARGE_SCREEN_ON) {
+            return BatteryAccessibilitySummary.dischargeEstimate("Bildschirm dauerhaft an",
+                    dischargeRuntime(true), dischargeRuntimeSource(true));
+        }
+        if (virtualViewId == BatteryAccessibilityLayout.DISCHARGE_SCREEN_OFF) {
+            return BatteryAccessibilitySummary.dischargeEstimate("Bildschirm aus",
+                    dischargeRuntime(false), dischargeRuntimeSource(false));
+        }
+        if (virtualViewId == BatteryAccessibilityLayout.DISCHARGE_NORMAL) {
+            return BatteryAccessibilitySummary.dischargeEstimate("Normale Nutzung",
+                    runtimeEstimate(), runtimeEstimateSource());
+        }
         if (BatteryAccessibilityLayout.isVisible(virtualViewId, page)) {
             return BatteryAccessibilityLayout.label(virtualViewId, historyDays == 30,
                     chargeAlarm, overlayEnabled, benchmarkActive, chargeLimit);
@@ -5712,6 +5730,14 @@ class BatteryDashboard extends View {
         if (virtualViewId == BatteryHeaderLayout.LIVE_REFRESH) {
             return new Rect(Math.round((w - 80f) * density), Math.round(12f * density),
                     Math.round((w - 16f) * density), Math.round(60f * density));
+        }
+        if (BatteryAccessibilityLayout.isDischargeEstimate(virtualViewId)) {
+            float bodyWidth = contentWidth(w);
+            float bodyInset = contentInset(w);
+            int[] bounds = BatteryAccessibilityLayout.bounds(virtualViewId, bodyInset, bodyWidth,
+                    overviewChartTop(), historyExportTop(), usesEditorialPortrait(w));
+            return new Rect(Math.round(bounds[0] * density), Math.round(bounds[1] * density),
+                    Math.round(bounds[2] * density), Math.round(bounds[3] * density));
         }
         if (BatteryAccessibilityLayout.isVisible(virtualViewId, page)) {
             float bodyWidth = contentWidth(w);
@@ -5842,8 +5868,10 @@ class BatteryDashboard extends View {
             boolean toggle = virtualViewId == BatteryAccessibilityLayout.CHARGE_ALARM
                     || virtualViewId == BatteryAccessibilityLayout.CHARGE_OVERLAY;
             boolean chargeSlider = virtualViewId == BatteryAccessibilityLayout.CHARGE_LIMIT;
+            boolean readOnlyForecast = BatteryAccessibilityLayout.isDischargeEstimate(virtualViewId);
             node.setClassName(toggle ? "android.widget.Switch"
-                    : (chargeSlider ? "android.widget.SeekBar" : "android.widget.Button"));
+                    : (chargeSlider ? "android.widget.SeekBar"
+                    : (readOnlyForecast ? "android.widget.TextView" : "android.widget.Button")));
             node.setText(label);
             node.setContentDescription(label);
             node.setParent(BatteryDashboard.this);
@@ -5864,7 +5892,7 @@ class BatteryDashboard extends View {
             node.setVisibleToUser(visibleToUser);
             node.setEnabled(isEnabled());
             node.setFocusable(true);
-            node.setClickable(true);
+            node.setClickable(!readOnlyForecast);
             node.setSelected((virtualViewId >= 10 && virtualViewId - 10 == page)
                     || (virtualViewId == BatteryAccessibilityLayout.OVERVIEW_7D && historyDays == 7)
                     || (virtualViewId == BatteryAccessibilityLayout.OVERVIEW_30D && historyDays == 30)
@@ -5882,7 +5910,7 @@ class BatteryDashboard extends View {
                     node.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SET_PROGRESS);
                 }
                 node.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SHOW_ON_SCREEN);
-            } else {
+            } else if (!readOnlyForecast) {
                 node.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK);
             }
             node.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_ACCESSIBILITY_FOCUS);
@@ -5923,6 +5951,7 @@ class BatteryDashboard extends View {
                 sendVirtualAccessibilityEvent(virtualViewId, AccessibilityEvent.TYPE_VIEW_SELECTED);
                 return true;
             }
+            if (BatteryAccessibilityLayout.isDischargeEstimate(virtualViewId)) return false;
             if (action != AccessibilityNodeInfo.ACTION_CLICK) return false;
             performVirtualClick(virtualViewId);
             sendVirtualAccessibilityEvent(virtualViewId, AccessibilityEvent.TYPE_VIEW_CLICKED);
@@ -5934,7 +5963,7 @@ class BatteryDashboard extends View {
             ArrayList<AccessibilityNodeInfo> result = new ArrayList<>();
             if (searched == null) return result;
             String query = searched.toLowerCase(Locale.GERMANY);
-            for (int id = 1; id <= BatteryAccessibilityLayout.HISTORY_VALUES; id++) {
+            for (int id = 1; id <= BatteryAccessibilityLayout.DISCHARGE_NORMAL; id++) {
                 if (!isVisibleVirtualView(id)) continue;
                 String label = virtualViewLabel(id);
                 if (label.toLowerCase(Locale.GERMANY).contains(query)) {
@@ -5949,7 +5978,8 @@ class BatteryDashboard extends View {
     private void sendVirtualAccessibilityEvent(int virtualViewId, int eventType) {
         AccessibilityEvent event = AccessibilityEvent.obtain(eventType);
         event.setPackageName(getContext().getPackageName());
-        event.setClassName("android.widget.Button");
+        event.setClassName(BatteryAccessibilityLayout.isDischargeEstimate(virtualViewId)
+                ? "android.widget.TextView" : "android.widget.Button");
         event.getText().add(virtualViewLabel(virtualViewId));
         event.setSource(this, virtualViewId);
         ViewParent parent = getParent();

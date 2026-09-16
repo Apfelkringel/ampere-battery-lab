@@ -15,6 +15,13 @@ final class BatteryAccessibilityLayout {
     static final int HISTORY_WEEK = 60;
     static final int HISTORY_MONTH = 61;
     static final int HISTORY_VALUES = 62;
+    static final int DISCHARGE_SCREEN_ON = 63;
+    static final int DISCHARGE_SCREEN_OFF = 64;
+    static final int DISCHARGE_NORMAL = 65;
+
+    static boolean isDischargeEstimate(int virtualViewId) {
+        return virtualViewId >= DISCHARGE_SCREEN_ON && virtualViewId <= DISCHARGE_NORMAL;
+    }
 
     private BatteryAccessibilityLayout() { }
 
@@ -22,7 +29,7 @@ final class BatteryAccessibilityLayout {
         if (page == 0) return virtualViewId == OVERVIEW_7D || virtualViewId == OVERVIEW_30D;
         if (page == 1) return virtualViewId == CHARGE_ALARM || virtualViewId == CHARGE_OVERLAY
                 || virtualViewId == CHARGE_LIMIT;
-        if (page == 2) return virtualViewId == DISCHARGE_USAGE;
+        if (page == 2) return virtualViewId == DISCHARGE_USAGE || isDischargeEstimate(virtualViewId);
         if (page == 3) return virtualViewId == HEALTH_BENCHMARK || virtualViewId == HEALTH_CAPACITY;
         if (page == 4) return virtualViewId == HISTORY_EXPORT
                 || virtualViewId == HISTORY_DAY || virtualViewId == HISTORY_WEEK
@@ -34,7 +41,8 @@ final class BatteryAccessibilityLayout {
         switch (page) {
             case 0: return new int[]{OVERVIEW_7D, OVERVIEW_30D};
             case 1: return new int[]{CHARGE_ALARM, CHARGE_OVERLAY, CHARGE_LIMIT};
-            case 2: return new int[]{DISCHARGE_USAGE};
+            case 2: return new int[]{DISCHARGE_SCREEN_ON, DISCHARGE_SCREEN_OFF,
+                    DISCHARGE_NORMAL, DISCHARGE_USAGE};
             case 3: return new int[]{HEALTH_BENCHMARK, HEALTH_CAPACITY};
             case 4: return new int[]{HISTORY_DAY, HISTORY_WEEK, HISTORY_MONTH, HISTORY_VALUES, HISTORY_EXPORT};
             default: return new int[0];
@@ -58,6 +66,9 @@ final class BatteryAccessibilityLayout {
             case HEALTH_BENCHMARK: return benchmarkActive ? "Kapazitätsmessung stoppen" : "Kapazität messen";
             case HEALTH_CAPACITY: return "Nennkapazität bearbeiten";
             case DISCHARGE_USAGE: return "Vordergrundverbrauch öffnen";
+            case DISCHARGE_SCREEN_ON: return "Restlaufzeit bei dauerhaft eingeschaltetem Bildschirm";
+            case DISCHARGE_SCREEN_OFF: return "Restlaufzeit bei ausgeschaltetem Bildschirm";
+            case DISCHARGE_NORMAL: return "Restlaufzeit bei normaler Nutzung";
             case HISTORY_EXPORT: return "CSV exportieren";
             case HISTORY_DAY: return "Verlauf täglich";
             case HISTORY_WEEK: return "Verlauf wöchentlich";
@@ -143,9 +154,17 @@ final class BatteryAccessibilityLayout {
                 break;
             case DISCHARGE_USAGE:
                 left = bodyInset + 18f;
-                top = editorialPortrait ? 742f : 722f;
+                top = editorialPortrait ? 806f : 722f;
                 right = bodyInset + bodyWidth - 18f;
-                bottom = editorialPortrait ? 917f : 897f;
+                bottom = editorialPortrait ? 981f : 897f;
+                break;
+            case DISCHARGE_SCREEN_ON:
+            case DISCHARGE_SCREEN_OFF:
+            case DISCHARGE_NORMAL:
+                left = bodyInset + 42f;
+                top = 182f + (virtualViewId - DISCHARGE_SCREEN_ON) * 40f + 214f;
+                right = bodyInset + bodyWidth - 42f;
+                bottom = top + 40f;
                 break;
             case HISTORY_EXPORT:
                 left = bodyInset + 36f;

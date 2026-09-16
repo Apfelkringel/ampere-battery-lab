@@ -21,11 +21,17 @@ final class BatteryAccessibilitySummary {
                             String screenOff, String screenOffSource,
                             String normal, String normalSource) {
         StringBuilder summary = new StringBuilder();
-        appendEstimate(summary, "Restlaufzeit bei dauerhaft eingeschaltetem Bildschirm",
+        appendDischargeEstimate(summary, "Restlaufzeit bei dauerhaft eingeschaltetem Bildschirm",
                 screenOn, screenOnSource);
-        appendEstimate(summary, "Restlaufzeit bei ausgeschaltetem Bildschirm",
+        appendDischargeEstimate(summary, "Restlaufzeit bei ausgeschaltetem Bildschirm",
                 screenOff, screenOffSource);
-        appendEstimate(summary, "Restlaufzeit bei normaler Nutzung", normal, normalSource);
+        appendDischargeEstimate(summary, "Restlaufzeit bei normaler Nutzung", normal, normalSource);
+        return summary.toString();
+    }
+
+    static String dischargeEstimate(String label, String value, String source) {
+        StringBuilder summary = new StringBuilder();
+        appendDischargeEstimate(summary, label, value, source);
         return summary.toString();
     }
 
@@ -115,6 +121,16 @@ final class BatteryAccessibilitySummary {
         append(summary, label, value);
         if (isAvailable(value) && !"Erreicht".equals(value) && !"Voll".equals(value)) {
             append(summary, "Datenquelle", source);
+        }
+    }
+
+    private static void appendDischargeEstimate(StringBuilder summary, String label,
+                                                String value, String source) {
+        append(summary, label, value);
+        if (isAvailable(value)) {
+            append(summary, "Datenquelle", source);
+        } else if (isAvailable(source)) {
+            append(summary, "Hinweis", source);
         }
     }
 

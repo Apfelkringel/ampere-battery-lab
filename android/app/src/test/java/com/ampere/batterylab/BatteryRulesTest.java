@@ -266,6 +266,37 @@ public class BatteryRulesTest {
         assertTrue(summary.contains("Datenquelle: Standby-Modell"));
     }
 
+    @Test public void unavailableDischargeForecastsGiveModeSpecificNextSteps() {
+        String screenOn = BatteryAccessibilitySummary.dischargeEstimate(
+                "Bildschirm dauerhaft an", "—", "Nach Entladung");
+        String screenOff = BatteryAccessibilitySummary.dischargeEstimate(
+                "Bildschirm aus", "—", "Nach Entladung");
+        String normal = BatteryAccessibilitySummary.dischargeEstimate(
+                "Normale Nutzung", "—", "Mehr Daten sammeln");
+        assertTrue(screenOn.contains("Bildschirm dauerhaft an: nicht verfügbar"));
+        assertTrue(screenOn.contains("Hinweis: Nach Entladung"));
+        assertTrue(screenOff.contains("Hinweis: Nach Entladung"));
+        assertTrue(normal.contains("Hinweis: Mehr Daten sammeln"));
+    }
+
+    @Test public void dischargeForecastModesAreSeparateReadableVirtualViews() {
+        int[] controls = BatteryAccessibilityLayout.pageControlsFor(2);
+        assertEquals(4, controls.length);
+        assertTrue(BatteryAccessibilityLayout.isVisible(
+                BatteryAccessibilityLayout.DISCHARGE_SCREEN_ON, 2));
+        assertTrue(BatteryAccessibilityLayout.isVisible(
+                BatteryAccessibilityLayout.DISCHARGE_SCREEN_OFF, 2));
+        assertTrue(BatteryAccessibilityLayout.isVisible(
+                BatteryAccessibilityLayout.DISCHARGE_NORMAL, 2));
+        assertTrue(BatteryAccessibilityLayout.isDischargeEstimate(
+                BatteryAccessibilityLayout.DISCHARGE_NORMAL));
+        int[] first = BatteryAccessibilityLayout.bounds(BatteryAccessibilityLayout.DISCHARGE_SCREEN_ON,
+                0, 360, 400, 1000, true);
+        int[] third = BatteryAccessibilityLayout.bounds(BatteryAccessibilityLayout.DISCHARGE_NORMAL,
+                0, 360, 400, 1000, true);
+        assertTrue(first[3] <= third[1]);
+    }
+
     @Test public void screenReaderChargingSummaryIncludesRateTargetAndSession() {
         String summary = BatteryAccessibilitySummary.charging(true, "Lädt schnell", "+1.200 mA",
                 "80 Prozent", "42 Min.", "Lokale 7-Tage-Schätzung", "1.000 mAh/h",
