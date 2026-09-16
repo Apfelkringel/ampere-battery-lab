@@ -110,4 +110,3 @@ jobs:
           releaseFiles: build/Ampere-Battery-Lab-play-release.aab
           track: ${{ inputs.track }}
           status: ${{ inputs.status }}
-          changesNotSentForReview: true
