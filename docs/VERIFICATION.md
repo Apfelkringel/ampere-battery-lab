@@ -2,7 +2,13 @@
 
 Last verified: 2026-09-16 (Europe/Berlin)
 
-Public version `0.383` was verified in the update repository manifest. The
+Version `0.385` improves the history balance chart legend: the four series now
+use a two-row layout with clearer labels (“Verschleiß · EFC” and “Ladequote”)
+so they remain readable on narrow phone screens. Direct and Play debug builds,
+their unit tests and lint checks all pass. Gradle was run with JDK 17; the
+system-default JDK 26 cannot process this Android SDK's `core-for-system-modules.jar`.
+
+Public version `0.384` was verified in the update repository manifest. The
 current `0.384` change makes the history ratio honest about its meaning, keeps a
 valid zero-percent value visible, and aligns the wide-screen period-button touch
 and accessibility targets. All 175 direct and 175 Play unit tests pass, along
@@ -12,6 +18,11 @@ check could not be completed: the existing AVD installation is signed with a
 different certificate, so replacing it would erase its local app data.
 
 ## Current development change
+
+Version `0.385` keeps all four history-chart series legible at compact widths by
+placing their color keys in two rows and replacing abbreviated “EFC” and
+“Lade/Verbrauch” legend text with “Verschleiß · EFC” and “Ladequote”. The plot
+retains its date labels and the individual per-series scaling note.
 
 Version `0.384` replaces the misleading history-chart label “Effizienz” with
 “Geladen/Verbrauch” and explains that this is the ratio of charged to consumed

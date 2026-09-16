@@ -1,0 +1,1 @@
+Die Akku-Bilanz im Verlauf ist jetzt auch auf schmalen Displays besser lesbar: Die vier Kennzahlen stehen in einer übersichtlichen, zweizeiligen Legende mit klareren Bezeichnungen.

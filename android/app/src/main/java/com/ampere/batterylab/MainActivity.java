@@ -4642,8 +4642,8 @@ class BatteryDashboard extends View {
         c.drawRoundRect(rect, u(16), u(16), p);
         text(c, "AKKU-BILANZ · " + historyChartRangeLabel(), 36, chartTop + 29, 9, muted, true);
         text(c, historyPeriodLabel(), 36, chartTop + 53, 16, primary, true);
-        drawHistoryLegend(c, 36, w - 36, chartTop + 76, muted);
-        drawHistoryBars(c, buckets, 36, chartTop + 100, w - 36, 128, primary, muted, faint);
+        drawHistoryLegend(c, 36, w - 36, chartTop + 80, muted);
+        drawHistoryBars(c, buckets, 36, chartTop + 116, w - 36, 112, primary, muted, faint);
         text(c, "Balkenhöhen je Kennzahl skaliert", 36, chartTop + 270, 8, faint, false);
 
         float insightTop = chartTop + 298;
@@ -4690,14 +4690,17 @@ class BatteryDashboard extends View {
     }
 
     private void drawHistoryLegend(Canvas c, float left, float right, float y, int muted) {
-        String[] labels = {"geladen", "Verbrauch", "EFC", "Lade/Verbrauch"};
+        String[] labels = {"Geladen", "Verbrauch", "Verschleiß · EFC", "Ladequote"};
         int[] colors = {historyChargedColor, historyConsumedColor, historyWearColor, secondaryTone};
-        float cellWidth = Math.max(1f, (right - left) / labels.length);
         for (int i = 0; i < labels.length; i++) {
-            float x = left + i * cellWidth;
-            rounded(c, x, y - 8, x + 8, y, 3, colors[i]);
-            boundedText(c, labels[i], x + 12, Math.min(right, x + cellWidth), y,
-                    7.5f, muted, false);
+            int column = i % 2;
+            int row = i / 2;
+            float cellWidth = (right - left) / 2f;
+            float x = left + column * cellWidth;
+            float rowY = y + row * 18f;
+            rounded(c, x, rowY - 9, x + 9, rowY, 3, colors[i]);
+            boundedText(c, labels[i], x + 14, Math.min(right, x + cellWidth - 4), rowY,
+                    9f, muted, false);
         }
     }
 
