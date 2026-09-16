@@ -1,0 +1,1 @@
+Die Verlaufsquote zeigt jetzt transparent das Verhältnis von geladener zu verbrauchter Energie statt eines irreführenden Wirkungsgrads. Ein echter Wert von 0 % bleibt sichtbar. Außerdem reagieren die Zeitbereich-Schaltflächen auf breiten Displays zuverlässiger und ihre Touch- und Screenreader-Ziele stimmen überein.

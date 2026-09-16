@@ -58,7 +58,7 @@ final class BatteryHistoryStats {
         for (Bucket bucket : result) {
             bucket.wearCycles = capacityMah > 0
                     ? bucket.consumedMah / (float) capacityMah : 0f;
-            bucket.efficiencyPercent = bucket.consumedMah > 0
+            bucket.chargeConsumptionRatioPercent = bucket.consumedMah > 0
                     ? Math.round(bucket.chargedMah * 100f / bucket.consumedMah) : 0;
         }
         return result;
@@ -117,7 +117,7 @@ final class BatteryHistoryStats {
             overall.consumedMah += bucket.consumedMah;
             overall.wearCycles += bucket.wearCycles;
         }
-        overall.efficiencyPercent = overall.consumedMah > 0
+        overall.chargeConsumptionRatioPercent = overall.consumedMah > 0
                 ? Math.round(overall.chargedMah * 100f / overall.consumedMah) : 0;
         return overall;
     }
@@ -149,7 +149,7 @@ final class BatteryHistoryStats {
         int chargedMah;
         int consumedMah;
         float wearCycles;
-        int efficiencyPercent;
+        int chargeConsumptionRatioPercent;
 
         Bucket(long start, String label) {
             this.start = start;
@@ -161,6 +161,6 @@ final class BatteryHistoryStats {
         int chargedMah;
         int consumedMah;
         float wearCycles;
-        int efficiencyPercent;
+        int chargeConsumptionRatioPercent;
     }
 }

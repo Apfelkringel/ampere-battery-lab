@@ -71,7 +71,7 @@ public class BatteryRulesTest {
                 .contains("anteilig nach Vordergrundzeit (Schätzung)"));
     }
 
-    @Test public void historyStatsAggregateChargeDrainWearAndEfficiencyByBucket() {
+    @Test public void historyStatsAggregateChargeDrainWearAndChargeConsumptionRatioByBucket() {
         long now = 8L * 60L * 60L * 1000L;
         ArrayList<String> rows = new ArrayList<>(Arrays.asList(
                 (now - 2L * 60L * 60L * 1000L) + ",50,1,1000,25.0,4.0,100,1,,0,1",
@@ -80,8 +80,24 @@ public class BatteryRulesTest {
         BatteryHistoryStats.Overall overall = BatteryHistoryStats.overall(buckets);
         assertEquals(1000, overall.chargedMah);
         assertEquals(500, overall.consumedMah);
-        assertEquals(200, overall.efficiencyPercent);
+        assertEquals(200, overall.chargeConsumptionRatioPercent);
         assertEquals(0.5f, overall.wearCycles, 0.001f);
+    }
+
+    @Test public void historyRatioKeepsZeroAsAValidMeasuredValue() {
+        long now = 8L * 60L * 60L * 1000L;
+        ArrayList<String> rows = new ArrayList<>(Arrays.asList(
+                (now - 60L * 60L * 1000L) + ",50,0,-500,25.0,4.0,100,1,,0,0"));
+        ArrayList<BatteryHistoryStats.Bucket> buckets =
+                BatteryHistoryStats.aggregateRows(rows, now, 1, 1000);
+        BatteryHistoryStats.Bucket today = buckets.get(buckets.size() - 1);
+        assertEquals(500, today.consumedMah);
+        assertEquals(0, today.chargeConsumptionRatioPercent);
+
+        String summary = BatteryAccessibilitySummary.history("Täglich", "Heute", today,
+                buckets, true);
+        assertTrue(summary.contains("Lade-/Verbrauchsquote (geladen geteilt durch verbraucht): 0 Prozent"));
+        assertTrue(summary.contains("keine gemessene Akku-Effizienz"));
     }
 
     @Test public void historyStatsSplitMeasurementEnergyAcrossBucketBoundaries() {
@@ -333,6 +349,35 @@ public class BatteryRulesTest {
                 BatteryAccessibilityLayout.HISTORY_DAY, 30));
     }
 
+    @Test public void historyPeriodTouchTargetsShareGuttersAndMatchAccessibilityBounds() {
+        float width = 520f;
+        float inset = 140f;
+        float column = (width - 84f) / 3f;
+        float firstBoundary = 42f + column;
+        float secondBoundary = 54f + 2f * column;
+        assertEquals(BatteryAccessibilityLayout.HISTORY_DAY,
+                BatteryAccessibilityLayout.historyPeriodControlAt(inset + firstBoundary - .1f, inset, width));
+        assertEquals(BatteryAccessibilityLayout.HISTORY_WEEK,
+                BatteryAccessibilityLayout.historyPeriodControlAt(inset + firstBoundary, inset, width));
+        assertEquals(BatteryAccessibilityLayout.HISTORY_WEEK,
+                BatteryAccessibilityLayout.historyPeriodControlAt(inset + secondBoundary - .1f, inset, width));
+        assertEquals(BatteryAccessibilityLayout.HISTORY_MONTH,
+                BatteryAccessibilityLayout.historyPeriodControlAt(inset + secondBoundary, inset, width));
+        assertEquals(0, BatteryAccessibilityLayout.historyPeriodControlAt(inset + 35.9f, inset, width));
+        assertEquals(0, BatteryAccessibilityLayout.historyPeriodControlAt(inset + width - 36f, inset, width));
+
+        int[] day = BatteryAccessibilityLayout.bounds(
+                BatteryAccessibilityLayout.HISTORY_DAY, inset, width, 0f, 0f);
+        int[] week = BatteryAccessibilityLayout.bounds(
+                BatteryAccessibilityLayout.HISTORY_WEEK, inset, width, 0f, 0f);
+        int[] month = BatteryAccessibilityLayout.bounds(
+                BatteryAccessibilityLayout.HISTORY_MONTH, inset, width, 0f, 0f);
+        assertEquals(day[2], week[0]);
+        assertEquals(week[2], month[0]);
+        assertEquals(Math.round(inset + 36f), day[0]);
+        assertEquals(Math.round(inset + width - 36f), month[2]);
+    }
+
     @Test public void screenReaderHistorySummaryExposesSelectedTotalsAndChartBars() {
         ArrayList<BatteryHistoryStats.Bucket> buckets = new ArrayList<>();
         BatteryHistoryStats.Bucket prior = new BatteryHistoryStats.Bucket(1L, "Montag");
@@ -344,7 +389,7 @@ public class BatteryRulesTest {
         selected.chargedMah = 400;
         selected.consumedMah = 250;
         selected.wearCycles = .125f;
-        selected.efficiencyPercent = 160;
+        selected.chargeConsumptionRatioPercent = 160;
         buckets.add(selected);
 
         String summary = BatteryAccessibilitySummary.history(
@@ -353,9 +398,9 @@ public class BatteryRulesTest {
         assertTrue(summary.contains("Aufgeladen: 400 mAh"));
         assertTrue(summary.contains("Akkuverbrauch: 250 mAh"));
         assertTrue(summary.contains("Akkuverschleiß: 0,13 EFC"));
-        assertTrue(summary.contains("Effizienz: 160 Prozent"));
+        assertTrue(summary.contains("Lade-/Verbrauchsquote (geladen geteilt durch verbraucht): 160 Prozent"));
         assertTrue(summary.contains("Montag: aufgeladen 300 mAh, verbraucht 200 mAh"));
-        assertTrue(summary.contains("Dienstag: aufgeladen 400 mAh, verbraucht 250 mAh, Verschleiß 0,13 EFC, Effizienz 160 Prozent"));
+        assertTrue(summary.contains("Dienstag: aufgeladen 400 mAh, verbraucht 250 mAh, Verschleiß 0,13 EFC, Lade-/Verbrauchsquote 160 Prozent"));
         assertTrue(summary.contains("jede Kennzahl ist separat skaliert"));
         assertTrue(summary.contains("kein direkt gemessener chemischer Gesundheitsverlust"));
     }

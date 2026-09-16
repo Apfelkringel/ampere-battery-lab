@@ -62,10 +62,11 @@ final class BatteryAccessibilitySummary {
             append(summary, "Akkuverschleiß", capacityAvailable
                     ? String.format(Locale.GERMANY, "%.2f EFC", selected.wearCycles)
                     : "nicht berechenbar, Kapazität fehlt");
-            append(summary, "Effizienz", selected.efficiencyPercent > 0
-                    ? selected.efficiencyPercent + " Prozent" : "nicht verfügbar");
+            append(summary, "Lade-/Verbrauchsquote (geladen geteilt durch verbraucht)",
+                    selected.consumedMah > 0
+                            ? selected.chargeConsumptionRatioPercent + " Prozent" : "nicht verfügbar");
         }
-        summary.append(". Balkenwerte (jede Kennzahl ist separat skaliert): ");
+        summary.append(". Die Lade-/Verbrauchsquote vergleicht geladene mit verbrauchter Energie und ist keine gemessene Akku-Effizienz. Balkenwerte (jede Kennzahl ist separat skaliert): ");
         boolean hasBars = false;
         if (buckets != null) {
             for (BatteryHistoryStats.Bucket bucket : buckets) {
@@ -77,9 +78,9 @@ final class BatteryAccessibilitySummary {
                     summary.append(", Verschleiß ")
                             .append(String.format(Locale.GERMANY, "%.2f EFC", bucket.wearCycles));
                 }
-                summary.append(", Effizienz ")
-                        .append(bucket.efficiencyPercent > 0
-                                ? bucket.efficiencyPercent + " Prozent" : "nicht verfügbar");
+                summary.append(", Lade-/Verbrauchsquote ")
+                        .append(bucket.consumedMah > 0
+                                ? bucket.chargeConsumptionRatioPercent + " Prozent" : "nicht verfügbar");
                 hasBars = true;
             }
         }

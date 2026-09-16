@@ -684,3 +684,19 @@ Netzwerkabhängigkeit. Die neue visuelle Sprache heißt intern „Energy Rail“
 aktive Controls erhalten einen schmalen Energie-Fuß, ruhige Innenkanten und
 eine zurückhaltende Materialstaffelung statt Neon-Glow, Schattenwolken oder
 flächendeckender Pillen.
+
+Die Verlaufsquote wurde mit dem GitHub-Projekt
+[Battery Monitor](https://github.com/tswistak/Battery-Monitor) als Beispiel für
+eine klare, zurückhaltende Akku-Historie und mit der veröffentlichten Definition
+der
+[Coulombic Efficiency](https://doi.org/10.1016/j.mtadv.2019.100046) abgeglichen:
+Sie ist Entladekapazität geteilt durch die zuvor geladene Kapazität eines
+Zyklus. Ampere fasst dagegen geladene und verbrauchte Energie in Kalenderfenstern
+zusammen; das ist kein vollständiger Zyklusversuch und wurde deshalb nicht
+länger als „Effizienz“ bezeichnet. Die Anzeige nennt die Kennzahl jetzt
+„Geladen/Verbrauch“, beschreibt die Richtung der Quote und zeigt gültige 0-%-
+Werte an. Androids Empfehlung für mindestens 48 × 48 dp große Touch-Ziele
+([Dokumentation](https://developer.android.com/guide/topics/ui/accessibility/views/apps-views))
+war außerdem der Maßstab für die gemeinsame Geometrie von Tippen und
+Screenreader-Fokus auf den Zeitraumsschaltern. Es wurde kein fremder Code oder
+Asset übernommen.

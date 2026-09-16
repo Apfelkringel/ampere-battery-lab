@@ -1,15 +1,27 @@
 # Verification record
 
-Last verified: 2026-09-15 (Europe/Berlin)
+Last verified: 2026-09-16 (Europe/Berlin)
 
-Version `0.382` aligns calendar-period labels between the history screen and
-screen-reader summary, and exposes all four independently scaled history-chart
-series (charge, consumption, wear and efficiency) to screen readers. Regression
-tests cover the period labels and chart summary. Direct and Play debug tests and
-lint pass locally; public release publication remains pending the configured
-signed-tag credential.
+Public version `0.383` was verified in the update repository manifest. The
+current `0.384` change makes the history ratio honest about its meaning, keeps a
+valid zero-percent value visible, and aligns the wide-screen period-button touch
+and accessibility targets. All 175 direct and 175 Play unit tests pass, along
+with both lint tasks and debug APK assembly for the version-bumped source. A
+fresh emulator screenshot
+check could not be completed: the existing AVD installation is signed with a
+different certificate, so replacing it would erase its local app data.
 
 ## Current development change
+
+Version `0.384` replaces the misleading history-chart label “Effizienz” with
+“Geladen/Verbrauch” and explains that this is the ratio of charged to consumed
+energy, not a measured cell efficiency. A measured 0% ratio is no longer
+presented as missing data. History-period tap targets now use the centered
+content coordinates on wide displays, share their six-dp gutters consistently,
+and match the TalkBack focus bounds. Regression tests cover zero-valued ratios
+and wide-screen target geometry.
+
+## Earlier development changes
 
 Version `0.282` additionally follows the supplied reference interaction
 language instead of only recoloring the existing UI: selected navigation and

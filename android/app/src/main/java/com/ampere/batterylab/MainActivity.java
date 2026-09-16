@@ -2604,11 +2604,10 @@ class BatteryDashboard extends View {
         if (page == 1 && isWithinCanvasControl(BatteryAccessibilityLayout.CHARGE_OVERLAY, x, y, w)) return 22;
         if (page == 3 && isWithinCanvasControl(BatteryAccessibilityLayout.HEALTH_BENCHMARK, x, y, w)) return 30;
         if (page == 4 && isWithinCanvasControl(BatteryAccessibilityLayout.HISTORY_EXPORT, x, y, w)) return 40;
-        if (page == 4 && y >= 296 && y < 344 && x >= 36 && x < w - 36) {
-            float controlWidth = (w - 84f) / 3f;
-            if (x < 36 + controlWidth) return 41;
-            if (x < 48 + controlWidth * 2f) return 42;
-            return 43;
+        if (page == 4 && y >= 296 && y < 344) {
+            int periodControl = BatteryAccessibilityLayout.historyPeriodControlAt(
+                    x, contentInset(w), contentWidth(w));
+            if (periodControl != 0) return 41 + periodControl - BatteryAccessibilityLayout.HISTORY_DAY;
         }
         return 0;
     }
@@ -4633,7 +4632,7 @@ class BatteryDashboard extends View {
         drawStat(c, 18, cardsTop, cardW, 104, "Aufgeladen", selectedPeriod.chargedMah > 0 ? "+" + selectedPeriod.chargedMah : "—", "mAh", lime, primary, muted, border, panel, "bolt");
         drawStat(c, 18 + cardW + cardGap, cardsTop, cardW, 104, "Akkuverbrauch", selectedPeriod.consumedMah > 0 ? "−" + selectedPeriod.consumedMah : "—", "mAh", blue, primary, muted, border, panel, "arrow");
         drawStat(c, 18, cardsTop + 116, cardW, 104, "Akkuverschleiß", selectedPeriod.wearCycles > 0f ? String.format(Locale.GERMANY, "%.2f", selectedPeriod.wearCycles) : "—", "EFC", amber, primary, muted, border, panel, "heart");
-        drawStat(c, 18 + cardW + cardGap, cardsTop + 116, cardW, 104, "Effizienz", selectedPeriod.efficiencyPercent > 0 ? selectedPeriod.efficiencyPercent + "" : "—", selectedPeriod.efficiencyPercent > 0 ? "%" : "", lime, primary, muted, border, panel, "grid");
+        drawStat(c, 18 + cardW + cardGap, cardsTop + 116, cardW, 104, "Geladen/Verbrauch", selectedPeriod.consumedMah > 0 ? selectedPeriod.chargeConsumptionRatioPercent + "" : "—", selectedPeriod.consumedMah > 0 ? "%" : "", lime, primary, muted, border, panel, "grid");
         text(c, "— = keine auswertbaren Messwerte", 36, cardsTop + 232, 8, faint, false);
 
         float chartTop = y + 430;
@@ -4650,10 +4649,13 @@ class BatteryDashboard extends View {
         float insightTop = chartTop + 298;
         rounded(c, 18, insightTop, w - 18, insightTop + 92, 14, raised);
         text(c, "AUSWERTUNG", 36, insightTop + 25, 8, lime, true);
-        String efficiencyText = selectedPeriod.efficiencyPercent > 0 ? selectedPeriod.efficiencyPercent + "% Lade-/Verbrauchsquote" : "Noch keine Effizienzreihe";
-        String wearText = selectedPeriod.wearCycles > 0f ? String.format(Locale.GERMANY, "%.2f EFC Verschleißäquivalent", selectedPeriod.wearCycles) : "Verschleiß wird nach Messdaten berechnet";
-        boundedText(c, efficiencyText + " · " + wearText, 36, w - 36, insightTop + 51, 10, primary, true);
-        boundedText(c, "EFC = äquivalente Vollzyklen; kein direkter chemischer Gesundheitsverlust.", 36, w - 36, insightTop + 72, 8, muted, false);
+        String ratioText = selectedPeriod.consumedMah > 0
+                ? "Geladen/Verbrauch: " + selectedPeriod.chargeConsumptionRatioPercent + "%"
+                : "Noch keine Verbrauchsdaten für die Quote";
+        String wearText = selectedPeriod.wearCycles > 0f
+                ? String.format(Locale.GERMANY, "%.2f EFC", selectedPeriod.wearCycles) : "EFC n/v";
+        boundedText(c, ratioText + " · " + wearText, 36, w - 36, insightTop + 51, 10, primary, true);
+        boundedText(c, "Quote = geladen ÷ Verbrauch · EFC = Vollzyklen, kein Zellwirkungsgrad.", 36, w - 36, insightTop + 72, 8, muted, false);
 
         float sessionsTop = historySessionsTop();
         text(c, "LETZTE SITZUNGEN", 36, sessionsTop, 9, muted, true);
@@ -4688,7 +4690,7 @@ class BatteryDashboard extends View {
     }
 
     private void drawHistoryLegend(Canvas c, float left, float right, float y, int muted) {
-        String[] labels = {"geladen", "Verbrauch", "EFC", "Effizienz"};
+        String[] labels = {"geladen", "Verbrauch", "EFC", "Lade/Verbrauch"};
         int[] colors = {historyChargedColor, historyConsumedColor, historyWearColor, secondaryTone};
         float cellWidth = Math.max(1f, (right - left) / labels.length);
         for (int i = 0; i < labels.length; i++) {
@@ -4705,11 +4707,11 @@ class BatteryDashboard extends View {
         if (buckets == null || buckets.isEmpty()) return;
         int maxMah = 1;
         float maxWear = .01f;
-        int maxEfficiency = 1;
+        int maxRatio = 1;
         for (BatteryHistoryStats.Bucket bucket : buckets) {
             maxMah = Math.max(maxMah, Math.max(bucket.chargedMah, bucket.consumedMah));
             maxWear = Math.max(maxWear, bucket.wearCycles);
-            maxEfficiency = Math.max(maxEfficiency, bucket.efficiencyPercent);
+            maxRatio = Math.max(maxRatio, bucket.chargeConsumptionRatioPercent);
         }
         line(c, left, top + height, right, top + height, muted, 1);
         float groupWidth = (right - left) / buckets.size();
@@ -4720,7 +4722,7 @@ class BatteryDashboard extends View {
             float chargedHeight = height * bucket.chargedMah / (float) maxMah;
             float consumedHeight = height * bucket.consumedMah / (float) maxMah;
             float wearHeight = height * bucket.wearCycles / maxWear;
-            float efficiencyHeight = height * bucket.efficiencyPercent / (float) maxEfficiency;
+            float ratioHeight = height * bucket.chargeConsumptionRatioPercent / (float) maxRatio;
             drawHistoryBar(c, center - barWidth * 2.65f, barWidth, top, height,
                     chargedHeight, historyChargedColor);
             drawHistoryBar(c, center - barWidth * 1.55f, barWidth, top, height,
@@ -4728,7 +4730,7 @@ class BatteryDashboard extends View {
             drawHistoryBar(c, center - barWidth * .45f, barWidth, top, height,
                     wearHeight, historyWearColor);
             drawHistoryBar(c, center + barWidth * .65f, barWidth, top, height,
-                    efficiencyHeight, secondaryTone);
+                    ratioHeight, secondaryTone);
             text(c, bucket.label, center - groupWidth * .35f, top + height + 17, 7, faint, false);
         }
     }

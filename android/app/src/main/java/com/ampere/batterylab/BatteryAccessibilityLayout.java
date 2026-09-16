@@ -153,18 +153,18 @@ final class BatteryAccessibilityLayout {
                 break;
             case HISTORY_DAY:
                 left = bodyInset + 36f;
+                right = bodyInset + 42f + (bodyWidth - 84f) / 3f;
                 top = 296f;
-                right = bodyInset + 36f + (bodyWidth - 84f) / 3f;
                 bottom = 344f;
                 break;
             case HISTORY_WEEK:
-                left = bodyInset + 48f + (bodyWidth - 84f) / 3f;
+                left = bodyInset + 42f + (bodyWidth - 84f) / 3f;
                 top = 296f;
-                right = bodyInset + 48f + 2f * (bodyWidth - 84f) / 3f;
+                right = bodyInset + 54f + 2f * (bodyWidth - 84f) / 3f;
                 bottom = 344f;
                 break;
             case HISTORY_MONTH:
-                left = bodyInset + 60f + 2f * (bodyWidth - 84f) / 3f;
+                left = bodyInset + 54f + 2f * (bodyWidth - 84f) / 3f;
                 top = 296f;
                 right = bodyInset + bodyWidth - 36f;
                 bottom = 344f;
@@ -173,5 +173,17 @@ final class BatteryAccessibilityLayout {
                 return new int[]{0, 0, 0, 0};
         }
         return new int[]{Math.round(left), Math.round(top), Math.round(right), Math.round(bottom)};
+    }
+
+    /** Maps the shared six-dp gutters to the nearest visible period button. */
+    static int historyPeriodControlAt(float screenX, float bodyInset, float bodyWidth) {
+        float bodyX = screenX - bodyInset;
+        if (bodyX < 36f || bodyX >= bodyWidth - 36f) return 0;
+        float controlWidth = (bodyWidth - 84f) / 3f;
+        float dayWeekBoundary = 42f + controlWidth;
+        float weekMonthBoundary = 54f + 2f * controlWidth;
+        if (bodyX < dayWeekBoundary - .01f) return HISTORY_DAY;
+        if (bodyX < weekMonthBoundary - .01f) return HISTORY_WEEK;
+        return HISTORY_MONTH;
     }
 }
