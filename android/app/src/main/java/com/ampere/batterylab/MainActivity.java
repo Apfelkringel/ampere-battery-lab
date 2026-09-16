@@ -292,37 +292,87 @@ public class MainActivity extends Activity {
         boolean notifications = hasNotificationAccess();
         boolean usage = hasUsageStatsAccess();
         boolean overlay = Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(this);
-        String[] entries = {
-                "Benachrichtigungen · " + (notifications ? "aktiv" : "fehlen — Hintergrundstatus und Alarme"),
-                "App-Nutzungszugriff · " + (usage ? "aktiv" : "optional — Verbrauch pro App"),
-                "Overlay · " + (overlay ? "aktiv" : "optional — Live-Anzeige über anderen Apps")
-        };
         String intro = reminder
-                ? "Einige Zugriffe fehlen oder wurden von Android zurückgesetzt. Ampere erkennt den aktuellen Status beim Öffnen und erinnert höchstens monatlich; nach einem Widerruf erscheint der Hinweis sofort."
-                : "Benachrichtigungen halten den sichtbaren Hintergrundstatus und Ladealarme verfügbar. Nutzungszugriff und Overlay sind optionale Android-Sonderzugriffe und werden nur für die jeweils genannten Funktionen verwendet. Ampere prüft ihren Status erneut, wenn du die App öffnest.";
-        new AlertDialog.Builder(this).setTitle("Berechtigungen & Zugriffe")
-                .setMessage(intro + "\n\nTippe auf einen Eintrag, um den Zugriff zu prüfen oder in Android-Einstellungen zu ändern.")
-                .setItems(entries, (dialog, which) -> {
-                    if (which == 0) {
-                        if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission("android.permission.POST_NOTIFICATIONS") != getPackageManager().PERMISSION_GRANTED) {
-                            SharedPreferences appPrefs = BatteryDataRepository.data(MainActivity.this);
-                            int requests = appPrefs.getInt("notificationPermissionRequests", 0);
-                            appPrefs.edit().putInt("notificationPermissionRequests", requests + 1).apply();
-                            if (requests > 0 && !shouldShowRequestPermissionRationale("android.permission.POST_NOTIFICATIONS")) {
-                                openNotificationSettings();
-                            } else requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"}, 44);
-                        } else openNotificationSettings();
-                    } else if (which == 1) {
-                        BatteryDataRepository.data(this).edit()
-                                .putBoolean("permissionUsageRequested", true).apply();
-                        try { startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)); } catch (Exception ignored) { }
-                    } else {
-                        BatteryDataRepository.data(this).edit()
-                                .putBoolean("permissionOverlayRequested", true).apply();
-                        try { startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()))); }
-                        catch (Exception ignored) { }
-                    }
-                }).setNegativeButton("Fertig", null).show();
+                ? "Einige Zugriffe fehlen oder wurden von Android zurückgesetzt. Ampere prüft sie beim Öffnen erneut; abgelehnte optionale Zugriffe melden wir höchstens monatlich. Widerrufe erkennen wir beim nächsten Öffnen."
+                : "Benachrichtigungen ermöglichen Live-Status und Ladealarme. App-Nutzungszugriff zeigt den Verbrauch je App; Overlay zeigt die Live-Anzeige über anderen Apps. Diese beiden Zugriffe sind optional. Ampere prüft den Status beim Öffnen erneut.";
+        float density = getResources().getDisplayMetrics().density;
+        LinearLayout content = new LinearLayout(this);
+        content.setOrientation(LinearLayout.VERTICAL);
+
+        TextView explanation = new TextView(this);
+        explanation.setText(intro + "\n\nTippe auf einen Eintrag, um ihn zu ändern.");
+        explanation.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 14f);
+        explanation.setPadding(Math.round(24f * density), Math.round(10f * density),
+                Math.round(24f * density), Math.round(10f * density));
+
+        SharedPreferences appPrefs = BatteryDataRepository.data(this);
+        String[] entries = BatteryPermissionChecklist.entries(notifications, usage,
+                appPrefs.getBoolean("permissionUsageRequested", false), overlay,
+                appPrefs.getBoolean("permissionOverlayRequested", false)
+                        || appPrefs.getBoolean("overlayEnabled", false));
+        ArrayList<TextView> rows = new ArrayList<>();
+        for (String entry : entries) {
+            TextView row = new TextView(this);
+            row.setText(entry);
+            row.setContentDescription(entry.replace('\n', '.'));
+            row.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 14f);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            row.setPadding(Math.round(24f * density), Math.round(8f * density),
+                    Math.round(24f * density), Math.round(8f * density));
+            row.setMinHeight(Math.round(60f * density));
+            row.setClickable(true);
+            row.setFocusable(true);
+            android.util.TypedValue selectableBackground = new android.util.TypedValue();
+            if (getTheme().resolveAttribute(android.R.attr.selectableItemBackground,
+                    selectableBackground, true) && selectableBackground.resourceId != 0) {
+                row.setBackgroundResource(selectableBackground.resourceId);
+            }
+            content.addView(row, new LinearLayout.LayoutParams(-1, -2));
+            rows.add(row);
+        }
+        // Keep the actionable status rows first so they remain discoverable
+        // when Android's large-font setting makes the dialog scroll.
+        content.addView(explanation, new LinearLayout.LayoutParams(-1, -2));
+
+        ScrollView scroll = new ScrollView(this);
+        scroll.setFillViewport(false);
+        scroll.setVerticalScrollBarEnabled(true);
+        scroll.addView(content, new ScrollView.LayoutParams(-1, -2));
+        AlertDialog dialog = new AlertDialog.Builder(this).setTitle("Berechtigungen & Zugriffe")
+                .setView(scroll)
+                .setNegativeButton("Fertig", null)
+                .create();
+        for (int index = 0; index < rows.size(); index++) {
+            final int entryIndex = index;
+            rows.get(index).setOnClickListener(view -> {
+                dialog.dismiss();
+                openPermissionChecklistEntry(entryIndex);
+            });
+        }
+        dialog.show();
+    }
+
+    private void openPermissionChecklistEntry(int which) {
+        if (which == 0) {
+            if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission("android.permission.POST_NOTIFICATIONS")
+                    != getPackageManager().PERMISSION_GRANTED) {
+                SharedPreferences appPrefs = BatteryDataRepository.data(this);
+                int requests = appPrefs.getInt("notificationPermissionRequests", 0);
+                appPrefs.edit().putInt("notificationPermissionRequests", requests + 1).apply();
+                if (requests > 0 && !shouldShowRequestPermissionRationale("android.permission.POST_NOTIFICATIONS")) {
+                    openNotificationSettings();
+                } else requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"}, 44);
+            } else openNotificationSettings();
+        } else if (which == 1) {
+            BatteryDataRepository.data(this).edit().putBoolean("permissionUsageRequested", true).apply();
+            try { startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)); }
+            catch (Exception ignored) { }
+        } else if (which == 2) {
+            BatteryDataRepository.data(this).edit().putBoolean("permissionOverlayRequested", true).apply();
+            try { startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:" + getPackageName()))); }
+            catch (Exception ignored) { }
+        }
     }
 
     void snoozePermissionReminder() {
