@@ -1659,8 +1659,9 @@ class BatteryDashboard extends View {
                     + BatteryPercentage.normalizePhase(prefs.getFloat("lastDischargeScreenOffPercent", 0f));
             long durationMs = prefs.getLong("lastDischargeScreenOnMs", 0L)
                     + prefs.getLong("lastDischargeScreenOffMs", 0L);
-            return BatteryRuntimeEstimate.hasHistoricalEstimate(lastDischargeEndLevel(), used,
-                    durationMs, mixedDischargeRate()) ? "Letzte Entladephase" : "Keine Daten";
+            if (BatteryRuntimeEstimate.hasHistoricalEstimate(lastDischargeEndLevel(), used,
+                    durationMs, mixedDischargeRate())) return "Letzte Entladephase";
+            return BatteryRuntimeEstimate.unavailableNormalHint(true, lastDischargeEndLevel() >= 0);
         }
         float historicalRate = mixedDischargeRate();
         float currentRate = currentDischargeRate();
@@ -1672,7 +1673,7 @@ class BatteryDashboard extends View {
         if (BatteryFuelGaugeTime.readMinutes(false) > 0L) return "Fuel-Gauge-Schätzung";
         if (!"—".equals(systemDischargePrediction())) return "Android-Systemschätzung";
         if (currentMa >= 50 && calculationCapacityMah() > 0) return "Momentanschätzung";
-        return "Keine ausreichenden Daten";
+        return BatteryRuntimeEstimate.unavailableNormalHint(false, lastDischargeEndLevel() >= 0);
     }
 
     private String drainRate() {
@@ -1899,7 +1900,8 @@ class BatteryDashboard extends View {
     }
 
     private String dischargeRuntimeSource(boolean screenOn) {
-        if (level < 0 || (charging && lastDischargeEndLevel() < 0)) return "Keine Daten";
+        if (level < 0) return "Akku fehlt";
+        if (charging && lastDischargeEndLevel() < 0) return "Nach Entladung";
         String percentKey = screenOn ? "dischargeScreenOnPercent" : "dischargeScreenOffPercent";
         String durationKey = screenOn ? "dischargeScreenOnMs" : "dischargeScreenOffMs";
         if (charging) {
@@ -1915,7 +1917,7 @@ class BatteryDashboard extends View {
         if (!charging && currentMa >= 50 && calculationCapacityMah() > 0) {
             return screenOn ? "Momentanstrom" : "Standby-Modell";
         }
-        return "Keine Daten";
+        return BatteryRuntimeEstimate.unavailableModeHint(charging, duration);
     }
 
     private int chargeSpeedMahPerHour(boolean screenOn) {

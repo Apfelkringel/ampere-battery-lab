@@ -46,6 +46,17 @@ final class BatteryRuntimeEstimate {
                 && durationMs >= 5L * 60L * 1000L;
     }
 
+    /** Short, actionable copy for a forecast that is correctly unavailable. */
+    static String unavailableModeHint(boolean charging, long measuredDurationMs) {
+        if (charging) return "Nach Entladung";
+        if (measuredDurationMs < 5L * 60L * 1000L) return "Ab 5 Min.";
+        return "Mehr Daten";
+    }
+
+    static String unavailableNormalHint(boolean charging, boolean hasDischargeHistory) {
+        return charging && !hasDischargeHistory ? "Nach Entladung" : "Mehr Daten";
+    }
+
     /** Estimates remaining minutes from a live current only when capacity is known. */
     static long minutesFromCurrent(int levelPercent, int capacityMah, int currentMa) {
         if (levelPercent < 0 || levelPercent > 100 || capacityMah <= 0 || capacityMah > 30_000

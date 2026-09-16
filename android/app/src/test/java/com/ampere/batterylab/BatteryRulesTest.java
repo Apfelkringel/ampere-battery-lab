@@ -1070,6 +1070,17 @@ public class BatteryRulesTest {
         assertEquals(0L, BatteryRuntimeEstimate.minutesFromCurrent(75, 30001, 200));
     }
 
+    @Test public void unavailableRuntimeExplainsWhatEvidenceIsStillNeeded() {
+        assertEquals("Nach Entladung", BatteryRuntimeEstimate.unavailableModeHint(true, 0L));
+        assertEquals("Ab 5 Min.", BatteryRuntimeEstimate.unavailableModeHint(false,
+                4L * 60L * 1000L));
+        assertEquals("Mehr Daten", BatteryRuntimeEstimate.unavailableModeHint(false,
+                5L * 60L * 1000L));
+        assertEquals("Nach Entladung", BatteryRuntimeEstimate.unavailableNormalHint(true, false));
+        assertEquals("Mehr Daten", BatteryRuntimeEstimate.unavailableNormalHint(true, true));
+        assertEquals("Mehr Daten", BatteryRuntimeEstimate.unavailableNormalHint(false, false));
+    }
+
     @Test public void timelineCapsUnobservedIntegrationGaps() {
         assertEquals(30L * 60L * 1000L,
                 BatteryTimelineRules.cappedElapsed(1_000L, 4_000_000L, 30L * 60L * 1000L));

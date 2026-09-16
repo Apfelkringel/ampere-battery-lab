@@ -2,6 +2,22 @@
 
 Stand: 16. September 2026
 
+## Laufzeit-Prognose bei fehlender Entladehistorie · 0.392
+
+Die Hinweise unter den drei Laufzeitmodi unterscheiden jetzt zwischen „Nach
+Entladung“, „Ab 5 Min.“ und „Mehr Daten“. So bleibt eine Schätzung ohne
+Messgrundlage bewusst leer, aber der Nutzer erfährt, was für eine sinnvolle
+Prognose noch fehlt. Grundlage ist Androids
+[BatteryManager-Dokumentation](https://developer.android.com/reference/android/os/BatteryManager):
+Stromwerte können nicht unterstützt sein; auch das Zeitfenster des mittleren
+Stroms hängt von Fuel-Gauge-Hardware und Konfiguration ab. Ein fixer
+Hersteller-unabhängiger Momentanwert wäre daher keine verlässliche Ersatzquelle.
+
+Die GitHub-Diskussion zu [Bildschirmzeit und App-Verbrauch](https://github.com/tswistak/Battery-Monitor/issues/4)
+betont ebenfalls, dass App-Zuordnungen als Schätzungen kenntlich bleiben sollen.
+Ampere übernimmt daraus das Prinzip, fehlende und geschätzte Daten transparent
+zu benennen; es wurde kein fremder Code übernommen.
+
 ## Erststart und Verlauf · 0.391
 
 Für die Einwilligungs- und Berechtigungsführung wurden die offiziellen
