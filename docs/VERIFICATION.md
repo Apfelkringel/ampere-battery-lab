@@ -2,6 +2,20 @@
 
 Last verified: 2026-09-16 (Europe/Berlin)
 
+Version `0.392` makes unavailable battery-runtime forecasts actionable without
+inventing estimates: the screen-on/off modes say when an initial discharge or
+five minutes of suitable measurements are needed, and normal-use mode asks for
+more data. The display-only hint logic is regression-tested. Direct and Play
+each pass 186 unit tests; both lint tasks and both debug APK builds pass. The
+signed release workflow `35152704303` succeeded; GitHub verifies signed tag
+`v0.392`. Internal Google Play draft upload `35153289445` succeeded. Public
+APK/AAB SHA-256 values are
+`f464ed9210831736c327af9b6e575a1abffaf0ab53dbd549d5cfcc3cf1643ef4` and
+`7a31803e382f4f08eb8959fa08bc887bceed38b54d9467b7e4ac42e2256558f6`;
+downloaded artifacts match the public manifest. APK package/version are
+`com.ampere.batterylab`, `0.392` (versionCode 392), and the expected signing
+certificate.
+
 Version `0.391` replaces the blocking first-start analytics prompt with a
 two-step app tour, preserves optional permissions as optional, and limits
 missing-access reminders to once per 30 days (detected revocations remain
@@ -103,6 +117,12 @@ check could not be completed: the existing AVD installation is signed with a
 different certificate, so replacing it would erase its local app data.
 
 ## Recent development changes
+
+Version `0.392` replaces unhelpful unavailable-forecast labels with short,
+contextual guidance: while charging without a prior discharge it says “Nach
+Entladung”; during a new discharge it indicates the five-minute measurement
+threshold or requests more data. The forecast values themselves remain blank
+until existing calculation rules have enough evidence.
 
 Version `0.391` makes the first-open guide a compact two-step tour and removes
 the blocking analytics-consent dialog from startup; analytics remains opt-in
