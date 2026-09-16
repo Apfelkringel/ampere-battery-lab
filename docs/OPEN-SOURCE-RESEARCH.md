@@ -1,6 +1,22 @@
 # Open-Source-Recherche
 
-Stand: 16. September 2026
+Stand: 17. September 2026
+
+## Verlauf: einzelne Balken für TalkBack · 0.396
+
+Die Android-Anleitung für [zugängliche benutzerdefinierte Views](https://developer.android.com/guide/topics/ui/accessibility/views/custom-views)
+empfiehlt für separat interaktive Canvas-Flächen eine virtuelle View-Hierarchie.
+Ampere hatte zwar antippbare Verlaufssäulen und eine Zusammenfassung, aber keine
+einzeln fokussierbaren Balken. Jetzt kann TalkBack jeden Zeitraum einzeln
+anspringen und Datum, geladene/verbrauchte Energie, EFC und Ladequote vorlesen.
+Zeiträume ohne auswertbare Messungen werden als fehlend angesagt, nicht als
+Nullwerte.
+
+Als zusätzliche UX-Inspiration diente der [Device-Watch-Release](https://github.com/jrs8205/Device-Watch/releases),
+der für kurze Datenhistorien explizite Messwerte statt irreführender
+Diagramm-Punkte hervorhebt. Ampere behält das Diagramm bei, ergänzt jedoch
+dieselben exakten Bucket-Werte in der Accessibility-Hierarchie; fremder Code
+wurde nicht übernommen.
 
 ## Laufzeit-Prognose bei fehlender Entladehistorie · 0.392
 

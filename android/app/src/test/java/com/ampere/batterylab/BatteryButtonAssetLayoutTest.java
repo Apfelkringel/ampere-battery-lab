@@ -28,6 +28,30 @@ public class BatteryButtonAssetLayoutTest {
                 dashboard.contains("toolbar.addView(back, new LinearLayout.LayoutParams(dp(48), dp(54)))"));
     }
 
+    @Test public void historyChartBucketsAreIndividualAccessibleControls() throws IOException {
+        String dashboard = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
+                StandardCharsets.UTF_8);
+        assertTrue("chart buckets must appear as separate virtual accessibility children",
+                dashboard.contains("host.addChild(BatteryDashboard.this, 100 + index)"));
+        assertTrue("chart bucket nodes must announce their actual date and measurements",
+                dashboard.contains("BatteryHistoryBucketAccessibility.description"));
+        assertTrue("touch exploration must resolve chart bars to the matching bucket",
+                dashboard.contains("x - contentInset(w), 36f, contentWidth(w) - 36f"));
+    }
+
+    @Test public void documentedOrientationMatchesThePortraitOnlyActivity() throws IOException {
+        Path root = findRepositoryRoot();
+        String manifest = Files.readString(root.resolve("android/app/src/main/AndroidManifest.xml"),
+                StandardCharsets.UTF_8);
+        String uxNotes = Files.readString(root.resolve("docs/UI-UX.md"), StandardCharsets.UTF_8);
+        assertTrue("the app must remain locked to portrait", manifest.contains("android:screenOrientation=\"portrait\""));
+        assertTrue("UX notes must accurately document portrait-only orientation",
+                uxNotes.contains("activity is locked to portrait"));
+        assertFalse("stale landscape-support guidance must be removed",
+                uxNotes.contains("The activity is not forced into portrait"));
+    }
+
     @Test public void mobileNavigationKeepsIconAndLabelInSeparateVerticalSlots()
             throws IOException {
         Path assetDirectory = findRepositoryRoot()

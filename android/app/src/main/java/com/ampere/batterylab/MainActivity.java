@@ -5743,12 +5743,23 @@ class BatteryDashboard extends View {
 
     private boolean isVisibleVirtualView(int virtualViewId) {
         if (virtualViewId >= 10 && virtualViewId <= 14) return true;
+        if (page == 4 && virtualViewId >= 100
+                && virtualViewId < 100 + historyChartBucketCount()) return true;
         if (virtualViewId == BatteryHeaderLayout.OVERFLOW) return true;
         if (virtualViewId == BatteryHeaderLayout.LIVE_REFRESH) return getWidth() / density >= 390f;
         return BatteryAccessibilityLayout.isVisible(virtualViewId, page);
     }
 
     private String virtualViewLabel(int virtualViewId) {
+        if (page == 4 && virtualViewId >= 100
+                && virtualViewId < 100 + historyChartBucketCount()) {
+            ArrayList<BatteryHistoryStats.Bucket> buckets = historyStatsBuckets();
+            int bucketIndex = virtualViewId - 100;
+            return bucketIndex < buckets.size()
+                    ? BatteryHistoryBucketAccessibility.description(buckets.get(bucketIndex),
+                            historyPeriodDays, calculationCapacityMah() > 0)
+                    : "Zeitraum nicht verfügbar";
+        }
         if (virtualViewId == BatteryHeaderLayout.OVERFLOW) return "Einstellungen";
         if (virtualViewId == BatteryHeaderLayout.LIVE_REFRESH) return "Live-Daten aktualisieren";
         if (virtualViewId == BatteryAccessibilityLayout.DISCHARGE_SCREEN_ON) {
@@ -5775,6 +5786,18 @@ class BatteryDashboard extends View {
 
     private Rect virtualViewBounds(int virtualViewId) {
         float w = getWidth() / density;
+        if (page == 4 && virtualViewId >= 100
+                && virtualViewId < 100 + historyChartBucketCount()) {
+            float bodyInset = contentInset(w);
+            float bodyWidth = contentWidth(w);
+            int count = historyChartBucketCount();
+            float chartLeft = bodyInset + 36f;
+            float groupWidth = (bodyWidth - 72f) / count;
+            int left = Math.round(chartLeft + groupWidth * (virtualViewId - 100));
+            int right = Math.round(chartLeft + groupWidth * (virtualViewId - 99));
+            return new Rect(left, Math.round(182f + 430f + 108f), right,
+                    Math.round(182f + 430f + 231f));
+        }
         if (virtualViewId == BatteryHeaderLayout.OVERFLOW) {
             return new Rect(Math.round((w < 390f ? w - 60f : w - 140f) * density),
                     Math.round(12f * density),
@@ -5815,6 +5838,12 @@ class BatteryDashboard extends View {
             float cell = (w - 36f) / 5f;
             return 10 + Math.max(0, Math.min(4, (int) ((x - 18f) / cell)));
         }
+        if (page == 4 && y >= 182f + 430f + 108f && y < 182f + 430f + 231f) {
+            int bucket = BatteryHistoryChartSelection.bucketIndexAt(
+                    x - contentInset(w), 36f, contentWidth(w) - 36f,
+                    historyChartBucketCount());
+            if (bucket >= 0) return 100 + bucket;
+        }
         float bodyWidth = contentWidth(w);
         float bodyInset = contentInset(w);
         for (int id : BatteryAccessibilityLayout.pageControlsFor(page)) {
@@ -5827,7 +5856,10 @@ class BatteryDashboard extends View {
 
     private void performVirtualClick(int virtualViewId) {
         hapticClick();
-        if (virtualViewId == BatteryHeaderLayout.OVERFLOW) {
+        if (page == 4 && virtualViewId >= 100
+                && virtualViewId < 100 + historyChartBucketCount()) {
+            showHistoryBucketDetails(virtualViewId - 100);
+        } else if (virtualViewId == BatteryHeaderLayout.OVERFLOW) {
             showSettings();
         } else if (virtualViewId == BatteryHeaderLayout.LIVE_REFRESH) {
             Intent battery = ((Activity) getContext()).registerReceiver(
@@ -5895,7 +5927,9 @@ class BatteryDashboard extends View {
     }
 
     private void bringVirtualViewIntoView(int virtualViewId) {
-        if (!BatteryAccessibilityLayout.isVisible(virtualViewId, page)) return;
+        boolean historyBucket = page == 4 && virtualViewId >= 100
+                && virtualViewId < 100 + historyChartBucketCount();
+        if (!historyBucket && !BatteryAccessibilityLayout.isVisible(virtualViewId, page)) return;
         requestRectangleOnScreen(virtualViewBounds(virtualViewId), true);
     }
 
@@ -5911,6 +5945,11 @@ class BatteryDashboard extends View {
                 }
                 for (int id : BatteryAccessibilityLayout.pageControlsFor(page)) {
                     host.addChild(BatteryDashboard.this, id);
+                }
+                if (page == 4) {
+                    for (int index = 0; index < historyChartBucketCount(); index++) {
+                        host.addChild(BatteryDashboard.this, 100 + index);
+                    }
                 }
                 return host;
             }
@@ -6017,7 +6056,9 @@ class BatteryDashboard extends View {
             ArrayList<AccessibilityNodeInfo> result = new ArrayList<>();
             if (searched == null) return result;
             String query = searched.toLowerCase(Locale.GERMANY);
-            for (int id = 1; id <= BatteryAccessibilityLayout.DISCHARGE_NORMAL; id++) {
+            int lastId = page == 4 ? 99 + historyChartBucketCount()
+                    : BatteryAccessibilityLayout.DISCHARGE_NORMAL;
+            for (int id = 1; id <= lastId; id++) {
                 if (!isVisibleVirtualView(id)) continue;
                 String label = virtualViewLabel(id);
                 if (label.toLowerCase(Locale.GERMANY).contains(query)) {

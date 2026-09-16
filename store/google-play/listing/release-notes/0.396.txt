@@ -1,0 +1,1 @@
+Die einzelnen Balken im Verlauf sind jetzt auch mit TalkBack erreichbar und lesen Zeitraum sowie geladene, verbrauchte und verfügbare Verschleißwerte vor. Fehlende Messungen werden klar von null unterschieden.

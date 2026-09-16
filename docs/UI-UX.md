@@ -51,8 +51,8 @@ warnings or wear.
   visibly separate so the measurement basis is not hidden in one combined value.
 - Session previews are capped on the overview; the complete list remains in
   History and stays scrollable.
-- The activity is not forced into portrait, and Android system-bar insets are
-  applied on current Android releases.
+- The activity is locked to portrait as requested; Android system-bar insets
+  are applied on current Android releases.
 
 ## Interaction and accessibility
 
