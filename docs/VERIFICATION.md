@@ -8,8 +8,13 @@ signals after 30 minutes, and explains that opening Ampere restarts monitoring.
 The copy deliberately describes a recent service heartbeat rather than
 claiming Android can reliably report a background process as running. Tests
 cover recent, missing, future (reboot/clock-domain mismatch), and stale
-heartbeats. Direct/Play tests and lint pass locally; signed-release/public
-artifact verification is pending.
+heartbeats. All 179 Direct and 179 Play unit tests, both lint tasks, and both
+debug APK builds pass. The signed release workflow (`35104591888`) succeeded;
+the v0.388 SSH tag is verified by GitHub. The public APK/AAB hashes are
+`b7b8ae11502be6cbceca8e3fb9df037db0530d90906ca26f72b969997e08672d` and
+`2e22b71ebad02ca10deca4597978f163c77789a64f171314c9e1250d89cd253f`.
+Downloaded public artifacts match `latest.json`. The internal Play draft upload
+(`35105348607`) succeeded.
 
 Version `0.387` makes the app-usage summary distinguish missing battery
 measurements from measured drain that could not be assigned to an app. Assigned
