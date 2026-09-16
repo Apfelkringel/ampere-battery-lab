@@ -4214,7 +4214,7 @@ class BatteryDashboard extends View {
         toolbar.setPadding(dp(18), 0, dp(18), 0);
         TextView back = usageText("‹", 32, ink, false);
         back.setGravity(Gravity.CENTER);
-        toolbar.addView(back, new LinearLayout.LayoutParams(dp(42), dp(54)));
+        toolbar.addView(back, new LinearLayout.LayoutParams(dp(48), dp(54)));
         back.setContentDescription("Zurück");
         back.setOnClickListener(view -> dialog.dismiss());
         TextView title = usageText("Akku", 20, ink, true);
@@ -4243,18 +4243,15 @@ class BatteryDashboard extends View {
         summary.setBackground(summaryBackground);
         LinearLayout.LayoutParams summaryParams = new LinearLayout.LayoutParams(-1, -2);
         summaryParams.setMargins(dp(16), dp(14), dp(16), dp(6));
-        TextView summaryEyebrow = usageText("AKKUVERBRAUCH NACH APP", 10, secondary, true);
+        TextView summaryEyebrow = usageText("APP-VERBRAUCH · GESCHÄTZT", 10, secondary, true);
         summary.addView(summaryEyebrow);
-        TextView summaryValue = usageText(totalAssignedMah > 0
-                        ? "~" + totalAssignedMah + " mAh erfasst" : "Noch keine Messwerte",
-                20, ink, true);
+        TextView summaryValue = usageText(
+                BatteryAppAttribution.summaryLabel(totalAssignedMah, totalEnergy), 20, ink, true);
         LinearLayout.LayoutParams summaryValueParams = new LinearLayout.LayoutParams(-1, -2);
         summaryValueParams.topMargin = dp(5);
         summary.addView(summaryValue, summaryValueParams);
-        TextView summaryNote = usageText(periodDays == 1
-                        ? "Letzte 24 Stunden · Anteil am erfassten Geräteverbrauch"
-                        : "Letzte 7 Tage · Anteil am erfassten Geräteverbrauch",
-                12, secondary, false);
+        TextView summaryNote = usageText(
+                BatteryAppAttribution.summaryNote(periodDays), 12, secondary, false);
         summary.addView(summaryNote);
         page.addView(summary, summaryParams);
 

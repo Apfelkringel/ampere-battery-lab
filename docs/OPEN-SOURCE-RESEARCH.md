@@ -711,3 +711,13 @@ Lade-/Entladeprognosen schließen nun aber Messpunkte nach „jetzt“ explizit 
 Das GitHub-Projekt
 [Battery Historian](https://github.com/google/battery-historian) dient als
 Referenz für zeitgestützte Akkudiagnose. Es wurde kein Code daraus übernommen.
+
+Die App-Nutzungsansicht verwendet bevorzugt `UsageStatsManager.queryEvents()`;
+Android beschreibt `queryUsageStats()` dagegen als Intervall-Aggregat
+([API-Dokumentation](https://developer.android.com/reference/android/app/usage/UsageStatsManager)).
+Da der Fallback deshalb keine exakte Live-Energiebilanz pro App belegt, benennt
+die Zusammenfassung zugeordnete Werte nun als Schätzungen, unterscheidet
+fehlende Gerätemessungen von nicht zuordenbarem Verbrauch und lässt den
+Restverbrauch ausdrücklich offen. Das Zurück-Ziel wurde zugleich auf
+mindestens 48 dp Breite gebracht, entsprechend Androids Empfehlung für
+interaktive Ziele.

@@ -1,0 +1,1 @@
+Der App-Verbrauch ist jetzt klarer als Schätzung gekennzeichnet. Fehlende Akku-Messwerte werden von Verbrauch unterschieden, der keiner App zugeordnet werden kann. Außerdem ist die Zurück-Schaltfläche in den App-Details leichter zu treffen.

@@ -71,6 +71,16 @@ public class BatteryRulesTest {
                 .contains("anteilig nach Vordergrundzeit (Schätzung)"));
     }
 
+    @Test public void appUsageSummarySeparatesMissingDataFromUnattributedDrain() {
+        assertEquals("Noch keine Akku-Messwerte", BatteryAppAttribution.summaryLabel(0, 0));
+        assertEquals("Keine App-Werte zugeordnet", BatteryAppAttribution.summaryLabel(0, 120));
+        assertEquals("~75 mAh zugeordnet", BatteryAppAttribution.summaryLabel(75, 120));
+        assertEquals("Letzte 24 Stunden · Schätzung; Rest ggf. nicht zuordenbar",
+                BatteryAppAttribution.summaryNote(1));
+        assertEquals("Letzte 7 Tage · Schätzung; Rest ggf. nicht zuordenbar",
+                BatteryAppAttribution.summaryNote(7));
+    }
+
     @Test public void historyStatsAggregateChargeDrainWearAndChargeConsumptionRatioByBucket() {
         long now = 8L * 60L * 60L * 1000L;
         ArrayList<String> rows = new ArrayList<>(Arrays.asList(

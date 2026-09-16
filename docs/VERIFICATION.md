@@ -2,6 +2,13 @@
 
 Last verified: 2026-09-16 (Europe/Berlin)
 
+Version `0.387` makes the app-usage summary distinguish missing battery
+measurements from measured drain that could not be assigned to an app. Assigned
+mAh are now explicitly labeled as estimates, and the remainder is disclosed as
+potentially unattributed. The in-dialog back target is now 48 dp wide. Tests
+cover summary wording and the minimum touch width. All 178 Direct and 178 Play
+unit tests, both lint tasks and both debug APK builds pass.
+
 Version `0.386` excludes future-dated telemetry from the seven-day local charge
 and discharge rate windows. A shared inclusive time-window filter canonicalizes
 valid rows and is covered for lower/upper boundaries, unsorted input, and future
@@ -31,6 +38,12 @@ check could not be completed: the existing AVD installation is signed with a
 different certificate, so replacing it would erase its local app data.
 
 ## Current development change
+
+Version `0.387` clarifies that per-app mAh are estimates allocated from
+device-level telemetry and foreground usage, not exact app energy measurements.
+The summary now differentiates missing device readings from readings that
+cannot be attributed to an app. The per-app details back button now meets the
+48-dp minimum touch width.
 
 Version `0.386` prevents restored or clock-shifted telemetry with timestamps in
 the future from influencing live charge/discharge forecasts. Both calculations

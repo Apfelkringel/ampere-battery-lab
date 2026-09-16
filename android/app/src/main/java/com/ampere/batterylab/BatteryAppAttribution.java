@@ -164,4 +164,16 @@ final class BatteryAppAttribution {
         return hasDirectAppTelemetry && rateMahPerHour > 0
                 ? "~" + rateMahPerHour + " mAh/h" : "Rate n/v";
     }
+
+    /** Distinguishes missing device measurements from measured but unattributed drain. */
+    static String summaryLabel(int attributedMah, int observedMah) {
+        if (observedMah <= 0) return "Noch keine Akku-Messwerte";
+        if (attributedMah <= 0) return "Keine App-Werte zugeordnet";
+        return "~" + attributedMah + " mAh zugeordnet";
+    }
+
+    static String summaryNote(int periodDays) {
+        return (periodDays == 7 ? "Letzte 7 Tage" : "Letzte 24 Stunden")
+                + " · Schätzung; Rest ggf. nicht zuordenbar";
+    }
 }

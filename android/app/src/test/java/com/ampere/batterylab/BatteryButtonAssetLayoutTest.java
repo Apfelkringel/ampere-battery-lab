@@ -20,6 +20,14 @@ public class BatteryButtonAssetLayoutTest {
     };
     private static final int[] ICON_ELEMENT_COUNTS = {1, 1, 1, 2, 2};
 
+    @Test public void appUsageBackButtonMeetsMinimumTouchWidth() throws IOException {
+        String dashboard = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
+                StandardCharsets.UTF_8);
+        assertTrue("app-usage back control must have at least a 48-dp touch width",
+                dashboard.contains("toolbar.addView(back, new LinearLayout.LayoutParams(dp(48), dp(54)))"));
+    }
+
     @Test public void mobileNavigationKeepsIconAndLabelInSeparateVerticalSlots()
             throws IOException {
         Path assetDirectory = findRepositoryRoot()
