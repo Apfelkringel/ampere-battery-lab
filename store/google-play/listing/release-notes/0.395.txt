@@ -1,0 +1,1 @@
+0.395: Die Akku-Bilanz zeigt jetzt das tatsächliche Skalenmaximum jeder Datenreihe. So lassen sich die normalisierten Balken besser einordnen; Antippen zeigt weiterhin die genauen Werte.

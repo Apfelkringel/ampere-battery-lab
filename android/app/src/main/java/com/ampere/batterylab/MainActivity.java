@@ -4776,9 +4776,10 @@ class BatteryDashboard extends View {
         c.drawRoundRect(rect, u(16), u(16), p);
         text(c, "AKKU-BILANZ · " + historyChartRangeLabel(), 36, chartTop + 29, 9, muted, true);
         text(c, historyPeriodLabel(), 36, chartTop + 53, 16, primary, true);
-        drawHistoryLegend(c, 36, w - 36, chartTop + 80, muted);
+        drawHistoryLegend(c, buckets, 36, w - 36, chartTop + 80, muted);
         drawHistoryBars(c, buckets, 36, chartTop + 116, w - 36, 96, primary, muted, faint);
-        centeredText(c, "Balken antippen · genaue Werte", w / 2f, chartTop + 270, 8, faint, false);
+        centeredText(c, "Skalenmaximum in Legende · antippen für Werte",
+                w / 2f, chartTop + 270, 8, faint, false);
 
         float insightTop = chartTop + 298;
         rounded(c, 18, insightTop, w - 18, insightTop + 92, 14, raised);
@@ -4823,8 +4824,9 @@ class BatteryDashboard extends View {
                 selected ? accentForeground() : primary, true);
     }
 
-    private void drawHistoryLegend(Canvas c, float left, float right, float y, int muted) {
-        String[] labels = {"Geladen", "Verbrauch", "Verschleiß · EFC", "Ladequote"};
+    private void drawHistoryLegend(Canvas c, ArrayList<BatteryHistoryStats.Bucket> buckets,
+                                   float left, float right, float y, int muted) {
+        String[] labels = BatteryHistoryChartLegend.labels(buckets);
         int[] colors = {historyChargedColor, historyConsumedColor, historyWearColor, secondaryTone};
         for (int i = 0; i < labels.length; i++) {
             int column = i % 2;
@@ -4842,11 +4844,13 @@ class BatteryDashboard extends View {
                                  float left, float top, float right, float height,
                                  int primary, int muted, int faint) {
         if (buckets == null || buckets.isEmpty()) return;
-        int maxMah = 1;
+        int maxChargedMah = 1;
+        int maxConsumedMah = 1;
         float maxWear = .01f;
         int maxRatio = 1;
         for (BatteryHistoryStats.Bucket bucket : buckets) {
-            maxMah = Math.max(maxMah, Math.max(bucket.chargedMah, bucket.consumedMah));
+            maxChargedMah = Math.max(maxChargedMah, bucket.chargedMah);
+            maxConsumedMah = Math.max(maxConsumedMah, bucket.consumedMah);
             maxWear = Math.max(maxWear, bucket.wearCycles);
             maxRatio = Math.max(maxRatio, bucket.chargeConsumptionRatioPercent);
         }
@@ -4856,8 +4860,8 @@ class BatteryDashboard extends View {
         for (int i = 0; i < buckets.size(); i++) {
             BatteryHistoryStats.Bucket bucket = buckets.get(i);
             float center = left + groupWidth * (i + .5f);
-            float chargedHeight = height * bucket.chargedMah / (float) maxMah;
-            float consumedHeight = height * bucket.consumedMah / (float) maxMah;
+            float chargedHeight = height * bucket.chargedMah / (float) maxChargedMah;
+            float consumedHeight = height * bucket.consumedMah / (float) maxConsumedMah;
             float wearHeight = height * bucket.wearCycles / maxWear;
             float ratioHeight = height * bucket.chargeConsumptionRatioPercent / (float) maxRatio;
             drawHistoryBar(c, center - barWidth * 2.65f, barWidth, top, height,

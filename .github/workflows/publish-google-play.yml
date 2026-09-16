@@ -15,7 +15,7 @@ on:
         type: choice
         options:
           - internal
-          - closed
+          - alpha
           - production
       status:
         description: "Release status in the selected track"
