@@ -8,6 +8,11 @@ mAh are now explicitly labeled as estimates, and the remainder is disclosed as
 potentially unattributed. The in-dialog back target is now 48 dp wide. Tests
 cover summary wording and the minimum touch width. All 178 Direct and 178 Play
 unit tests, both lint tasks and both debug APK builds pass.
+The signed tagged release and internal Play draft upload succeeded. Public
+APK/AAB SHA-256 values are `3539120943d6a7f7d294bf6310635d4fa6995813daacd78201ae9dfc5d94ae4a`
+and `782824123378aec4c24bb4735881cd5230b15aafb78fb19feec0d30299e3a3db`;
+downloaded public artifacts matched both values and the APK reports version
+`0.387`.
 
 Version `0.386` excludes future-dated telemetry from the seven-day local charge
 and discharge rate windows. A shared inclusive time-window filter canonicalizes
@@ -26,7 +31,7 @@ so they remain readable on narrow phone screens. Direct and Play debug builds,
 their unit tests and lint checks all pass. Gradle was run with JDK 17; the
 system-default JDK 26 cannot process this Android SDK's `core-for-system-modules.jar`.
 
-Public version `0.386` is verified in the update repository manifest and its
+Public version `0.387` is verified in the update repository manifest and its
 APK/AAB hashes match the published artifacts. The `0.384` change made the
 history ratio honest about its meaning, kept a valid zero-percent value visible,
 and aligned wide-screen period-button touch and accessibility targets. The
