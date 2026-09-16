@@ -7,6 +7,11 @@ and discharge rate windows. A shared inclusive time-window filter canonicalizes
 valid rows and is covered for lower/upper boundaries, unsorted input, and future
 samples. This matters because device wall time can jump after a user or network
 clock adjustment; interval estimates must not consume samples beyond “now”.
+The tagged build, signed public APK, public APK/AAB hashes and internal Google
+Play draft upload all verified successfully. Public APK SHA-256:
+`413f8999eefbd5c73091067d623681e36734e427e8628575dbfe4a19624f0897`.
+Public AAB SHA-256:
+`716eed51afed1086b7bcb00fa98cbd465a387fdcb27963601c1992cb6a17ebda`.
 
 Version `0.385` improves the history balance chart legend: the four series now
 use a two-row layout with clearer labels (“Verschleiß · EFC” and “Ladequote”)
@@ -14,8 +19,8 @@ so they remain readable on narrow phone screens. Direct and Play debug builds,
 their unit tests and lint checks all pass. Gradle was run with JDK 17; the
 system-default JDK 26 cannot process this Android SDK's `core-for-system-modules.jar`.
 
-Public version `0.385` was verified in the update repository manifest and its
-APK/AAB hashes matched the published artifacts. The `0.384` change made the
+Public version `0.386` is verified in the update repository manifest and its
+APK/AAB hashes match the published artifacts. The `0.384` change made the
 history ratio honest about its meaning, kept a valid zero-percent value visible,
 and aligned wide-screen period-button touch and accessibility targets. The
 `0.385` legend improvement is recorded above. All 176 direct and 176 Play unit
