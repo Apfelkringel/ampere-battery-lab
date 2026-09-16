@@ -10,8 +10,13 @@ Android screen, and checks actual system state on every resume. Missing access
 is reminded weekly at most; a detected revocation is surfaced immediately.
 Optional-access reminders begin only after the user opens that feature or its
 permission entry. Direct and Play each pass 182 unit tests; both lint tasks and
-both debug APK builds pass. Signed release and public artifact verification
-pending.
+both debug APK builds pass. Signed release workflow `35118685302` and internal
+Google Play draft upload `35119294337` succeeded. GitHub verified the signed
+`v0.390` tag. The public APK/AAB SHA-256 values are
+`74d1ac4ec060fb06e0783fb2010919973d73c4fca81ed198cf2bec61c0f7603c` and
+`9ebc94974d5e9732f5acc9e62d01a56d933c7c6558481616aec1628c90e9e10d`;
+downloaded public artifacts match `latest.json`, and the APK reports version
+`0.390` (versionCode 390) with the expected signing certificate.
 
 Version `0.389` makes the 30-day battery-level chart use the latest real
 reading from each local calendar day instead of plotting every raw telemetry
@@ -81,7 +86,13 @@ fresh emulator screenshot
 check could not be completed: the existing AVD installation is signed with a
 different certificate, so replacing it would erase its local app data.
 
-## Current development change
+## Recent development changes
+
+Version `0.390` adds first-run feature orientation and a live permission audit.
+Android notification/channel state, Usage Access AppOp, and overlay state are
+read from system APIs on resume. Optional access reminders start only after
+the related feature is requested; denied or revoked access can be revisited
+from Settings → Berechtigungen prüfen.
 
 Version `0.387` clarifies that per-app mAh are estimates allocated from
 device-level telemetry and foreground usage, not exact app energy measurements.

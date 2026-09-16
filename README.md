@@ -6,8 +6,8 @@ Kostenlose, lokal arbeitende Android-Batterieanalyse als eigenständige Implemen
 
 1. `Ampere-Battery-Lab-release.apk` auf das Android-Handy kopieren.
 2. Die Datei öffnen und – falls Android fragt – die Installation aus dieser Quelle erlauben.
-3. Beim ersten Start Benachrichtigungen erlauben, damit der lokale Hintergrundmonitor und der Ladealarm funktionieren.
-4. Für die App-Nutzungsanzeige im Tab „Drain“ den Android-Zugriff auf Nutzungsdaten freigeben.
+3. Beim ersten Start führt Ampere durch die Bereiche der App und erklärt die benötigten Zugriffe.
+4. Benachrichtigungen halten den Hintergrundstatus und Ladealarme verfügbar; Nutzungszugriff und Overlay sind optionale Funktionen. Ampere erkennt fehlende oder später entzogene Zugriffe und zeigt in Einstellungen → Berechtigungen prüfen ihren Status.
 
 Die eigentliche Android-App liegt unter `android/`. Lokale APK-Kopien liegen unter
 `artifacts/`; der optionale Web-Prototyp liegt getrennt unter `prototypes/web/`.
