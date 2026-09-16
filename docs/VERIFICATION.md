@@ -16,7 +16,8 @@ and `941244e3034c1065a3b9a7f761249cc3b0685d2b06964228cb492f0ce5451cab`.
 Live public downloads match `latest.json`. The APK reports package
 `com.ampere.batterylab`, version `0.395` (versionCode 395), and the expected
 signing certificate. Google Play upload workflow `35160194493` completed on
-the alpha testing track.
+the alpha testing track. Play Console currently shows release `0.395` as under
+review; `0.383` remains available to testers until Google completes review.
 
 Version `0.394` fixes the permission checklist: its three actionable access
 rows now appear together with a concise explanation, show the current Android
