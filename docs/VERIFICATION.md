@@ -2,6 +2,15 @@
 
 Last verified: 2026-09-16 (Europe/Berlin)
 
+Version `0.389` makes the 30-day battery-level chart use the latest real
+reading from each local calendar day instead of plotting every raw telemetry
+sample as a dense point cloud. Days without readings remain explicit gaps;
+average and range statistics still use every raw sample. Tests cover out-of-
+order samples, same-day replacement, and missing-day detection across the
+Europe/Berlin daylight-saving transition. All 180 Direct and 180 Play unit
+tests, both lint tasks, and both debug APK builds pass locally. Signed-release
+and public artifact verification pending.
+
 Version `0.388` makes background-monitor health understandable from Settings:
 it reports when the monitor last persisted a heartbeat, flags missing/stale
 signals after 30 minutes, and explains that opening Ampere restarts monitoring.

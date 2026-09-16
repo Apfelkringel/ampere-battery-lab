@@ -2,6 +2,13 @@
 
 Stand: 16. September 2026
 
+Der 30-Tage-Akkustand wurde als Zeitreihe auf Darstellungsebene verdichtet:
+Für jeden lokalen Kalendertag zeigt die Kurve den letzten tatsächlich
+gespeicherten Prozentwert. Das vermeidet eine Punktwolke aus tausenden
+Rohproben, ohne Mittelwerte oder Zwischenwerte zu erfinden; Tage ohne Messung
+bleiben als Lücke sichtbar. Die Durchschnitts- und Spannenauswertung arbeitet
+unverändert mit allen Rohproben.
+
 Die Zuverlässigkeit der Hintergrundüberwachung wurde mit den Projekten
 [Device Watch](https://github.com/jrs8205/Device-Watch) und
 [BatteryNotification](https://github.com/TylerWilliamson/BatteryNotification)

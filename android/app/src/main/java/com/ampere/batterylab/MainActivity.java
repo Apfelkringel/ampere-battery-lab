@@ -5107,7 +5107,7 @@ class BatteryDashboard extends View {
                 chartY + chartH / 2f + 3, 7, faint, false);
         boundedRightText(c, "0%", chartRight + 4, x + width - 10,
                 chartY + chartH, 7, faint, false);
-        ArrayList<LevelPoint> points = chartPoints();
+        ArrayList<BatteryLevelChartSeries.Point> points = chartDisplayPoints();
         if (points.isEmpty()) {
             centeredBoundedText(c, "Noch keine lokalen Messwerte", chartX, chartRight,
                     chartY + 52, 10, faint, false);
@@ -5138,11 +5138,14 @@ class BatteryDashboard extends View {
             int gapCount = 0;
             int estimatedCount = 0;
             for (int i = 1; i < points.size(); i++) {
-                LevelPoint previous = points.get(i - 1);
-                LevelPoint point = points.get(i);
-                boolean interpolated = BatteryTimelineRules.shouldInterpolate(
+                BatteryLevelChartSeries.Point previous = points.get(i - 1);
+                BatteryLevelChartSeries.Point point = points.get(i);
+                boolean interpolated = historyDays != 30 && BatteryTimelineRules.shouldInterpolate(
                         previous.timestamp, point.timestamp, samplingIntervalMs());
-                boolean missing = point.timestamp - previous.timestamp > samplingIntervalMs();
+                boolean missing = historyDays == 30
+                        ? BatteryLevelChartSeries.skipsCalendarDay(previous.timestamp,
+                        point.timestamp, java.util.TimeZone.getDefault())
+                        : point.timestamp - previous.timestamp > samplingIntervalMs();
                 if (!missing || interpolated) continue;
                 gapCount++;
                 float previousFraction = Math.max(0f, Math.min(1f,
@@ -5165,7 +5168,7 @@ class BatteryDashboard extends View {
             Path estimatedPath = new Path();
             boolean pathStarted = false;
             for (int i = first; i < points.size(); i++) {
-                LevelPoint point = points.get(i);
+                BatteryLevelChartSeries.Point point = points.get(i);
                 float timeFraction = Math.max(0f, Math.min(1f, (point.timestamp - axisStart) / (float) axisSpan));
                 float px = u(chartX + timeFraction * chartW);
                 float py = u(chartY + chartH - point.level / 100f * chartH);
@@ -5173,14 +5176,17 @@ class BatteryDashboard extends View {
                     measuredPath.moveTo(px, py);
                     pathStarted = true;
                 } else {
-                    LevelPoint previous = points.get(i - 1);
+                    BatteryLevelChartSeries.Point previous = points.get(i - 1);
                     float previousFraction = Math.max(0f, Math.min(1f,
                             (previous.timestamp - axisStart) / (float) axisSpan));
                     float previousX = u(chartX + previousFraction * chartW);
                     float previousY = u(chartY + chartH - previous.level / 100f * chartH);
-                    boolean interpolated = BatteryTimelineRules.shouldInterpolate(
+                    boolean interpolated = historyDays != 30 && BatteryTimelineRules.shouldInterpolate(
                             previous.timestamp, point.timestamp, samplingIntervalMs());
-                    boolean missing = point.timestamp - previous.timestamp > samplingIntervalMs();
+                    boolean missing = historyDays == 30
+                            ? BatteryLevelChartSeries.skipsCalendarDay(previous.timestamp,
+                            point.timestamp, java.util.TimeZone.getDefault())
+                            : point.timestamp - previous.timestamp > samplingIntervalMs();
                     if (missing && interpolated) {
                         // This short segment is a display-only estimate. It is
                         // deliberately dashed and never enters any KPI math.
@@ -5209,7 +5215,7 @@ class BatteryDashboard extends View {
                 c.drawPath(estimatedPath, p);
                 p.setPathEffect(null);
             }
-            LevelPoint last = points.get(points.size() - 1);
+            BatteryLevelChartSeries.Point last = points.get(points.size() - 1);
             float lastFraction = Math.max(0f, Math.min(1f, (last.timestamp - axisStart) / (float) axisSpan));
             float lastX = chartX + lastFraction * chartW;
             float lastY = chartY + chartH - last.level / 100f * chartH;
@@ -5218,13 +5224,15 @@ class BatteryDashboard extends View {
             fill(c, lime);
             c.drawCircle(u(lastX), u(lastY), u(3f), p);
             String qualityLabel = estimatedCount > 0 ? "Gestrichelt = geschätzt"
-                    : gapCount > 0 ? "Schattiert = Messlücke"
+                    : gapCount > 0 ? (historyDays == 30
+                    ? "Schattiert = fehlender Tag" : "Schattiert = Messlücke")
+                    : historyDays == 30 ? "Punkt = letzter Messwert je Tag"
                     : focusedRange ? "Lokaler Messbereich" : "Gemessener Akkustand";
             boundedText(c, qualityLabel, chartX, chartRight, y + 158, 8, faint, false);
         }
         long axisEnd = System.currentTimeMillis();
         long axisStart = axisEnd - chartWindowMs();
-        ArrayList<LevelPoint> axisPoints = chartPoints();
+        ArrayList<BatteryLevelChartSeries.Point> axisPoints = chartDisplayPoints();
         if (axisPoints.size() > 1) {
             long observedStart = axisPoints.get(0).timestamp;
             long observedEnd = axisPoints.get(axisPoints.size() - 1).timestamp;
@@ -5370,23 +5378,13 @@ class BatteryDashboard extends View {
         return points;
     }
 
-    private static final class LevelPoint {
-        final long timestamp;
-        final int level;
-
-        LevelPoint(long timestamp, int level) {
-            this.timestamp = timestamp;
-            this.level = level;
-        }
-    }
-
     private long chartWindowMs() {
         return (historyDays == 30 ? 30L : 7L) * 24L * 60L * 60L * 1000L;
     }
 
     /** Uses timestamped telemetry; old APKs fall back to their level history. */
-    private ArrayList<LevelPoint> chartPoints() {
-        ArrayList<LevelPoint> points = new ArrayList<>();
+    private ArrayList<BatteryLevelChartSeries.Point> chartPoints() {
+        ArrayList<BatteryLevelChartSeries.Point> points = new ArrayList<>();
         long end = System.currentTimeMillis();
         long start = end - chartWindowMs();
         String saved = telemetryPrefs.getString("telemetrySamples", "");
@@ -5398,7 +5396,7 @@ class BatteryDashboard extends View {
                     long timestamp = Long.parseLong(parts[0]);
                     if (timestamp < start || timestamp > end) continue;
                     int level = BatteryLevel.normalizePercent(Integer.parseInt(parts[1].trim()));
-                    if (level >= 0) points.add(new LevelPoint(timestamp, level));
+                    if (level >= 0) points.add(new BatteryLevelChartSeries.Point(timestamp, level));
                 } catch (NumberFormatException ignored) { }
             }
         }
@@ -5406,13 +5404,14 @@ class BatteryDashboard extends View {
             // Restored telemetry and service restarts can append rows in a
             // different order. Sorting by wall-clock time keeps the newest
             // reading on the right and makes gap detection deterministic.
-            Collections.sort(points, new Comparator<LevelPoint>() {
-                @Override public int compare(LevelPoint left, LevelPoint right) {
+            Collections.sort(points, new Comparator<BatteryLevelChartSeries.Point>() {
+                @Override public int compare(BatteryLevelChartSeries.Point left,
+                                             BatteryLevelChartSeries.Point right) {
                     return Long.compare(left.timestamp, right.timestamp);
                 }
             });
-            ArrayList<LevelPoint> uniqueTimestamps = new ArrayList<>(points.size());
-            for (LevelPoint point : points) {
+            ArrayList<BatteryLevelChartSeries.Point> uniqueTimestamps = new ArrayList<>(points.size());
+            for (BatteryLevelChartSeries.Point point : points) {
                 int lastIndex = uniqueTimestamps.size() - 1;
                 if (lastIndex >= 0
                         && uniqueTimestamps.get(lastIndex).timestamp == point.timestamp) {
@@ -5429,15 +5428,23 @@ class BatteryDashboard extends View {
         long fallbackEnd = System.currentTimeMillis();
         long fallbackStart = fallbackEnd - Math.max(0, fallback.size() - 1) * samplingIntervalMs();
         for (int i = 0; i < fallback.size(); i++) {
-            points.add(new LevelPoint(fallbackStart + i * samplingIntervalMs(),
+            points.add(new BatteryLevelChartSeries.Point(fallbackStart + i * samplingIntervalMs(),
                     Math.max(0, Math.min(100, fallback.get(i)))));
         }
         return points;
     }
 
+    /** Monthly views show a real end-of-day value instead of thousands of raw readings. */
+    private ArrayList<BatteryLevelChartSeries.Point> chartDisplayPoints() {
+        ArrayList<BatteryLevelChartSeries.Point> points = chartPoints();
+        return historyDays == 30
+                ? BatteryLevelChartSeries.dailyLastSamples(points, java.util.TimeZone.getDefault())
+                : points;
+    }
+
     private ArrayList<Integer> chartLevels() {
         ArrayList<Integer> values = new ArrayList<>();
-        for (LevelPoint point : chartPoints()) values.add(point.level);
+        for (BatteryLevelChartSeries.Point point : chartPoints()) values.add(point.level);
         return values;
     }
 

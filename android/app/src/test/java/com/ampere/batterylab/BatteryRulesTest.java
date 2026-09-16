@@ -175,6 +175,42 @@ public class BatteryRulesTest {
         }
     }
 
+    @Test public void monthlyLevelChartUsesLatestRealReadingPerLocalDayAndKeepsGaps() {
+        TimeZone berlin = TimeZone.getTimeZone("Europe/Berlin");
+        Calendar sample = Calendar.getInstance(berlin, Locale.GERMANY);
+        sample.clear();
+        sample.set(2026, Calendar.MARCH, 28, 8, 0);
+        long firstMorning = sample.getTimeInMillis();
+        sample.set(2026, Calendar.MARCH, 28, 22, 30);
+        long firstEvening = sample.getTimeInMillis();
+        sample.set(2026, Calendar.MARCH, 29, 21, 0);
+        long nextDay = sample.getTimeInMillis();
+        sample.set(2026, Calendar.MARCH, 31, 20, 0);
+        long afterMissingDay = sample.getTimeInMillis();
+
+        ArrayList<BatteryLevelChartSeries.Point> samples = new ArrayList<>(Arrays.asList(
+                new BatteryLevelChartSeries.Point(nextDay, 61),
+                new BatteryLevelChartSeries.Point(firstMorning, 74),
+                new BatteryLevelChartSeries.Point(firstEvening, 68),
+                new BatteryLevelChartSeries.Point(afterMissingDay, 49)));
+
+        ArrayList<BatteryLevelChartSeries.Point> daily =
+                BatteryLevelChartSeries.dailyLastSamples(samples, berlin);
+
+        assertEquals(3, daily.size());
+        assertEquals(firstEvening, daily.get(0).timestamp);
+        assertEquals(68, daily.get(0).level);
+        assertEquals(nextDay, daily.get(1).timestamp);
+        assertEquals(61, daily.get(1).level);
+        assertEquals(afterMissingDay, daily.get(2).timestamp);
+        assertFalse(BatteryLevelChartSeries.skipsCalendarDay(
+                daily.get(0).timestamp, daily.get(1).timestamp, berlin));
+        assertTrue(BatteryLevelChartSeries.skipsCalendarDay(
+                daily.get(1).timestamp, daily.get(2).timestamp, berlin));
+        assertFalse(BatteryLevelChartSeries.skipsCalendarDay(
+                daily.get(2).timestamp, daily.get(1).timestamp, berlin));
+    }
+
     @Test public void historyRangeLabelsMatchCalendarBuckets() {
         assertEquals("Heute · seit Mitternacht", BatteryHistoryStats.rangeLabel(1));
         assertEquals("Diese Woche · Montag bis heute", BatteryHistoryStats.rangeLabel(7));
