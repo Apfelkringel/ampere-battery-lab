@@ -21,10 +21,27 @@ public class BatteryBackgroundStatusTest {
                 BatteryBackgroundStatus.batteryOptimizationStatus(false));
     }
 
+    @Test public void monitorStatusShowsFreshnessWithoutClaimingProcessState() {
+        assertEquals("Dienst zuletzt gerade eben bestätigt",
+                BatteryBackgroundStatus.monitorHeartbeatStatus(90_000L, 149_999L));
+        assertEquals("Dienst zuletzt vor 2 Min. bestätigt",
+                BatteryBackgroundStatus.monitorHeartbeatStatus(90_000L, 210_000L));
+        assertTrue(BatteryBackgroundStatus.monitorHeartbeatStatus(0L, 210_000L)
+                .startsWith("Kein aktuelles Dienstsignal"));
+        assertTrue(BatteryBackgroundStatus.monitorHeartbeatStatus(100_000L, 90_000L)
+                .startsWith("Kein aktuelles Dienstsignal"));
+        assertTrue(BatteryBackgroundStatus.monitorHeartbeatStatus(100_000L,
+                100_000L + BatteryMonitorWatchdog.STALE_AFTER_MS)
+                .startsWith("Kein aktuelles Dienstsignal"));
+    }
+
     @Test public void backgroundExplanationSeparatesHiddenNotificationFromStoppedService() {
         String message = BatteryBackgroundStatus.explanation("Berechtigung fehlt",
-                BatteryBackgroundStatus.batteryOptimizationStatus(false));
+                BatteryBackgroundStatus.batteryOptimizationStatus(false),
+                BatteryBackgroundStatus.monitorHeartbeatStatus(90_000L, 210_000L));
         assertTrue(message.contains("Live-Benachrichtigung: Berechtigung fehlt"));
+        assertTrue(message.contains("Hintergrunddienst: Dienst zuletzt vor 2 Min. bestätigt"));
+        assertTrue(message.contains("öffne Ampere einmal"));
         assertTrue(message.contains("Akkuoptimierung:"));
         assertTrue(message.contains("Dienst trotzdem laufen"));
         assertTrue(message.contains("Stopp erzwingen"));

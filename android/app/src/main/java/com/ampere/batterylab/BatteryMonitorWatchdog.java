@@ -33,6 +33,12 @@ public final class BatteryMonitorWatchdog extends BroadcastReceiver {
                 || now - lastHeartbeat >= STALE_AFTER_MS;
     }
 
+    static long lastHeartbeat(Context context) {
+        if (context == null) return 0L;
+        return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .getLong(KEY_HEARTBEAT, 0L);
+    }
+
     static void schedule(Context context) {
         if (context == null) return;
         AlarmManager alarms = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);

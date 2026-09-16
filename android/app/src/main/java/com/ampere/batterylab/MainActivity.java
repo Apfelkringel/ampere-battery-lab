@@ -8,6 +8,7 @@ import android.app.NotificationManager;
 import android.app.backup.BackupManager;
 import android.os.BatteryManager;
 import android.os.PowerManager;
+import android.os.SystemClock;
 import android.os.Bundle;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -2156,10 +2157,12 @@ class BatteryDashboard extends View {
                 permissionGranted, appNotificationsEnabled, monitoringChannelEnabled);
         String optimizationStatus = BatteryBackgroundStatus.batteryOptimizationStatus(
                 exemptFromOptimization);
+        String monitorStatus = BatteryBackgroundStatus.monitorHeartbeatStatus(
+                BatteryMonitorWatchdog.lastHeartbeat(getContext()), SystemClock.elapsedRealtime());
         new AlertDialog.Builder(getContext())
                 .setTitle("Hintergrundüberwachung")
                 .setMessage(BatteryBackgroundStatus.explanation(notificationStatus,
-                        optimizationStatus))
+                        optimizationStatus, monitorStatus))
                 .setNegativeButton("Schließen", null)
                 .setPositiveButton("Benachrichtigungen", (dialog, which) -> {
                     try {

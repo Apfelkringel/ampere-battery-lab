@@ -2,6 +2,15 @@
 
 Last verified: 2026-09-16 (Europe/Berlin)
 
+Version `0.388` makes background-monitor health understandable from Settings:
+it reports when the monitor last persisted a heartbeat, flags missing/stale
+signals after 30 minutes, and explains that opening Ampere restarts monitoring.
+The copy deliberately describes a recent service heartbeat rather than
+claiming Android can reliably report a background process as running. Tests
+cover recent, missing, future (reboot/clock-domain mismatch), and stale
+heartbeats. Direct/Play tests and lint pass locally; signed-release/public
+artifact verification is pending.
+
 Version `0.387` makes the app-usage summary distinguish missing battery
 measurements from measured drain that could not be assigned to an app. Assigned
 mAh are now explicitly labeled as estimates, and the remainder is disclosed as

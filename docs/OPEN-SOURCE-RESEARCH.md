@@ -1,6 +1,18 @@
 # Open-Source-Recherche
 
-Stand: 11. September 2026
+Stand: 16. September 2026
+
+Die Zuverlässigkeit der Hintergrundüberwachung wurde mit den Projekten
+[Device Watch](https://github.com/jrs8205/Device-Watch) und
+[BatteryNotification](https://github.com/TylerWilliamson/BatteryNotification)
+verglichen. Beide machen den dauerhaft sichtbaren Monitorzustand zu einem
+zentralen Teil der Nutzerführung; Ampere ergänzt deshalb in den Einstellungen
+den tatsächlich gespeicherten Watchdog-Heartbeat samt Alter und eindeutiger
+Wiederherstellungsanleitung. Es wurde kein Code übernommen. Die
+[Android-Dokumentation zur Entwicklerbestätigung](https://developer.android.com/developer-verification)
+nennt den 30. September 2026 als erste regionale Durchsetzungsphase; direkte
+APK-Sideloads sind davon zunächst nicht erfasst. Die App-/Signaturregistrierung
+sollte vor der weltweiten Ausweitung 2027 dennoch geprüft werden.
 
 Die zweite Referenzrunde wurde nicht als bloßes Recoloring umgesetzt. Die
 Referenzen verwenden gefüllte Primäraktionen, ruhige neutrale Controls, flache
