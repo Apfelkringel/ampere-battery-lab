@@ -2,6 +2,17 @@
 
 Last verified: 2026-09-16 (Europe/Berlin)
 
+Version `0.390` introduces a first-open guide explaining the five main app
+areas and what each access enables. The permission checklist distinguishes
+notification permission (including app/channel notification switches) from
+optional usage access and overlay access, links each item to the relevant
+Android screen, and checks actual system state on every resume. Missing access
+is reminded weekly at most; a detected revocation is surfaced immediately.
+Optional-access reminders begin only after the user opens that feature or its
+permission entry. Direct and Play each pass 182 unit tests; both lint tasks and
+both debug APK builds pass. Signed release and public artifact verification
+pending.
+
 Version `0.389` makes the 30-day battery-level chart use the latest real
 reading from each local calendar day instead of plotting every raw telemetry
 sample as a dense point cloud. Days without readings remain explicit gaps;

@@ -83,6 +83,7 @@ import java.util.Date;
 public class MainActivity extends Activity {
     private static final String UI_STATE_PREFS = "ampere-ui-state";
     private static final String MAIN_ACTIVITY_VISIBLE = "mainActivityVisible";
+    private static final String PERMISSION_REMINDER_AT = "permissionReminderAt";
     private static final int CREATE_BACKUP_REQUEST = 1201;
     private static final int RESTORE_BACKUP_REQUEST = 1202;
     private static final int RESEARCH_EXPORT_REQUEST = 1203;
@@ -129,7 +130,6 @@ public class MainActivity extends Activity {
     ));
     private BatteryDashboard dashboard;
     private boolean batteryReceiverRegistered;
-    private boolean awaitingNotificationPermissionResult;
     private final BroadcastReceiver batteryReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
             if (dashboard == null || intent == null) return;
@@ -176,9 +176,8 @@ public class MainActivity extends Activity {
         scroll.addView(dashboard, new ScrollView.LayoutParams(-1, contentHeight));
         setContentView(scroll);
         startMonitorService();
-        boolean notificationPromptShown = requestNotificationPermissionWithContext();
         dashboard.startSavedOverlay();
-        if (!notificationPromptShown) dashboard.postDelayed(this::showStartupDisclosure, 1000L);
+        dashboard.postDelayed(this::showStartupDisclosure, 1000L);
         IntentFilter batteryFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         batteryFilter.addAction(Intent.ACTION_POWER_CONNECTED);
         batteryFilter.addAction(Intent.ACTION_POWER_DISCONNECTED);
@@ -204,6 +203,7 @@ public class MainActivity extends Activity {
         }
         Intent battery = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         if (battery != null) dashboard.readBattery(battery);
+        dashboard.postDelayed(this::auditPermissions, 1200L);
     }
 
     @Override protected void onStart() {
@@ -226,8 +226,7 @@ public class MainActivity extends Activity {
     @Override public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == 44) {
-            awaitingNotificationPermissionResult = false;
-            if (dashboard != null) dashboard.postDelayed(this::showStartupDisclosure, 350L);
+            if (dashboard != null) dashboard.postDelayed(this::auditPermissions, 500L);
         }
     }
 
@@ -240,32 +239,100 @@ public class MainActivity extends Activity {
         }
     }
 
-    private boolean requestNotificationPermissionWithContext() {
-        if (Build.VERSION.SDK_INT < 33
-                || checkSelfPermission("android.permission.POST_NOTIFICATIONS") == getPackageManager().PERMISSION_GRANTED) return false;
-        AlertDialog notificationDialog = new AlertDialog.Builder(this)
-                .setTitle("Verlauf im Hintergrund behalten")
-                .setMessage("Ampere nutzt eine leise, dauerhafte Benachrichtigung, damit Android den lokalen Akku-Monitor und deine Ladealarme zuverlässig weiterlaufen lässt. Die Akku-Messwerte bleiben lokal. Eine getrennte, optionale Nutzungsanalyse ist nur nach deiner Zustimmung aktiv.")
-                .setNegativeButton("Später", null)
-                .setPositiveButton("Benachrichtigung erlauben", (dialog, which) ->
-                        awaitingNotificationPermissionResult = true)
-                .create();
-        notificationDialog.setOnDismissListener(dialog -> {
-            if (awaitingNotificationPermissionResult) {
-                dashboard.postDelayed(() -> {
-                    if (!isFinishing()) requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"}, 44);
-                }, 200L);
-            } else {
-                dashboard.postDelayed(this::showStartupDisclosure, 350L);
-            }
-        });
-        notificationDialog.show();
-        return true;
-    }
-
     private void showStartupDisclosure() {
         if (dashboard == null || isFinishing()) return;
         if (!dashboard.offerAnalyticsConsentIfNeeded()) dashboard.showTutorial(false);
+    }
+
+    private boolean hasUsageStatsAccess() {
+        AppOpsManager ops = (AppOpsManager) getSystemService(Context.APP_OPS_SERVICE);
+        return ops != null && ops.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS,
+                android.os.Process.myUid(), getPackageName()) == AppOpsManager.MODE_ALLOWED;
+    }
+
+    private boolean hasNotificationAccess() {
+        if (Build.VERSION.SDK_INT >= 33
+                && checkSelfPermission("android.permission.POST_NOTIFICATIONS") != getPackageManager().PERMISSION_GRANTED) return false;
+        NotificationManager notifications = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (Build.VERSION.SDK_INT >= 24 && notifications != null && !notifications.areNotificationsEnabled()) return false;
+        if (Build.VERSION.SDK_INT >= 26 && notifications != null) {
+            NotificationChannel channel = notifications.getNotificationChannel(BatteryMonitorService.CHANNEL_ID);
+            return channel == null || channel.getImportance() != NotificationManager.IMPORTANCE_NONE;
+        }
+        return true;
+    }
+
+    private void auditPermissions() {
+        if (dashboard == null || isFinishing()) return;
+        SharedPreferences audit = getSharedPreferences(UI_STATE_PREFS, MODE_PRIVATE);
+        SharedPreferences appPrefs = BatteryDataRepository.data(this);
+        boolean notification = hasNotificationAccess();
+        boolean usage = hasUsageStatsAccess();
+        boolean usageRequested = appPrefs.getBoolean("permissionUsageRequested", false);
+        boolean overlayRequested = appPrefs.getBoolean("permissionOverlayRequested", false)
+                || appPrefs.getBoolean("overlayEnabled", false);
+        boolean overlay = Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(this);
+        boolean revoked = (audit.getBoolean("permissionNotificationGranted", notification) && !notification)
+                || (usageRequested && audit.getBoolean("permissionUsageGranted", usage) && !usage)
+                || (overlayRequested && audit.getBoolean("permissionOverlayGranted", overlay) && !overlay);
+        audit.edit().putBoolean("permissionNotificationGranted", notification)
+                .putBoolean("permissionUsageGranted", usage)
+                .putBoolean("permissionOverlayGranted", overlay).apply();
+        boolean missing = !notification || (usageRequested && !usage) || (overlayRequested && !overlay);
+        boolean onboardingDone = appPrefs.getBoolean("tutorialShown", false);
+        long lastReminder = audit.getLong(PERMISSION_REMINDER_AT, 0L);
+        long now = System.currentTimeMillis();
+        if (!BatteryPermissionAudit.shouldRemind(onboardingDone, missing, revoked, lastReminder, now)) return;
+        audit.edit().putLong(PERMISSION_REMINDER_AT, now).apply();
+        showPermissionChecklist(true);
+    }
+
+    void showPermissionChecklist(boolean reminder) {
+        if (isFinishing()) return;
+        boolean notifications = hasNotificationAccess();
+        boolean usage = hasUsageStatsAccess();
+        boolean overlay = Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(this);
+        String[] entries = {
+                "Benachrichtigungen · " + (notifications ? "aktiv" : "fehlen — Hintergrundstatus und Alarme"),
+                "App-Nutzungszugriff · " + (usage ? "aktiv" : "optional — Verbrauch pro App"),
+                "Overlay · " + (overlay ? "aktiv" : "optional — Live-Anzeige über anderen Apps")
+        };
+        String intro = reminder
+                ? "Einige Zugriffe fehlen oder wurden von Android zurückgesetzt. Ampere erkennt den aktuellen Status beim Öffnen und erinnert höchstens wöchentlich; nach einem Widerruf erscheint der Hinweis sofort."
+                : "Benachrichtigungen halten den sichtbaren Hintergrundstatus und Ladealarme verfügbar. Nutzungszugriff und Overlay sind optionale Android-Sonderzugriffe und werden nur für die jeweils genannten Funktionen verwendet. Ampere prüft ihren Status erneut, wenn du die App öffnest.";
+        new AlertDialog.Builder(this).setTitle("Berechtigungen & Zugriffe")
+                .setMessage(intro + "\n\nTippe auf einen Eintrag, um den Zugriff zu prüfen oder in Android-Einstellungen zu ändern.")
+                .setItems(entries, (dialog, which) -> {
+                    if (which == 0) {
+                        if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission("android.permission.POST_NOTIFICATIONS") != getPackageManager().PERMISSION_GRANTED) {
+                            SharedPreferences appPrefs = BatteryDataRepository.data(MainActivity.this);
+                            int requests = appPrefs.getInt("notificationPermissionRequests", 0);
+                            appPrefs.edit().putInt("notificationPermissionRequests", requests + 1).apply();
+                            if (requests > 0 && !shouldShowRequestPermissionRationale("android.permission.POST_NOTIFICATIONS")) {
+                                openNotificationSettings();
+                            } else requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"}, 44);
+                        } else openNotificationSettings();
+                    } else if (which == 1) {
+                        BatteryDataRepository.data(this).edit()
+                                .putBoolean("permissionUsageRequested", true).apply();
+                        try { startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)); } catch (Exception ignored) { }
+                    } else {
+                        BatteryDataRepository.data(this).edit()
+                                .putBoolean("permissionOverlayRequested", true).apply();
+                        try { startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()))); }
+                        catch (Exception ignored) { }
+                    }
+                }).setNegativeButton("Fertig", null).show();
+    }
+
+    private void openNotificationSettings() {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startActivity(new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                        .putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName()));
+            } else startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                    Uri.parse("package:" + getPackageName())));
+        } catch (Exception ignored) { }
     }
 
     void restartMonitorService() {
@@ -1939,6 +2006,7 @@ class BatteryDashboard extends View {
 
     private void setOverlayEnabled(boolean enabled) {
         if (enabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(getContext())) {
+            prefs.edit().putBoolean("permissionOverlayRequested", true).apply();
             try { getContext().startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getContext().getPackageName()))); } catch (Exception ignored) { getContext().startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)); }
             return;
         }
@@ -1965,7 +2033,7 @@ class BatteryDashboard extends View {
                 : "Tiefstandwarnung · aus";
         String samplingOption = "Datenerfassung · alle " + BatterySamplingPolicy.normalizeMinutes(
                 prefs.getInt("samplingIntervalMin", 15)) + " Minuten";
-        String[] options = {"Benachrichtigungen", "Ladeziel & Ladealarm", temperatureOption, dischargeOption, "Overlay-Berechtigung", "Daten & Datenschutz", "Sicherung & Wiederherstellung", "Hintergrundüberwachung", samplingOption, "Nach Updates suchen", "Kurzanleitung", "Gesundheitsbasis zurücksetzen", "Aktuellen Status kopieren", "Aktuellen Status teilen", "Lokale Daten löschen"};
+        String[] options = {"Benachrichtigungen", "Ladeziel & Ladealarm", temperatureOption, dischargeOption, "Overlay-Berechtigung", "Daten & Datenschutz", "Sicherung & Wiederherstellung", "Hintergrundüberwachung", samplingOption, "Nach Updates suchen", "Berechtigungen prüfen", "Kurzanleitung", "Gesundheitsbasis zurücksetzen", "Aktuellen Status kopieren", "Aktuellen Status teilen", "Lokale Daten löschen"};
         LinearLayout titleBar = new LinearLayout(getContext());
         titleBar.setOrientation(LinearLayout.HORIZONTAL);
         titleBar.setGravity(Gravity.CENTER_VERTICAL);
@@ -2012,6 +2080,7 @@ class BatteryDashboard extends View {
             } else if (which == 3) {
                 showDischargeAlarmSettings();
             } else if (which == 4) {
+                prefs.edit().putBoolean("permissionOverlayRequested", true).apply();
                 try { getContext().startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getContext().getPackageName()))); } catch (Exception ignored) { }
             } else if (which == 5) {
                 showDataPrivacy();
@@ -2024,12 +2093,14 @@ class BatteryDashboard extends View {
             } else if (which == 9) {
                 UpdateChecker.checkNow((Activity) getContext());
             } else if (which == 10) {
-                showTutorial(true);
+                ((MainActivity) getContext()).showPermissionChecklist(false);
             } else if (which == 11) {
-                confirmResetHealthBaseline();
+                showTutorial(true);
             } else if (which == 12) {
-                copyCurrentStatus();
+                confirmResetHealthBaseline();
             } else if (which == 13) {
+                copyCurrentStatus();
+            } else if (which == 14) {
                 shareCurrentStatus();
             } else {
                 confirmDeleteData();
@@ -2349,7 +2420,7 @@ class BatteryDashboard extends View {
         if (!force && prefs.getBoolean("tutorialShown", false)) return;
         new AlertDialog.Builder(getContext())
                 .setTitle("Willkommen bei Ampere")
-                .setMessage("Ampere speichert Akku-Messwerte lokal auf deinem Gerät. Für einen guten Start:\n\n1. Lass die Überwachungsbenachrichtigung aktiv, damit Verlauf und Alarme weiterlaufen.\n2. Wähle im Tab „Laden“ dein Ladeziel.\n3. Für die Gesundheitsmessung: unter 25 % starten und über 95 % laden.\n\nOptional: Nutzungszugriff zeigt App-Verbrauch, Overlay zeigt Live-Werte über anderen Apps. Eine getrennte Nutzungsanalyse ist nur nach Zustimmung aktiv und lässt sich in Einstellungen → Daten & Datenschutz jederzeit ausschalten.")
+                .setMessage("Deine Akku-Messwerte werden lokal auf dem Gerät gespeichert. Hier findest du die wichtigsten Bereiche:\n\n• Übersicht: Live-Ladung/Entladung, Temperatur, Spannung und Akkustand-Verlauf.\n• Laden: Ladesitzungen, Ladeziel und Ladealarme.\n• Entladen: Verbrauch, Laufzeit und optionaler Verbrauch pro App.\n• Akku: Gesundheitsmessung und Kapazität.\n• Verlauf: Tages-, Wochen- und Monatsstatistiken.\n\nFür den Hintergrundstatus und Ladealarme braucht Ampere Benachrichtigungen. App-Nutzungszugriff (Verbrauch pro App) und Overlay (Live-Anzeige über anderen Apps) sind optional. Du kannst jeden Zugriff hier prüfen; Android kann ihn später entziehen. Ampere kontrolliert den Status beim nächsten Öffnen und erinnert bei fehlendem oder widerrufenem Zugriff.\n\nFür die Gesundheitsmessung: unter 25 % starten und über 95 % laden. Die getrennte Nutzungsanalyse ist freiwillig und lässt sich unter Einstellungen → Daten & Datenschutz jederzeit ändern.")
                 .setNegativeButton("Später", (dialog, which) -> prefs.edit().putBoolean("tutorialShown", true).apply())
                 .setNeutralButton("Nennkapazität setzen", (dialog, which) -> {
                     prefs.edit().putBoolean("tutorialShown", true).apply();
@@ -2357,6 +2428,7 @@ class BatteryDashboard extends View {
                 })
                 .setPositiveButton("Loslegen", (dialog, which) -> {
                     prefs.edit().putBoolean("tutorialShown", true).apply();
+                    ((MainActivity) getContext()).showPermissionChecklist(false);
                 }).show();
     }
 
@@ -4145,6 +4217,7 @@ class BatteryDashboard extends View {
 
     private void showAppUsageDetails() {
         if (!hasUsageAccess()) {
+            prefs.edit().putBoolean("permissionUsageRequested", true).apply();
             try { getContext().startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS, Uri.parse("package:" + getContext().getPackageName()))); }
             catch (Exception ignored) { getContext().startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)); }
             return;
