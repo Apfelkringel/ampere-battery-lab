@@ -2,6 +2,22 @@
 
 Last verified: 2026-09-16 (Europe/Berlin)
 
+Version `0.391` replaces the blocking first-start analytics prompt with a
+two-step app tour, preserves optional permissions as optional, and limits
+missing-access reminders to once per 30 days (detected revocations remain
+immediate). History bars now open exact bucket values and disclose when
+measurement intervals are missing rather than reporting a misleading zero.
+On a 320-dp API-36 emulator, both intro steps, overview and tappable history
+details were visually checked. Direct and Play each pass 185 unit tests; both
+lint tasks and both debug APK builds pass. Signed release workflow
+`35151240912` succeeded; GitHub verifies signed tag `v0.391`. Internal Google
+Play draft upload `35151847811` succeeded. The public APK/AAB SHA-256 values are
+`ac94803f5b684664c1371bb9bee6d8cbcf62a7b6ea0cb7f95d13736763e9c8ed` and
+`964dc4dc51d310b11e8eb49e1159e3053051b2ea50e4e4a47b0769e6e64e27eb`;
+downloaded public artifacts match the manifest. The APK reports package
+`com.ampere.batterylab`, version `0.391` (versionCode 391), and the expected
+signing certificate.
+
 Version `0.390` introduces a first-open guide explaining the five main app
 areas and what each access enables. The permission checklist distinguishes
 notification permission (including app/channel notification switches) from
@@ -87,6 +103,14 @@ check could not be completed: the existing AVD installation is signed with a
 different certificate, so replacing it would erase its local app data.
 
 ## Recent development changes
+
+Version `0.391` makes the first-open guide a compact two-step tour and removes
+the blocking analytics-consent dialog from startup; analytics remains opt-in
+from Settings. Missing permission/access reminders are limited to once every
+30 days, while revocations are still detected immediately. Tapping a history
+bar now reveals its exact date, charge, consumption, wear and ratio values;
+periods without valid measurement intervals are explicitly identified as
+missing data. The independently scaled series are explained in the details.
 
 Version `0.390` adds first-run feature orientation and a live permission audit.
 Android notification/channel state, Usage Access AppOp, and overlay state are
