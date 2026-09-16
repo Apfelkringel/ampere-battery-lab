@@ -2,6 +2,25 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.396` exposes every daily, weekly, and monthly balance-chart bucket
+as its own focusable, clickable accessibility item. Each item announces its
+period and actual charge, consumption, wear, and ratio values; periods without
+measurements explicitly say that readings are missing rather than zero. On a
+320-dp API-36 emulator, the accessibility hierarchy exposed all six monthly
+buckets, including the measured September value and five missing months. The
+same interaction geometry is used for touch exploration and chart taps. The
+portrait-only manifest and UX documentation are also protected by a regression
+test. Direct and Play each pass 195 unit tests; both lint tasks and both debug
+APK builds pass locally. Release workflow `35161104787` succeeded, and GitHub
+verifies the signed `v0.396` tag. The public update repository was updated in
+commit `9f1768b`; APK and AAB SHA-256 values are
+`51f01c7fd57a2a8df7ae642c956f12dae7c049bb326c8fff1c63c003458f950f` and
+`e73e75def9944a9c15d91add50ddcd55506936a1caad29445a0e77f4c3a9cef1`.
+Live downloads match `latest.json`. The APK reports package
+`com.ampere.batterylab`, version `0.396` (versionCode 396); the signed release
+workflow verified the expected signing certificate. Google Play upload
+workflow `35161551564` completed on the alpha testing track.
+
 Version `0.395` makes the Akku-Bilanz's normalized bars interpretable at a glance:
 the legend gives each series its actual maximum and unit, with charge and
 consumption scaled independently. Missing readings remain `—`, and tapping a
