@@ -6,7 +6,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class BatteryPermissionAuditTest {
-    @Test public void remindersWaitForOnboardingAndOnlyRepeatWeekly() {
+    @Test public void remindersWaitForOnboardingAndOnlyRepeatMonthly() {
         long now = 20L * BatteryPermissionAudit.REMINDER_INTERVAL_MS;
         assertFalse(BatteryPermissionAudit.shouldRemind(false, true, false, 0L, now));
         assertFalse(BatteryPermissionAudit.shouldRemind(true, false, false, 0L, now));

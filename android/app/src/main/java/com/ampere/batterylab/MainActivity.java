@@ -241,7 +241,7 @@ public class MainActivity extends Activity {
 
     private void showStartupDisclosure() {
         if (dashboard == null || isFinishing()) return;
-        if (!dashboard.offerAnalyticsConsentIfNeeded()) dashboard.showTutorial(false);
+        dashboard.showTutorial(false);
     }
 
     private boolean hasUsageStatsAccess() {
@@ -298,7 +298,7 @@ public class MainActivity extends Activity {
                 "Overlay · " + (overlay ? "aktiv" : "optional — Live-Anzeige über anderen Apps")
         };
         String intro = reminder
-                ? "Einige Zugriffe fehlen oder wurden von Android zurückgesetzt. Ampere erkennt den aktuellen Status beim Öffnen und erinnert höchstens wöchentlich; nach einem Widerruf erscheint der Hinweis sofort."
+                ? "Einige Zugriffe fehlen oder wurden von Android zurückgesetzt. Ampere erkennt den aktuellen Status beim Öffnen und erinnert höchstens monatlich; nach einem Widerruf erscheint der Hinweis sofort."
                 : "Benachrichtigungen halten den sichtbaren Hintergrundstatus und Ladealarme verfügbar. Nutzungszugriff und Overlay sind optionale Android-Sonderzugriffe und werden nur für die jeweils genannten Funktionen verwendet. Ampere prüft ihren Status erneut, wenn du die App öffnest.";
         new AlertDialog.Builder(this).setTitle("Berechtigungen & Zugriffe")
                 .setMessage(intro + "\n\nTippe auf einen Eintrag, um den Zugriff zu prüfen oder in Android-Einstellungen zu ändern.")
@@ -323,6 +323,11 @@ public class MainActivity extends Activity {
                         catch (Exception ignored) { }
                     }
                 }).setNegativeButton("Fertig", null).show();
+    }
+
+    void snoozePermissionReminder() {
+        getSharedPreferences(UI_STATE_PREFS, MODE_PRIVATE).edit()
+                .putLong(PERMISSION_REMINDER_AT, System.currentTimeMillis()).apply();
     }
 
     private void openNotificationSettings() {
@@ -2276,30 +2281,6 @@ class BatteryDashboard extends View {
                 .show();
     }
 
-    boolean offerAnalyticsConsentIfNeeded() {
-        if (AnalyticsTracker.hasDecision(getContext())) return false;
-        showAnalyticsConsent();
-        return true;
-    }
-
-    private void showAnalyticsConsent() {
-        AlertDialog disclosure = new AlertDialog.Builder(getContext())
-                .setTitle("Nutzungsanalyse aktivieren?")
-                .setMessage("Hilf uns, Ampere gezielt zu verbessern: Wenn du zustimmst, sendet die App an Google über Firebase, welche Bereiche du öffnest und welche ausgewählten Funktionen du nutzt. Firebase erfasst außerdem App-Starts und Sitzungen, bei Google Play gegebenenfalls die Installations-/Update-Quelle, eine zufällige Kennung dieser App-Installation sowie technische Angaben wie Gerätemodell, Betriebssystem und App-Version. Google kann bei der Übertragung aus deiner IP-Adresse ungefähre Standortinformationen ableiten und verwirft die IP-Adresse danach.\n\nWerbe-ID und personalisierte Werbung sind deaktiviert. Das Analytics-Konto kann nur zusammengefasste, anonymisierte Messwerte für Branchen-Benchmarks nutzen; eine zusätzliche Freigabe für Google-Produkte und -Dienste ist ausgeschaltet. Akku-Messwerte, Namen anderer geöffneter Apps, Konten und genauer Standort werden nicht für diese Analyse übertragen. Ereignis- und Nutzerdaten werden jeweils zwei Monate aufbewahrt; aggregierte Berichte können länger bestehen bleiben. Die Zustimmung ist freiwillig und ändert keine Funktion. Du kannst sie jederzeit unter Einstellungen → Daten & Datenschutz → Nutzungsanalyse widerrufen.")
-                .setPositiveButton("Zustimmen", (dialog, which) -> {
-                    AnalyticsTracker.setConsent(getContext(), true);
-                    AnalyticsTracker.logSection(getContext(), page);
-                    showTutorial(false);
-                })
-                .setNegativeButton("Nein danke", (dialog, which) -> {
-                    AnalyticsTracker.setConsent(getContext(), false);
-                    showTutorial(false);
-                })
-                .create();
-        disclosure.setOnCancelListener(dialog -> showTutorial(false));
-        disclosure.show();
-    }
-
     private void showAnalyticsSettings() {
         boolean enabled = AnalyticsTracker.isEnabled(getContext());
         String state = enabled ? "Derzeit aktiv." : "Derzeit aus.";
@@ -2418,18 +2399,33 @@ class BatteryDashboard extends View {
 
     void showTutorial(boolean force) {
         if (!force && prefs.getBoolean("tutorialShown", false)) return;
-        new AlertDialog.Builder(getContext())
-                .setTitle("Willkommen bei Ampere")
-                .setMessage("Deine Akku-Messwerte werden lokal auf dem Gerät gespeichert. Hier findest du die wichtigsten Bereiche:\n\n• Übersicht: Live-Ladung/Entladung, Temperatur, Spannung und Akkustand-Verlauf.\n• Laden: Ladesitzungen, Ladeziel und Ladealarme.\n• Entladen: Verbrauch, Laufzeit und optionaler Verbrauch pro App.\n• Akku: Gesundheitsmessung und Kapazität.\n• Verlauf: Tages-, Wochen- und Monatsstatistiken.\n\nFür den Hintergrundstatus und Ladealarme braucht Ampere Benachrichtigungen. App-Nutzungszugriff (Verbrauch pro App) und Overlay (Live-Anzeige über anderen Apps) sind optional. Du kannst jeden Zugriff hier prüfen; Android kann ihn später entziehen. Ampere kontrolliert den Status beim nächsten Öffnen und erinnert bei fehlendem oder widerrufenem Zugriff.\n\nFür die Gesundheitsmessung: unter 25 % starten und über 95 % laden. Die getrennte Nutzungsanalyse ist freiwillig und lässt sich unter Einstellungen → Daten & Datenschutz jederzeit ändern.")
-                .setNegativeButton("Später", (dialog, which) -> prefs.edit().putBoolean("tutorialShown", true).apply())
-                .setNeutralButton("Nennkapazität setzen", (dialog, which) -> {
-                    prefs.edit().putBoolean("tutorialShown", true).apply();
-                    editDesignCapacity();
-                })
-                .setPositiveButton("Loslegen", (dialog, which) -> {
-                    prefs.edit().putBoolean("tutorialShown", true).apply();
-                    ((MainActivity) getContext()).showPermissionChecklist(false);
-                }).show();
+        showTutorialStep(0);
+    }
+
+    private void showTutorialStep(int step) {
+        MainActivity activity = (MainActivity) getContext();
+        boolean firstStep = step == 0;
+        String title = firstStep ? "Ampere kennenlernen · 1 von 2" : "Zugriffe & Start · 2 von 2";
+        String message = firstStep
+                ? "Übersicht zeigt den Live-Akkustand, Temperatur, Spannung und Verlauf.\n\nLaden enthält Ladeziel und Sitzungen. Entladen zeigt Verbrauch und Laufzeit. Akku erklärt Gesundheit und Kapazität. Verlauf vergleicht Tag, Woche und Monat.\n\nDie fünf Bereiche wechselst du über die Leiste unten. Deine Akku-Messwerte bleiben lokal auf diesem Gerät."
+                : "Benachrichtigungen halten Hintergrundstatus und Ladealarme sichtbar.\n\nApp-Nutzungszugriff ist nur für Verbrauch pro App nötig. Overlay erlaubt die Live-Anzeige über anderen Apps. Beide sind optional; ohne sie funktionieren die übrigen Ansichten weiter. Du kannst jeden Zugriff später unter Einstellungen → Berechtigungen prüfen.\n\nFür die Gesundheitsmessung: unter 25 % starten und über 95 % laden. Nutzungsanalyse ist freiwillig und bleibt aus, bis du sie in Daten & Datenschutz einschaltest.";
+        AlertDialog.Builder guide = new AlertDialog.Builder(getContext())
+                .setTitle(title)
+                .setMessage(message);
+        if (firstStep) {
+            guide.setNegativeButton("Später", (dialog, which) -> {
+                        prefs.edit().putBoolean("tutorialShown", true).apply();
+                        activity.snoozePermissionReminder();
+                    })
+                    .setPositiveButton("Weiter", (dialog, which) -> showTutorialStep(1));
+        } else {
+            guide.setNegativeButton("Zurück", (dialog, which) -> showTutorialStep(0))
+                    .setPositiveButton("Loslegen", (dialog, which) -> {
+                        prefs.edit().putBoolean("tutorialShown", true).apply();
+                        activity.showPermissionChecklist(false);
+                    });
+        }
+        guide.show();
     }
 
     private float u(float value) { return value * density; }
@@ -2679,6 +2675,13 @@ class BatteryDashboard extends View {
         if (page == 1 && isWithinCanvasControl(BatteryAccessibilityLayout.CHARGE_OVERLAY, x, y, w)) return 22;
         if (page == 3 && isWithinCanvasControl(BatteryAccessibilityLayout.HEALTH_BENCHMARK, x, y, w)) return 30;
         if (page == 4 && isWithinCanvasControl(BatteryAccessibilityLayout.HISTORY_EXPORT, x, y, w)) return 40;
+        if (page == 4 && isWithinCanvasControl(BatteryAccessibilityLayout.HISTORY_VALUES, x, y, w)) return 44;
+        if (page == 4 && y >= 182f + 430f + 108f && y < 182f + 430f + 231f) {
+            float bodyX = x - contentInset(w);
+            int bucket = BatteryHistoryChartSelection.bucketIndexAt(bodyX, 36f,
+                    contentWidth(w) - 36f, historyChartBucketCount());
+            if (bucket >= 0) return 100 + bucket;
+        }
         if (page == 4 && y >= 296 && y < 344) {
             int periodControl = BatteryAccessibilityLayout.historyPeriodControlAt(
                     x, contentInset(w), contentWidth(w));
@@ -4716,8 +4719,8 @@ class BatteryDashboard extends View {
         text(c, "AKKU-BILANZ · " + historyChartRangeLabel(), 36, chartTop + 29, 9, muted, true);
         text(c, historyPeriodLabel(), 36, chartTop + 53, 16, primary, true);
         drawHistoryLegend(c, 36, w - 36, chartTop + 80, muted);
-        drawHistoryBars(c, buckets, 36, chartTop + 116, w - 36, 112, primary, muted, faint);
-        text(c, "Balkenhöhen je Kennzahl skaliert", 36, chartTop + 270, 8, faint, false);
+        drawHistoryBars(c, buckets, 36, chartTop + 116, w - 36, 96, primary, muted, faint);
+        centeredText(c, "Balken antippen · genaue Werte", w / 2f, chartTop + 270, 8, faint, false);
 
         float insightTop = chartTop + 298;
         rounded(c, 18, insightTop, w - 18, insightTop + 92, 14, raised);
@@ -4824,6 +4827,38 @@ class BatteryDashboard extends View {
                 System.currentTimeMillis(), historyPeriodDays, calculationCapacityMah());
     }
 
+    private void showHistoryBucketDetails(int bucketIndex) {
+        ArrayList<BatteryHistoryStats.Bucket> buckets = historyStatsBuckets();
+        if (bucketIndex < 0 || bucketIndex >= buckets.size()) return;
+        BatteryHistoryStats.Bucket bucket = buckets.get(bucketIndex);
+        String datePattern = historyPeriodDays == 1 ? "EEEE, d. MMMM"
+                : historyPeriodDays == 7 ? "d. MMMM yyyy" : "MMMM yyyy";
+        String date = new SimpleDateFormat(datePattern, Locale.GERMANY)
+                .format(new Date(bucket.start));
+        String message;
+        if (bucket.measuredIntervals <= 0) {
+            message = "Für diesen Zeitraum liegen keine auswertbaren Strommessungen vor.\n\n— bedeutet fehlende Messwerte, nicht 0."
+                    + "\n\nDie Balken jeder Kennzahl werden separat skaliert.";
+        } else {
+            String wear = calculationCapacityMah() > 0
+                    ? String.format(Locale.GERMANY, "%.2f EFC", bucket.wearCycles)
+                    : "— · Kapazität fehlt";
+            String ratio = bucket.consumedMah > 0
+                    ? bucket.chargeConsumptionRatioPercent + "%" : "— · kein Verbrauchswert";
+            message = "Aufgeladen: +" + bucket.chargedMah + " mAh\n"
+                    + "Akkuverbrauch: " + bucket.consumedMah + " mAh\n"
+                    + "Akkuverschleiß: " + wear + "\n"
+                    + "Geladen/Verbrauch: " + ratio + "\n\n"
+                    + "Aus " + bucket.measuredIntervals + " auswertbaren Messintervallen."
+                    + " Jede Kennzahl hat im Diagramm eine eigene Skala.";
+        }
+        new AlertDialog.Builder(getContext())
+                .setTitle("Akku-Bilanz · " + date)
+                .setMessage(message)
+                .setPositiveButton("Schließen", null)
+                .show();
+    }
+
     /** The cards describe the selected period, while the chart shows its historical buckets. */
     private BatteryHistoryStats.Bucket selectedHistoryPeriod(ArrayList<BatteryHistoryStats.Bucket> buckets) {
         if (buckets == null || buckets.isEmpty()) return new BatteryHistoryStats.Bucket(0L, "");
@@ -4841,6 +4876,10 @@ class BatteryDashboard extends View {
     private String historyChartRangeLabel() {
         return historyPeriodDays == 1 ? "7 KALENDERTAGE"
                 : historyPeriodDays == 7 ? "5 KALENDERWOCHEN" : "6 KALENDERMONATE";
+    }
+
+    private int historyChartBucketCount() {
+        return historyPeriodDays == 1 ? 7 : historyPeriodDays == 7 ? 5 : 6;
     }
 
     private void drawLegacyHistoryPage(Canvas c, float w, float h, int panel, int raised, int border, int primary, int muted, int faint) {
@@ -5725,6 +5764,8 @@ class BatteryDashboard extends View {
             prefs.edit().putInt("historyPeriodDays", historyPeriodDays).apply();
             updateAccessibilitySummary();
             invalidate();
+        } else if (virtualViewId == BatteryAccessibilityLayout.HISTORY_VALUES) {
+            showHistoryBucketDetails(historyChartBucketCount() - 1);
         } else if (virtualViewId == BatteryAccessibilityLayout.OVERVIEW_7D
                 || virtualViewId == BatteryAccessibilityLayout.OVERVIEW_30D) {
             historyDays = BatteryAccessibilityLayout.historyDaysForControl(virtualViewId, historyDays);
@@ -5891,7 +5932,7 @@ class BatteryDashboard extends View {
             ArrayList<AccessibilityNodeInfo> result = new ArrayList<>();
             if (searched == null) return result;
             String query = searched.toLowerCase(Locale.GERMANY);
-            for (int id = 1; id <= BatteryAccessibilityLayout.HISTORY_MONTH; id++) {
+            for (int id = 1; id <= BatteryAccessibilityLayout.HISTORY_VALUES; id++) {
                 if (!isVisibleVirtualView(id)) continue;
                 String label = virtualViewLabel(id);
                 if (label.toLowerCase(Locale.GERMANY).contains(query)) {
@@ -6098,6 +6139,17 @@ class BatteryDashboard extends View {
             prefs.edit().putInt("historyPeriodDays", historyPeriodDays).apply();
             updateAccessibilitySummary();
             invalidate();
+            return true;
+        }
+        if (page == 4 && releasedRegion == 44) {
+            hapticClick();
+            showHistoryBucketDetails(historyChartBucketCount() - 1);
+            return true;
+        }
+        if (page == 4 && releasedRegion >= 100
+                && releasedRegion < 100 + historyChartBucketCount()) {
+            hapticClick();
+            showHistoryBucketDetails(releasedRegion - 100);
             return true;
         }
         if (page == 0 && y > overviewChartTop() + 8 && y < overviewChartTop() + 60) {

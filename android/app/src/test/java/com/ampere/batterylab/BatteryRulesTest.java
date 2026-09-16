@@ -92,6 +92,7 @@ public class BatteryRulesTest {
         assertEquals(500, overall.consumedMah);
         assertEquals(200, overall.chargeConsumptionRatioPercent);
         assertEquals(0.5f, overall.wearCycles, 0.001f);
+        assertEquals(2, buckets.get(buckets.size() - 1).measuredIntervals);
     }
 
     @Test public void historyRatioKeepsZeroAsAValidMeasuredValue() {

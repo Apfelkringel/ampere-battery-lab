@@ -14,6 +14,7 @@ final class BatteryAccessibilityLayout {
     static final int HISTORY_DAY = 59;
     static final int HISTORY_WEEK = 60;
     static final int HISTORY_MONTH = 61;
+    static final int HISTORY_VALUES = 62;
 
     private BatteryAccessibilityLayout() { }
 
@@ -25,7 +26,7 @@ final class BatteryAccessibilityLayout {
         if (page == 3) return virtualViewId == HEALTH_BENCHMARK || virtualViewId == HEALTH_CAPACITY;
         if (page == 4) return virtualViewId == HISTORY_EXPORT
                 || virtualViewId == HISTORY_DAY || virtualViewId == HISTORY_WEEK
-                || virtualViewId == HISTORY_MONTH;
+                || virtualViewId == HISTORY_MONTH || virtualViewId == HISTORY_VALUES;
         return false;
     }
 
@@ -35,7 +36,7 @@ final class BatteryAccessibilityLayout {
             case 1: return new int[]{CHARGE_ALARM, CHARGE_OVERLAY, CHARGE_LIMIT};
             case 2: return new int[]{DISCHARGE_USAGE};
             case 3: return new int[]{HEALTH_BENCHMARK, HEALTH_CAPACITY};
-            case 4: return new int[]{HISTORY_DAY, HISTORY_WEEK, HISTORY_MONTH, HISTORY_EXPORT};
+            case 4: return new int[]{HISTORY_DAY, HISTORY_WEEK, HISTORY_MONTH, HISTORY_VALUES, HISTORY_EXPORT};
             default: return new int[0];
         }
     }
@@ -61,6 +62,7 @@ final class BatteryAccessibilityLayout {
             case HISTORY_DAY: return "Verlauf täglich";
             case HISTORY_WEEK: return "Verlauf wöchentlich";
             case HISTORY_MONTH: return "Verlauf monatlich";
+            case HISTORY_VALUES: return "Exakte Werte im Bilanzdiagramm anzeigen";
             default: return "";
         }
     }
@@ -168,6 +170,12 @@ final class BatteryAccessibilityLayout {
                 top = 296f;
                 right = bodyInset + bodyWidth - 36f;
                 bottom = 344f;
+                break;
+            case HISTORY_VALUES:
+                left = bodyInset + 36f;
+                top = 182f + 430f + 232f;
+                right = bodyInset + bodyWidth - 36f;
+                bottom = 182f + 430f + 280f;
                 break;
             default:
                 return new int[]{0, 0, 0, 0};

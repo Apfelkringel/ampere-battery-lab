@@ -2,7 +2,7 @@ package com.ampere.batterylab;
 
 /** Scheduling policy for permission reminders; permission state itself comes from Android. */
 final class BatteryPermissionAudit {
-    static final long REMINDER_INTERVAL_MS = 7L * 24L * 60L * 60L * 1000L;
+    static final long REMINDER_INTERVAL_MS = 30L * 24L * 60L * 60L * 1000L;
 
     private BatteryPermissionAudit() { }
 

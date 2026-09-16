@@ -2,6 +2,27 @@
 
 Stand: 16. September 2026
 
+## Erststart und Verlauf · 0.391
+
+Für die Einwilligungs- und Berechtigungsführung wurden die offiziellen
+[Android-Empfehlungen für Laufzeitberechtigungen](https://developer.android.com/training/permissions/requesting),
+[Sonderberechtigungen](https://developer.android.com/training/permissions/requesting-special)
+und [Permission-UX-Hinweise](https://developer.android.com/training/permissions/usage-notes)
+herangezogen: Zugriffe sollen im passenden Funktionskontext erklärt, nach
+Verweigerung respektiert und ihr tatsächlicher Systemstatus beim Wiederöffnen
+erneut geprüft werden. Ampere führt deshalb zunächst in zwei kurzen Schritten
+durch die App; die getrennte Nutzungsanalyse wird nicht mehr als blockierender
+Erststart-Dialog gezeigt. Fehlende optionale Zugriffe werden höchstens monatlich
+erinnert, ein erkannter Widerruf weiterhin sofort angezeigt.
+
+Als ergänzende UX-Inspiration diente die
+[Battery-Monitor-Diskussion zu präziserer Eingabe](https://github.com/tswistak/Battery-Monitor/issues/156):
+Messwerte sollten nicht nur als qualitative Visualisierung erscheinen,
+sondern bei Bedarf exakt ablesbar sein. Die Ampere-Verlaufssäulen öffnen daher
+ihre tatsächlichen Periodenwerte beim Antippen; fehlende Messintervalle werden
+ausdrücklich von einem echten Nullverbrauch unterschieden. Das ist eine eigene
+Implementierung, es wurde kein externer Code übernommen.
+
 Der 30-Tage-Akkustand wurde als Zeitreihe auf Darstellungsebene verdichtet:
 Für jeden lokalen Kalendertag zeigt die Kurve den letzten tatsächlich
 gespeicherten Prozentwert. Das vermeidet eine Punktwolke aus tausenden

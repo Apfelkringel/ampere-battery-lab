@@ -267,8 +267,11 @@ public class BatteryButtonAssetLayoutTest {
                 dashboard.contains("bucket.chargeConsumptionRatioPercent / (float) maxRatio"));
         assertTrue("dash values should be explained as unavailable, not zero",
                 dashboard.contains("— = keine auswertbaren Messwerte"));
-        assertTrue("independent metric scales must be disclosed",
-                dashboard.contains("Balkenhöhen je Kennzahl skaliert"));
+        assertTrue("the chart must invite users to inspect exact bucket values",
+                dashboard.contains("Balken antippen · genaue Werte"));
+        assertTrue("chart details must disclose separate scales and distinguish missing data",
+                dashboard.contains("Jede Kennzahl hat im Diagramm eine eigene Skala.")
+                        && dashboard.contains("keine auswertbaren Strommessungen"));
     }
 
     @Test public void mobileCopyStaysConcreteAndLocalized() throws IOException {

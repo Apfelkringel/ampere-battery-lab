@@ -48,8 +48,13 @@ final class BatteryHistoryStats {
                     int segmentMah = segmentEnd == end ? mah - assignedMah
                             : Math.round(mah * (segmentEnd - timestamp) / (float) (end - timestamp))
                             - assignedMah;
-                    if ("1".equals(parts[2])) result.get(bucket).chargedMah += segmentMah;
-                    else if ("0".equals(parts[2])) result.get(bucket).consumedMah += segmentMah;
+                    if ("1".equals(parts[2])) {
+                        result.get(bucket).chargedMah += segmentMah;
+                        result.get(bucket).measuredIntervals++;
+                    } else if ("0".equals(parts[2])) {
+                        result.get(bucket).consumedMah += segmentMah;
+                        result.get(bucket).measuredIntervals++;
+                    }
                     assignedMah += segmentMah;
                     cursor = segmentEnd;
                 }
@@ -148,6 +153,7 @@ final class BatteryHistoryStats {
         final String label;
         int chargedMah;
         int consumedMah;
+        int measuredIntervals;
         float wearCycles;
         int chargeConsumptionRatioPercent;
 
