@@ -1366,7 +1366,8 @@ class BatteryDashboard extends View {
     private float averageChargeRateMahPerHour() {
         String saved = telemetryPrefs.getString("telemetrySamples", "");
         if (saved.isEmpty()) return 0f;
-        long windowStart = System.currentTimeMillis() - 7L * 24L * 60L * 60L * 1000L;
+        long now = System.currentTimeMillis();
+        long windowStart = now - 7L * 24L * 60L * 60L * 1000L;
         long previousAt = -1L;
         int previousCounter = 0;
         boolean previousCharging = false;
@@ -1375,12 +1376,11 @@ class BatteryDashboard extends View {
         float[] sourceRates = new float[BatteryChargeSource.DOCK + 1];
         long[] sourceMs = new long[BatteryChargeSource.DOCK + 1];
         int previousSource = BatteryChargeSource.UNKNOWN;
-        for (String row : BatteryExportRules.validTelemetryRows(saved)) {
+        for (String row : BatteryExportRules.telemetryRowsBetween(saved, windowStart, now)) {
             String[] parts = row.split(",", 11);
             if (parts.length < 7) continue;
             try {
                 long timestamp = Long.parseLong(parts[0]);
-                if (timestamp < windowStart) continue;
                 boolean sampleCharging = "1".equals(parts[2]);
                 int counter = Integer.parseInt(parts[6]);
                 int current = Math.abs(Integer.parseInt(parts[3]));
@@ -1450,19 +1450,19 @@ class BatteryDashboard extends View {
     private float averageDischargeRate(boolean screenOn) {
         String saved = telemetryPrefs.getString("telemetrySamples", "");
         if (!saved.isEmpty()) {
-            long windowStart = System.currentTimeMillis() - 7L * 24L * 60L * 60L * 1000L;
+            long now = System.currentTimeMillis();
+            long windowStart = now - 7L * 24L * 60L * 60L * 1000L;
             long previousAt = -1L;
             int previousLevel = -1;
             boolean previousCharging = true;
             boolean previousScreenOn = false;
             float consumed = 0f;
             long elapsedMs = 0L;
-            for (String row : BatteryExportRules.validTelemetryRows(saved)) {
+            for (String row : BatteryExportRules.telemetryRowsBetween(saved, windowStart, now)) {
                 String[] parts = row.split(",", 11);
                 if (parts.length < 8) continue;
                 try {
                     long timestamp = Long.parseLong(parts[0]);
-                    if (timestamp < windowStart) continue;
                     int sampleLevel = BatteryLevel.normalizePercent(Integer.parseInt(parts[1]));
                     if (sampleLevel < 0) continue;
                     boolean sampleCharging = "1".equals(parts[2]);

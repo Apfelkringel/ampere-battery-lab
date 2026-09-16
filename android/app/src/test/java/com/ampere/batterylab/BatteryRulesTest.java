@@ -1128,6 +1128,21 @@ public class BatteryRulesTest {
         assertEquals(older + "\n" + newer, BatteryExportRules.normalizeTelemetry(newer + "\n" + older));
     }
 
+    @Test public void rateTelemetryWindowExcludesFutureSamplesAndKeepsItsBoundaries() {
+        String before = "1699999999999,45,0,-200,25.0,4.20,6500,0,,12,0";
+        String start = "1700000000000,46,0,-300,25.0,4.20,6400,0,,12,0";
+        String end = "1700000001000,47,0,-400,25.0,4.20,6300,0,,12,0";
+        String future = "1700000001001,48,0,-500,25.0,4.20,6200,0,,12,0";
+
+        ArrayList<String> rows = BatteryExportRules.telemetryRowsBetween(
+                future + "\n" + end + "\n" + before + "\n" + start,
+                1700000000000L, 1700000001000L);
+
+        assertEquals(Arrays.asList(start, end), rows);
+        assertTrue(BatteryExportRules.telemetryRowsBetween(future, 1700000001002L,
+                1700000001001L).isEmpty());
+    }
+
     @Test public void telemetryExportRejectsContradictoryCurrentDirection() {
         String[] charging = {"1700000000000", "46", "1", "-900", "25.0", "4.20", "6600", "0", "", "12", "2"};
         String[] discharging = {"1700000000000", "46", "0", "900", "25.0", "4.20", "6600", "0", "", "12", "0"};

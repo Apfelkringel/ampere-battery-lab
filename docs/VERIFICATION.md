@@ -2,22 +2,36 @@
 
 Last verified: 2026-09-16 (Europe/Berlin)
 
+Version `0.386` excludes future-dated telemetry from the seven-day local charge
+and discharge rate windows. A shared inclusive time-window filter canonicalizes
+valid rows and is covered for lower/upper boundaries, unsorted input, and future
+samples. This matters because device wall time can jump after a user or network
+clock adjustment; interval estimates must not consume samples beyond “now”.
+
 Version `0.385` improves the history balance chart legend: the four series now
 use a two-row layout with clearer labels (“Verschleiß · EFC” and “Ladequote”)
 so they remain readable on narrow phone screens. Direct and Play debug builds,
 their unit tests and lint checks all pass. Gradle was run with JDK 17; the
 system-default JDK 26 cannot process this Android SDK's `core-for-system-modules.jar`.
 
-Public version `0.384` was verified in the update repository manifest. The
-current `0.384` change makes the history ratio honest about its meaning, keeps a
-valid zero-percent value visible, and aligns the wide-screen period-button touch
-and accessibility targets. All 175 direct and 175 Play unit tests pass, along
+Public version `0.385` was verified in the update repository manifest and its
+APK/AAB hashes matched the published artifacts. The `0.384` change made the
+history ratio honest about its meaning, kept a valid zero-percent value visible,
+and aligned wide-screen period-button touch and accessibility targets. The
+`0.385` legend improvement is recorded above. All 176 direct and 176 Play unit
+tests pass, along
 with both lint tasks and debug APK assembly for the version-bumped source. A
 fresh emulator screenshot
 check could not be completed: the existing AVD installation is signed with a
 different certificate, so replacing it would erase its local app data.
 
 ## Current development change
+
+Version `0.386` prevents restored or clock-shifted telemetry with timestamps in
+the future from influencing live charge/discharge forecasts. Both calculations
+now consume validated samples within the same seven-day window ending at the
+current wall-clock time; tests cover bounds, chronological ordering and future
+sample exclusion.
 
 Version `0.385` keeps all four history-chart series legible at compact widths by
 placing their color keys in two rows and replacing abbreviated “EFC” and

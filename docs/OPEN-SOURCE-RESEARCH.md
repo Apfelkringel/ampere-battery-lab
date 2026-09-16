@@ -700,3 +700,14 @@ Werte an. Androids Empfehlung für mindestens 48 × 48 dp große Touch-Ziele
 war außerdem der Maßstab für die gemeinsame Geometrie von Tippen und
 Screenreader-Fokus auf den Zeitraumsschaltern. Es wurde kein fremder Code oder
 Asset übernommen.
+
+Für die Live-Raten wurde zusätzlich Androids
+[`SystemClock`-Dokumentation](https://developer.android.com/reference/android/os/SystemClock)
+herangezogen: `System.currentTimeMillis()` kann bei manueller oder
+Netzwerk-Zeitkorrektur vor- oder zurückspringen und ist daher keine monotone
+Intervalluhr. Da die gespeicherten Telemetriezeilen Kalenderzeit benötigen,
+bleibt diese Zeitbasis für Verlauf und Datumsfenster erhalten; die
+Lade-/Entladeprognosen schließen nun aber Messpunkte nach „jetzt“ explizit aus.
+Das GitHub-Projekt
+[Battery Historian](https://github.com/google/battery-historian) dient als
+Referenz für zeitgestützte Akkudiagnose. Es wurde kein Code daraus übernommen.

@@ -1,0 +1,1 @@
+Lade- und Entladeprognosen ignorieren jetzt Messwerte mit Zeitstempeln in der Zukunft. Das verhindert irreführende Raten nach einer Uhrkorrektur oder dem Wiederherstellen eines Verlaufs.

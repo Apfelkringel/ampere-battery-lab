@@ -61,6 +61,18 @@ final class BatteryExportRules {
         return rows;
     }
 
+    /** Returns chronological, valid samples inside an inclusive time window. */
+    static ArrayList<String> telemetryRowsBetween(String serialized, long startInclusive,
+                                                   long endInclusive) {
+        ArrayList<String> rows = new ArrayList<>();
+        if (endInclusive < startInclusive) return rows;
+        for (String row : validTelemetryRows(serialized)) {
+            long timestamp = timestampOf(row);
+            if (timestamp >= startInclusive && timestamp <= endInclusive) rows.add(row);
+        }
+        return rows;
+    }
+
     private static long timestampOf(String row) {
         return Long.parseLong(row.substring(0, row.indexOf(',' )).trim());
     }
