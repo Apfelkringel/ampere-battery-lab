@@ -2,6 +2,22 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.394` fixes the permission checklist: its three actionable access
+rows now appear together with a concise explanation, show the current Android
+grant state, and remain first in the scrollable dialog so they are reachable
+at large font sizes. On a 320-dp API-36 emulator, the list was checked at the
+default and 200% font scales; all three rows appeared in the accessibility
+hierarchy, opening app-usage settings worked, and returning after granting
+access updated its status to `Aktiv`. Direct and Play each pass 189 unit tests;
+both lint tasks and debug APK builds pass locally. Signed release workflow
+`35156891195` succeeded and GitHub verified signed tag `v0.394`. Internal
+Google Play draft upload `35157453608` succeeded. Public APK/AAB SHA-256 values
+are `9b80338807ed524bb0c5175150850549646295e007e5c963655fcbbf39b8a967` and
+`b6f536e037be74b88e1ac840c4206fb1f1dc6c561de858a9a1f9dfac2fa8f32e`;
+downloaded artifacts match the public manifest. The APK reports package
+`com.ampere.batterylab`, version `0.394` (versionCode 394), and the expected
+signing certificate.
+
 Version `0.393` lays out discharge-runtime forecasts as three larger, readable
 rows on narrow screens and exposes each mode as its own non-interactive
 accessibility node. When an estimate is unavailable, its screen-reader entry
