@@ -8,8 +8,13 @@ sample as a dense point cloud. Days without readings remain explicit gaps;
 average and range statistics still use every raw sample. Tests cover out-of-
 order samples, same-day replacement, and missing-day detection across the
 Europe/Berlin daylight-saving transition. All 180 Direct and 180 Play unit
-tests, both lint tasks, and both debug APK builds pass locally. Signed-release
-and public artifact verification pending.
+tests, both lint tasks, and both debug APK builds pass locally. Signed release
+workflow `35106450436` and internal Google Play draft upload `35107165336`
+succeeded. GitHub verified the signed `v0.389` tag. The public APK and AAB
+SHA-256 values are `694f52bd9e9f37d7b1643a92f8c34260c959cb20648fca5f467ef7c19c29d827`
+and `bf1edb66c8d424d215a9196176e32b063168ec7f35cb3ba053248569dbbaf7d9`;
+downloaded public artifacts match `latest.json`, and the APK reports version
+`0.389` (versionCode 389).
 
 Version `0.388` makes background-monitor health understandable from Settings:
 it reports when the monitor last persisted a heartbeat, flags missing/stale
