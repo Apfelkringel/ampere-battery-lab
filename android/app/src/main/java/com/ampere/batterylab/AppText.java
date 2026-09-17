@@ -470,6 +470,11 @@ final class AppText {
                 {"aufgeladen", "charged"}, {"verbraucht", "used"},
                 {"Die Lade-/Usagesquote vergleicht geladene mit verbrauchter Energie und ist keine gemessene Battery-Efficiency. Balkenwerte (jede Kennzahl ist separat skaliert):", "The charge/usage ratio compares charged with used energy and is not measured battery efficiency. Bar values (each metric is scaled separately):"},
                 {"EFC sind äquivalente Vollzyklen, kein direkt gemessener chemischer Healthsverlust.", "EFC are equivalent full cycles, not a directly measured chemical health loss."}
+                ,{"Messstatus", "Measurement status"}, {"useder", "used"},
+                {"Battery-Efficiency", "battery efficiency"},
+                {"Die Charge/usage ratio vergleicht geladene mit useder Energie und ist keine gemessene Battery-Efficiency. Balkenwerte (jede Kennzahl ist separat skaliert):", "The charge/usage ratio compares charged with used energy and is not measured battery efficiency. Bar values (each metric is scaled separately):"},
+                {"Die Charge/usage ratio vergleicht geladene mit used Energie und ist keine gemessene battery efficiency.", "The charge/usage ratio compares charged with used energy and is not measured battery efficiency."},
+                {"..", "."}
         };
         for (String[] phrase : phrases) result = result.replace(phrase[0], phrase[1]);
         return result;

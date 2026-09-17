@@ -60,6 +60,8 @@ public class AppTextTest {
                     AppText.t("Ladestatus: Nicht verfügbar. Ladeziel: Erreicht. Geladene Energie: 7612 mAh. Sitzungsdauer: 8 Std. 29 Min."));
             assertEquals("Monthly history. Selected period: 6 CALENDAR MONTHS. Charge/usage ratio (charged divided by used): 1424 percent",
                     AppText.t("Verlauf monatlich. Ausgewählter Zeitraum: 6 KALENDERMONATE. Lade-/Verbrauchsquote (geladen geteilt durch verbraucht): 1424 Prozent"));
+            assertEquals("Measurement status: At least 5% battery level required. The charge/usage ratio compares charged with used energy and is not measured battery efficiency.",
+                    AppText.t("Messstatus: Mindestens 5 % Battery level nötig. Die Charge/usage ratio vergleicht geladene mit useder Energie und ist keine gemessene Battery-Efficiency."));
             assertEquals("BATTERY BALANCE · 6 CALENDAR MONTHS",
                     AppText.t("AKKU-BILANZ · 6 KALENDERMONATE"));
         } finally {
