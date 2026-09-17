@@ -2,6 +2,24 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.428` clarifies the history metric formerly shown as “Charged/Usage”
+to “Charge/usage ratio”, so a value such as 712% is visibly identified as a
+ratio rather than a second consumption amount. The history audit confirmed
+that day, week and month cards and chart values change with the selected
+period. Direct and Play each pass 218 unit tests and both debug lint tasks
+pass. The signed `v0.428` tag is GitHub-verified, and release workflow
+[`35241281976`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35241281976)
+passed. Public update-repository commit
+[`e70052b`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/e70052b)
+publishes the artifacts. Fresh public APK and AAB downloads match
+`latest.json`: SHA-256
+`ae7da761b7f53e38c7fbbd5f747d0d58f705669ca5c12c70890db53cd24ee904` (APK)
+and `a22cb2d0973fb8c71fcee5820ce2d4dcce6b588a308ee694179e93cd488e584d`
+(AAB). The public manifest reports version code/name `428`/`0.428` and the
+package remains `com.ampere.batterylab`. Play alpha publishing workflow
+[`35241895260`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35241895260)
+passed.
+
 Version `0.427` completes the English health-page and navigation pass. The
 health page now translates its learning/measurement copy, capacity labels,
 system-cycle labels and the charging-progress connector. On narrow English
