@@ -5,8 +5,19 @@ Last verified: 2026-09-17 (Europe/Berlin)
 Version `0.406` removes text ellipsizing from the shared canvas labels and
 system battery widgets: long values are fitted to their lane instead of being
 replaced by three dots. Direct and Play each pass 209 unit tests; both debug
-lint tasks pass. Signed release, public APK/manifest and Play alpha publication
-are pending.
+lint tasks pass. The signed `v0.406` tag is GitHub-verified, and release
+workflow
+[`35214187427`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35214187427)
+passed. Update-repository commit
+[`09816f0`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/09816f0)
+publishes the artifacts. Fresh public APK and AAB downloads match manifest
+SHA-256 values
+`d675c2a2b676323148ee27f3b130b63adb2ff730ec28ff29045bd49cf0f447d9` (APK) and
+`7316c2b23abaa42f83d365d8494e4f38d85f1c28486944a32c61d1f3f11a0fc8` (AAB).
+The APK is `com.ampere.batterylab`, version code/name `406`/`0.406`. Play alpha
+publishing workflow
+[`35214750606`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35214750606)
+passed.
 
 Version `0.405` labels the discharge-current chart with the exact start and end
 time, elapsed duration and number of plotted local samples (including a date
