@@ -1189,7 +1189,12 @@ class BatteryDashboard extends View {
 
     /** Top edge of the first visible session row in the history composition. */
     private float historySessionsTop() {
-        return 182 + 430 + 298 + 119;
+        // Keep the session list below the insight card. The former fixed
+        // position started inside that card, so "Recent sessions" could
+        // overlap the analysis text on short phone screens.
+        float chartTop = 182 + 430;
+        float insightBottom = chartTop + 358 + 92;
+        return insightBottom + 34;
     }
 
     private float historySessionRowTop(int index) {
