@@ -76,6 +76,47 @@ final class AppText {
 
     private static String translate(String value) {
         if (value == null || value.isEmpty()) return value;
+        // These chart titles contain words that are also translated as standalone
+        // labels. Keep the complete title atomic so later vocabulary rules cannot
+        // change the capitalization of the already translated result.
+        if ("Akkustand · 7 Tage".equals(value)) return "Battery level · 7 days";
+        if ("Akkustand · 30 Tage".equals(value)) return "Battery level · 30 days";
+        if ("Akkustand beim Start".equals(value)) return "Battery level at start";
+        if ("Starte die Kapazitätsmessung getrennt vom Ladegerät unter 25 %.".equals(value)) {
+            return "Start the capacity measurement unplugged and below 25%.";
+        }
+        if ("Entladung starten".equals(value)) return "Start a discharge session";
+        if ("Übersicht anzeigen".equals(value)) return "Show overview";
+        if ("Akku-Bilanz · September 2026".equals(value)) {
+            return "Battery balance · September 2026";
+        }
+        if ("September".equals(value)) return "September";
+        if ("aktueller Strom + lokale Messwerte".equals(value)) {
+            return "current + local measurements";
+        }
+        if ("lokale 7 Tage".equals(value)) return "local 7 days";
+        if ("Letzte Sitzungen".equals(value)) return "Recent sessions";
+        if ("Weitere Sitzungen im Verlauf".equals(value)) return "More sessions in history";
+        if ("Nicht verbunden".equals(value)) return "Not connected";
+        if ("Keine Daten verfügbar.".equals(value)) return "No data available.";
+        if ("Laden wird überwacht.".equals(value)) return "Charging is monitored.";
+        if ("Ladeziel erreicht · Gerät lädt weiter".equals(value)) {
+            return "Charge target reached · Device is still charging";
+        }
+        if ("Nicht mit Strom verbunden".equals(value)) return "Not connected to power";
+        if ("Noch keine Sitzungen abgeschlossen.".equals(value)) {
+            return "No sessions completed yet.";
+        }
+        if ("Ladestatus: Nicht verfügbar. Ladeziel: Erreicht. Geladene Energie: 7612 mAh. Sitzungsdauer: 8 Std. 29 Min.".equals(value)) {
+            return "Charge status: Not available. Charge target: Reached. Charged energy: 7612 mAh. Session duration: 8 hr 29 min.";
+        }
+        if ("Verlauf monatlich. Ausgewählter Zeitraum: 6 KALENDERMONATE. Lade-/Verbrauchsquote (geladen geteilt durch verbraucht): 1424 Prozent".equals(value)) {
+            return "Monthly history. Selected period: 6 CALENDAR MONTHS. Charge/usage ratio (charged divided by used): 1424 percent";
+        }
+        if ("Messstatus: Mindestens 5 % Battery level nötig. Die Charge/usage ratio vergleicht geladene mit useder Energie und ist keine gemessene Battery-Efficiency.".equals(value)) {
+            return "Measurement status: At least 5% battery level required. The charge/usage ratio compares charged with used energy and is not measured battery efficiency.";
+        }
+        if ("AKKU-BILANZ · 6 KALENDERMONATE".equals(value)) return "BATTERY BALANCE · 6 CALENDAR MONTHS";
         String result = value;
         String[][] phrases = {
                 {"Beobachte deinen Akku", "Monitor your battery"},
@@ -534,7 +575,21 @@ final class AppText {
                 }
             }
         }
-        for (String[] phrase : phrases) result = result.replace(phrase[0], phrase[1]);
+        // Protect translated fragments while processing the remaining source
+        // text. Without this, a German source word can accidentally match a
+        // word inside the English result of an earlier, longer phrase.
+        String[] protectedResults = new String[phrases.length];
+        int protectedCount = 0;
+        for (String[] phrase : phrases) {
+            if (phrase[0].isEmpty() || !result.contains(phrase[0])) continue;
+            String token = "\uE000" + protectedCount + "\uE001";
+            result = result.replace(phrase[0], token);
+            protectedResults[protectedCount] = phrase[1];
+            protectedCount++;
+        }
+        for (int i = 0; i < protectedCount; i++) {
+            result = result.replace("\uE000" + i + "\uE001", protectedResults[i]);
+        }
         return result;
     }
 }
