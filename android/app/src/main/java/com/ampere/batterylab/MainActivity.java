@@ -6476,7 +6476,7 @@ class BatteryDashboard extends View {
             Intent battery = ((Activity) getContext()).registerReceiver(
                     null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
             if (battery != null) readBattery(battery);
-            Toast.makeText(getContext(), "Live-Daten aktualisiert.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), AppText.t(getContext(), "Live-Daten aktualisiert."), Toast.LENGTH_SHORT).show();
         } else if (virtualViewId >= 10 && virtualViewId <= 14) {
             selectPage(virtualViewId - 10);
             updateAccessibilitySummary();
@@ -6849,7 +6849,7 @@ class BatteryDashboard extends View {
             Intent battery = ((Activity) getContext()).registerReceiver(
                     null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
             if (battery != null) readBattery(battery);
-            Toast.makeText(getContext(), "Live-Daten aktualisiert.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), AppText.t(getContext(), "Live-Daten aktualisiert."), Toast.LENGTH_SHORT).show();
             return true;
         }
         int navigationTab = BatteryAccessibilityLayout.navigationTabAt(screenX, w);

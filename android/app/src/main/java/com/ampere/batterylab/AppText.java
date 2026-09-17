@@ -287,7 +287,7 @@ final class AppText {
                 {"Diagnosebericht konnte nicht gespeichert werden.", "Diagnostic report could not be saved."},
                 {"Forschungs-Export gespeichert.", "Research export saved."},
                 {"Forschungs-Export konnte nicht gespeichert werden.", "Research export could not be saved."},
-                {"Live-Daten aktualisiert.", "Live data updated."},
+                {"Live-Daten aktualisiert.", "Live data refreshed."},
                 {"Akkuüberwachung", "Battery monitoring"}, {"Ladealarm", "Charge alert"},
                 {"Warte auf Akkudaten", "Waiting for battery data"},
                 {"Letzter Entladevorgang", "Last discharge"},
