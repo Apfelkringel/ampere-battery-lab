@@ -6189,8 +6189,8 @@ class BatteryDashboard extends View {
     }
 
     String largeTextControlLabel(int virtualViewId) {
-        return BatteryAccessibilityLayout.label(virtualViewId, historyDays == 30,
-                chargeAlarm, overlayEnabled, benchmarkActive, chargeLimit);
+        return AppText.t(getContext(), BatteryAccessibilityLayout.label(virtualViewId,
+                historyDays == 30, chargeAlarm, overlayEnabled, benchmarkActive, chargeLimit));
     }
 
     boolean isLargeTextBenchmarkActive() { return benchmarkActive; }
@@ -6226,33 +6226,33 @@ class BatteryDashboard extends View {
                 && virtualViewId < 100 + historyChartBucketCount()) {
             ArrayList<BatteryHistoryStats.Bucket> buckets = historyStatsBuckets();
             int bucketIndex = virtualViewId - 100;
-            return bucketIndex < buckets.size()
+            return AppText.t(getContext(), bucketIndex < buckets.size()
                     ? BatteryHistoryBucketAccessibility.description(buckets.get(bucketIndex),
                             historyPeriodDays, calculationCapacityMah() > 0)
-                    : "Zeitraum nicht verfügbar";
+                    : "Zeitraum nicht verfügbar");
         }
-        if (virtualViewId == BatteryHeaderLayout.OVERFLOW) return "Einstellungen";
-        if (virtualViewId == BatteryHeaderLayout.LIVE_REFRESH) return "Live-Daten aktualisieren";
+        if (virtualViewId == BatteryHeaderLayout.OVERFLOW) return AppText.t(getContext(), "Einstellungen");
+        if (virtualViewId == BatteryHeaderLayout.LIVE_REFRESH) return AppText.t(getContext(), "Live-Daten aktualisieren");
         if (virtualViewId == BatteryAccessibilityLayout.DISCHARGE_SCREEN_ON) {
-            return BatteryAccessibilitySummary.dischargeEstimate("Bildschirm dauerhaft an",
-                    dischargeRuntime(true), dischargeRuntimeSource(true));
+            return AppText.t(getContext(), BatteryAccessibilitySummary.dischargeEstimate("Bildschirm dauerhaft an",
+                    dischargeRuntime(true), dischargeRuntimeSource(true)));
         }
         if (virtualViewId == BatteryAccessibilityLayout.DISCHARGE_SCREEN_OFF) {
-            return BatteryAccessibilitySummary.dischargeEstimate("Bildschirm aus",
-                    dischargeRuntime(false), dischargeRuntimeSource(false));
+            return AppText.t(getContext(), BatteryAccessibilitySummary.dischargeEstimate("Bildschirm aus",
+                    dischargeRuntime(false), dischargeRuntimeSource(false)));
         }
         if (virtualViewId == BatteryAccessibilityLayout.DISCHARGE_NORMAL) {
-            return BatteryAccessibilitySummary.dischargeEstimate("Normale Nutzung",
-                    runtimeEstimate(), runtimeEstimateSource());
+            return AppText.t(getContext(), BatteryAccessibilitySummary.dischargeEstimate("Normale Nutzung",
+                    runtimeEstimate(), runtimeEstimateSource()));
         }
         if (BatteryAccessibilityLayout.isVisible(virtualViewId, page)) {
-            return BatteryAccessibilityLayout.label(virtualViewId, historyDays == 30,
-                    chargeAlarm, overlayEnabled, benchmarkActive, chargeLimit);
+            return AppText.t(getContext(), BatteryAccessibilityLayout.label(virtualViewId,
+                    historyDays == 30, chargeAlarm, overlayEnabled, benchmarkActive, chargeLimit));
         }
         String[] labels = getWidth() / density < 480f
                 ? new String[]{"Start", "Laden", "Entladen", "Akku", "Verlauf"}
                 : new String[]{"Übersicht", "Laden", "Entladen", "Gesundheit", "Verlauf"};
-        return virtualViewId >= 10 && virtualViewId <= 14 ? labels[virtualViewId - 10] : "";
+        return AppText.t(getContext(), virtualViewId >= 10 && virtualViewId <= 14 ? labels[virtualViewId - 10] : "");
     }
 
     private Rect virtualViewBounds(int virtualViewId) {

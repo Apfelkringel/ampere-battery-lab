@@ -2,6 +2,11 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.415` continues the English UI pass across the discharge and history
+pages, including forecast modes, session labels, battery-pattern cards, app
+usage actions, chart headings and accessibility control labels. Direct/Play
+tests and debug lint pass locally; release verification is pending.
+
 Version `0.414` fixes the remaining English empty-state and status labels
 found during emulator review, including the battery-level heading, charging
 state, health card, measurement action, capacity labels and the dashboard
