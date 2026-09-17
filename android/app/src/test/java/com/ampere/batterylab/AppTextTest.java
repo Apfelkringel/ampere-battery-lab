@@ -25,6 +25,11 @@ public class AppTextTest {
                     AppText.t("Restlaufzeit bei normaler Nutzung: 8 Std."));
             assertEquals("Learning takes a little time.",
                     AppText.t("Lernen braucht ein wenig Zeit."));
+            assertEquals("Backup could not be saved.",
+                    AppText.t("Backup konnte nicht gespeichert werden."));
+            assertEquals("Start the capacity measurement unplugged and below 25%.",
+                    AppText.t("Starte die Kapazitätsmessung getrennt vom Ladegerät unter 25 %."));
+            assertEquals("Battery status copied.", AppText.t("Akkustatus kopiert."));
         } finally {
             Locale.setDefault(previous);
         }

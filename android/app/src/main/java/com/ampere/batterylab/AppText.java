@@ -240,8 +240,13 @@ final class AppText {
                 {"Lokale Daten löschen?", "Delete local data?"},
                 {"Gesundheitsbasis zurücksetzen?", "Reset health baseline?"},
                 {"Backup gespeichert.", "Backup saved."}, {"Backup wiederhergestellt.", "Backup restored."},
+                {"Backup konnte nicht gespeichert werden.", "Backup could not be saved."},
+                {"Backup ist ungültig oder konnte nicht gelesen werden.", "Backup is invalid or could not be read."},
                 {"CSV-Export gespeichert.", "CSV export saved."}, {"Diagnosebericht gespeichert.", "Diagnostic report saved."},
+                {"CSV-Export konnte nicht gespeichert werden.", "CSV export could not be saved."},
+                {"Diagnosebericht konnte nicht gespeichert werden.", "Diagnostic report could not be saved."},
                 {"Forschungs-Export gespeichert.", "Research export saved."},
+                {"Forschungs-Export konnte nicht gespeichert werden.", "Research export could not be saved."},
                 {"Live-Daten aktualisiert.", "Live data updated."},
                 {"Akkuüberwachung", "Battery monitoring"}, {"Ladealarm", "Charge alert"},
                 {"Warte auf Akkudaten", "Waiting for battery data"},
@@ -322,6 +327,11 @@ final class AppText {
                 {"Ampere überwacht den Akku", "Ampere is monitoring your battery"},
                 {"Akkubetrieb", "On battery"}, {"Akku entlädt", "Battery discharging"},
                 {"Akkumesswerte werden auf diesem Gerät gespeichert", "Battery measurements are stored on this device"},
+                {"Starte die Kapazitätsmessung getrennt vom Ladegerät unter 25 %.", "Start the capacity measurement unplugged and below 25%."},
+                {"Gib die werkseitige Kapazität in mAh ein. Mit 0 wird automatisch der von Android gemeldete Wert verwendet.", "Enter the factory capacity in mAh. Enter 0 to use the value reported by Android automatically."},
+                {"Akkustatus kopiert.", "Battery status copied."},
+                {"Strom", "Current"}, {"Quelle", "Source"}, {"lokal auf Android", "local on Android"},
+                {"Version", "Version"},
                 {"Laden erkannt", "Charging detected"}, {"Bildschirm- und Hintergrundverbrauch lokal erfasst", "Screen and background usage recorded locally"},
                 {"Lokale Akkuüberwachung · jede Sekunde", "Local battery monitoring · every second"},
                 {"Prozent", "percent"}, {"Stunde", "hour"}, {"Stunden", "hours"},
@@ -353,6 +363,9 @@ final class AppText {
                 {"Battery level beim Home", "Battery level at start"},
                 {"Battery level beim Start", "Battery level at start"},
                 {"Battery level aktuell", "Current battery level"},
+                // The broad navigation word "Start" must not alter "Starte ..." in dialogs.
+                {"Homee die Kapazitätsmessung getrennt vom Ladegerät unter 25 %.", "Start the capacity measurement unplugged and below 25%."},
+                {"Batterystatus kopiert.", "Battery status copied."},
                 {"Since unplugging · geschätzte Werte", "Since unplugging · estimated values"}
         };
         for (String[] phrase : phrases) result = result.replace(phrase[0], phrase[1]);

@@ -390,7 +390,7 @@ public class MainActivity extends Activity {
     }
 
     private void addLargeTextAction(String label, Runnable action) {
-        Button button = largeTextButton(label);
+        Button button = largeTextButton(AppText.t(this, label));
         button.setOnClickListener(view -> action.run());
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
         params.topMargin = dp(8);
@@ -730,9 +730,9 @@ public class MainActivity extends Activity {
             byte[] output = root.toString(2).getBytes(StandardCharsets.UTF_8);
             if (output.length > MAX_BACKUP_BYTES) throw new IllegalArgumentException("Backup too large");
             stream.write(output);
-            Toast.makeText(this, "Backup gespeichert.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, AppText.t(this, "Backup gespeichert."), Toast.LENGTH_LONG).show();
         } catch (Exception error) {
-            Toast.makeText(this, "Backup konnte nicht gespeichert werden.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, AppText.t(this, "Backup konnte nicht gespeichert werden."), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -772,9 +772,9 @@ public class MainActivity extends Activity {
             dashboard.reloadStoredData();
             Intent battery = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
             if (battery != null) dashboard.readBattery(battery);
-            Toast.makeText(this, "Backup wiederhergestellt.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, AppText.t(this, "Backup wiederhergestellt."), Toast.LENGTH_LONG).show();
         } catch (Exception error) {
-            Toast.makeText(this, "Backup ist ungültig oder konnte nicht gelesen werden.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, AppText.t(this, "Backup ist ungültig oder konnte nicht gelesen werden."), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -812,9 +812,9 @@ public class MainActivity extends Activity {
             byte[] output = dashboard.historyCsv().getBytes(StandardCharsets.UTF_8);
             if (output.length > MAX_BACKUP_BYTES) throw new IllegalArgumentException("CSV export too large");
             stream.write(output);
-            Toast.makeText(this, "CSV-Export gespeichert.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, AppText.t(this, "CSV-Export gespeichert."), Toast.LENGTH_LONG).show();
         } catch (Exception ignored) {
-            Toast.makeText(this, "CSV-Export konnte nicht gespeichert werden.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, AppText.t(this, "CSV-Export konnte nicht gespeichert werden."), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -827,9 +827,9 @@ public class MainActivity extends Activity {
                     System.currentTimeMillis()).getBytes(StandardCharsets.UTF_8);
             if (output.length > MAX_BACKUP_BYTES) throw new IllegalArgumentException("Report too large");
             stream.write(output);
-            Toast.makeText(this, "Diagnosebericht gespeichert.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, AppText.t(this, "Diagnosebericht gespeichert."), Toast.LENGTH_LONG).show();
         } catch (Exception ignored) {
-            Toast.makeText(this, "Diagnosebericht konnte nicht gespeichert werden.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, AppText.t(this, "Diagnosebericht konnte nicht gespeichert werden."), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -971,9 +971,9 @@ public class MainActivity extends Activity {
             byte[] output = root.toString(2).getBytes(StandardCharsets.UTF_8);
             if (output.length > MAX_BACKUP_BYTES) throw new IllegalArgumentException("Research export too large");
             stream.write(output);
-            Toast.makeText(this, "Forschungs-Export gespeichert.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, AppText.t(this, "Forschungs-Export gespeichert."), Toast.LENGTH_LONG).show();
         } catch (Exception ignored) {
-            Toast.makeText(this, "Forschungs-Export konnte nicht gespeichert werden.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, AppText.t(this, "Forschungs-Export konnte nicht gespeichert werden."), Toast.LENGTH_LONG).show();
         }
     }
 }
@@ -1686,7 +1686,7 @@ class BatteryDashboard extends View {
                     .remove("benchmarkChargeLastCounterMah").remove("benchmarkChargeAddedMah")
                     .remove("benchmarkChargeStatsBaselineMah").apply();
         } else if (charging || level > 25) {
-            Toast.makeText(getContext(), "Starte die Kapazitätsmessung getrennt vom Ladegerät unter 25 %.", Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), AppText.t(getContext(), "Starte die Kapazitätsmessung getrennt vom Ladegerät unter 25 %."), Toast.LENGTH_LONG).show();
         } else {
             benchmarkActive = true;
             AnalyticsTracker.logFeature(getContext(), "health_measurement");
@@ -1708,11 +1708,11 @@ class BatteryDashboard extends View {
         input.setText(String.valueOf(designCapacityMah()));
         input.setSelectAllOnFocus(true);
         new AlertDialog.Builder(getContext())
-                .setTitle("Nennkapazität")
-                .setMessage("Gib die werkseitige Kapazität in mAh ein. Mit 0 wird automatisch der von Android gemeldete Wert verwendet.")
+                .setTitle(AppText.t(getContext(), "Nennkapazität"))
+                .setMessage(AppText.t(getContext(), "Gib die werkseitige Kapazität in mAh ein. Mit 0 wird automatisch der von Android gemeldete Wert verwendet."))
                 .setView(input)
-                .setNegativeButton("Abbrechen", null)
-                .setPositiveButton("Speichern", (dialog, which) -> {
+                .setNegativeButton(AppText.t(getContext(), "Abbrechen"), null)
+                .setPositiveButton(AppText.t(getContext(), "Speichern"), (dialog, which) -> {
                     try {
                         int capacity = Integer.parseInt(input.getText().toString().trim());
                         if (capacity == 0) {
@@ -2662,13 +2662,15 @@ class BatteryDashboard extends View {
     private String currentStatusText() {
         StringBuilder status = new StringBuilder();
         status.append("Ampere Battery Lab\n")
-                .append("Akkustand: ").append(levelDisplay()).append(" · ")
+                .append(AppText.t(getContext(), "Akkustand")).append(": ").append(levelDisplay()).append(" · ")
                 .append(batteryModeLabel()).append('\n')
-                .append("Strom: ").append(liveCurrentDisplay()).append('\n')
-                .append("Temperatur: ").append(temperatureDisplay()).append(" °C\n")
-                .append("Spannung: ").append(voltageDisplay()).append(" V\n")
-                .append("Gesundheit: ").append(healthDisplay()).append('\n')
-                .append("Quelle: lokal auf Android, Version ").append(BuildConfig.VERSION_NAME);
+                .append(AppText.t(getContext(), "Strom")).append(": ").append(liveCurrentDisplay()).append('\n')
+                .append(AppText.t(getContext(), "Temperatur")).append(": ").append(temperatureDisplay()).append(" °C\n")
+                .append(AppText.t(getContext(), "Spannung")).append(": ").append(voltageDisplay()).append(" V\n")
+                .append(AppText.t(getContext(), "Gesundheit")).append(": ").append(healthDisplay()).append('\n')
+                .append(AppText.t(getContext(), "Quelle")).append(": ")
+                .append(AppText.t(getContext(), "lokal auf Android")).append(", ")
+                .append(AppText.t(getContext(), "Version")).append(' ').append(BuildConfig.VERSION_NAME);
         return status.toString();
     }
 
@@ -2677,7 +2679,7 @@ class BatteryDashboard extends View {
                 getContext().getSystemService(Context.CLIPBOARD_SERVICE);
         if (clipboard != null) {
             clipboard.setPrimaryClip(android.content.ClipData.newPlainText("Ampere-Akkustatus", currentStatusText()));
-            Toast.makeText(getContext(), "Akkustatus kopiert.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), AppText.t(getContext(), "Akkustatus kopiert."), Toast.LENGTH_SHORT).show();
         }
     }
 
