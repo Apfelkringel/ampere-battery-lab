@@ -2,6 +2,21 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.455` fixes the remaining mixed-language labels reported in the
+English UI: battery temperature, current context, seven-day estimate,
+recent sessions, more sessions in history and disconnected status. CI release
+workflow
+[`35273734562`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35273734562)
+passed after correcting the translation-order regression. Public update-
+repository commit
+[`20ceb54`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/20ceb54)
+publishes the artifacts. The public APK matches `latest.json` with SHA-256
+`8b9f1579b8c75d90af137b50683f83d920e60ad0652517f04aa2ee7689934083` and
+reports package `com.ampere.batterylab`, version code/name `455`/`0.455`.
+Play alpha publishing workflow
+[`35274370946`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35274370946)
+passed.
+
 Version `0.452` translates the live energy-flow heading (`LIVE ENERGY FLOW`)
 and the excellent battery-health label (`Very good`) in English. Regression
 tests cover both strings. CI release workflow
