@@ -6,8 +6,23 @@ Version `0.400` prints the exact charge, consumption, wear and charge-ratio
 values below each daily, weekly and monthly chart group, aligned by period and
 colored in the same order as the legend. Missing periods and unavailable wear
 or ratio data remain `—`; measured zeroes are shown as `0`. The chart card was
-expanded to contain the added value rows. Automated test and publication status
-will be recorded here after release.
+expanded to contain the added value rows. Direct and Play each pass 205 unit
+tests; both lint tasks and both debug APK builds pass. A local Android emulator
+was unavailable for a visual capture. The signed `v0.400` tag is GitHub-verified,
+and release workflow
+[`35207061846`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35207061846)
+passed. Update-repository commit
+[`17be612`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/17be612)
+publishes the artifacts. Fresh public APK and AAB downloads match manifest
+SHA-256 values `084fdbaed5682e6ca08bb7a7468faffea1a77ee31d149e8faeef745290417a0e`
+and `81be18e97d0ca8935ab7b2ac2a7f1715d830c11410d4f6574f20e7ebb540da22`.
+The APK is package `com.ampere.batterylab`, version code/name `400`/`0.400`,
+signed by the expected certificate SHA-256
+`301bed44b5cc342485b485b24baeea404dbdb216e6e3e134ad2ebd6b28d1dce3`. Play
+alpha publishing workflow
+[`35207907704`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35207907704)
+passed after switching bundle retrieval to the GitHub Contents API to avoid
+stale CDN responses.
 
 Version `0.399` moves the permission-status checklist from the eleventh settings
 position to the second, immediately after Notifications. In a fresh API-36
