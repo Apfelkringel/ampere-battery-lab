@@ -2,12 +2,40 @@ package com.ampere.batterylab;
 
 import android.content.Context;
 import android.content.res.Configuration;
+import android.app.LocaleManager;
 import android.os.Build;
+import android.os.LocaleList;
 import java.util.Locale;
 
 /** Small, dependency-free UI language layer used by the custom canvas and services. */
 final class AppText {
+    private static final String LANGUAGE_KEY = "appLanguage";
+
     private AppText() {}
+
+    /** Applies the persisted app language on Android versions without LocaleManager. */
+    static Context applyStoredLocale(Context base) {
+        if (base == null || Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) return base;
+        String language = BatteryDataRepository.data(base).getString(LANGUAGE_KEY, "");
+        if (language == null || language.isEmpty()) return base;
+        Configuration configuration = new Configuration(base.getResources().getConfiguration());
+        configuration.setLocale(Locale.forLanguageTag(language));
+        return base.createConfigurationContext(configuration);
+    }
+
+    /** Sets the app-specific language and recreates the activity with the new resources. */
+    static void setLanguage(android.app.Activity activity, String languageTag) {
+        if (activity == null || languageTag == null || languageTag.isEmpty()) return;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            LocaleManager localeManager = activity.getSystemService(LocaleManager.class);
+            if (localeManager != null) {
+                localeManager.setApplicationLocales(LocaleList.forLanguageTags(languageTag));
+            }
+        } else {
+            BatteryDataRepository.data(activity).edit().putString(LANGUAGE_KEY, languageTag).apply();
+            activity.recreate();
+        }
+    }
 
     static boolean isEnglish(Context context) {
         if (context == null) return "en".equalsIgnoreCase(Locale.getDefault().getLanguage());
@@ -392,6 +420,9 @@ final class AppText {
                 {"History show", "Show history"},
                 {"Healthsbasis zurücksetzen", "Reset health baseline"},
                 {"Lokale Daten löschen", "Delete local data"},
+                {"App-Sprache", "App language"},
+                {"Deutsch", "German"},
+                {"Englisch", "English"},
                 {"AKKU-BILANZ", "BATTERY BALANCE"},
                 {"KALENDERTAGE", "CALENDAR DAYS"},
                 {"KALENDERWOCHEN", "CALENDAR WEEKS"},

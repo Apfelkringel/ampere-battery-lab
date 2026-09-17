@@ -84,6 +84,11 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class MainActivity extends Activity {
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(AppText.applyStoredLocale(newBase));
+    }
     private static final String UI_STATE_PREFS = "ampere-ui-state";
     private static final String MAIN_ACTIVITY_VISIBLE = "mainActivityVisible";
     private static final String PERMISSION_REMINDER_AT = "permissionReminderAt";
@@ -2391,7 +2396,7 @@ class BatteryDashboard extends View {
                 : "Tiefstandwarnung · aus";
         String samplingOption = "Datenerfassung · alle " + BatterySamplingPolicy.normalizeMinutes(
                 prefs.getInt("samplingIntervalMin", 15)) + " Minuten";
-        String[] options = {"Benachrichtigungen", "Berechtigungen prüfen", "Ladeziel & Ladealarm", temperatureOption, dischargeOption, "Overlay-Berechtigung", "Daten & Datenschutz", "Sicherung & Wiederherstellung", "Hintergrundüberwachung", samplingOption, "Nach Updates suchen", "Kurzanleitung", "Gesundheitsbasis zurücksetzen", "Aktuellen Status kopieren", "Aktuellen Status teilen", "Lokale Daten löschen"};
+        String[] options = {"Benachrichtigungen", "Berechtigungen prüfen", "Ladeziel & Ladealarm", temperatureOption, dischargeOption, "Overlay-Berechtigung", "Daten & Datenschutz", "Sicherung & Wiederherstellung", "Hintergrundüberwachung", samplingOption, "Nach Updates suchen", "Kurzanleitung", "Gesundheitsbasis zurücksetzen", "Aktuellen Status kopieren", "Aktuellen Status teilen", "Lokale Daten löschen", "App-Sprache"};
         for (int i = 0; i < options.length; i++) options[i] = AppText.t(getContext(), options[i]);
         LinearLayout titleBar = new LinearLayout(getContext());
         titleBar.setOrientation(LinearLayout.HORIZONTAL);
@@ -2461,8 +2466,10 @@ class BatteryDashboard extends View {
                 copyCurrentStatus();
             } else if (which == 14) {
                 shareCurrentStatus();
-            } else {
+            } else if (which == 15) {
                 confirmDeleteData();
+            } else {
+                showLanguageSettings();
             }
             invalidate();
         }).create();
@@ -2490,6 +2497,20 @@ class BatteryDashboard extends View {
             });
         });
         dialog.show();
+    }
+
+    private void showLanguageSettings() {
+        boolean english = AppText.isEnglish(getContext());
+        String[] languages = {"Deutsch", "Englisch"};
+        for (int i = 0; i < languages.length; i++) languages[i] = AppText.t(getContext(), languages[i]);
+        new AlertDialog.Builder(getContext())
+                .setTitle(AppText.t(getContext(), "App-Sprache"))
+                .setSingleChoiceItems(languages, english ? 1 : 0, (dialog, which) -> {
+                    AppText.setLanguage((Activity) getContext(), which == 1 ? "en" : "de");
+                    dialog.dismiss();
+                })
+                .setNegativeButton(AppText.t(getContext(), "Abbrechen"), null)
+                .show();
     }
 
     private void showTemperatureAlarmSettings() {
