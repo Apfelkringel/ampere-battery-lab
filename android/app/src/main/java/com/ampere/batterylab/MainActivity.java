@@ -5399,10 +5399,25 @@ class BatteryDashboard extends View {
                 .show();
     }
 
-    /** The cards describe the selected period, while the chart shows its historical buckets. */
+    /**
+     * The summary cards describe the complete visible window, while the chart
+     * keeps the individual daily, weekly or monthly buckets. This prevents a
+     * six-month view from presenting only the final month's values as its
+     * headline statistics.
+     */
     private BatteryHistoryStats.Bucket selectedHistoryPeriod(ArrayList<BatteryHistoryStats.Bucket> buckets) {
-        if (buckets == null || buckets.isEmpty()) return new BatteryHistoryStats.Bucket(0L, "");
-        return buckets.get(buckets.size() - 1);
+        if (buckets == null || buckets.isEmpty()) return null;
+        BatteryHistoryStats.Overall overall = BatteryHistoryStats.overall(buckets);
+        BatteryHistoryStats.Bucket summary = new BatteryHistoryStats.Bucket(
+                buckets.get(0).start, historyPeriodRangeLabel());
+        summary.chargedMah = overall.chargedMah;
+        summary.consumedMah = overall.consumedMah;
+        summary.wearCycles = overall.wearCycles;
+        summary.chargeConsumptionRatioPercent = overall.chargeConsumptionRatioPercent;
+        for (BatteryHistoryStats.Bucket bucket : buckets) {
+            summary.measuredIntervals += bucket.measuredIntervals;
+        }
+        return summary;
     }
 
     private String historyPeriodLabel() {
@@ -5410,7 +5425,9 @@ class BatteryDashboard extends View {
     }
 
     private String historyPeriodRangeLabel() {
-        return BatteryHistoryStats.rangeLabel(historyPeriodDays).toUpperCase(Locale.GERMANY);
+        // The summary cards aggregate the same window represented by the
+        // chart, not only the current calendar bucket.
+        return historyChartRangeLabel();
     }
 
     private String historyChartRangeLabel() {
@@ -6217,7 +6234,7 @@ class BatteryDashboard extends View {
             } else if (page == 4) {
                 ArrayList<BatteryHistoryStats.Bucket> buckets = historyStatsBuckets();
                 liveDetails = BatteryAccessibilitySummary.history(historyPeriodLabel(),
-                        BatteryHistoryStats.rangeLabel(historyPeriodDays),
+                        historyPeriodRangeLabel(),
                         selectedHistoryPeriod(buckets), buckets, calculationCapacityMah() > 0);
             } else if (page == 3) {
                 liveDetails = BatteryAccessibilitySummary.health(
