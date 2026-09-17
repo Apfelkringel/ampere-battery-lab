@@ -163,6 +163,7 @@ final class AppText {
                 {"Gesundheit", "Health"}, {"Einstellungen", "Settings"},
                 {"Aktionen", "Actions"}, {"Ladeziel", "Charge target"},
                 {"Akkustand", "Battery level"}, {"Akkustrom", "Battery current"},
+                {"Startbildschirm", "Home screen"}, {"Unbekannte App", "Unknown app"},
                 {"Akkuspannung", "Battery voltage"}, {"Akkuleistung", "Battery power"},
                 {"Akkutemperatur", "Battery temperature"}, {"Temperatur", "Temperature"},
                 {"Spannung", "Voltage"}, {"Verbrauch", "Usage"}, {"Akkuverbrauch", "Battery usage"},
@@ -176,6 +177,8 @@ final class AppText {
                 {"Ampere-Vollzyklen", "Ampere full cycles"}, {"MESSBASIS", "MEASUREMENT BASELINE"},
                 {"VOLLE KAPAZITÄT", "FULL CAPACITY"}, {"AKKUSPANNUNG", "BATTERY VOLTAGE"},
                 {"SYSTEMZYKLEN", "SYSTEM CYCLES"},
+                {"BILDSCHIRM", "SCREEN"}, {"VERBRAUCH", "USAGE"},
+                {"aktive Nutzung", "active use"}, {"geschätzte Werte", "estimated values"},
                 {"Verbrauchte Ladung", "Charge used"}, {"Verbrauchte Energie", "Energy used"},
                 {"Geladen/Verbrauch", "Charged/used"}, {"Akkuverschleiß", "Battery wear"},
                 {"Verschleiß", "Wear"}, {"Effizienz", "Efficiency"}, {"Sitzungen", "Sessions"},
@@ -346,7 +349,11 @@ final class AppText {
                 {"Batterystand", "Battery level"}, {"daye", "days"},
                 {"History täglich", "Daily history"}, {"History wöchentlich", "Weekly history"},
                 {"History monatlich", "Monthly history"}, {" von ", " of "},
-                {"Charged/Usage", "Charge/usage ratio"}
+                {"Charged/Usage", "Charge/usage ratio"}, {"Rate n/v", "Rate unavailable"},
+                {"Battery level beim Home", "Battery level at start"},
+                {"Battery level beim Start", "Battery level at start"},
+                {"Battery level aktuell", "Current battery level"},
+                {"Since unplugging · geschätzte Werte", "Since unplugging · estimated values"}
         };
         for (String[] phrase : phrases) result = result.replace(phrase[0], phrase[1]);
         return result;

@@ -4670,8 +4670,7 @@ class BatteryDashboard extends View {
         }
         int row = 0;
         for (AppUsageRow usage : rows) {
-            String app = usage.packageName;
-            try { app = getContext().getPackageManager().getApplicationLabel(getContext().getPackageManager().getApplicationInfo(usage.packageName, 0)).toString(); } catch (Exception ignored) { }
+            String app = appUsageLabel(usage.packageName);
             long minutes = usage.foregroundMs / 60000L;
             Integer directValue = directMah.get(usage.packageName);
             int appMah = appEstimates.get(usage.packageName);
@@ -4713,6 +4712,26 @@ class BatteryDashboard extends View {
         } catch (Exception ignored) {
             // A removed or restricted package keeps the row readable by name.
         }
+    }
+
+    /** Prefer human-readable labels for system packages and restricted app metadata. */
+    private String appUsageLabel(String packageName) {
+        if ("com.google.android.apps.nexuslauncher".equals(packageName)
+                || "com.google.android.apps.pixel.launcher".equals(packageName)
+                || "com.android.launcher3".equals(packageName)) {
+            return AppText.t(getContext(), "Startbildschirm");
+        }
+        try {
+            CharSequence label = getContext().getPackageManager().getApplicationLabel(
+                    getContext().getPackageManager().getApplicationInfo(packageName, 0));
+            if (label != null && label.length() > 0 && !packageName.equals(label.toString())) {
+                return label.toString();
+            }
+        } catch (Exception ignored) { }
+        int separator = packageName == null ? -1 : packageName.lastIndexOf('.');
+        String fallback = separator >= 0 && separator + 1 < packageName.length()
+                ? packageName.substring(separator + 1) : packageName;
+        return fallback == null || fallback.isEmpty() ? "Unbekannte App" : fallback;
     }
 
     private void showAppUsageDetails() {
@@ -4757,11 +4776,7 @@ class BatteryDashboard extends View {
         ArrayList<AppUsageEstimate> estimates = new ArrayList<>();
         int totalAssignedMah = 0;
         for (AppUsageRow usage : rows) {
-            String label = usage.packageName;
-            try {
-                label = getContext().getPackageManager().getApplicationLabel(
-                        getContext().getPackageManager().getApplicationInfo(usage.packageName, 0)).toString();
-            } catch (Exception ignored) { }
+            String label = appUsageLabel(usage.packageName);
             Integer directValue = directMah.get(usage.packageName);
             int appMah = directValue != null && directValue > 0
                     ? BatteryAppAttribution.allocatedMah(directEstimates, usage.packageName)
