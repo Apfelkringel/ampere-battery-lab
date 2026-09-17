@@ -2,6 +2,24 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.421` completes the English live-status pass: foreground-service
+notification details, technical labels and notification-channel names now
+follow the device language, and the ongoing notification explicitly states
+that it is updated every second. Local emulator inspection confirmed the
+service path; direct and Play each pass 216 unit tests and both debug lint
+tasks pass. The signed `v0.421` tag is GitHub-verified, and release workflow
+[`35231949388`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35231949388)
+passed. Public update-repository commit
+[`bc2b38a`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/bc2b38a)
+publishes the artifacts. Fresh public APK and AAB downloads match
+`latest.json`: SHA-256
+`de3ed6302d68f253fee6c8cbd2b208726b95e3c3bb716c900f11af7b498edeec` (APK)
+and `eee79c933dfc67e4d52ad0abd6482dc55c304dc7311733d44facb6eb29ed92ce`
+(AAB). The public manifest reports version code/name `421`/`0.421` and the
+package remains `com.ampere.batterylab`. Play alpha publishing workflow
+[`35232625519`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35232625519)
+passed.
+
 Version `0.419` completes the English settings-language pass for privacy,
 usage analytics, backup/restore, local-data deletion and health-baseline
 dialogs. The emulator confirmed the long privacy dialog is readable and its
