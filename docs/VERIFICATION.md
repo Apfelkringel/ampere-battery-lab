@@ -2,6 +2,19 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.460` improves the compact widget percentage readability. The value
+column reserves more width, the percentage is larger, long status and telemetry
+details now ellipsize instead of clipping, and the telemetry line is larger.
+The change was verified in the API-36 emulator widget render and Direct-Debug
+unit tests, build and lint passed locally. CI release workflow
+[`35281986954`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35281986954)
+passed and the signed tag is `v0.460`. Public update-repository commit
+[`a4ad746`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/a4ad746caeda96d532470004b9ce5c6e4fe7fb25)
+publishes the artifacts. A fresh public APK download matches `latest.json`
+with SHA-256
+`59da2c596d890113db85577495bbe5d5a9f42088e850e830ec0b5eecedbd7407` and reports
+package `com.ampere.batterylab`, version code/name `460`/`0.460`.
+
 Version `0.459` hardens English translation handling after a deeper language
 scan. Complete translated phrases are now protected from later standalone-word
 rules, preventing mixed-language and capitalization regressions in chart titles,
