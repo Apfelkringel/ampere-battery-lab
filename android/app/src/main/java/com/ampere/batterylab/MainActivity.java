@@ -539,9 +539,14 @@ public class MainActivity extends Activity {
         boolean notifications = hasNotificationAccess();
         boolean usage = hasUsageStatsAccess();
         boolean overlay = Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(this);
-        String intro = reminder
+        boolean english = AppText.isEnglish(this);
+        String intro = english
+                ? (reminder
+                ? "Some accesses are missing or were reset by Android. Ampere checks them again when opened; we remind you about declined optional accesses at most once a month. Revoked access is detected the next time you open the app."
+                : "Notifications enable live status and charge alerts. App usage access shows usage by app; overlay shows the live display over other apps. These two accesses are optional. Ampere checks their status again when opened.")
+                : (reminder
                 ? "Einige Zugriffe fehlen oder wurden von Android zurückgesetzt. Ampere prüft sie beim Öffnen erneut; abgelehnte optionale Zugriffe melden wir höchstens monatlich. Widerrufe erkennen wir beim nächsten Öffnen."
-                : "Benachrichtigungen ermöglichen Live-Status und Ladealarme. App-Nutzungszugriff zeigt den Verbrauch je App; Overlay zeigt die Live-Anzeige über anderen Apps. Diese beiden Zugriffe sind optional. Ampere prüft den Status beim Öffnen erneut.";
+                : "Benachrichtigungen ermöglichen Live-Status und Ladealarme. App-Nutzungszugriff zeigt den Verbrauch je App; Overlay zeigt die Live-Anzeige über anderen Apps. Diese beiden Zugriffe sind optional. Ampere prüft den Status beim Öffnen erneut.");
         float density = getResources().getDisplayMetrics().density;
         LinearLayout content = new LinearLayout(this);
         content.setOrientation(LinearLayout.VERTICAL);
@@ -553,10 +558,21 @@ public class MainActivity extends Activity {
                 Math.round(24f * density), Math.round(10f * density));
 
         SharedPreferences appPrefs = BatteryDataRepository.data(this);
-        String[] entries = BatteryPermissionChecklist.entries(notifications, usage,
-                appPrefs.getBoolean("permissionUsageRequested", false), overlay,
-                appPrefs.getBoolean("permissionOverlayRequested", false)
-                        || appPrefs.getBoolean("overlayEnabled", false));
+        boolean usageRequested = appPrefs.getBoolean("permissionUsageRequested", false);
+        boolean overlayRequested = appPrefs.getBoolean("permissionOverlayRequested", false)
+                || appPrefs.getBoolean("overlayEnabled", false);
+        String[] entries = english
+                ? new String[]{
+                "Notifications\n" + (notifications ? "Active" : "Not granted")
+                        + " · Live status and alerts",
+                "App usage access\n" + (usage ? "Active" : (usageRequested
+                        ? "Not granted · optional" : "Optional · not enabled"))
+                        + " · Usage by app",
+                "Overlay\n" + (overlay ? "Active" : (overlayRequested
+                        ? "Not granted · optional" : "Optional · not enabled"))
+                        + " · Live overlay"}
+                : BatteryPermissionChecklist.entries(notifications, usage, usageRequested,
+                overlay, overlayRequested);
         ArrayList<TextView> rows = new ArrayList<>();
         for (String entry : entries) {
             TextView row = new TextView(this);
@@ -2736,22 +2752,29 @@ class BatteryDashboard extends View {
     private void showTutorialStep(int step) {
         MainActivity activity = (MainActivity) getContext();
         boolean firstStep = step == 0;
-        String title = firstStep ? "Ampere kennenlernen · 1 von 2" : "Zugriffe & Start · 2 von 2";
+        boolean english = AppText.isEnglish(getContext());
+        String title = firstStep
+                ? (english ? "Get to know Ampere · 1 of 2" : "Ampere kennenlernen · 1 von 2")
+                : (english ? "Access and setup · 2 of 2" : "Zugriffe & Start · 2 von 2");
         String message = firstStep
-                ? "Übersicht zeigt den Live-Akkustand, Temperatur, Spannung und Verlauf.\n\nLaden enthält Ladeziel und Sitzungen. Entladen zeigt Verbrauch und Laufzeit. Akku erklärt Gesundheit und Kapazität. Verlauf vergleicht Tag, Woche und Monat.\n\nDie fünf Bereiche wechselst du über die Leiste unten. Deine Akku-Messwerte bleiben lokal auf diesem Gerät."
-                : "Benachrichtigungen halten Hintergrundstatus und Ladealarme sichtbar. Bei „Loslegen“ fragt Android dich danach, falls sie noch nicht erlaubt sind.\n\nApp-Nutzungszugriff ist nur für Verbrauch pro App nötig. Overlay erlaubt die Live-Anzeige über anderen Apps. Beide sind optional und werden erst bei Nutzung der jeweiligen Funktion angefragt. Du kannst jeden Zugriff später unter Einstellungen → Berechtigungen prüfen.\n\nFür die Gesundheitsmessung: unter 25 % starten und über 95 % laden. Nutzungsanalyse ist freiwillig und bleibt aus, bis du sie in Daten & Datenschutz einschaltest.";
+                ? (english
+                ? "Overview shows your live battery level, temperature, voltage and history.\n\nCharging contains the charge target and sessions. Discharging shows usage and runtime. Battery explains health and capacity. History compares day, week and month.\n\nSwitch between the five areas using the bar at the bottom. Your battery measurements stay on this device."
+                : "Übersicht zeigt den Live-Akkustand, Temperatur, Spannung und Verlauf.\n\nLaden enthält Ladeziel und Sitzungen. Entladen zeigt Verbrauch und Laufzeit. Akku erklärt Gesundheit und Kapazität. Verlauf vergleicht Tag, Woche und Monat.\n\nDie fünf Bereiche wechselst du über die Leiste unten. Deine Akku-Messwerte bleiben lokal auf diesem Gerät.")
+                : (english
+                ? "Notifications keep background status and charge alerts visible. Android will ask for them when you tap Get started if they are not allowed yet.\n\nApp usage access is only needed for usage by app. Overlay enables the live display over other apps. Both are optional and requested only when you use the related feature. You can review every access later under Settings → Check permissions.\n\nFor the health measurement, start below 25% and charge above 95%. Usage analytics is optional and stays off until you enable it under Data & privacy."
+                : "Benachrichtigungen halten Hintergrundstatus und Ladealarme sichtbar. Bei „Loslegen“ fragt Android dich danach, falls sie noch nicht erlaubt sind.\n\nApp-Nutzungszugriff ist nur für Verbrauch pro App nötig. Overlay erlaubt die Live-Anzeige über anderen Apps. Beide sind optional und werden erst bei Nutzung der jeweiligen Funktion angefragt. Du kannst jeden Zugriff später unter Einstellungen → Berechtigungen prüfen.\n\nFür die Gesundheitsmessung: unter 25 % starten und über 95 % laden. Nutzungsanalyse ist freiwillig und bleibt aus, bis du sie in Daten & Datenschutz einschaltest.");
         AlertDialog.Builder guide = new AlertDialog.Builder(getContext())
                 .setTitle(title)
                 .setMessage(message);
         if (firstStep) {
-            guide.setNegativeButton("Später", (dialog, which) -> {
+            guide.setNegativeButton(english ? "Later" : "Später", (dialog, which) -> {
                         prefs.edit().putBoolean("tutorialShown", true).apply();
                         activity.snoozePermissionReminder();
                     })
-                    .setPositiveButton("Weiter", (dialog, which) -> showTutorialStep(1));
+                    .setPositiveButton(english ? "Next" : "Weiter", (dialog, which) -> showTutorialStep(1));
         } else {
-            guide.setNegativeButton("Zurück", (dialog, which) -> showTutorialStep(0))
-                    .setPositiveButton("Loslegen", (dialog, which) -> {
+            guide.setNegativeButton(english ? "Back" : "Zurück", (dialog, which) -> showTutorialStep(0))
+                    .setPositiveButton(english ? "Get started" : "Loslegen", (dialog, which) -> {
                         activity.completeFirstRunOnboarding();
                     });
         }

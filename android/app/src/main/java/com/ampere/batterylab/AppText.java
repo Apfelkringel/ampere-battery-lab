@@ -227,8 +227,13 @@ final class AppText {
                 {"Home measurement", "Start measurement"},
                 // Resolve fragments after the broader vocabulary replacements above.
                 {"Temperature alert · ab ", "Temperature alert · at "},
+                {"Temperaturewarnung · ab ", "Temperature alert · at "},
                 {"Low battery alert · bei ", "Low battery alert · at "},
-                {"Data collection · alle ", "Data collection · every "}
+                {"Data collection · alle ", "Data collection · every "},
+                {"HISTORY & STATISTIK", "HISTORY & STATISTICS"},
+                {"Batterieverbrauch", "Battery usage"}, {"Batterieverschleiß", "Battery wear"},
+                {"Batteryverbrauch", "Battery usage"}, {"Batteryverschleiß", "Battery wear"},
+                {"Geladen/Usage", "Charged/usage"}
         };
         for (String[] phrase : phrases) result = result.replace(phrase[0], phrase[1]);
         return result;
