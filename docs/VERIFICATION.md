@@ -2,6 +2,26 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.427` completes the English health-page and navigation pass. The
+health page now translates its learning/measurement copy, capacity labels,
+system-cycle labels and the charging-progress connector. On narrow English
+layouts, active navigation tabs use dynamic localized labels instead of
+German text baked into bitmap artwork. Emulator screenshots confirmed
+“Battery health”, “Battery” and “History” in the active navigation. Direct
+and Play each pass 218 unit tests and both debug lint tasks pass. The signed
+`v0.427` tag is GitHub-verified, and release workflow
+[`35240216219`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35240216219)
+passed. Public update-repository commit
+[`af23e97`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/af23e97)
+publishes the artifacts. Fresh public APK and AAB downloads match
+`latest.json`: SHA-256
+`5d791e33623f44c67de35ca20fd96e99f064b8a17cc81ef3742029831da3b239` (APK)
+and `6ec5b3b0ad7ac2bc22f650e89edbda03cc32f0f87834015d4871eb8fc23b8b6c`
+(AAB). The public manifest reports version code/name `427`/`0.427` and the
+package remains `com.ampere.batterylab`. Play alpha publishing workflow
+[`35240837034`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35240837034)
+passed.
+
 Version `0.426` completes another English UI/accessibility pass. The
 dashboard now translates Screen time and keeps the history title as “Battery
 level · 7 days”; the previous replacement-order bug produced “Batterystand ·
