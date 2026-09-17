@@ -450,7 +450,11 @@ final class AppText {
                 // Keep the full month name intact after the short "Sept" label mapping.
                 {"Sepember", "September"},
                 // Repair phrases affected by the broad navigation-word replacements above.
-                {"Charging erkannt", "Charging detected"}, {"Activeer Tab:", "Active tab:"}
+                {"Charging erkannt", "Charging detected"}, {"Activeer Tab:", "Active tab:"},
+                {"Batterystrom", "Battery current"}, {"Temperaturee", "Temperature"},
+                {"Grad Celsius", "degrees Celsius"},
+                {"Battery ist voll", "Battery is full"}, {"Battery wird geladen", "Charging now"},
+                {"Battery entlädt sich", "Battery is discharging"}, {"Battery fast leer", "Battery nearly empty"}
         };
         for (String[] phrase : phrases) result = result.replace(phrase[0], phrase[1]);
         return result;

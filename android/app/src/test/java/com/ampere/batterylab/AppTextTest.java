@@ -51,6 +51,11 @@ public class AppTextTest {
                     AppText.t("Laden erkannt. Akkustand 100 Prozent. Akkugesundheit nicht gemessen. Android-Zustand Gut."));
             assertEquals("Tabs: Overview, Charging, Discharging, Health, History. Active tab: Overview.",
                     AppText.t("Tabs: Übersicht, Laden, Entladen, Gesundheit, Verlauf. Aktiver Tab: Übersicht."));
+            assertEquals("Battery current: +900 mA. Temperature: 25.0 degrees Celsius.",
+                    AppText.t("Akkustrom: +900 mA. Temperatur: 25.0 Grad Celsius."));
+            assertEquals("Battery is full", AppText.t("Akku ist voll"));
+            assertEquals("Charging now", AppText.t("Akku wird geladen"));
+            assertEquals("Battery is discharging", AppText.t("Akku entlädt sich"));
             assertEquals("BATTERY BALANCE · 6 CALENDAR MONTHS",
                     AppText.t("AKKU-BILANZ · 6 KALENDERMONATE"));
         } finally {
