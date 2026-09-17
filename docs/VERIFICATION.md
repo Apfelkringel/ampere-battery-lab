@@ -2,6 +2,24 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.436` localizes the remaining history accessibility path. Screen
+readers now receive English dates, charged/used/wear labels and explicit empty
+measurement explanations for chart buckets when the app is English. The
+large-text navigation also exposes English action descriptions. Direct and
+Play each pass 220 unit tests and both debug lint tasks pass. The signed
+`v0.436` tag is GitHub-verified, and release workflow
+[`35252954123`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35252954123)
+passed after a transient release-asset retry. Public update-repository commit
+[`18cc975`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/18cc975)
+publishes the artifacts. Fresh public APK and AAB downloads match
+`latest.json`: SHA-256
+`18e8288c0066ae96d911718e2f337e672e6a4aeea7593ac7a6d330bdfaec3cb8` (APK)
+and `4f0d2aa1aef4b8cdae5bb3fde1f34fe0d8401e389ee3397a2e4e2d2cb19b275c`
+(AAB). The public manifest reports version code/name `436`/`0.436` and the
+package remains `com.ampere.batterylab`. Play alpha publishing workflow
+[`35254080957`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35254080957)
+passed.
+
 Version `0.435` extends the English UI to system-facing surfaces. The home
 widget, Quick Settings tile, live overlay and charging screensaver now use the
 active app locale for labels and decimal separators; the previous malformed
