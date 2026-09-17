@@ -2,6 +2,25 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.443` completes English localization in secondary UI surfaces. The
+update permission dialog, history bucket details and session details now use
+the selected app language, including buttons and generated measurement text.
+The English month-name replacement regression that turned “September” into
+“Sepember” is fixed and covered by a regression test. Direct and Play each
+pass 220 unit tests and both debug lint tasks pass. The signed `v0.443` tag is
+GitHub-verified, and release workflow
+[`35263245192`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35263245192)
+passed. Public update-repository commit
+[`9bf80e3`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/9bf80e3)
+publishes the artifacts. Fresh public APK download matches `latest.json`:
+SHA-256
+`f8b357187c576730a12e2844bcbe2476602bfe2b222448752d009a0ebfec03ce` (APK)
+and `2c14951ed690acd42a58c5b84c45a16f10bdc69ddd64f8b869bc8ca6a6b1c8da`
+(AAB). The public manifest reports version code/name `443`/`0.443` and the
+package remains `com.ampere.batterylab`. Play alpha publishing workflow
+[`35263868211`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35263868211)
+passed.
+
 Version `0.441` fixes a remaining English-locale leak in live refresh
 feedback. Both the normal live-refresh action and its accessibility action now
 show “Live data refreshed.” instead of the German “Live-Daten aktualisiert.”;
