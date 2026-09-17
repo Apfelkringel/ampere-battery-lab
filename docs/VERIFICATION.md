@@ -2,6 +2,24 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.422` completes the English system-surface pass: live-overlay and
+update notification channels, Quick Settings text, update dialogs and
+background-monitoring status are localized consistently with the device
+language. The emulator showed the English navigation labels; direct and Play
+each pass 216 unit tests and both debug lint tasks pass. The signed `v0.422`
+tag is GitHub-verified, and release workflow
+[`35233400138`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35233400138)
+passed. Public update-repository commit
+[`8456967`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/8456967)
+publishes the artifacts. Fresh public APK and AAB downloads match
+`latest.json`: SHA-256
+`543451bee3b38f7408c06b533dd8dbeff6005fc5816b2d7b89999f900522b16c` (APK)
+and `ddb94056809289c9082dfcb4cbef00b2f4e60d5ce3a90e9b8c14e0462dac73bc`
+(AAB). The public manifest reports version code/name `422`/`0.422` and the
+package remains `com.ampere.batterylab`. Play alpha publishing workflow
+[`35234143660`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35234143660)
+passed.
+
 Version `0.421` completes the English live-status pass: foreground-service
 notification details, technical labels and notification-channel names now
 follow the device language, and the ongoing notification explicitly states
