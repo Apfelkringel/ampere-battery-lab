@@ -2,6 +2,24 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.437` fixes the last mixed-language entries found in the English
+settings dialog: “Reset health baseline” and “Delete local data” now render
+fully in English. The emulator audit confirmed the corrected bottom section in
+[`04-settings-bottom-fixed.png`](/tmp/ampere-audit-ui-436/04-settings-bottom-fixed.png).
+Direct and Play each pass 220 unit tests and both debug lint tasks pass. The
+signed `v0.437` tag is GitHub-verified, and release workflow
+[`35254458671`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35254458671)
+passed. Public update-repository commit
+[`85b5b6b`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/85b5b6b)
+publishes the artifacts. Fresh public APK and AAB downloads match
+`latest.json`: SHA-256
+`441071b6b63c9134da1ed0241228a02f542f918ba53a0d19dc68af2d90411e00` (APK)
+and `54288ddb1381c7b5e2a182fc323a446fd99fce9ffc5ac89476dae41302e273b5`
+(AAB). The public manifest reports version code/name `437`/`0.437` and the
+package remains `com.ampere.batterylab`. Play alpha publishing workflow
+[`35255140931`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35255140931)
+passed.
+
 Version `0.436` localizes the remaining history accessibility path. Screen
 readers now receive English dates, charged/used/wear labels and explicit empty
 measurement explanations for chart buckets when the app is English. The
