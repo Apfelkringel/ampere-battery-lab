@@ -2,6 +2,22 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.459` hardens English translation handling after a deeper language
+scan. Complete translated phrases are now protected from later standalone-word
+rules, preventing mixed-language and capitalization regressions in chart titles,
+session labels, status messages and accessibility text. The full
+`AppTextTest` suite, Direct-Debug lint and build passed locally. CI release
+workflow
+[`35277899496`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35277899496)
+passed and the signed tag is `v0.459`. Public update-repository commit
+[`1ae5efd`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/1ae5efd)
+publishes the artifacts. The public APK matches `latest.json` with SHA-256
+`846e6a184e11a7be6062d24743fef671e1350a99e747228eade6153344bdc7e7` and
+reports package `com.ampere.batterylab`, version code/name `459`/`0.459`.
+Play alpha publishing workflow
+[`35278422792`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35278422792)
+passed on retry.
+
 Version `0.456` fixes additional mixed-language output found by a deeper scan,
 including update errors, overlay text, charging/discharging status, missing
 data, session summaries and settings labels. The scan also identified further
