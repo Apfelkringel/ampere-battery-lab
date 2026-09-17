@@ -2,6 +2,26 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.440` improves discoverability of the app language switcher. The
+Settings dialog now places “App language · English” or “App-Sprache · Deutsch”
+as its first item, so the current language and the way to change it are
+immediately visible. The emulator audit confirmed the German settings dialog
+with the language entry first in
+[`settings-top.png`](/tmp/ampere-language-first-item.png). Direct and Play
+each pass 220 unit tests and both debug lint tasks pass. The signed `v0.440`
+tag is GitHub-verified; the build completed all artifact steps, with the APK
+attached directly after a transient release upload timeout. Public
+update-repository commit
+[`4d502eb`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/4d502eb)
+publishes the artifacts. Fresh public APK and AAB downloads match
+`latest.json`: SHA-256
+`277b6854b05e36b39385f2a9d347d474b2cc9f23e328777eab19d83c82e06d6e` (APK)
+and `96e343e3b590c39ab1eab9bf4caed3b08b0a3c6f9628b7c4d05ee4ef32df29d9`
+(AAB). The public manifest reports version code/name `440`/`0.440` and the
+package remains `com.ampere.batterylab`. Play alpha publishing workflow
+[`35260928773`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35260928773)
+passed.
+
 Version `0.439` adds a working in-app language switcher under Settings → App
 language. Users can switch between German and English without relying on the
 Android system settings; the activity recreates with the selected locale on
