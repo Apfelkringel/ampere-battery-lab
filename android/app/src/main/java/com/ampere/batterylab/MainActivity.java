@@ -547,7 +547,7 @@ public class MainActivity extends Activity {
         content.setOrientation(LinearLayout.VERTICAL);
 
         TextView explanation = new TextView(this);
-        explanation.setText(intro + "\n\nTippe auf einen Eintrag, um ihn zu ändern.");
+        explanation.setText(AppText.t(this, intro + "\n\nTippe auf einen Eintrag, um ihn zu ändern."));
         explanation.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 14f);
         explanation.setPadding(Math.round(24f * density), Math.round(10f * density),
                 Math.round(24f * density), Math.round(10f * density));
@@ -560,8 +560,9 @@ public class MainActivity extends Activity {
         ArrayList<TextView> rows = new ArrayList<>();
         for (String entry : entries) {
             TextView row = new TextView(this);
-            row.setText(entry);
-            row.setContentDescription(entry.replace('\n', '.'));
+            String localizedEntry = AppText.t(this, entry);
+            row.setText(localizedEntry);
+            row.setContentDescription(localizedEntry.replace('\n', '.'));
             row.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 14f);
             row.setGravity(Gravity.CENTER_VERTICAL);
             row.setPadding(Math.round(24f * density), Math.round(8f * density),
@@ -585,9 +586,9 @@ public class MainActivity extends Activity {
         scroll.setFillViewport(false);
         scroll.setVerticalScrollBarEnabled(true);
         scroll.addView(content, new ScrollView.LayoutParams(-1, -2));
-        AlertDialog dialog = new AlertDialog.Builder(this).setTitle("Berechtigungen & Zugriffe")
+        AlertDialog dialog = new AlertDialog.Builder(this).setTitle(AppText.t(this, "Berechtigungen & Zugriffe"))
                 .setView(scroll)
-                .setNegativeButton("Fertig", null)
+                .setNegativeButton(AppText.t(this, "Fertig"), null)
                 .create();
         for (int index = 0; index < rows.size(); index++) {
             final int entryIndex = index;
@@ -2365,6 +2366,7 @@ class BatteryDashboard extends View {
         String samplingOption = "Datenerfassung · alle " + BatterySamplingPolicy.normalizeMinutes(
                 prefs.getInt("samplingIntervalMin", 15)) + " Minuten";
         String[] options = {"Benachrichtigungen", "Berechtigungen prüfen", "Ladeziel & Ladealarm", temperatureOption, dischargeOption, "Overlay-Berechtigung", "Daten & Datenschutz", "Sicherung & Wiederherstellung", "Hintergrundüberwachung", samplingOption, "Nach Updates suchen", "Kurzanleitung", "Gesundheitsbasis zurücksetzen", "Aktuellen Status kopieren", "Aktuellen Status teilen", "Lokale Daten löschen"};
+        for (int i = 0; i < options.length; i++) options[i] = AppText.t(getContext(), options[i]);
         LinearLayout titleBar = new LinearLayout(getContext());
         titleBar.setOrientation(LinearLayout.HORIZONTAL);
         titleBar.setGravity(Gravity.CENTER_VERTICAL);
@@ -2372,7 +2374,7 @@ class BatteryDashboard extends View {
         titleBar.setPadding(titlePadding, Math.round(8 * density), Math.round(8 * density), Math.round(4 * density));
 
         TextView title = new TextView(getContext());
-        title.setText("Einstellungen");
+        title.setText(AppText.t(getContext(), "Einstellungen"));
         title.setTextSize(20);
         title.setTextColor(Color.WHITE);
         title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
@@ -2383,7 +2385,7 @@ class BatteryDashboard extends View {
         close.setTextSize(30);
         close.setGravity(Gravity.CENTER);
         close.setTextColor(Color.WHITE);
-        close.setContentDescription("Einstellungen schließen");
+        close.setContentDescription(AppText.t(getContext(), "Einstellungen schließen"));
         int closeSize = Math.round(48 * density);
         titleBar.addView(close, new LinearLayout.LayoutParams(closeSize, closeSize));
 
@@ -2467,6 +2469,7 @@ class BatteryDashboard extends View {
     private void showTemperatureAlarmSettings() {
         final int[] thresholds = {0, 400, 450, 500, 550};
         final String[] labels = {"Aus", "Ab 40 °C", "Ab 45 °C (empfohlen)", "Ab 50 °C", "Ab 55 °C"};
+        for (int i = 0; i < labels.length; i++) labels[i] = AppText.t(getContext(), labels[i]);
         int current = prefs.getBoolean("temperatureAlarm", true)
                 ? BatteryTemperatureAlarm.normalizeThreshold(prefs.getInt("temperatureAlarmThresholdTenths", BatteryTemperatureAlarm.DEFAULT_THRESHOLD_TENTHS))
                 : 0;
@@ -2474,9 +2477,9 @@ class BatteryDashboard extends View {
         for (int i = 0; i < thresholds.length; i++) if (thresholds[i] == current) selected = i;
         final int[] choice = {selected};
         new AlertDialog.Builder(getContext())
-                .setTitle("Temperaturwarnung · Rücksetzung 3 °C darunter")
+                .setTitle(AppText.t(getContext(), "Temperaturwarnung · Rücksetzung 3 °C darunter"))
                 .setSingleChoiceItems(labels, selected, (dialog, which) -> choice[0] = which)
-                .setNegativeButton("Abbrechen", null)
+                .setNegativeButton(AppText.t(getContext(), "Abbrechen"), null)
                 .setPositiveButton("Speichern", (dialog, which) -> {
                     boolean enabled = thresholds[choice[0]] > 0;
                     int threshold = enabled ? thresholds[choice[0]] : BatteryTemperatureAlarm.DEFAULT_THRESHOLD_TENTHS;
@@ -2484,13 +2487,14 @@ class BatteryDashboard extends View {
                             .putInt("temperatureAlarmThresholdTenths", threshold)
                             .remove("temperatureAlarmSent").apply();
                     AnalyticsTracker.logFeature(getContext(), "temperature_alarm");
-                    Toast.makeText(getContext(), enabled ? labels[choice[0]] : "Temperaturwarnung ausgeschaltet", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getContext(), enabled ? labels[choice[0]] : AppText.t(getContext(), "Temperaturwarnung ausgeschaltet"), Toast.LENGTH_LONG).show();
                 }).show();
     }
 
     private void showDischargeAlarmSettings() {
         final int[] thresholds = {0, 10, 15, 20, 25, 30};
         final String[] labels = {"Aus", "Bei 10 % oder weniger", "Bei 15 % oder weniger (empfohlen)", "Bei 20 % oder weniger", "Bei 25 % oder weniger", "Bei 30 % oder weniger"};
+        for (int i = 0; i < labels.length; i++) labels[i] = AppText.t(getContext(), labels[i]);
         boolean enabled = prefs.getBoolean("dischargeAlarm", true);
         int current = enabled
                 ? BatteryDischargeAlarm.normalizeThreshold(prefs.getInt("dischargeAlarmThreshold", BatteryDischargeAlarm.DEFAULT_THRESHOLD))
@@ -2499,9 +2503,9 @@ class BatteryDashboard extends View {
         for (int i = 0; i < thresholds.length; i++) if (thresholds[i] == current) selected = i;
         final int[] choice = {selected};
         new AlertDialog.Builder(getContext())
-                .setTitle("Tiefstandwarnung · Rücksetzung mit 3 % Abstand")
+                .setTitle(AppText.t(getContext(), "Tiefstandwarnung · Rücksetzung mit 3 % Abstand"))
                 .setSingleChoiceItems(labels, selected, (dialog, which) -> choice[0] = which)
-                .setNegativeButton("Abbrechen", null)
+                .setNegativeButton(AppText.t(getContext(), "Abbrechen"), null)
                 .setPositiveButton("Speichern", (dialog, which) -> {
                     boolean alarmEnabled = thresholds[choice[0]] > 0;
                     int threshold = alarmEnabled
@@ -2511,21 +2515,22 @@ class BatteryDashboard extends View {
                             .putInt("dischargeAlarmThreshold", threshold)
                             .remove("dischargeAlarmSent").remove("dischargeAlarmLastLevel").apply();
                     AnalyticsTracker.logFeature(getContext(), "discharge_alarm");
-                    Toast.makeText(getContext(), alarmEnabled ? labels[choice[0]] : "Tiefstandwarnung ausgeschaltet", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getContext(), alarmEnabled ? labels[choice[0]] : AppText.t(getContext(), "Tiefstandwarnung ausgeschaltet"), Toast.LENGTH_LONG).show();
                 }).show();
     }
 
     private void showDataCollection() {
         final int[] intervals = {5, 15, 30, 60};
         final String[] labels = {"Alle 5 Minuten", "Alle 15 Minuten (empfohlen)", "Alle 30 Minuten", "Alle 60 Minuten"};
+        for (int i = 0; i < labels.length; i++) labels[i] = AppText.t(getContext(), labels[i]);
         int current = prefs.getInt("samplingIntervalMin", 15);
         int selected = 1;
         for (int i = 0; i < intervals.length; i++) if (intervals[i] == current) selected = i;
         final int[] choice = {selected};
         new AlertDialog.Builder(getContext())
-                .setTitle("Datenerfassung · nur lokal")
+                .setTitle(AppText.t(getContext(), "Datenerfassung · nur lokal"))
                 .setSingleChoiceItems(labels, selected, (dialog, which) -> choice[0] = which)
-                .setNegativeButton("Abbrechen", null)
+                .setNegativeButton(AppText.t(getContext(), "Abbrechen"), null)
                 .setPositiveButton("Speichern", (dialog, which) -> {
                     prefs.edit().putInt("samplingIntervalMin", intervals[choice[0]]).apply();
                     ((MainActivity) getContext()).restartMonitorService();
@@ -2535,7 +2540,7 @@ class BatteryDashboard extends View {
 
     private void requestBackgroundMonitoring() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            Toast.makeText(getContext(), "Hintergrundüberwachung ist ab Android 6 verfügbar.", Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), AppText.t(getContext(), "Hintergrundüberwachung ist ab Android 6 verfügbar."), Toast.LENGTH_LONG).show();
             return;
         }
         PowerManager power = (PowerManager) getContext().getSystemService(Context.POWER_SERVICE);
@@ -2562,11 +2567,11 @@ class BatteryDashboard extends View {
         String monitorStatus = BatteryBackgroundStatus.monitorHeartbeatStatus(
                 BatteryMonitorWatchdog.lastHeartbeat(getContext()), SystemClock.elapsedRealtime());
         new AlertDialog.Builder(getContext())
-                .setTitle("Hintergrundüberwachung")
-                .setMessage(BatteryBackgroundStatus.explanation(notificationStatus,
-                        optimizationStatus, monitorStatus))
-                .setNegativeButton("Schließen", null)
-                .setPositiveButton("Benachrichtigungen", (dialog, which) -> {
+                .setTitle(AppText.t(getContext(), "Hintergrundüberwachung"))
+                .setMessage(AppText.t(getContext(), BatteryBackgroundStatus.explanation(notificationStatus,
+                        optimizationStatus, monitorStatus)))
+                .setNegativeButton(AppText.t(getContext(), "Schließen"), null)
+                .setPositiveButton(AppText.t(getContext(), "Benachrichtigungen"), (dialog, which) -> {
                     try {
                         Intent intent = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
                                 .putExtra(Settings.EXTRA_APP_PACKAGE, getContext().getPackageName());
@@ -2578,7 +2583,7 @@ class BatteryDashboard extends View {
                         } catch (Exception ignoredAgain) { }
                     }
                 })
-                .setNeutralButton("Akku-Einstellungen", (dialog, which) -> {
+                .setNeutralButton(AppText.t(getContext(), "Akku-Einstellungen"), (dialog, which) -> {
                     try {
                         Intent intent = new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
                         getContext().startActivity(intent);
