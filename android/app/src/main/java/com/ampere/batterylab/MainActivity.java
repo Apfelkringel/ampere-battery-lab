@@ -2765,7 +2765,7 @@ class BatteryDashboard extends View {
         p.setStyle(Paint.Style.FILL);
     }
     private void displayText(Canvas c, String value, float x, float y, float size, int color) {
-        value = AppText.t(value);
+        value = AppText.t(getContext(), value);
         displayType(size, color);
         c.drawText(value, u(x), u(y), p);
     }
@@ -2779,7 +2779,7 @@ class BatteryDashboard extends View {
         c.restore();
     }
     private void text(Canvas c, String value, float x, float y, float size, int color, boolean bold) {
-        value = AppText.t(value);
+        value = AppText.t(getContext(), value);
         float viewWidth = layoutWidthDp > 0f ? layoutWidthDp : getWidth() / density;
         float safeX = Math.max(8f, Math.min(x, Math.max(8f, viewWidth - 8f)));
         String fitted = fitText(value, Math.max(1f, viewWidth - safeX - 8f), size, bold);
@@ -2787,7 +2787,7 @@ class BatteryDashboard extends View {
         drawFitWithin(c, fitted, safeX, y, Math.max(1f, viewWidth - safeX - 8f));
     }
     private void boundedText(Canvas c, String value, float leftX, float rightX, float y, float size, int color, boolean bold) {
-        value = AppText.t(value);
+        value = AppText.t(getContext(), value);
         float left = Math.max(8f, leftX);
         float right = Math.max(left + 1f, rightX);
         String fitted = fitText(value, right - left, size, bold);
@@ -2795,7 +2795,7 @@ class BatteryDashboard extends View {
         drawFitWithin(c, fitted, left, y, right - left);
     }
     private void centeredText(Canvas c, String value, float centerX, float y, float size, int color, boolean bold) {
-        value = AppText.t(value);
+        value = AppText.t(getContext(), value);
         float viewWidth = layoutWidthDp > 0f ? layoutWidthDp : getWidth() / density;
         float halfWidth = Math.max(1f, Math.min(centerX - 8f, viewWidth - centerX - 8f));
         String fitted = fitText(value, halfWidth * 2f, size, bold);
@@ -2805,7 +2805,7 @@ class BatteryDashboard extends View {
     }
     private void centeredBoundedText(Canvas c, String value, float leftX, float rightX,
                                     float y, float size, int color, boolean bold) {
-        value = AppText.t(value);
+        value = AppText.t(getContext(), value);
         float left = Math.max(8f, leftX);
         float right = Math.max(left + 1f, rightX);
         String fitted = fitText(value, right - left, size, bold);
@@ -2814,7 +2814,7 @@ class BatteryDashboard extends View {
                 y, right - left);
     }
     private void rightText(Canvas c, String value, float rightX, float y, float size, int color, boolean bold) {
-        value = AppText.t(value);
+        value = AppText.t(getContext(), value);
         float viewWidth = layoutWidthDp > 0f ? layoutWidthDp : getWidth() / density;
         float safeRight = Math.max(8f, Math.min(rightX, viewWidth - 8f));
         String fitted = fitText(value, Math.max(1f, safeRight - 8f), size, bold);
@@ -2823,7 +2823,7 @@ class BatteryDashboard extends View {
                 Math.max(1f, safeRight - 8f));
     }
     private void boundedRightText(Canvas c, String value, float leftX, float rightX, float y, float size, int color, boolean bold) {
-        value = AppText.t(value);
+        value = AppText.t(getContext(), value);
         float right = Math.max(8f, rightX);
         float left = Math.max(0f, Math.min(leftX, right - 1f));
         String fitted = fitText(value, Math.max(1f, right - left), size, bold);
@@ -6062,7 +6062,7 @@ class BatteryDashboard extends View {
         return min + "–" + max + "%";
     }
 
-    private String pageName() { return AppText.t(page == 1 ? "Laden" : page == 2 ? "Entladen" : page == 3 ? "Akkugesundheit" : page == 4 ? "Verlauf" : "Übersicht"); }
+    private String pageName() { return AppText.t(getContext(), page == 1 ? "Laden" : page == 2 ? "Entladen" : page == 3 ? "Akkugesundheit" : page == 4 ? "Verlauf" : "Übersicht"); }
 
     private void selectPage(int selectedPage) {
         int normalizedPage = BatteryPageState.normalize(selectedPage);
