@@ -4,9 +4,21 @@ Last verified: 2026-09-17 (Europe/Berlin)
 
 Version `0.402` fixes the home dashboard's screen-time tile: short durations
 use compact hour/minute labels (for example, `16h 22m`) so the full value is
-visible instead of ending in an ellipsis. Direct and Play each pass unit tests;
-both debug lint tasks pass. The signed release, public APK/manifest, and Play
-alpha publication are pending.
+visible instead of ending in an ellipsis. Direct and Play each pass 207 unit
+tests; both debug lint tasks pass. The signed `v0.402` tag is GitHub-verified,
+and release workflow
+[`35210016995`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35210016995)
+passed. Update-repository commit
+[`a38ea27`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/a38ea27)
+publishes the artifacts. Fresh public downloads match manifest SHA-256 values
+`5c116f1bd22163fdcbaeecde6335b75d6aa00efde8a259fd022b190e29677969` (APK) and
+`40e6f0474578bebc8db769fa548dcb1bdc92b713dc50789348915572448dee91` (AAB).
+The APK is `com.ampere.batterylab`, version code/name `402`/`0.402`, signed by
+the expected certificate SHA-256
+`301bed44b5cc342485b485b24baeea404dbdb216e6e3e134ad2ebd6b28d1dce3`. Play
+alpha publishing workflow
+[`35210361815`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35210361815)
+passed.
 
 Version `0.401` completes the two-step first-run guide by requesting Android's
 notification permission only after the user chooses “Loslegen”. App-usage and
