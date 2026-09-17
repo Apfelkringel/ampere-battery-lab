@@ -5,8 +5,19 @@ Last verified: 2026-09-17 (Europe/Berlin)
 Version `0.412` adds the real launcher icon beside each app in the “Akkuverbrauch
 deiner Apps” summary. This improves visual scanning while keeping estimated
 values explicitly marked with `~`. Direct and Play each pass 216 unit tests;
-both debug lint tasks pass. Release, public artifact hashes and Play alpha
-publication are pending.
+both debug lint tasks pass. The signed `v0.412` tag is GitHub-verified, and
+release workflow
+[`35221220036`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35221220036)
+passed. Update-repository commit
+[`85082ad`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/85082ad)
+publishes the artifacts. Fresh public APK and AAB downloads match manifest
+SHA-256 values
+`1091b4015e8dde16084062c5f372ebf7fb00bcbba64de811657c099ccb473c9f` (APK) and
+`d005deb50e91feab448ea78819533794fa12dcd8a52d32070d7071a6786df18c` (AAB).
+The APK is `com.ampere.batterylab`, version code/name `412`/`0.412`. Play alpha
+publishing workflow
+[`35221808763`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35221808763)
+passed.
 
 Version `0.411` fixes the focused history chart axis: short measurement
 windows now show clock times instead of repeating the same weekday at every
