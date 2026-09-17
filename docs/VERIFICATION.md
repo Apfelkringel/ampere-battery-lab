@@ -5,8 +5,19 @@ Last verified: 2026-09-17 (Europe/Berlin)
 Version `0.409` adds a visible freshness label to the live energy-flow card,
 so the current sensor reading is explicitly marked as recent or aged. Direct
 and Play each pass 213 unit tests; both debug lint tasks pass. The emulator
-confirmed the visible `Messung gerade eben` state in the live card. Release
-verification pending.
+confirmed the visible `Messung gerade eben` state in the live card. The signed
+`v0.409` tag is GitHub-verified, and release workflow
+[`35217736616`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35217736616)
+passed. Update-repository commit
+[`710264a`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/710264a)
+publishes the artifacts. Fresh public APK and AAB downloads match manifest
+SHA-256 values
+`164dff6c3a77b1509cfbfc961319e5ef1982eee3f05cedd907406fb3e5ce7c0f` (APK) and
+`6af290d2c7a0f71f689e23fa0164ff0c29162bd742a0ec0c5d359013aba8dca7` (AAB).
+The APK is `com.ampere.batterylab`, version code/name `409`/`0.409`. Play alpha
+publishing workflow
+[`35218283962`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35218283962)
+passed.
 
 Version `0.408` wraps long app names and usage details over two lines instead of
 ellipsizing them. Direct and Play each pass 211 unit tests; both debug lint
