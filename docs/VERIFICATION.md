@@ -2,6 +2,24 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.444` fixes remaining German text in the English accessibility and
+large-text summaries. Content descriptions now translate status, battery
+values, tab names, active-tab text, the charge-target slider and navigation
+controls consistently. Regression tests cover the generated English summary
+phrases. Direct and Play each pass 220 unit tests and both debug lint tasks
+pass. The signed `v0.444` tag is GitHub-verified, and release workflow
+[`35264866576`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35264866576)
+passed. Public update-repository commit
+[`81ae0f4`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/81ae0f4)
+publishes the artifacts. Fresh public APK download matches `latest.json`:
+SHA-256
+`b4f483eb057dbfac79b6da64bc74d644766c3674f0666c65faa1880b43125f7c` (APK)
+and `235c089d1bc8e24781b9b982de0b090e02ea7ddc56c0dae69b6a3b1e66edaad1`
+(AAB). The public manifest reports version code/name `444`/`0.444` and the
+package remains `com.ampere.batterylab`. Play alpha publishing workflow
+[`35265474428`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35265474428)
+passed.
+
 Version `0.443` completes English localization in secondary UI surfaces. The
 update permission dialog, history bucket details and session details now use
 the selected app language, including buttons and generated measurement text.
