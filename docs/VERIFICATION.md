@@ -2,6 +2,25 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.439` adds a working in-app language switcher under Settings → App
+language. Users can switch between German and English without relying on the
+Android system settings; the activity recreates with the selected locale on
+Android 13+ and older supported versions. The emulator verified English →
+German, including the full home screen and navigation labels. Direct and Play
+each pass 220 unit tests and both debug lint tasks pass. The signed `v0.439`
+tag is GitHub-verified, and release workflow
+[`35257375721`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35257375721)
+passed. Public update-repository commit
+[`66bec98`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/66bec98)
+publishes the artifacts. Fresh public APK and AAB downloads match
+`latest.json`: SHA-256
+`6cc72c80a3b5e70788ce40b77c08f1a9a316c80dacbee2d5011349e8856598dd` (APK)
+and `806f935a887f51b7306b12fb214429870e60fe10f3b923c383a85b4032a58514`
+(AAB). The public manifest reports version code/name `439`/`0.439` and the
+package remains `com.ampere.batterylab`. Play alpha publishing workflow
+[`35258101855`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35258101855)
+passed.
+
 Version `0.438` completes the English history chart labels. The monthly view
 now translates the chart heading and calendar timeframe, including
 “BATTERY BALANCE · 6 CALENDAR MONTHS”, instead of leaving German uppercase
