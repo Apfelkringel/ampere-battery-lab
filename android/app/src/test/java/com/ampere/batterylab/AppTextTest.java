@@ -37,6 +37,7 @@ public class AppTextTest {
                     AppText.t("CPU gesamt 42% · Vordergrund-App: Photos · Prozesslast 8%"));
             assertEquals("On battery", AppText.t("Akkubetrieb"));
             assertEquals("On battery", AppText.t("Akkubetrieb aktiv"));
+            assertEquals("Show overview", AppText.t("Übersicht anzeigen"));
         } finally {
             Locale.setDefault(previous);
         }

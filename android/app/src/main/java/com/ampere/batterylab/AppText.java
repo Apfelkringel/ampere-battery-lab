@@ -382,10 +382,14 @@ final class AppText {
                 {"Since unplugging · geschätzte Werte", "Since unplugging · estimated values"},
                 {"STROM", "CURRENT"}, {"LEISTUNG", "POWER"},
                 {"Berühren zum Beenden", "Touch to exit"},
+                {"anzeigen", "show"},
                 // Correct compounds affected by the broad "Akku" replacement.
                 {"Batteriebetrieb", "On battery"},
                 {"Batterybetrieb", "On battery"},
-                {"On battery aktiv", "On battery"}
+                {"On battery aktiv", "On battery"},
+                {"Overview show", "Show overview"}, {"Charging show", "Show charging"},
+                {"Discharging show", "Show discharging"}, {"Battery show", "Show battery"},
+                {"History show", "Show history"}
         };
         for (String[] phrase : phrases) result = result.replace(phrase[0], phrase[1]);
         return result;

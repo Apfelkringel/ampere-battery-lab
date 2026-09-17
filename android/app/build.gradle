@@ -13,8 +13,8 @@ android {
         // APK installable on older Android versions as a bonus.
         minSdk 23
         targetSdk 37
-        versionCode 435
-        versionName "0.435"
+        versionCode 436
+        versionName "0.436"
     }
 
     // The GitHub APK channel may offer an explicitly user-confirmed update.

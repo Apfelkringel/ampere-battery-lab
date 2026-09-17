@@ -10,21 +10,33 @@ final class BatteryHistoryBucketAccessibility {
 
     static String description(BatteryHistoryStats.Bucket bucket, int periodDays,
                               boolean capacityAvailable) {
+        return description(bucket, periodDays, capacityAvailable, Locale.GERMANY);
+    }
+
+    static String description(BatteryHistoryStats.Bucket bucket, int periodDays,
+                              boolean capacityAvailable, Locale locale) {
         if (bucket == null) return "Zeitraum nicht verfügbar";
+        boolean english = Locale.ENGLISH.getLanguage().equals(locale.getLanguage());
         String pattern = periodDays == 1 ? "EEEE, d. MMMM"
                 : periodDays == 7 ? "d. MMMM yyyy" : "MMMM yyyy";
-        String date = new SimpleDateFormat(pattern, Locale.GERMANY)
+        String date = new SimpleDateFormat(pattern, locale)
                 .format(new Date(bucket.start));
         if (bucket.measuredIntervals <= 0) {
-            return date + ". Keine auswertbaren Strommessungen. Strich bedeutet fehlende Werte, nicht null.";
+            return english
+                    ? date + ". No usable current measurements. A dash means missing values, not zero."
+                    : date + ". Keine auswertbaren Strommessungen. Strich bedeutet fehlende Werte, nicht null.";
         }
         String wear = capacityAvailable
-                ? String.format(Locale.GERMANY, "%.2f EFC", bucket.wearCycles)
-                : "nicht verfügbar, Nennkapazität fehlt";
+                ? String.format(locale, "%.2f EFC", bucket.wearCycles)
+                : (english ? "not available, design capacity missing" : "nicht verfügbar, Nennkapazität fehlt");
         String ratio = bucket.consumedMah > 0
-                ? bucket.chargeConsumptionRatioPercent + " Prozent"
-                : "nicht verfügbar, kein Verbrauchswert";
-        return date + ". Aufgeladen " + bucket.chargedMah + " mAh. Verbrauch "
+                ? bucket.chargeConsumptionRatioPercent + (english ? "%" : " Prozent")
+                : (english ? "not available, no usage value" : "nicht verfügbar, kein Verbrauchswert");
+        return english
+                ? date + ". Charged " + bucket.chargedMah + " mAh. Used "
+                + bucket.consumedMah + " mAh. Wear " + wear
+                + ". Charged-to-used ratio " + ratio + "."
+                : date + ". Aufgeladen " + bucket.chargedMah + " mAh. Verbrauch "
                 + bucket.consumedMah + " mAh. Verschleiß " + wear
                 + ". Geladen zu Verbrauch " + ratio + ".";
     }

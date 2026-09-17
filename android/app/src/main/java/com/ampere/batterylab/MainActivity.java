@@ -262,7 +262,7 @@ public class MainActivity extends Activity {
         for (int index = 0; index < tabNames.length; index++) {
             final int page = index;
             Button tab = largeTextButton(tabNames[index]);
-            tab.setContentDescription(tabNames[index] + " anzeigen");
+            tab.setContentDescription(AppText.t(this, tabNames[index] + " anzeigen"));
             tab.setOnClickListener(view -> dashboard.selectPageFromLargeText(page));
             LinearLayout.LayoutParams tabParams = new LinearLayout.LayoutParams(-2, -2);
             tabParams.setMargins(0, dp(12), dp(8), dp(4));
@@ -6343,7 +6343,7 @@ class BatteryDashboard extends View {
             int bucketIndex = virtualViewId - 100;
             return AppText.t(getContext(), bucketIndex < buckets.size()
                     ? BatteryHistoryBucketAccessibility.description(buckets.get(bucketIndex),
-                            historyPeriodDays, calculationCapacityMah() > 0)
+                            historyPeriodDays, calculationCapacityMah() > 0, uiLocale())
                     : "Zeitraum nicht verfügbar");
         }
         if (virtualViewId == BatteryHeaderLayout.OVERFLOW) return AppText.t(getContext(), "Einstellungen");
