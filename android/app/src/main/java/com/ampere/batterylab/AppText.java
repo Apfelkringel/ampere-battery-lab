@@ -45,6 +45,20 @@ final class AppText {
                 {"Akkukapazität", "Battery capacity"},
                 {"Akkuzustand", "Battery status"},
                 {"Akkuinformationen werden geladen.", "Loading battery information."},
+                {"Alles läuft", "Everything is running"},
+                {"ganz entspannt.", "smoothly."},
+                {"Noch nicht gemessen", "Not measured yet"},
+                {"Finde Kapazität und Verschleiß heraus.", "Measure capacity and battery wear."},
+                {"Messung aktualisieren", "Refresh measurement"},
+                {"Messung starten", "Start measurement"},
+                {"Designkapazität", "Design capacity"},
+                {"Gemessene Kapazität", "Measured capacity"},
+                {"AKKUSTAND · AUTOMATISCH", "BATTERY LEVEL · AUTOMATIC"},
+                {"AKKUSTAND · AUTOMATIK", "BATTERY LEVEL · AUTOMATIC"},
+                {"AKKUGESUNDHEIT", "BATTERY HEALTH"},
+                {"AKKUSTAND", "BATTERY LEVEL"},
+                {"LÄDT JETZT", "CHARGING NOW"},
+                {"AKKUBETRIEB", "ON BATTERY"},
                 {"Werte des aktiven Bereichs", "Values for the active section"},
                 {"Gut lesbare Akkuwerte · live aktualisiert", "Readable battery values · updated live"},
                 {"Berechtigungen & Zugriffe", "Permissions & access"},
@@ -98,7 +112,8 @@ final class AppText {
                 {"Laden erkannt", "Charging detected"}, {"Bildschirm- und Hintergrundverbrauch lokal erfasst", "Screen and background usage recorded locally"},
                 {"Lokale Akkuüberwachung · jede Sekunde", "Local battery monitoring · every second"},
                 {"Prozent", "percent"}, {"Stunde", "hour"}, {"Stunden", "hours"},
-                {"Minute", "minute"}, {"Minuten", "minutes"}, {"Tag", "day"}, {"Tage", "days"}
+                {"Minute", "minute"}, {"Minuten", "minutes"}, {"Tag", "day"}, {"Tage", "days"},
+                {"Home measurement", "Start measurement"}
         };
         for (String[] phrase : phrases) result = result.replace(phrase[0], phrase[1]);
         return result;

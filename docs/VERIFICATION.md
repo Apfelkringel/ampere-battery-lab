@@ -2,6 +2,12 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.414` fixes the remaining English empty-state and status labels
+found during emulator review, including the battery-level heading, charging
+state, health card, measurement action, capacity labels and the dashboard
+headline. Local direct/Play tests and debug lint pass; release verification is
+pending.
+
 Version `0.413` adds a complete English UI layer selected from the device
 language. The custom dashboard, large-text mode, app-usage view, widgets, live
 monitoring notification and overlay notification translate their visible
