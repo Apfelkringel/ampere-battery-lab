@@ -5,7 +5,19 @@ Last verified: 2026-09-17 (Europe/Berlin)
 Version `0.416` continues the English UI pass through charging, health and
 technical dashboard cards, including charge companion status, charge target
 progress, alert/overlay descriptions, sensor headings and capacity guidance.
-Direct/Play tests and debug lint pass locally; release verification is pending.
+Direct and Play each pass 216 unit tests; both debug lint tasks pass. The
+signed `v0.416` tag is GitHub-verified, and release workflow
+[`35226542919`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35226542919)
+passed. Update-repository commit
+[`b64c31d`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/b64c31d)
+publishes the artifacts. Fresh public APK and AAB downloads match manifest
+SHA-256 values
+`62e2a57600f07544250ebe49794af1e8cbb77032a06c7e0fee5ee80700aee091` (APK) and
+`249a5f182bcf2f6a8791af3ed930836ec15f48b0ff4126b656700d7588448719` (AAB).
+The APK is `com.ampere.batterylab`, version code/name `416`/`0.416`. Play alpha
+publishing workflow
+[`35227046071`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35227046071)
+passed.
 
 Version `0.415` continues the English UI pass across the discharge and history
 pages, including forecast modes, session labels, battery-pattern cards, app
