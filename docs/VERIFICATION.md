@@ -2,6 +2,27 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.434` makes numeric and date formatting follow the active app
+language. English history and status views now use English decimal/grouping
+separators and date formatting, for example `0.54 EFC` and `1,000 mAh`
+instead of German-formatted values. The emulator audit confirmed the English
+History view in
+[`04-history-locale.png`](/tmp/ampere-audit-next/04-history-locale.png).
+Direct and Play each pass 218 unit tests and both debug lint tasks pass. The
+signed `v0.434` tag is GitHub-verified, and release workflow
+[`35249113008`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35249113008)
+passed after a transient release-asset upload retry. Public update-repository
+commit
+[`7111657`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/7111657)
+publishes the artifacts. Fresh public APK and AAB downloads match
+`latest.json`: SHA-256
+`83d9397f3e6277228accc45894622c363b6cf18ca8c5e5425a884f3c1ea28150` (APK)
+and `6ca36da5710f122db742ac032b5d1a5c6e0c51e5ec5079bf681c2e63a970825b`
+(AAB). The public manifest reports version code/name `434`/`0.434` and the
+package remains `com.ampere.batterylab`. Play alpha publishing workflow
+[`35250362909`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35250362909)
+passed.
+
 Version `0.433` localizes the remaining user-visible system surfaces for the
 English locale: the live overlay and charge-target, high-temperature and low-
 battery alarm notifications now translate their labels while preserving live
