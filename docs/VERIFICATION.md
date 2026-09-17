@@ -2,6 +2,24 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.418` improves the English onboarding and permission feedback and
+removes mixed-language history-card labels caused by replacement ordering.
+Current emulator screenshots confirm the English settings, permission review
+and history surfaces. Direct and Play each pass 216 unit tests; both debug
+lint tasks pass. The signed `v0.418` tag is GitHub-verified, and release
+workflow
+[`35229668895`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35229668895)
+passed. Public update-repository commit
+[`89d548e`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/89d548e)
+publishes the artifacts. Fresh public APK and AAB downloads match
+`latest.json`: SHA-256
+`7567e62b9afe01f7b39bf11e87a469bf721bf779415e578fdc1080171edc104c` (APK)
+and `5b0a7b96b19cf885208c439db3085a5af4acd6be0dce8a4ded95b330b6272973`
+(AAB). The public manifest reports version code/name `418`/`0.418` and the
+package remains `com.ampere.batterylab`. Play alpha publishing workflow
+[`35230274261`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35230274261)
+passed.
+
 Version `0.417` completes the English UI pass through settings, permission
 review and background-monitoring status. The emulator confirmed the settings
 dialog in English, including dynamic temperature, low-battery and sampling
