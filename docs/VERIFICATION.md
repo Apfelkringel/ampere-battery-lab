@@ -5,8 +5,20 @@ Last verified: 2026-09-17 (Europe/Berlin)
 Version `0.414` fixes the remaining English empty-state and status labels
 found during emulator review, including the battery-level heading, charging
 state, health card, measurement action, capacity labels and the dashboard
-headline. Local direct/Play tests and debug lint pass; release verification is
-pending.
+headline. The emulator confirmed the English start screen without German
+residual labels. Direct and Play each pass 216 unit tests; both debug lint
+tasks pass. The signed `v0.414` tag is GitHub-verified, and release workflow
+[`35224283221`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35224283221)
+passed. Update-repository commit
+[`8945124`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/8945124)
+publishes the artifacts. Fresh public APK and AAB downloads match manifest
+SHA-256 values
+`1db0a788dc64edb6fb6cc56ce11fb848f8d1454c5deabb36e4ce49d1756fa5f5` (APK) and
+`12d89d3146e0b0925953a76b46bc464002faca37e18d727fc017210850175e01` (AAB).
+The APK is `com.ampere.batterylab`, version code/name `414`/`0.414`. Play alpha
+publishing workflow
+[`35224895996`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35224895996)
+passed.
 
 Version `0.413` adds a complete English UI layer selected from the device
 language. The custom dashboard, large-text mode, app-usage view, widgets, live
