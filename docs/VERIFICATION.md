@@ -8,8 +8,22 @@ consumption, comparable bars, foreground time and the available mAh/h rate.
 The optional usage-access explanation is clearer, and the entire card still
 opens period-filtered details. The full app list clarifies that per-app values
 are estimates, not exact Android measurements. Direct and Play each pass 208
-unit tests; both debug lint tasks and the direct debug build pass. Signed
-release, public APK/manifest and Play alpha publication are pending.
+unit tests; both debug lint tasks and the direct debug build pass. The 320×640
+API 36 emulator confirmed the compact card layout and optional-access state;
+it had no real app-usage history for a populated top-app preview. The signed
+`v0.404` tag is GitHub-verified, and release workflow
+[`35212228880`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35212228880)
+passed. Update-repository commit
+[`2317b5b`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/2317b5b)
+publishes the artifacts. Fresh public downloads match manifest SHA-256 values
+`2e3896ea994df746e4925412d9a3b1958c6e5e137451d7cb264dc95d7a101135` (APK) and
+`5bec4bcce68a636be92e7cc4f1ffc0e7fdfc1b76b26c4a3a26e06aebc663f9a4` (AAB).
+The APK is `com.ampere.batterylab`, version code/name `404`/`0.404`, signed by
+the expected certificate SHA-256
+`301bed44b5cc342485b485b24baeea404dbdb216e6e3e134ad2ebd6b28d1dce3`. Play
+alpha publishing workflow
+[`35212722531`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35212722531)
+passed.
 
 Version `0.403` aligns the dashboard's 7-day/30-day button hitboxes with their
 drawn positions and fixes the chart's vertical hitbox origin in compact layouts.
