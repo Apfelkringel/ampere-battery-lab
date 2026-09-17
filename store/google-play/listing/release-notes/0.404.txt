@@ -1,0 +1,2 @@
+Die App-Verbrauchskarte zeigt jetzt die aktivsten Apps mit geschätztem
+Akkuverbrauch, Vergleichsbalken, Nutzungszeit und – sofern verfügbar – Rate.

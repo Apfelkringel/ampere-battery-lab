@@ -65,7 +65,7 @@ final class BatteryAccessibilityLayout {
             case CHARGE_LIMIT: return "Ladeziel: " + normalizeChargeLimit(chargeLimit) + " Prozent";
             case HEALTH_BENCHMARK: return benchmarkActive ? "Kapazitätsmessung stoppen" : "Kapazität messen";
             case HEALTH_CAPACITY: return "Nennkapazität bearbeiten";
-            case DISCHARGE_USAGE: return "Vordergrundverbrauch öffnen";
+            case DISCHARGE_USAGE: return "Akkuverbrauch deiner Apps anzeigen";
             case DISCHARGE_SCREEN_ON: return "Restlaufzeit bei dauerhaft eingeschaltetem Bildschirm";
             case DISCHARGE_SCREEN_OFF: return "Restlaufzeit bei ausgeschaltetem Bildschirm";
             case DISCHARGE_NORMAL: return "Restlaufzeit bei normaler Nutzung";

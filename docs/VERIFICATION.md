@@ -2,6 +2,15 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.404` redesigns the discharge-page app-use card as an inline
+"Akkuverbrauch deiner Apps" preview with the top three apps ranked by estimated
+consumption, comparable bars, foreground time and the available mAh/h rate.
+The optional usage-access explanation is clearer, and the entire card still
+opens period-filtered details. The full app list clarifies that per-app values
+are estimates, not exact Android measurements. Direct and Play each pass 208
+unit tests; both debug lint tasks and the direct debug build pass. Signed
+release, public APK/manifest and Play alpha publication are pending.
+
 Version `0.403` aligns the dashboard's 7-day/30-day button hitboxes with their
 drawn positions and fixes the chart's vertical hitbox origin in compact layouts.
 Touch, TalkBack and selected-range feedback now use the same bounds. Direct and

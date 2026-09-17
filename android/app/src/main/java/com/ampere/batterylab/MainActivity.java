@@ -367,7 +367,7 @@ public class MainActivity extends Activity {
                     () -> dashboard.performLargeTextControl(BatteryAccessibilityLayout.CHARGE_OVERLAY));
             addLargeTextChargeLimit();
         } else if (page == 2) {
-            addLargeTextAction("Akkuverbrauch pro App anzeigen",
+            addLargeTextAction("Akkuverbrauch deiner Apps anzeigen",
                     () -> dashboard.performLargeTextControl(BatteryAccessibilityLayout.DISCHARGE_USAGE));
         } else if (page == 3) {
             addLargeTextAction(dashboard.isLargeTextBenchmarkActive()
@@ -3992,23 +3992,22 @@ class BatteryDashboard extends View {
         text(c, "Ø Entladerate", w * .58f, y + 540, 9, muted, false);
         boundedText(c, averageDischargeRateDisplay(), w * .58f, w - 36, y + 565, 13, primary, true);
 
-        // This complete card remains one accessible tap target for the
-        // optional Android usage permission/details action.
+        // Show useful app-level information directly in the card; the whole
+        // surface remains the entry point to period filters and full details.
         drawEditorialSurface(c, 18, y + 624, w - 18, y + 799, panel, border, lime);
-        rounded(c, 36, y + 643, 73, y + 680, 15,
+        text(c, "Akkuverbrauch deiner Apps", 36, y + 654, 13, primary, true);
+        text(c, "Seit dem Abstecken · geschätzte Werte", 36, y + 674, 8, faint, false);
+        rounded(c, w - 67, y + 638, w - 36, y + 669, 12,
                 Color.argb(42, Color.red(lime), Color.green(lime), Color.blue(lime)));
-        drawGrid(c, 54.5f, y + 661.5f, lime);
-        displayText(c, "Was braucht heute Strom?", 36, y + 715, 17, primary);
+        drawGrid(c, w - 51.5f, y + 653.5f, lime);
         if (hasUsageAccess()) {
-            text(c, "Tippe für deine Verbrauchsdetails", 36, y + 741, 9, muted, false);
-            text(c, "Nur lokal aus Android-Daten berechnet", 36, y + 761, 9, faint, false);
+            drawUsageRows(c, w, y + 691, primary, muted, faint);
         } else {
-            text(c, "Aktiviere optional den Nutzungszugriff,", 36, y + 741, 9, muted, false);
-            text(c, "damit Ampere Stromfresser sichtbar macht.", 36, y + 759, 9, muted, false);
+            text(c, "Nutzungszugriff ist optional", 36, y + 704, 9, amber, true);
+            text(c, "Damit ordnet Ampere den geschätzten", 36, y + 723, 9, muted, false);
+            text(c, "Verbrauch den verwendeten Apps zu.", 36, y + 740, 9, muted, false);
+            text(c, "Zugriff einrichten  →", 36, y + 773, 9, lime, true);
         }
-        rounded(c, 36, y + 772, w - 36, y + 789, 9, Color.argb(35, Color.red(lime), Color.green(lime), Color.blue(lime)));
-        text(c, hasUsageAccess() ? "APP-DETAILS ÖFFNEN" : "ANDROID-ZUGRIFF ÖFFNEN",
-                46, y + 784, 8.5f, lime, true);
 
         BatteryTelemetryDiagnostics.Summary diagnostics = telemetryDiagnostics();
         float liveTop = y + 818;
@@ -4384,14 +4383,15 @@ class BatteryDashboard extends View {
                 36, w - 36, y + 502, 8, primary, false);
         boundedText(c, sinceFullAnchorLabel() + ": " + sinceFullUsageSummary(), 36, w - 36, y + 518, 8, primary, false);
         rounded(c, 18, y + 540, w - 18, y + 715, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 540), u(w - 18), u(y + 715)); c.drawRoundRect(rect, u(12), u(12), p);
-        text(c, "Vordergrund-Apps", 36, y + 571, 13, primary, true);
+        text(c, "Akkuverbrauch deiner Apps", 36, y + 571, 13, primary, true);
+        text(c, "Seit dem Abstecken · geschätzte Werte", 36, y + 587, 8, faint, false);
         if (hasUsageAccess()) {
-            drawUsageRows(c, w, y + 600, primary, muted, faint);
+            drawUsageRows(c, w, y + 608, primary, muted, faint);
         } else {
-            text(c, "Optionale Android-Berechtigung", 36, y + 603, 10, amber, true);
-            text(c, "Erlaube den Nutzungszugriff, um Apps mit", 36, y + 627, 10, muted, false);
-            text(c, "dem höchsten Vordergrundverbrauch zu sehen.", 36, y + 645, 10, muted, false);
-            text(c, "Tippen, um Android-Einstellungen zu öffnen", 36, y + 683, 9, lime, true);
+            text(c, "Nutzungszugriff ist optional", 36, y + 615, 9, amber, true);
+            text(c, "Damit ordnet Ampere den geschätzten", 36, y + 635, 9, muted, false);
+            text(c, "Verbrauch den verwendeten Apps zu.", 36, y + 651, 9, muted, false);
+            text(c, "Zugriff einrichten  →", 36, y + 686, 9, lime, true);
         }
         drawTelemetryChart(c, 18, y + 735, w - 36, 220, panel, border, primary, muted, faint, false);
     }
@@ -4545,31 +4545,58 @@ class BatteryDashboard extends View {
         }
         Map<String, Integer> fallbackEstimates = BatteryAppAttribution.apportion(
                 Math.max(0, totalEnergy - directAssignedMah), fallbackWeights);
+        final Map<String, Integer> appEstimates = new HashMap<>();
+        for (AppUsageRow usage : rows) {
+            Integer directValue = directMah.get(usage.packageName);
+            appEstimates.put(usage.packageName, directValue != null && directValue > 0
+                    ? BatteryAppAttribution.allocatedMah(directEstimates, usage.packageName)
+                    : BatteryAppAttribution.allocatedMah(fallbackEstimates, usage.packageName));
+        }
+        Collections.sort(rows, new Comparator<AppUsageRow>() {
+            @Override public int compare(AppUsageRow left, AppUsageRow right) {
+                int energyOrder = Integer.compare(appEstimates.get(right.packageName),
+                        appEstimates.get(left.packageName));
+                return energyOrder != 0 ? energyOrder
+                        : Long.compare(right.foregroundMs, left.foregroundMs);
+            }
+        });
+        int maxAppMah = 0;
+        for (int index = 0; index < rows.size() && index < 3; index++) {
+            AppUsageRow usage = rows.get(index);
+            maxAppMah = Math.max(maxAppMah, appEstimates.get(usage.packageName));
+        }
         int row = 0;
         for (AppUsageRow usage : rows) {
             String app = usage.packageName;
             try { app = getContext().getPackageManager().getApplicationLabel(getContext().getPackageManager().getApplicationInfo(usage.packageName, 0)).toString(); } catch (Exception ignored) { }
             long minutes = usage.foregroundMs / 60000L;
-            float infoWidth = Math.max(70f, Math.min(130f, (w - 72f) / 2f));
-            float appWidth = Math.max(72f, w - 72f - infoWidth - 8f);
-            text(c, fitText(app, appWidth, 10, true), 36, y + row * 27, 10, primary, true);
             Integer directValue = directMah.get(usage.packageName);
-            int appMah = directValue != null && directValue > 0
-                    ? BatteryAppAttribution.allocatedMah(directEstimates, usage.packageName)
-                    : BatteryAppAttribution.allocatedMah(fallbackEstimates, usage.packageName);
+            int appMah = appEstimates.get(usage.packageName);
             boolean hasDirectTelemetry = directValue != null && directValue > 0;
             int appRate = BatteryAppAttribution.appRateMahPerHour(
                     appMah, usage.foregroundMs, hasDirectTelemetry);
             String rateLabel = BatteryAppAttribution.appRateLabel(appRate, hasDirectTelemetry);
-            String appEstimate = appMah > 0
-                    ? "~" + appMah + " mAh · " + rateLabel
-                    : "— Verbrauch · Rate n/v";
-            rightText(c, fitText(minutes + " Min. · " + appEstimate, infoWidth, 8, false), w - 36, y + row * 27, 8, muted, false);
-            line(c, 36, y + row * 27 + 9, w - 36, y + row * 27 + 9, Color.rgb(43, 47, 56), 1);
+            float rowTop = y + row * 28f;
+            float amountWidth = appMah > 0 ? 68f : 38f;
+            text(c, fitText(app, Math.max(80f, w - 72f - amountWidth), 9.5f, true),
+                    36, rowTop, 9.5f, primary, true);
+            rightText(c, appMah > 0 ? "~" + appMah + " mAh" : "— mAh",
+                    w - 36, rowTop, 8.5f, appMah > 0 ? lime : faint, true);
+            text(c, fitText(minutes + " Min. · " + rateLabel, w - 72f, 7.5f, false),
+                    36, rowTop + 10f, 7.5f, muted, false);
+            float barLeft = 36f;
+            float barRight = w - 36f;
+            rounded(c, barLeft, rowTop + 16f, barRight, rowTop + 18f, 1,
+                    Color.argb(70, Color.red(faint), Color.green(faint), Color.blue(faint)));
+            float ratio = maxAppMah > 0 && appMah > 0
+                    ? Math.min(1f, appMah / (float) maxAppMah)
+                    : (rows.isEmpty() ? 0f : usage.foregroundMs / (float) rows.get(0).foregroundMs);
+            if (ratio > 0f) rounded(c, barLeft, rowTop + 16f,
+                    barLeft + (barRight - barLeft) * ratio, rowTop + 18f, 1, lime);
             if (++row == 3) break;
         }
         if (row == 0) text(c, "Seit dem Trennen keine App-Nutzung erfasst.", 36, y, 9, faint, false);
-        text(c, "Tippen für alle App-Details", 36, y + 87, 9, lime, true);
+        text(c, "ALLE APP-DETAILS ANSEHEN  →", 36, y + 88, 8, lime, true);
     }
 
     private void showAppUsageDetails() {
@@ -4650,7 +4677,7 @@ class BatteryDashboard extends View {
         toolbar.addView(back, new LinearLayout.LayoutParams(dp(48), dp(54)));
         back.setContentDescription("Zurück");
         back.setOnClickListener(view -> dialog.dismiss());
-        TextView title = usageText("Akku", 20, ink, true);
+        TextView title = usageText("App-Verbrauch", 20, ink, true);
         LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(0, -2, 1f);
         titleParams.leftMargin = dp(8);
         toolbar.addView(title, titleParams);
