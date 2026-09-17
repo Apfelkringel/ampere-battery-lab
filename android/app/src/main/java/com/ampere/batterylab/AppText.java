@@ -441,7 +441,9 @@ final class AppText {
                 {"AKKU-BILANZ", "BATTERY BALANCE"},
                 {"KALENDERTAGE", "CALENDAR DAYS"},
                 {"KALENDERWOCHEN", "CALENDAR WEEKS"},
-                {"KALENDERMONATE", "CALENDAR MONTHS"}
+                {"KALENDERMONATE", "CALENDAR MONTHS"},
+                // Keep the full month name intact after the short "Sept" label mapping.
+                {"Sepember", "September"}
         };
         for (String[] phrase : phrases) result = result.replace(phrase[0], phrase[1]);
         return result;
