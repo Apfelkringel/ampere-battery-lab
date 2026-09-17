@@ -2,6 +2,20 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.450` fixes the remaining mixed-language live usage status: the
+English overview now shows “Usage is tracked live.” instead of “Usage wird live
+erfasst.” A regression test covers the replacement-order case. The signed
+`v0.450` release build passed CI; the initial asset attachment hit a GitHub
+release-discovery race, was safely retried, and the final release contains APK,
+AAB and checksums. Public update-repository commit
+[`6cdbeb2`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/6cdbeb2)
+publishes the artifacts. Fresh public APK download matches `latest.json` with
+SHA-256 `1963ec1ae885f48c848cc0fbf047638eb60c69e5b7082bed6a78ad925e52180e`;
+the public manifest reports package `com.ampere.batterylab`, version
+code/name `450`/`0.450`. Play alpha publishing workflow
+[`35270617319`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35270617319)
+passed.
+
 Version `0.449` fixes additional mixed-language English output found in the
 charging, battery-health and history summaries, including “Measurement status”,
 “used”, “battery efficiency” and duplicate punctuation. Direct and Play each
