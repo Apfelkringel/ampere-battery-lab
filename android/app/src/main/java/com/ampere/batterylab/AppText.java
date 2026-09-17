@@ -233,7 +233,17 @@ final class AppText {
                 {"HISTORY & STATISTIK", "HISTORY & STATISTICS"},
                 {"Batterieverbrauch", "Battery usage"}, {"Batterieverschleiß", "Battery wear"},
                 {"Batteryverbrauch", "Battery usage"}, {"Batteryverschleiß", "Battery wear"},
-                {"Geladen/Usage", "Charged/usage"}
+                {"Geladen/Usage", "Charged/usage"},
+                {"Laderate ", "Charge rate "}, {"Strom nicht verfügbar", "Current unavailable"},
+                {"Temperatur nicht verfügbar", "Temperature unavailable"},
+                {"Akkumesswerte werden auf diesem Gerät gespeichert", "Battery measurements are stored on this device"},
+                {"Restenergie", "Remaining energy"}, {"Android-Zustand", "Android status"},
+                {"Kapazitätsniveau", "Capacity level"}, {"Ladeprofil", "Charging profile"},
+                {"Ladealgorithmus", "Charging algorithm"}, {"Ladeverhalten", "Charging behavior"},
+                {"Thermik", "Thermal status"}, {"Gesundheit", "Health"}, {"Schätzung", "Estimate"},
+                {"Lokale Akkuüberwachung", "Local battery monitoring"}, {"Laden erkannt", "Charging detected"},
+                {"Bildschirm- und Hintergrundverbrauch lokal erfasst", "Screen and background usage recorded locally"},
+                {"Akkuüberwachung", "Battery monitoring"}, {"Ladealarm", "Charge alert"}
         };
         for (String[] phrase : phrases) result = result.replace(phrase[0], phrase[1]);
         return result;

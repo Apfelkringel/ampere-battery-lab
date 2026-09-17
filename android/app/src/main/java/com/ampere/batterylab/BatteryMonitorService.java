@@ -130,8 +130,10 @@ public class BatteryMonitorService extends Service {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
         NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         if (manager != null) {
-            manager.createNotificationChannel(new NotificationChannel(CHANNEL_ID, "Akkuüberwachung", NotificationManager.IMPORTANCE_LOW));
-            NotificationChannel alarm = new NotificationChannel(ALARM_CHANNEL_ID, "Ladealarm", NotificationManager.IMPORTANCE_HIGH);
+            manager.createNotificationChannel(new NotificationChannel(CHANNEL_ID,
+                    AppText.t(this, "Akkuüberwachung"), NotificationManager.IMPORTANCE_LOW));
+            NotificationChannel alarm = new NotificationChannel(ALARM_CHANNEL_ID,
+                    AppText.t(this, "Ladealarm"), NotificationManager.IMPORTANCE_HIGH);
             alarm.enableVibration(true);
             manager.createNotificationChannel(alarm);
         }
@@ -237,11 +239,12 @@ public class BatteryMonitorService extends Service {
                     + (health > 0 ? " · Gesundheit " + health + "%" : "")
                     + (capacity > 0 ? " · Schätzung " + capacity + " mAh" : "");
         }
+        details = AppText.t(this, details);
         return builder.setSmallIcon(com.ampere.batterylab.R.drawable.ic_launcher)
                 .setContentTitle(title)
                 .setContentText(details)
                 .setStyle(new Notification.BigTextStyle().bigText(details))
-                .setSubText("Lokale Akkuüberwachung")
+                .setSubText(AppText.t(this, "Lokale Akkuüberwachung · jede Sekunde"))
                 .setContentIntent(pending)
                 .setOngoing(true)
                 .setShowWhen(false)
