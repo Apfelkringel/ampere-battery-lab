@@ -172,10 +172,10 @@ public class BatteryMonitorService extends Service {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
                 ? new Notification.Builder(this, CHANNEL_ID) : new Notification.Builder(this);
-        String title = value + "% · " + (isCharging ? "Laden" : "Akku entlädt");
+        String title = value + "% · " + AppText.t(this, isCharging ? "Laden" : "Akku entlädt");
         String currentText = BatteryTelemetryText.current(Math.abs(currentMa), isCharging, true);
-        StringBuilder details = new StringBuilder("Aktualisiert live · ")
-                .append("Laderate ").append("—".equals(currentText) ? "nicht verfügbar" : currentText);
+        StringBuilder details = new StringBuilder(AppText.t(this, "Aktualisiert live · "))
+                .append(AppText.t(this, "Laderate ")).append("—".equals(currentText) ? AppText.t(this, "nicht verfügbar") : currentText);
         if (temperatureTenths > 0) details.append(" · ").append(String.format(Locale.GERMANY,
                 "%.1f °C", temperatureTenths / 10f));
         if (voltageMv > 0) details.append(" · ").append(String.format(Locale.GERMANY,
@@ -184,7 +184,7 @@ public class BatteryMonitorService extends Service {
                 .setContentTitle(title)
                 .setContentText(details.toString())
                 .setStyle(new Notification.BigTextStyle().bigText(details.toString()))
-                .setSubText("Lokale Akkuüberwachung · jede Sekunde")
+                .setSubText(AppText.t(this, "Lokale Akkuüberwachung · jede Sekunde"))
                 .setContentIntent(pending)
                 .setOngoing(true)
                 .setOnlyAlertOnce(true)
@@ -198,7 +198,7 @@ public class BatteryMonitorService extends Service {
         Intent launch = new Intent(this, MainActivity.class);
         PendingIntent pending = PendingIntent.getActivity(this, 0, launch, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? new Notification.Builder(this, CHANNEL_ID) : new Notification.Builder(this);
-        String title = value >= 0 ? value + "% · " + (isCharging ? "Laden" : "Akkubetrieb") : "Ampere überwacht den Akku";
+        String title = value >= 0 ? value + "% · " + AppText.t(this, isCharging ? "Laden" : "Akkubetrieb") : AppText.t(this, "Ampere überwacht den Akku");
         int currentMagnitudeMa = Math.abs(currentMa);
         String temperatureText = temperatureTenths > 0
                 ? String.format(Locale.GERMANY, "%.1f°C", temperatureTenths / 10f)

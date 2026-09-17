@@ -89,9 +89,9 @@ public class BatteryWidgetProvider extends AppWidgetProvider {
         String detailsText = detailsText(state.charging, state.currentMa, state.temperatureTenths,
                 state.voltageMv, layoutType);
         views.setTextViewText(R.id.widget_level, state.level >= 0 ? state.level + "%" : "—");
-        views.setTextViewText(R.id.widget_status, statusText);
-        views.setTextViewText(R.id.widget_details, detailsText);
-        views.setTextViewText(R.id.widget_caption, "Akku");
+        views.setTextViewText(R.id.widget_status, AppText.t(context, statusText));
+        views.setTextViewText(R.id.widget_details, AppText.t(context, detailsText));
+        views.setTextViewText(R.id.widget_caption, AppText.t(context, "Akku"));
         views.setTextColor(R.id.widget_status, context.getColor(state.charging ? R.color.widget_accent : R.color.widget_muted));
 
         Intent launch = new Intent(context, MainActivity.class);
@@ -99,7 +99,7 @@ public class BatteryWidgetProvider extends AppWidgetProvider {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         views.setOnClickPendingIntent(R.id.widget_root, pending);
         String description = state.level >= 0 ? "Akkustand " + state.level + " Prozent, " : "Akkustand nicht verfügbar, ";
-        views.setContentDescription(R.id.widget_root, description + statusText + ", " + detailsText);
+        views.setContentDescription(R.id.widget_root, AppText.t(context, description + statusText + ", " + detailsText));
         return views;
     }
 

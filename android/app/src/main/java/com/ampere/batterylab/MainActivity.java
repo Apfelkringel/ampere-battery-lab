@@ -232,7 +232,7 @@ public class MainActivity extends Activity {
         content.addView(panel, panelParams);
 
         TextView brand = new TextView(this);
-        brand.setText("Ampere · Großschrift");
+        brand.setText(AppText.t(this, "Ampere · Großschrift"));
         brand.setTextColor(Color.rgb(255, 247, 232));
         brand.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 24f);
         brand.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
@@ -244,7 +244,7 @@ public class MainActivity extends Activity {
         panel.addView(settings, settingsParams);
 
         TextView description = new TextView(this);
-        description.setText("Gut lesbare Akkuwerte · live aktualisiert");
+        description.setText(AppText.t(this, "Gut lesbare Akkuwerte · live aktualisiert"));
         description.setTextColor(Color.rgb(184, 226, 219));
         description.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 14f);
         LinearLayout.LayoutParams descriptionParams = new LinearLayout.LayoutParams(-1, -2);
@@ -279,7 +279,7 @@ public class MainActivity extends Activity {
         panel.addView(largeTextActions, actionsParams);
 
         TextView sectionTitle = new TextView(this);
-        sectionTitle.setText("Werte des aktiven Bereichs");
+        sectionTitle.setText(AppText.t(this, "Werte des aktiven Bereichs"));
         sectionTitle.setTextColor(Color.rgb(115, 228, 216));
         sectionTitle.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16f);
         sectionTitle.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
@@ -292,7 +292,7 @@ public class MainActivity extends Activity {
         largeTextSummaryView.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 18f);
         largeTextSummaryView.setLineSpacing(dp(5), 1f);
         largeTextSummaryView.setTextIsSelectable(true);
-        largeTextSummaryView.setText("Akkuinformationen werden geladen.");
+        largeTextSummaryView.setText(AppText.t(this, "Akkuinformationen werden geladen."));
         LinearLayout.LayoutParams summaryParams = new LinearLayout.LayoutParams(-1, -2);
         summaryParams.topMargin = dp(8);
         panel.addView(largeTextSummaryView, summaryParams);
@@ -300,7 +300,7 @@ public class MainActivity extends Activity {
 
     private Button largeTextButton(String label) {
         Button button = new Button(this);
-        button.setText(label);
+        button.setText(AppText.t(this, label));
         button.setAllCaps(false);
         button.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16f);
         button.setTextColor(Color.rgb(255, 247, 232));
@@ -318,7 +318,7 @@ public class MainActivity extends Activity {
         if (!nativeLargeTextMode || dashboard == null) return;
         String summary = dashboard.largeTextPageSummary();
         String displayedSummary = summary == null || summary.isEmpty()
-                ? "Akkuinformationen werden geladen." : summary;
+                ? AppText.t(this, "Akkuinformationen werden geladen.") : AppText.t(this, summary);
         if (!displayedSummary.contentEquals(largeTextSummaryView.getText())) {
             largeTextSummaryView.setText(displayedSummary);
         }
@@ -348,7 +348,7 @@ public class MainActivity extends Activity {
     private void rebuildLargeTextActions(int page) {
         largeTextActions.removeAllViews();
         TextView heading = new TextView(this);
-        heading.setText("Aktionen");
+        heading.setText(AppText.t(this, "Aktionen"));
         heading.setTextColor(Color.rgb(184, 226, 219));
         heading.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16f);
         heading.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
@@ -399,7 +399,7 @@ public class MainActivity extends Activity {
 
     private void addLargeTextChargeLimit() {
         TextView label = new TextView(this);
-        label.setText("Ladeziel: " + dashboard.largeTextChargeLimit() + " Prozent");
+        label.setText(AppText.t(this, "Ladeziel: " + dashboard.largeTextChargeLimit() + " Prozent"));
         label.setTextColor(Color.rgb(255, 247, 232));
         label.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16f);
         LinearLayout.LayoutParams labelParams = new LinearLayout.LayoutParams(-1, -2);
@@ -413,7 +413,7 @@ public class MainActivity extends Activity {
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override public void onProgressChanged(SeekBar view, int progress, boolean fromUser) {
                 int limit = 50 + progress;
-                label.setText("Ladeziel: " + limit + " Prozent");
+                label.setText(AppText.t(this, "Ladeziel: " + limit + " Prozent"));
                 if (fromUser) dashboard.setChargeLimitFromLargeText(limit);
             }
 
@@ -2765,6 +2765,7 @@ class BatteryDashboard extends View {
         p.setStyle(Paint.Style.FILL);
     }
     private void displayText(Canvas c, String value, float x, float y, float size, int color) {
+        value = AppText.t(value);
         displayType(size, color);
         c.drawText(value, u(x), u(y), p);
     }
@@ -2778,6 +2779,7 @@ class BatteryDashboard extends View {
         c.restore();
     }
     private void text(Canvas c, String value, float x, float y, float size, int color, boolean bold) {
+        value = AppText.t(value);
         float viewWidth = layoutWidthDp > 0f ? layoutWidthDp : getWidth() / density;
         float safeX = Math.max(8f, Math.min(x, Math.max(8f, viewWidth - 8f)));
         String fitted = fitText(value, Math.max(1f, viewWidth - safeX - 8f), size, bold);
@@ -2785,6 +2787,7 @@ class BatteryDashboard extends View {
         drawFitWithin(c, fitted, safeX, y, Math.max(1f, viewWidth - safeX - 8f));
     }
     private void boundedText(Canvas c, String value, float leftX, float rightX, float y, float size, int color, boolean bold) {
+        value = AppText.t(value);
         float left = Math.max(8f, leftX);
         float right = Math.max(left + 1f, rightX);
         String fitted = fitText(value, right - left, size, bold);
@@ -2792,6 +2795,7 @@ class BatteryDashboard extends View {
         drawFitWithin(c, fitted, left, y, right - left);
     }
     private void centeredText(Canvas c, String value, float centerX, float y, float size, int color, boolean bold) {
+        value = AppText.t(value);
         float viewWidth = layoutWidthDp > 0f ? layoutWidthDp : getWidth() / density;
         float halfWidth = Math.max(1f, Math.min(centerX - 8f, viewWidth - centerX - 8f));
         String fitted = fitText(value, halfWidth * 2f, size, bold);
@@ -2801,6 +2805,7 @@ class BatteryDashboard extends View {
     }
     private void centeredBoundedText(Canvas c, String value, float leftX, float rightX,
                                     float y, float size, int color, boolean bold) {
+        value = AppText.t(value);
         float left = Math.max(8f, leftX);
         float right = Math.max(left + 1f, rightX);
         String fitted = fitText(value, right - left, size, bold);
@@ -2809,6 +2814,7 @@ class BatteryDashboard extends View {
                 y, right - left);
     }
     private void rightText(Canvas c, String value, float rightX, float y, float size, int color, boolean bold) {
+        value = AppText.t(value);
         float viewWidth = layoutWidthDp > 0f ? layoutWidthDp : getWidth() / density;
         float safeRight = Math.max(8f, Math.min(rightX, viewWidth - 8f));
         String fitted = fitText(value, Math.max(1f, safeRight - 8f), size, bold);
@@ -2817,6 +2823,7 @@ class BatteryDashboard extends View {
                 Math.max(1f, safeRight - 8f));
     }
     private void boundedRightText(Canvas c, String value, float leftX, float rightX, float y, float size, int color, boolean bold) {
+        value = AppText.t(value);
         float right = Math.max(8f, rightX);
         float left = Math.max(0f, Math.min(leftX, right - 1f));
         String fitted = fitText(value, Math.max(1f, right - left), size, bold);
@@ -4904,7 +4911,7 @@ class BatteryDashboard extends View {
 
     private TextView usageText(String value, float size, int color, boolean bold) {
         TextView text = new TextView(getContext());
-        text.setText(value);
+        text.setText(AppText.t(this, value));
         text.setTextSize(size);
         text.setTextColor(color);
         text.setTypeface(Typeface.DEFAULT, bold ? Typeface.BOLD : Typeface.NORMAL);
@@ -6055,7 +6062,7 @@ class BatteryDashboard extends View {
         return min + "–" + max + "%";
     }
 
-    private String pageName() { return page == 1 ? "Laden" : page == 2 ? "Entladen" : page == 3 ? "Akkugesundheit" : page == 4 ? "Verlauf" : "Übersicht"; }
+    private String pageName() { return AppText.t(page == 1 ? "Laden" : page == 2 ? "Entladen" : page == 3 ? "Akkugesundheit" : page == 4 ? "Verlauf" : "Übersicht"); }
 
     private void selectPage(int selectedPage) {
         int normalizedPage = BatteryPageState.normalize(selectedPage);

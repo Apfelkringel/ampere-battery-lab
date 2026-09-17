@@ -101,8 +101,8 @@ public class BatteryOverlayService extends Service {
         PendingIntent pending = PendingIntent.getActivity(this, 2, launch, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? new Notification.Builder(this, CHANNEL_ID) : new Notification.Builder(this);
         return builder.setSmallIcon(R.drawable.ic_launcher)
-                .setContentTitle("Ampere-Live-Anzeige aktiv")
-                .setContentText("Live-Akkumesswerte werden auf dem Bildschirm angezeigt")
+                .setContentTitle(AppText.t(this, "Ampere-Live-Anzeige aktiv"))
+                .setContentText(AppText.t(this, "Live-Akkumesswerte werden auf dem Bildschirm angezeigt"))
                 .setContentIntent(pending)
                 .setOngoing(true)
                 .setShowWhen(false)

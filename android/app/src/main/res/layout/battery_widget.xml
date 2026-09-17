@@ -34,7 +34,7 @@
             android:fontFamily="sans"
             android:includeFontPadding="false"
             android:maxLines="1"
-            android:text="Akku"
+            android:text="@string/widget_battery"
             android:textColor="@color/widget_accent"
             android:textSize="12sp"
             android:textStyle="bold" />
@@ -78,7 +78,7 @@
             android:gravity="end"
             android:fontFamily="sans"
             android:includeFontPadding="false"
-            android:text="Akku"
+            android:text="@string/widget_battery"
             android:textColor="@color/widget_muted"
             android:textSize="10sp" />
     </LinearLayout>

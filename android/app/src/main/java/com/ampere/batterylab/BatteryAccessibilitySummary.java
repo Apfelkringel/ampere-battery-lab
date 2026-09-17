@@ -14,7 +14,7 @@ final class BatteryAccessibilitySummary {
         append(summary, "Temperatur", temperature);
         append(summary, "Spannung", voltage);
         if (!charging) appendEstimate(summary, "Restlaufzeit bei normaler Nutzung", runtime, runtimeSource);
-        return summary.toString();
+        return AppText.t(summary.toString());
     }
 
     static String discharge(String screenOn, String screenOnSource,
@@ -26,13 +26,13 @@ final class BatteryAccessibilitySummary {
         appendDischargeEstimate(summary, "Restlaufzeit bei ausgeschaltetem Bildschirm",
                 screenOff, screenOffSource);
         appendDischargeEstimate(summary, "Restlaufzeit bei normaler Nutzung", normal, normalSource);
-        return summary.toString();
+        return AppText.t(summary.toString());
     }
 
     static String dischargeEstimate(String label, String value, String source) {
         StringBuilder summary = new StringBuilder();
         appendDischargeEstimate(summary, label, value, source);
-        return summary.toString();
+        return AppText.t(summary.toString());
     }
 
     static String charging(boolean active, String state, String current, String target,
@@ -51,7 +51,7 @@ final class BatteryAccessibilitySummary {
         append(summary, "Temperatur", temperature);
         append(summary, "Spannung", voltage);
         append(summary, "Ladequelle", charger);
-        return summary.toString();
+        return AppText.t(summary.toString());
     }
 
     static String history(String period, String selectedRange,

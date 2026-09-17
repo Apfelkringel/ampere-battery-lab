@@ -2,6 +2,12 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.413` adds a complete English UI layer selected from the device
+language. The custom dashboard, large-text mode, app-usage view, accessibility
+summaries, widgets, live monitoring notification and overlay notification now
+translate their visible battery vocabulary while preserving measurements and
+app names. Direct and Play debug tests and lint are pending release verification.
+
 Version `0.412` adds the real launcher icon beside each app in the “Akkuverbrauch
 deiner Apps” summary. This improves visual scanning while keeping estimated
 values explicitly marked with `~`. Direct and Play each pass 216 unit tests;
