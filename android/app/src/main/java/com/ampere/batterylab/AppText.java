@@ -23,6 +23,11 @@ final class AppText {
         return "en".equalsIgnoreCase(locale.getLanguage());
     }
 
+    /** Locale used by every user-visible numeric value, including widgets and services. */
+    static Locale uiLocale(Context context) {
+        return isEnglish(context) ? Locale.US : Locale.GERMANY;
+    }
+
     static String t(Context context, String value) {
         // Use the context locale here instead of Locale.getDefault(). Android
         // supports an app-specific language, so the app can be English while
@@ -374,7 +379,13 @@ final class AppText {
                 {"Homee die Kapazitätsmessung getrennt vom Ladegerät unter 25 %.", "Start the capacity measurement unplugged and below 25%."},
                 {"Home a discharge session", "Start a discharge session"},
                 {"Batterystatus kopiert.", "Battery status copied."},
-                {"Since unplugging · geschätzte Werte", "Since unplugging · estimated values"}
+                {"Since unplugging · geschätzte Werte", "Since unplugging · estimated values"},
+                {"STROM", "CURRENT"}, {"LEISTUNG", "POWER"},
+                {"Berühren zum Beenden", "Touch to exit"},
+                // Correct compounds affected by the broad "Akku" replacement.
+                {"Batteriebetrieb", "On battery"},
+                {"Batterybetrieb", "On battery"},
+                {"On battery aktiv", "On battery"}
         };
         for (String[] phrase : phrases) result = result.replace(phrase[0], phrase[1]);
         return result;

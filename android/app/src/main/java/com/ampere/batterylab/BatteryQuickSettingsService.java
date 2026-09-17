@@ -110,33 +110,35 @@ public class BatteryQuickSettingsService extends TileService {
         tile.setLabel("Ampere");
         tile.setState(level >= 0 ? Tile.STATE_INACTIVE : Tile.STATE_UNAVAILABLE);
         if (Build.VERSION.SDK_INT >= 29) tile.setSubtitle(level >= 0
-                ? AppText.t(this, shortSubtitle(level, status, charging, current, temp))
+                ? AppText.t(this, shortSubtitle(this, level, status, charging, current, temp))
                 : AppText.t(this, "Akku nicht verfügbar"));
         if (Build.VERSION.SDK_INT >= 30) {
             tile.setContentDescription(level >= 0
                     ? AppText.t(this, "Akkustand " + level + " Prozent, "
-                    + subtitle(status, charging, current, temp, voltage))
+                    + subtitle(this, status, charging, current, temp, voltage))
                     : AppText.t(this, "Akkustand nicht verfügbar"));
         }
         tile.updateTile();
     }
 
-    private static String shortSubtitle(int level, int status, boolean charging, int currentMa, int temperatureTenths) {
+    private static String shortSubtitle(Context context, int level, int status, boolean charging, int currentMa, int temperatureTenths) {
+        Locale locale = AppText.uiLocale(context);
         StringBuilder result = new StringBuilder().append(level).append("% · ")
                 .append(charging ? "Laden" : status == BatteryManager.BATTERY_STATUS_UNKNOWN ? "Status unbekannt" : "Akkubetrieb");
-        if (currentMa > 0) result.append(" · ").append(BatteryTelemetryText.current(currentMa, charging, false));
-        if (temperatureTenths > 0) result.append(" · ").append(String.format(Locale.GERMANY, "%.1f°C", temperatureTenths / 10f));
+        if (currentMa > 0) result.append(" · ").append(BatteryTelemetryText.current(currentMa, charging, false, locale));
+        if (temperatureTenths > 0) result.append(" · ").append(String.format(locale, "%.1f°C", temperatureTenths / 10f));
         return result.toString();
     }
 
-    private static String subtitle(int status, boolean charging, int currentMa, int temperatureTenths, int voltageMv) {
+    private static String subtitle(Context context, int status, boolean charging, int currentMa, int temperatureTenths, int voltageMv) {
+        Locale locale = AppText.uiLocale(context);
         StringBuilder result = new StringBuilder();
         if (charging) result.append("Laden");
         else if (status == BatteryManager.BATTERY_STATUS_UNKNOWN) result.append("Status unbekannt");
         else result.append("Akkubetrieb");
-        if (currentMa > 0) result.append(" · ").append(BatteryTelemetryText.current(currentMa, charging, false));
-        if (temperatureTenths > 0) result.append(" · ").append(String.format(Locale.GERMANY, "%.1f°C", temperatureTenths / 10f));
-        if (voltageMv > 0) result.append(" · ").append(String.format(Locale.GERMANY, "%.2fV", voltageMv / 1000f));
+        if (currentMa > 0) result.append(" · ").append(BatteryTelemetryText.current(currentMa, charging, false, locale));
+        if (temperatureTenths > 0) result.append(" · ").append(String.format(locale, "%.1f°C", temperatureTenths / 10f));
+        if (voltageMv > 0) result.append(" · ").append(String.format(locale, "%.2fV", voltageMv / 1000f));
         return result.toString();
     }
 

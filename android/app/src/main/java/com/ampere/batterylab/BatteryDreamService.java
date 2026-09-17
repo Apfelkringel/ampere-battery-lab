@@ -172,15 +172,16 @@ final class BatteryDreamView extends View {
         float y = Math.min(height - 120f, 510f);
         float gap = 12f;
         float cell = (width - 64f - gap * 2f) / 3f;
-        stat(canvas, 32, y, cell, "STROM", BatteryTelemetryText.current(currentMa, charging, true), charging ? lime : blue);
-        stat(canvas, 32 + cell + gap, y, cell, "LEISTUNG", powerText(), charging ? lime : blue);
-        stat(canvas, 32 + (cell + gap) * 2f, y, cell, "TEMP.", temperatureTenths > 0 ? String.format(Locale.GERMANY, "%.1f °C", temperatureTenths / 10f) : "—", Color.rgb(242, 179, 106));
-        text(canvas, voltageMv > 0 ? String.format(Locale.GERMANY, "Spannung %.2f V", voltageMv / 1000f) : "Spannung nicht verfügbar", 32, y + 72, 11, faint, false);
-        rightText(canvas, "Berühren zum Beenden", width - 32, y + 72, 11, faint, false);
+        Locale locale = AppText.uiLocale(getContext());
+        stat(canvas, 32, y, cell, AppText.t(getContext(), "STROM"), BatteryTelemetryText.current(currentMa, charging, true, locale), charging ? lime : blue);
+        stat(canvas, 32 + cell + gap, y, cell, AppText.t(getContext(), "LEISTUNG"), powerText(locale), charging ? lime : blue);
+        stat(canvas, 32 + (cell + gap) * 2f, y, cell, "TEMP.", temperatureTenths > 0 ? String.format(locale, "%.1f °C", temperatureTenths / 10f) : "—", Color.rgb(242, 179, 106));
+        text(canvas, voltageMv > 0 ? AppText.t(getContext(), String.format(locale, "Spannung %.2f V", voltageMv / 1000f)) : AppText.t(getContext(), "Spannung nicht verfügbar"), 32, y + 72, 11, faint, false);
+        rightText(canvas, AppText.t(getContext(), "Berühren zum Beenden"), width - 32, y + 72, 11, faint, false);
     }
 
-    private String powerText() {
-        return BatteryTelemetryText.power(currentMa, voltageMv, charging);
+    private String powerText(Locale locale) {
+        return BatteryTelemetryText.power(currentMa, voltageMv, charging, locale);
     }
 
     private void stat(Canvas canvas, float x, float y, float width, String label, String value, int color) {

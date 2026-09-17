@@ -35,9 +35,17 @@ public class AppTextTest {
             assertEquals("High battery temperature", AppText.t("Hohe Akkutemperatur"));
             assertEquals("Total CPU 42% · Foreground app: Photos · Process load 8%",
                     AppText.t("CPU gesamt 42% · Vordergrund-App: Photos · Prozesslast 8%"));
+            assertEquals("On battery", AppText.t("Akkubetrieb"));
+            assertEquals("On battery", AppText.t("Akkubetrieb aktiv"));
         } finally {
             Locale.setDefault(previous);
         }
+    }
+
+    @Test public void telemetryUsesTheSelectedNumericLocale() {
+        assertEquals("+1.2 A", BatteryTelemetryText.current(1200, true, true, Locale.US));
+        assertEquals("+1,2 A", BatteryTelemetryText.current(1200, true, true, Locale.GERMANY));
+        assertEquals("+4.5 W", BatteryTelemetryText.power(900, 5000, true, Locale.US));
     }
 
     @Test public void englishAccessibilityLabelsUseEnglishVocabulary() {

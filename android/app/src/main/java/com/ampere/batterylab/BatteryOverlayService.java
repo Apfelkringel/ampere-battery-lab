@@ -130,15 +130,16 @@ public class BatteryOverlayService extends Service {
         int voltage = reading.voltageMv;
         boolean charging = reading.charging;
         int current = reading.currentMa;
-        String currentText = BatteryTelemetryText.current(current, charging, true);
+        Locale locale = AppText.uiLocale(this);
+        String currentText = BatteryTelemetryText.current(current, charging, true, locale);
         int coreCpu = readCpuPercent();
         String topPackage = topAppPackage();
         String topLabel = topAppLabel(topPackage);
         int processCpu = readProcessCpuPercent(topPackage);
         String processText = processCpu >= 0 ? processCpu + "%" : "—";
         String levelText = level >= 0 ? level + "%" : "—";
-        String voltageText = voltage > 0 ? String.format(Locale.GERMANY, "%.2f V", voltage / 1000f) : "— V";
-        String temperatureText = temperature > 0 ? String.format(Locale.GERMANY, "%.1f°C", temperature / 10f) : "—°C";
+        String voltageText = voltage > 0 ? String.format(locale, "%.2f V", voltage / 1000f) : "— V";
+        String temperatureText = temperature > 0 ? String.format(locale, "%.1f°C", temperature / 10f) : "—°C";
         String overlayText = BatteryOverlayText.header(levelText, currentText) + "\n"
                 + voltageText + "   " + temperatureText + "   CPU gesamt " + coreCpu
                 + "%\nVordergrund-App: " + topLabel + " · Prozesslast " + processText;

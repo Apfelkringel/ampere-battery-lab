@@ -86,8 +86,8 @@ public class BatteryWidgetProvider extends AppWidgetProvider {
                 : R.layout.battery_widget;
         RemoteViews views = new RemoteViews(context.getPackageName(), layout);
         String statusText = statusText(state.status, state.charging);
-        String detailsText = detailsText(state.charging, state.currentMa, state.temperatureTenths,
-                state.voltageMv, layoutType);
+        String detailsText = detailsText(context, state.charging, state.currentMa,
+                state.temperatureTenths, state.voltageMv, layoutType);
         views.setTextViewText(R.id.widget_level, state.level >= 0 ? state.level + "%" : "—");
         views.setTextViewText(R.id.widget_status, AppText.t(context, statusText));
         views.setTextViewText(R.id.widget_details, AppText.t(context, detailsText));
@@ -128,9 +128,10 @@ public class BatteryWidgetProvider extends AppWidgetProvider {
         return "Akku";
     }
 
-    private static String detailsText(boolean charging, int currentMa, int temperatureTenths,
+    private static String detailsText(Context context, boolean charging, int currentMa, int temperatureTenths,
                                       int voltageMv, int layoutType) {
-        String current = BatteryTelemetryText.current(currentMa, charging, true);
+        Locale locale = AppText.uiLocale(context);
+        String current = BatteryTelemetryText.current(currentMa, charging, true, locale);
         // Narrow layouts get one high-signal line so no important value is
         // pushed under the percentage or clipped by the launcher.
         if (layoutType != BatteryWidgetLayoutRules.STANDARD) {
@@ -138,15 +139,15 @@ public class BatteryWidgetProvider extends AppWidgetProvider {
         }
         if (!current.equals("—")) {
             if (temperatureTenths > 0) {
-                return current + " · " + String.format(Locale.GERMANY, "%.1f °C", temperatureTenths / 10f);
+                return current + " · " + String.format(locale, "%.1f °C", temperatureTenths / 10f);
             }
             return current;
         }
         if (temperatureTenths > 0) {
-            return String.format(Locale.GERMANY, "%.1f °C", temperatureTenths / 10f);
+            return String.format(locale, "%.1f °C", temperatureTenths / 10f);
         }
         if (voltageMv > 0) {
-            return String.format(Locale.GERMANY, "%.2f V", voltageMv / 1000f);
+            return String.format(locale, "%.2f V", voltageMv / 1000f);
         }
         return "Strom —";
     }
