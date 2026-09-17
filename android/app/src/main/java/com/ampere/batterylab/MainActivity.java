@@ -1003,6 +1003,7 @@ class BatteryDashboard extends View {
     private long sessionStartedAt = 0L;
     private int sessionStartLevel = 0;
     private int sessionStartChargeCounterMah = 0;
+    private long lastLiveReadingAt = 0L;
     private final SharedPreferences prefs;
     private final SharedPreferences telemetryPrefs;
     private final Handler liveRefreshHandler = new Handler(Looper.getMainLooper());
@@ -1250,6 +1251,7 @@ class BatteryDashboard extends View {
         boolean detectedCharging = BatteryState.isCharging(status, pluggedSource,
                 intent.hasExtra(BatteryManager.EXTRA_PLUGGED));
         long now = System.currentTimeMillis();
+        lastLiveReadingAt = now;
         long monitorSampleAt = prefs.getLong("monitorSampleAt", 0L);
         boolean hasRecentMonitorSample = monitorSampleAt > 0L
                 && now >= monitorSampleAt && now - monitorSampleAt <= 2L * 60L * 60L * 1000L;
@@ -3453,8 +3455,8 @@ class BatteryDashboard extends View {
             String sensors = (temperature > 0f ? temperatureDisplay() + " °C" : "—")
                     + "  ·  " + (voltage > 0f ? voltageDisplay() + " V" : "—");
             boundedRightText(c, sensors, first, right - 18, top + 178, 9f, primary, true);
-            boundedText(c, charging ? "Laderate aus Messstrom und lokaler Ladehistorie"
-                            : "Verbrauch aus aktuellem Strom und lokalen Messwerten",
+            boundedText(c, liveFreshnessLabel() + " · " + (charging ? "Messstrom + lokale Ladehistorie"
+                            : "aktueller Strom + lokale Messwerte"),
                     first, right - 18, top + 204, 8f, faint, false);
             return;
         }
@@ -3473,9 +3475,13 @@ class BatteryDashboard extends View {
                 third, right - 18, top + 116, 11f, primary, true);
         boundedText(c, voltage > 0f ? voltageDisplay() + " V" : "—",
                 third, right - 18, top + 134, 10f, muted, false);
-        boundedText(c, charging ? "Laderate basiert auf Messstrom und Ladehistorie"
-                        : "Verbrauch basiert auf aktuellen und lokalen Messwerten",
+        boundedText(c, liveFreshnessLabel() + " · " + (charging ? "Messstrom + Ladehistorie"
+                        : "aktueller Strom + lokale Messwerte"),
                 first, right - 18, top + 178, 8f, faint, false);
+    }
+
+    private String liveFreshnessLabel() {
+        return "Messung " + BatteryFreshness.label(lastLiveReadingAt, System.currentTimeMillis());
     }
 
     /**

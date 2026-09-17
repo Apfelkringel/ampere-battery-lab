@@ -2,6 +2,12 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.409` adds a visible freshness label to the live energy-flow card,
+so the current sensor reading is explicitly marked as recent or aged. Direct
+and Play each pass 213 unit tests; both debug lint tasks pass. The emulator
+confirmed the visible `Messung gerade eben` state in the live card. Release
+verification pending.
+
 Version `0.408` wraps long app names and usage details over two lines instead of
 ellipsizing them. Direct and Play each pass 211 unit tests; both debug lint
 tasks pass. The signed `v0.408` tag is GitHub-verified, and release workflow
