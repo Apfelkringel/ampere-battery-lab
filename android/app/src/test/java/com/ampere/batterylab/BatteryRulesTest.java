@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -879,6 +880,26 @@ public class BatteryRulesTest {
         assertEquals("45 m", BatteryDuration.compact(45));
         assertEquals("2 h", BatteryDuration.compact(120));
         assertEquals("20 h 4 m", BatteryDuration.compact(1204));
+    }
+
+    @Test public void currentChartLabelsTheActualSampleWindow() {
+        TimeZone previous = TimeZone.getDefault();
+        try {
+            TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+            Calendar start = new GregorianCalendar(2026, Calendar.SEPTEMBER, 17, 10, 0);
+            Calendar end = new GregorianCalendar(2026, Calendar.SEPTEMBER, 17, 10, 30);
+            assertEquals("10:00–10:30 · 30 Min. · 48 Messwerte",
+                    BatteryCurrentChartWindow.label(start.getTimeInMillis(), end.getTimeInMillis(), 48));
+            Calendar nextDay = new GregorianCalendar(2026, Calendar.SEPTEMBER, 18, 0, 42);
+            Calendar beforeMidnight = new GregorianCalendar(2026, Calendar.SEPTEMBER, 17, 23, 58);
+            assertEquals("17.09. 23:58–18.09. 00:42 · 44 Min. · 48 Messwerte",
+                    BatteryCurrentChartWindow.label(beforeMidnight.getTimeInMillis(),
+                            nextDay.getTimeInMillis(), 48));
+            assertEquals("Momentaufnahme · 10:00 · 1 Messwert",
+                    BatteryCurrentChartWindow.label(start.getTimeInMillis(), start.getTimeInMillis(), 1));
+        } finally {
+            TimeZone.setDefault(previous);
+        }
     }
 
     @Test public void dashboardDurationsFitNarrowScreenTimeCards() {

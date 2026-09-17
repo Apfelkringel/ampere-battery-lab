@@ -1,0 +1,2 @@
+Das Entladestromdiagramm zeigt jetzt den genauen Zeitraum, die Dauer und die
+Anzahl der dargestellten Messwerte.

@@ -2,6 +2,12 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.405` labels the discharge-current chart with the exact start and end
+time, elapsed duration and number of plotted local samples (including a date
+when samples cross midnight, and an explicit momentary-sample label). Direct
+and Play each pass 209 unit tests; both debug lint tasks pass. Signed release,
+public APK/manifest and Play alpha publication are pending.
+
 Version `0.404` redesigns the discharge-page app-use card as an inline
 "Akkuverbrauch deiner Apps" preview with the top three apps ranked by estimated
 consumption, comparable bars, foreground time and the available mAh/h rate.

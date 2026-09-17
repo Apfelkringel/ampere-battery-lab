@@ -5854,7 +5854,8 @@ class BatteryDashboard extends View {
         boundedText(c, "Min " + stats.minimumMa + " · Ø " + stats.averageMa
                         + " · Max " + stats.maximumMa + " mA",
                 chartX, x + width - 18, y + 181, 8, muted, false);
-        text(c, "letzte " + count + " lokalen Messwerte", chartX, y + 199, 8, faint, false);
+        boundedText(c, BatteryCurrentChartWindow.label(startAt, endAt, count),
+                chartX, x + width - 18, y + 199, 8, faint, false);
     }
 
     private static final class CurrentPoint {
