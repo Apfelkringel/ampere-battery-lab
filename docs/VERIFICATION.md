@@ -4,8 +4,20 @@ Last verified: 2026-09-17 (Europe/Berlin)
 
 Version `0.415` continues the English UI pass across the discharge and history
 pages, including forecast modes, session labels, battery-pattern cards, app
-usage actions, chart headings and accessibility control labels. Direct/Play
-tests and debug lint pass locally; release verification is pending.
+usage actions, chart headings and accessibility control labels. Direct and
+Play each pass 216 unit tests; both debug lint tasks pass. The signed `v0.415`
+tag is GitHub-verified, and release workflow
+[`35225486644`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35225486644)
+passed. Update-repository commit
+[`971a72c`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/971a72c)
+publishes the artifacts. Fresh public APK and AAB downloads match manifest
+SHA-256 values
+`8a7f08b54bf134db7b00dcde782c79bf97b71038bb2c00fac62e221981684586` (APK) and
+`8c823946382bedd9c8e7fcec2b35d5d13a5a700f233a65e90122e70f0e923d55` (AAB).
+The APK is `com.ampere.batterylab`, version code/name `415`/`0.415`. Play alpha
+publishing workflow
+[`35226103275`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35226103275)
+passed.
 
 Version `0.414` fixes the remaining English empty-state and status labels
 found during emulator review, including the battery-level heading, charging
