@@ -2,6 +2,11 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.416` continues the English UI pass through charging, health and
+technical dashboard cards, including charge companion status, charge target
+progress, alert/overlay descriptions, sensor headings and capacity guidance.
+Direct/Play tests and debug lint pass locally; release verification is pending.
+
 Version `0.415` continues the English UI pass across the discharge and history
 pages, including forecast modes, session labels, battery-pattern cards, app
 usage actions, chart headings and accessibility control labels. Direct and
