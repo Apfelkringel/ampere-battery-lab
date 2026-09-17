@@ -2,6 +2,25 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.423` improves the start page with state-aware messaging (for
+example, a full battery now says “Battery is full” instead of claiming that
+everything is simply running smoothly). The translation layer now respects an
+app-specific English locale even when the device-wide locale is different.
+The emulator confirmed the English full-battery state visually; direct and
+Play each pass 216 unit tests and both debug lint tasks pass. The signed
+`v0.423` tag is GitHub-verified, and release workflow
+[`35234819622`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35234819622)
+passed. Public update-repository commit
+[`6c793a9`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/6c793a9)
+publishes the artifacts. Fresh public APK and AAB downloads match
+`latest.json`: SHA-256
+`66620abfde1704ff204a7f61dd805cd7eb4585c17e351cbcbda4ddb47c933a7d` (APK)
+and `87acb0c3ede9179ee3fa22b38ffbcce45b2150926c80ee92d8422e3a2538aea5`
+(AAB). The public manifest reports version code/name `423`/`0.423` and the
+package remains `com.ampere.batterylab`. Play alpha publishing workflow
+[`35235474788`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35235474788)
+passed.
+
 Version `0.422` completes the English system-surface pass: live-overlay and
 update notification channels, Quick Settings text, update dialogs and
 background-monitoring status are localized consistently with the device
