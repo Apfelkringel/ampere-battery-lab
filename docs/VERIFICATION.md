@@ -2,6 +2,12 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.411` fixes the focused history chart axis: short measurement
+windows now show clock times instead of repeating the same weekday at every
+tick. The emulator confirmed the visible `12:43 · 13:09 · 13:36 · 14:03`
+labels. Direct and Play each pass 215 unit tests; both debug lint tasks pass.
+Release, public artifact hashes and Play alpha publication are pending.
+
 Version `0.410` keeps long duration values in the dashboard metric cards fully
 visible with a dedicated readable size, including the “Dein Tagesrhythmus”
 area; the diagnostic renderer no longer adds a truncation marker. Direct and

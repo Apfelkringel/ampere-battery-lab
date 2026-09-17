@@ -5999,7 +5999,13 @@ class BatteryDashboard extends View {
     }
 
     private String chartAxisLabel(float fraction, long start, long end) {
-        String pattern = historyDays == 30 ? "d. MMM" : "EEE";
+        // A focused chart can contain only a few hours of data. Repeating the
+        // same weekday at every tick makes the graph look broken; show the
+        // actual clock time for short windows and keep calendar labels for
+        // the selected 7/30-day overview.
+        long span = Math.max(0L, end - start);
+        String pattern = span <= 36L * 60L * 60L * 1000L
+                ? "HH:mm" : historyDays == 30 ? "d. MMM" : "EEE";
         return new SimpleDateFormat(pattern, Locale.GERMANY).format(new Date(start + (long) ((end - start) * fraction)));
     }
 

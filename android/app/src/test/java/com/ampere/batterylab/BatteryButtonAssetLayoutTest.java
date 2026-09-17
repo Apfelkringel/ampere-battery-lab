@@ -38,6 +38,15 @@ public class BatteryButtonAssetLayoutTest {
                 dashboard.contains("line + \" · …\""));
     }
 
+    @Test public void focusedHistoryChartUsesClockLabelsForShortWindows() throws IOException {
+        String dashboard = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
+                StandardCharsets.UTF_8);
+        assertTrue("short focused ranges must show actual times instead of repeated weekdays",
+                dashboard.contains("span <= 36L * 60L * 60L * 1000L")
+                        && dashboard.contains("? \"HH:mm\" : historyDays == 30 ? \"d. MMM\" : \"EEE\""));
+    }
+
     @Test public void historyChartBucketsAreIndividualAccessibleControls() throws IOException {
         String dashboard = Files.readString(findRepositoryRoot()
                 .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
