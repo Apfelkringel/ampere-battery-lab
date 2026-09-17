@@ -268,14 +268,14 @@ public class BatteryRulesTest {
 
     @Test public void unavailableDischargeForecastsGiveModeSpecificNextSteps() {
         String screenOn = BatteryAccessibilitySummary.dischargeEstimate(
-                "Bildschirm dauerhaft an", "—", "Nach Entladung");
+                "Bildschirm dauerhaft an", "—", "Nach dem Abstecken");
         String screenOff = BatteryAccessibilitySummary.dischargeEstimate(
-                "Bildschirm aus", "—", "Nach Entladung");
+                "Bildschirm aus", "—", "Nach dem Abstecken");
         String normal = BatteryAccessibilitySummary.dischargeEstimate(
                 "Normale Nutzung", "—", "Mehr Daten sammeln");
         assertTrue(screenOn.contains("Bildschirm dauerhaft an: nicht verfügbar"));
-        assertTrue(screenOn.contains("Hinweis: Nach Entladung"));
-        assertTrue(screenOff.contains("Hinweis: Nach Entladung"));
+        assertTrue(screenOn.contains("Hinweis: Nach dem Abstecken"));
+        assertTrue(screenOff.contains("Hinweis: Nach dem Abstecken"));
         assertTrue(normal.contains("Hinweis: Mehr Daten sammeln"));
     }
 
@@ -881,6 +881,11 @@ public class BatteryRulesTest {
                 BatteryHeaderLayout.actionAt(284f, 12f, 320f));
     }
 
+    @Test public void pageTitleUsesCompactTypographyBelowTwoHundredEightyDp() {
+        assertEquals(18f, BatteryHeaderLayout.pageTitleSize(240f), 0f);
+        assertEquals(21.5f, BatteryHeaderLayout.pageTitleSize(320f), 0f);
+    }
+
     @Test public void headerActionsDoNotCaptureTheVisibleGuttersBetweenImageButtons() {
         assertEquals(BatteryHeaderLayout.NONE,
                 BatteryHeaderLayout.actionAt(253f, 36f, 320f));
@@ -1102,12 +1107,12 @@ public class BatteryRulesTest {
     }
 
     @Test public void unavailableRuntimeExplainsWhatEvidenceIsStillNeeded() {
-        assertEquals("Nach Entladung", BatteryRuntimeEstimate.unavailableModeHint(true, 0L));
+        assertEquals("Nach dem Abstecken", BatteryRuntimeEstimate.unavailableModeHint(true, 0L));
         assertEquals("Ab 5 Min.", BatteryRuntimeEstimate.unavailableModeHint(false,
                 4L * 60L * 1000L));
         assertEquals("Mehr Daten", BatteryRuntimeEstimate.unavailableModeHint(false,
                 5L * 60L * 1000L));
-        assertEquals("Nach Entladung", BatteryRuntimeEstimate.unavailableNormalHint(true, false));
+        assertEquals("Nach dem Abstecken", BatteryRuntimeEstimate.unavailableNormalHint(true, false));
         assertEquals("Mehr Daten", BatteryRuntimeEstimate.unavailableNormalHint(true, true));
         assertEquals("Mehr Daten", BatteryRuntimeEstimate.unavailableNormalHint(false, false));
     }

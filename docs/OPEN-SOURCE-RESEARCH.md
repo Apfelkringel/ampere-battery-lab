@@ -802,3 +802,25 @@ Für vergrößerte Schrift folgt das Dashboard Androids Hinweisen zu skalierbare
 Da sich die gezeichnete Hauptansicht nicht umbrechen lässt, wechselt sie bei
 großer Systemschrift zu einer nativen, umbrechenden und scrollbar bedienbaren Ansicht.
 Es wurde kein externer Code übernommen.
+
+Der GitHub-Audit von
+[Battery Monitor](https://github.com/tswistak/Battery-Monitor) hebt schnelle
+Lesbarkeit von Live-Status/Benachrichtigung und Verlauf/Export als zentrale
+Aufgaben hervor. Die offene Anfrage
+[„Slider alone is frustrating UI“](https://github.com/tswistak/Battery-Monitor/issues/156)
+beschreibt die Schwierigkeit, einen genauen Wert mit einem schmalen Slider zu
+treffen, und schlägt Schritte per +/- oder Tastatureingabe vor. Die App hat
+bereits native Slider-Bedienung; die Anfrage wurde als möglicher späterer
+Verbesserungspunkt aufgenommen, ohne fremde Funktionen zu kopieren. Das aktuelle
+[ABattery-Projekt](https://github.com/abanana84/abattery) dokumentiert außerdem
+explizit, dass Geräte Messwerte unterschiedlich bereitstellen und fehlende oder
+geschätzte Werte klar markiert werden müssen. Das stützt die präzisere
+Formulierung „Nach dem Abstecken“ im leeren Prognosezustand.
+
+Im aktuellen Emulator-Audit waren die virtuellen Canvas-Navigationselemente
+40 dp hoch und am 240-dp Layout zusätzlich zu schmal. Android empfiehlt
+mindestens 48 × 48 dp für interaktive Ziele
+([Android Views Accessibility](https://developer.android.com/guide/topics/ui/accessibility/views/apps-views)).
+Die Canvas-Ziele nutzen nun die volle Zellenhöhe/-breite; im getesteten
+240-dp-Layout wird die Navigation randlos statt mit zu kleinen Seiteneinzügen
+gezeichnet.

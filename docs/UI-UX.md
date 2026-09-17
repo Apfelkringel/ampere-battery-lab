@@ -56,8 +56,10 @@ warnings or wear.
 
 ## Interaction and accessibility
 
-- Drawn tabs use a 48 dp vertical touch target, a fixed 24 dp icon slot and a
-  shared label baseline while preserving the visual tab height.
+- Drawn tabs expose a minimum 48 × 48 dp accessibility/touch target, a fixed
+  24 dp icon slot and a shared label baseline. On exceptionally narrow phones,
+  the tab rail expands to the screen edges so all five destinations retain the
+  minimum target width without shrinking their labels.
 - Header actions use the same 48 dp bounds, radius and outline geometry; the
   live refresh action is centered as one dot/text group and immediately reads
   Android's current sticky battery broadcast.
@@ -97,3 +99,11 @@ a horizontal tab row; their key actions are recreated as native buttons and
 controls. The selected section is restored after Android recreates the
 activity. At normal font sizes the existing illustrated Canvas dashboard is
 unchanged.
+
+When a discharge forecast is unavailable during charging, its hint says
+"Nach dem Abstecken" instead of the ambiguous "Nach Entladung".
+
+On widths below 320 dp, the title shrinks to keep its full page name visible;
+the discharge and health hero cards also hide the decorative battery character
+so it cannot cover the primary text. The forecast helper then uses the newly
+available full line width.

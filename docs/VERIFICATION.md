@@ -2,6 +2,16 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.398` fixes three narrow-screen usability defects found in the live
+API-36 emulator audit: Canvas navigation targets were 40 dp high (and under
+48 dp wide at 240 dp), the page title clipped at 240 dp, and the health/discharge
+illustration could overlap its primary copy. Targets now expose at least 48 ×
+48 dp at 240, 250, 275, 276 and 320 dp, and live taps at 240 dp reached both
+Health and History. The title remains whole at 240 dp; the decorative figure
+recedes below 320 dp; charging forecasts now say "Nach dem Abstecken" when no
+discharge data exists yet. Direct and Play each pass 202 unit tests; both lint
+tasks and debug APK builds pass. Release and public artifact verification follow.
+
 Version `0.397` switches to a native, scalable, reflowable dashboard when the
 system font scale is at least 1.25; the normal-size illustrated Canvas UI is
 unchanged. On a 320×640 API-36 emulator at 200% font scale, the title and

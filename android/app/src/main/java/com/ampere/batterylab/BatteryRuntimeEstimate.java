@@ -48,13 +48,13 @@ final class BatteryRuntimeEstimate {
 
     /** Short, actionable copy for a forecast that is correctly unavailable. */
     static String unavailableModeHint(boolean charging, long measuredDurationMs) {
-        if (charging) return "Nach Entladung";
+        if (charging) return "Nach dem Abstecken";
         if (measuredDurationMs < 5L * 60L * 1000L) return "Ab 5 Min.";
         return "Mehr Daten";
     }
 
     static String unavailableNormalHint(boolean charging, boolean hasDischargeHistory) {
-        return charging && !hasDischargeHistory ? "Nach Entladung" : "Mehr Daten";
+        return charging && !hasDischargeHistory ? "Nach dem Abstecken" : "Mehr Daten";
     }
 
     /** Estimates remaining minutes from a live current only when capacity is known. */

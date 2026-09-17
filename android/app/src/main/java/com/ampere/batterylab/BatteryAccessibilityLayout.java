@@ -82,6 +82,30 @@ final class BatteryAccessibilityLayout {
         return Math.max(50, Math.min(100, value));
     }
 
+    /** Full-cell navigation targets meet Android's 48 dp minimum on narrow phones. */
+    static int[] navigationBounds(int tabIndex, float bodyWidth) {
+        if (tabIndex < 0 || tabIndex >= 5 || bodyWidth <= 0f) {
+            return new int[]{0, 0, 0, 0};
+        }
+        float inset = navigationInset(bodyWidth);
+        float cell = (bodyWidth - 2f * inset) / 5f;
+        float left = inset + tabIndex * cell;
+        return new int[]{Math.round(left), 120, Math.round(left + cell), 168};
+    }
+
+    static int navigationTabAt(float x, float bodyWidth) {
+        if (bodyWidth <= 0f) return -1;
+        float inset = navigationInset(bodyWidth);
+        float right = bodyWidth - inset;
+        if (x < inset || x > right) return -1;
+        float cell = (bodyWidth - 2f * inset) / 5f;
+        return Math.max(0, Math.min(4, (int) ((x - inset) / cell)));
+    }
+
+    static float navigationInset(float bodyWidth) {
+        return Math.min(18f, Math.max(0f, (bodyWidth - 240f) / 2f));
+    }
+
     static int historyDaysForControl(int virtualViewId, int currentDays) {
         if (virtualViewId == OVERVIEW_7D) return 7;
         if (virtualViewId == OVERVIEW_30D) return 30;

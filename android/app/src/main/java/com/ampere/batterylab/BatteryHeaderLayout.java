@@ -10,6 +10,10 @@ final class BatteryHeaderLayout {
 
     private BatteryHeaderLayout() { }
 
+    static float pageTitleSize(float width) {
+        return width < 280f ? 18f : 21.5f;
+    }
+
     static int actionAt(float x, float y, float width) {
         if (width < 390f) {
             if (y < TARGET_TOP || y >= TARGET_BOTTOM) return NONE;

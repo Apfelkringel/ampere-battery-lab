@@ -172,10 +172,11 @@ public class BatteryButtonAssetLayoutTest {
                 .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
                 StandardCharsets.UTF_8);
         assertTrue("health copy must stop before the battery illustration lane",
-                dashboard.contains("float healthTextRight = w - 130f")
+                dashboard.contains("float healthTextRight = BatteryEditorialLayout.textRight(w)")
                         && dashboard.contains("boundedText(c, \"Noch keine Messung\", 36, healthTextRight"));
-        assertTrue("health illustration must use the vertically balanced position",
-                dashboard.contains("drawEditorialBattery(c, w - 79, y + 129"));
+        assertTrue("health illustration must be omitted when its text lane would overlap",
+                dashboard.contains("if (BatteryEditorialLayout.showSideIllustration(w))")
+                        && dashboard.contains("drawEditorialBattery(c, w - 79, y + 129"));
     }
 
     @Test public void compactHealthCardUsesSymmetricHeroInsets() throws IOException {

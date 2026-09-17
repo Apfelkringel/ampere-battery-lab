@@ -2188,7 +2188,7 @@ class BatteryDashboard extends View {
 
     private String dischargeRuntimeSource(boolean screenOn) {
         if (level < 0) return "Akku fehlt";
-        if (charging && lastDischargeEndLevel() < 0) return "Nach Entladung";
+        if (charging && lastDischargeEndLevel() < 0) return "Nach dem Abstecken";
         String percentKey = screenOn ? "dischargeScreenOnPercent" : "dischargeScreenOffPercent";
         String durationKey = screenOn ? "dischargeScreenOnMs" : "dischargeScreenOffMs";
         if (charging) {
@@ -2942,9 +2942,9 @@ class BatteryDashboard extends View {
         // geometry; this avoids a drawn control with a dead or shifted target.
         int headerAction = BatteryHeaderLayout.actionAt(x, y, w);
         if (headerAction != BatteryHeaderLayout.NONE) return headerAction;
-        if (y >= 118 && y < 176 && x >= 18 && x <= w - 18) {
-            float cell = (w - 36) / 5f;
-            return 10 + Math.max(0, Math.min(4, (int) ((x - 18) / cell)));
+        if (y >= 118 && y < 176) {
+            int tab = BatteryAccessibilityLayout.navigationTabAt(x, w);
+            if (tab >= 0) return 10 + tab;
         }
         boolean compactOverview = viewportWidthDp > 0f ? viewportWidthDp < 600f : w < 600f;
         float compactHeroWidth = Math.min(w - 36, 520);
@@ -3103,7 +3103,7 @@ class BatteryDashboard extends View {
         // The page name appears once. Removing the former AMPERE · PAGE kicker
         // makes room for hierarchy instead of repeating the navigation.
         text(c, page == 0 ? "Beobachte deinen Akku" : pageName(),
-                18, 105, 21.5f, headerText, true);
+                18, 105, BatteryHeaderLayout.pageTitleSize(w), headerText, true);
         final float controlTop = 12f;
         final float controlBottom = 60f;
         if (w < 390f) {
@@ -3139,12 +3139,13 @@ class BatteryDashboard extends View {
                 : compactNav
                 ? new String[]{"Start", "Laden", "Entladen", "Akku", "Verlauf"}
                 : new String[]{"Übersicht", "Laden", "Entladen", "Gesundheit", "Verlauf"};
-        float cell = (w - 36) / 5f;
+        float navInset = BatteryAccessibilityLayout.navigationInset(w);
+        float cell = (w - 2f * navInset) / 5f;
         final float navTop = 120f;
         final float navBottom = 168f;
-        controlSurface(c, 18, navTop, w - 18, navBottom, 16, panel, border);
+        controlSurface(c, navInset, navTop, w - navInset, navBottom, 16, panel, border);
         for (int i = 0; i < labels.length; i++) {
-            float x = 18 + i * cell;
+            float x = navInset + i * cell;
             float centerX = x + cell / 2f;
             boolean active = page == i;
             boolean pressed = isPressed(10 + i);
@@ -3913,9 +3914,12 @@ class BatteryDashboard extends View {
                 36, y + 153, 12, cream, true);
         boundedText(c, !charging && currentMa > 0 ? "Akkustrom live"
                         : "Sitzung startet beim Abstecken",
-                36, w - 126, y + 169, 8.8f, Color.rgb(184, 226, 219), false);
-        drawEditorialBattery(c, w - 79, y + 121,
-                displayLevel < 0 ? 62 : displayLevel, false, cream, blue, deep);
+                36, BatteryEditorialLayout.textRight(w), y + 169, 8.8f,
+                Color.rgb(184, 226, 219), false);
+        if (BatteryEditorialLayout.showSideIllustration(w)) {
+            drawEditorialBattery(c, w - 79, y + 121,
+                    displayLevel < 0 ? 62 : displayLevel, false, cream, blue, deep);
+        }
         rounded(c, 36, y + 187, w - 36, y + 354, 20, Color.rgb(7, 86, 90));
         text(c, "GESCHÄTZTE RESTLAUFZEIT BIS 0 %", 51, y + 209, 9f, Color.rgb(184, 226, 219), true);
         int forecastLabel = Color.rgb(184, 226, 219);
@@ -3996,7 +4000,7 @@ class BatteryDashboard extends View {
         // Keep the illustration in its own right-hand lane. The previous
         // bound ended at the battery edge, which made long localized copy
         // visually collide with the artwork on narrow phones.
-        float healthTextRight = w - 130f;
+        float healthTextRight = BatteryEditorialLayout.textRight(w);
         int deep = Color.rgb(4, 52, 56);
         int cream = Color.rgb(255, 247, 232);
         int health = healthPercent();
@@ -4026,8 +4030,10 @@ class BatteryDashboard extends View {
         }
         // Lower the character slightly so the hero composition is vertically
         // balanced between the headline and the measurement surface.
-        drawEditorialBattery(c, w - 79, y + 129, health > 0 ? health : 76,
-                false, cream, lime, deep);
+        if (BatteryEditorialLayout.showSideIllustration(w)) {
+            drawEditorialBattery(c, w - 79, y + 129, health > 0 ? health : 76,
+                    false, cream, lime, deep);
+        }
         if (health > 0) {
             rounded(c, 36, y + 190, w - 36, y + 196, 3, Color.rgb(20, 94, 96));
             rounded(c, 36, y + 190, 36 + (w - 72) * health / 100f, y + 196, 3, lime);
@@ -6141,19 +6147,21 @@ class BatteryDashboard extends View {
             return new Rect(Math.round(bounds[0] * density), Math.round(bounds[1] * density),
                     Math.round(bounds[2] * density), Math.round(bounds[3] * density));
         }
-        float cell = (w - 36f) / 5f;
-        float left = 18f + (virtualViewId - 10) * cell + 4f;
-        return new Rect(Math.round(left * density), Math.round(124f * density),
-                Math.round((left + cell - 8f) * density), Math.round(164f * density));
+        int[] navigationBounds = BatteryAccessibilityLayout.navigationBounds(
+                virtualViewId - 10, w);
+        return new Rect(Math.round(navigationBounds[0] * density),
+                Math.round(navigationBounds[1] * density),
+                Math.round(navigationBounds[2] * density),
+                Math.round(navigationBounds[3] * density));
     }
 
     private int virtualViewAt(float x, float y) {
         int header = BatteryHeaderLayout.actionAt(x, y, getWidth() / density);
         if (header != BatteryHeaderLayout.NONE && isVisibleVirtualView(header)) return header;
         float w = getWidth() / density;
-        if (y >= 118f && y < 176f && x >= 18f && x <= w - 18f) {
-            float cell = (w - 36f) / 5f;
-            return 10 + Math.max(0, Math.min(4, (int) ((x - 18f) / cell)));
+        if (y >= 118f && y < 176f) {
+            int tab = BatteryAccessibilityLayout.navigationTabAt(x, w);
+            if (tab >= 0) return 10 + tab;
         }
         if (page == 4 && y >= 182f + 430f + 108f && y < 182f + 430f + 231f) {
             int bucket = BatteryHistoryChartSelection.bucketIndexAt(
@@ -6558,10 +6566,11 @@ class BatteryDashboard extends View {
             Toast.makeText(getContext(), "Live-Daten aktualisiert.", Toast.LENGTH_SHORT).show();
             return true;
         }
-        if (y >= 124 && y < 174) {
-            if (releasedRegion >= 10 && releasedRegion <= 14) hapticClick();
-            float cell = (w - 36) / 5f;
-            selectPage((int) ((screenX - 18) / cell));
+        int navigationTab = BatteryAccessibilityLayout.navigationTabAt(screenX, w);
+        if (y >= 118 && y < 176 && navigationTab >= 0
+                && releasedRegion == 10 + navigationTab) {
+            hapticClick();
+            selectPage(navigationTab);
             updateAccessibilitySummary();
             updateLayoutHeight();
             invalidate();
