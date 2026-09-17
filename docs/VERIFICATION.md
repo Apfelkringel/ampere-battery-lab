@@ -2,6 +2,25 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.438` completes the English history chart labels. The monthly view
+now translates the chart heading and calendar timeframe, including
+“BATTERY BALANCE · 6 CALENDAR MONTHS”, instead of leaving German uppercase
+labels in the English UI. The emulator audit confirmed the corrected History
+view in [`history-fixed2.png`](/tmp/ampere-audit-ui-437-history-fixed2.png).
+Direct and Play each pass 220 unit tests and both debug lint tasks pass. The
+signed `v0.438` tag is GitHub-verified, and release workflow
+[`35255766396`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35255766396)
+passed. Public update-repository commit
+[`926c532`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/926c532)
+publishes the artifacts. Fresh public APK and AAB downloads match
+`latest.json`: SHA-256
+`1c160c843cb577889e2ba3e2370bd9718770dbad4a2992970142de9fea7cef76` (APK)
+and `16411bc210bdd4d1a36af8b79dd95c951d77cdf07e10d68fbb7adb161446d1d4`
+(AAB). The public manifest reports version code/name `438`/`0.438` and the
+package remains `com.ampere.batterylab`. Play alpha publishing workflow
+[`35256755624`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35256755624)
+passed.
+
 Version `0.437` fixes the last mixed-language entries found in the English
 settings dialog: “Reset health baseline” and “Delete local data” now render
 fully in English. The emulator audit confirmed the corrected bottom section in
