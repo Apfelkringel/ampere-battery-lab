@@ -2,6 +2,22 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.456` fixes additional mixed-language output found by a deeper scan,
+including update errors, overlay text, charging/discharging status, missing
+data, session summaries and settings labels. The scan also identified further
+long-form privacy/accessibility strings that need a separate cleanup pass;
+they are intentionally not treated as verified by this release. CI release
+workflow
+[`35274889696`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35274889696)
+passed. Public update-repository commit
+[`ee95ef1`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/ee95ef1)
+publishes the artifacts. The public APK matches `latest.json` with SHA-256
+`07b16943d771ca876e6f0cd387ddb0b67c5da01aacb623a0692e6292cb39c0ef` and
+reports package `com.ampere.batterylab`, version code/name `456`/`0.456`.
+Play alpha publishing workflow
+[`35275562900`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35275562900)
+passed.
+
 Version `0.455` fixes the remaining mixed-language labels reported in the
 English UI: battery temperature, current context, seven-day estimate,
 recent sessions, more sessions in history and disconnected status. CI release
