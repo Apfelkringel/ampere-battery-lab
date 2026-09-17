@@ -482,6 +482,7 @@ final class AppText {
                 {"aktueller Current", "current"},
                 {"lokale 7 days", "local 7 days"},
                 {"lokale 7-Tage-Schätzung", "local 7-day estimate"},
+                {"lokale 7-days-Schätzung", "local 7-day estimate"},
                 {"Letzte Sessionen", "Recent sessions"},
                 {"Letzte Sessions", "Recent sessions"},
                 {"Weitere Sessionen im History", "More sessions in history"},
