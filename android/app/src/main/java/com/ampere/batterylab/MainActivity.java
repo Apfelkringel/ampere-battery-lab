@@ -413,7 +413,7 @@ public class MainActivity extends Activity {
         SeekBar seekBar = new SeekBar(this);
         seekBar.setMax(50);
         seekBar.setProgress(dashboard.largeTextChargeLimit() - 50);
-        seekBar.setContentDescription("Ladeziel zwischen 50 und 100 Prozent");
+        seekBar.setContentDescription(AppText.t(this, "Ladeziel zwischen 50 und 100 Prozent"));
         largeTextActions.addView(seekBar, new LinearLayout.LayoutParams(-1, -2));
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override public void onProgressChanged(SeekBar view, int progress, boolean fromUser) {
@@ -4841,7 +4841,7 @@ class BatteryDashboard extends View {
         TextView back = usageText("‹", 32, ink, false);
         back.setGravity(Gravity.CENTER);
         toolbar.addView(back, new LinearLayout.LayoutParams(dp(48), dp(54)));
-        back.setContentDescription("Zurück");
+        back.setContentDescription(AppText.t(getContext(), "Zurück"));
         back.setOnClickListener(view -> dialog.dismiss());
         TextView title = usageText("App-Verbrauch", 20, ink, true);
         LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(0, -2, 1f);
@@ -6290,9 +6290,10 @@ class BatteryDashboard extends View {
                 + "Android-Zustand " + BatteryPlatformHealth.label(platformHealth) + "." + capacity
                 + chargingProfile
                 + (liveDetails.isEmpty() ? "" : " " + liveDetails + ".");
+        largeTextPageSummary = AppText.t(getContext(), largeTextPageSummary);
         setContentDescription(largeTextMode
-                ? "Grafische " + pageName() + "-Ansicht. Die Werte stehen oben in der Großschrift-Ansicht."
-                : largeTextPageSummary + " Tabs: Übersicht, Laden, Entladen, Gesundheit, Verlauf. Aktiver Tab: " + pageName() + ".");
+                ? AppText.t(getContext(), "Grafische " + pageName() + "-Ansicht. Die Werte stehen oben in der Großschrift-Ansicht.")
+                : AppText.t(getContext(), largeTextPageSummary + " Tabs: Übersicht, Laden, Entladen, Gesundheit, Verlauf. Aktiver Tab: " + pageName() + "."));
         sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED);
         if (largeTextSummaryListener != null) largeTextSummaryListener.run();
     }

@@ -47,6 +47,10 @@ public class AppTextTest {
             assertEquals("No usable current measurements are available for this period.\n\n— means missing measurements, not 0.\n\nEach metric's bars are scaled separately.",
                     AppText.t("Für diesen Zeitraum liegen keine auswertbaren Strommessungen vor.\n\n— bedeutet fehlende Messwerte, nicht 0.\n\nDie Balken jeder Kennzahl werden separat skaliert."));
             assertEquals("Open settings", AppText.t("Einstellung öffnen"));
+            assertEquals("Charging detected. Battery level 100 percent. Battery health not measured. Android status Good.",
+                    AppText.t("Laden erkannt. Akkustand 100 Prozent. Akkugesundheit nicht gemessen. Android-Zustand Gut."));
+            assertEquals("Tabs: Overview, Charging, Discharging, Health, History. Active tab: Overview.",
+                    AppText.t("Tabs: Übersicht, Laden, Entladen, Gesundheit, Verlauf. Aktiver Tab: Übersicht."));
             assertEquals("BATTERY BALANCE · 6 CALENDAR MONTHS",
                     AppText.t("AKKU-BILANZ · 6 KALENDERMONATE"));
         } finally {

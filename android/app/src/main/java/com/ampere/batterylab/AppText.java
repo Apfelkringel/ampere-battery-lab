@@ -382,6 +382,11 @@ final class AppText {
                 {"Ampere überwacht den Akku", "Ampere is monitoring your battery"},
                 {"Akkubetrieb", "On battery"}, {"Akku entlädt", "Battery discharging"},
                 {"Akkumesswerte werden auf diesem Gerät gespeichert", "Battery measurements are stored on this device"},
+                {"Laden erkannt", "Charging detected"}, {"nicht gemessen", "not measured"},
+                {"Gut", "Good"}, {"Tabs:", "Tabs:"}, {"Aktiver Tab:", "Active tab:"},
+                {"Grafische ", "Graphical "}, {"-Ansicht", " view"},
+                {"Die Werte stehen oben in der Großschrift-Ansicht.", "The values are shown above in large-text view."},
+                {"Ladeziel zwischen 50 und 100 Prozent", "Charge target between 50 and 100 percent"},
                 {"Starte die Kapazitätsmessung getrennt vom Ladegerät unter 25 %.", "Start the capacity measurement unplugged and below 25%."},
                 {"Gib die werkseitige Kapazität in mAh ein. Mit 0 wird automatisch der von Android gemeldete Wert verwendet.", "Enter the factory capacity in mAh. Enter 0 to use the value reported by Android automatically."},
                 {"Akkustatus kopiert.", "Battery status copied."},
@@ -443,7 +448,9 @@ final class AppText {
                 {"KALENDERWOCHEN", "CALENDAR WEEKS"},
                 {"KALENDERMONATE", "CALENDAR MONTHS"},
                 // Keep the full month name intact after the short "Sept" label mapping.
-                {"Sepember", "September"}
+                {"Sepember", "September"},
+                // Repair phrases affected by the broad navigation-word replacements above.
+                {"Charging erkannt", "Charging detected"}, {"Activeer Tab:", "Active tab:"}
         };
         for (String[] phrase : phrases) result = result.replace(phrase[0], phrase[1]);
         return result;
