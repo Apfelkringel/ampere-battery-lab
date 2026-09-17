@@ -2,6 +2,25 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.432` clarifies empty discharge forecasts. When the device is
+charging without a usable discharge history, each unavailable forecast now
+shows the actionable hint “Start a discharge session” instead of the vague
+source label “After unplugging”. The emulator audit confirmed the new state
+on the Discharging page. Direct and Play each pass 218 unit tests and both
+debug lint tasks pass. The signed `v0.432` tag is GitHub-verified, and release
+workflow
+[`35247092193`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35247092193)
+passed. Public update-repository commit
+[`412a7db`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/412a7db)
+publishes the artifacts. Fresh public APK and AAB downloads match
+`latest.json`: SHA-256
+`f32fc7d00dca3d8a80e1d314d4e926cf85aabf00dacc8f9f0b886bf7cda254bb` (APK)
+and `146eba2bd84a20a0688c7f25851640a493c7ca5aebf7f88026944e4cc39d1539`
+(AAB). The public manifest reports version code/name `432`/`0.432` and the
+package remains `com.ampere.batterylab`. Play alpha publishing workflow
+[`35247668957`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35247668957)
+passed.
+
 Version `0.431` aligns the history summary cards with the visible chart
 window. Daily, weekly and monthly views now aggregate the complete displayed
 window, while the chart keeps its individual buckets; the range label names
