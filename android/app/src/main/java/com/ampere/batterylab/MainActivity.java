@@ -5426,9 +5426,9 @@ class BatteryDashboard extends View {
                     + " Jede Kennzahl hat im Diagramm eine eigene Skala.";
         }
         new AlertDialog.Builder(getContext())
-                .setTitle("Akku-Bilanz · " + date)
-                .setMessage(message)
-                .setPositiveButton("Schließen", null)
+                .setTitle(AppText.t(getContext(), "Akku-Bilanz · " + date))
+                .setMessage(AppText.t(getContext(), message))
+                .setPositiveButton(AppText.t(getContext(), "Schließen"), null)
                 .show();
     }
 
@@ -5718,10 +5718,10 @@ class BatteryDashboard extends View {
             if (parts.length >= 17) details.append("\nBildschirm-Aufweckungen: ").append(parts[16]);
         }
         new AlertDialog.Builder(getContext())
-                .setTitle("Sitzungsdetails")
-                .setMessage(details.toString())
-                .setNegativeButton("Schließen", null)
-                .setPositiveButton(charge ? "Laden öffnen" : "Entladen öffnen", (dialog, which) -> {
+                .setTitle(AppText.t(getContext(), "Sitzungsdetails"))
+                .setMessage(AppText.t(getContext(), details.toString()))
+                .setNegativeButton(AppText.t(getContext(), "Schließen"), null)
+                .setPositiveButton(AppText.t(getContext(), charge ? "Laden öffnen" : "Entladen öffnen"), (dialog, which) -> {
                     selectPage(charge ? 1 : 2);
                     updateLayoutHeight();
                     ScrollView scroll = parentScrollView();

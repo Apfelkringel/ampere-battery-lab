@@ -41,6 +41,11 @@ public class AppTextTest {
             assertEquals("Reset health baseline", AppText.t("Gesundheitsbasis zurücksetzen"));
             assertEquals("Delete local data", AppText.t("Lokale Daten löschen"));
             assertEquals("Live data refreshed.", AppText.t("Live-Daten aktualisiert."));
+            assertEquals("Battery balance · September 2026",
+                    AppText.t("Akku-Bilanz · September 2026"));
+            assertEquals("No usable current measurements are available for this period.\n\n— means missing measurements, not 0.\n\nEach metric's bars are scaled separately.",
+                    AppText.t("Für diesen Zeitraum liegen keine auswertbaren Strommessungen vor.\n\n— bedeutet fehlende Messwerte, nicht 0.\n\nDie Balken jeder Kennzahl werden separat skaliert."));
+            assertEquals("Open settings", AppText.t("Einstellung öffnen"));
             assertEquals("BATTERY BALANCE · 6 CALENDAR MONTHS",
                     AppText.t("AKKU-BILANZ · 6 KALENDERMONATE"));
         } finally {

@@ -443,7 +443,7 @@ final class UpdateChecker {
                 .setTitle(AppText.t(activity, "Installation einmal erlauben"))
                 .setMessage(AppText.t(activity, "Android braucht deine Freigabe, damit Ampere eine APK zur Installation übergeben darf. Es wird noch nichts heruntergeladen. Nach der Freigabe erscheint das Update hier erneut; Android fragt vor der Installation zusätzlich nach deiner Bestätigung."))
                 .setNegativeButton(AppText.t(activity, "Abbrechen"), (dialog, which) -> clearPendingUpdate(prefs))
-                .setPositiveButton("Einstellung öffnen", (dialog, which) -> {
+                .setPositiveButton(AppText.t(activity, "Einstellung öffnen"), (dialog, which) -> {
                     try {
                         Intent intent = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
                                 Uri.parse("package:" + activity.getPackageName()));
