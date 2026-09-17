@@ -2,6 +2,26 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.429` polishes the app-usage surface. System launcher packages now
+use a human label (“Home screen”), the discharge summary uses “Battery level at
+start” and “Current battery level”, and unavailable app rates are shown as
+“Rate unavailable” instead of “Rate n/v”. The usage card's remaining mixed
+German labels are now English as well, including “Screen”, “Usage” and
+“estimated values”. Emulator screenshots confirmed the corrected usage card.
+Direct and Play each pass 218 unit tests and both debug lint tasks pass. The
+signed `v0.429` tag is GitHub-verified, and release workflow
+[`35242434147`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35242434147)
+passed. Public update-repository commit
+[`ef5c3e8`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/ef5c3e8)
+publishes the artifacts. Fresh public APK and AAB downloads match
+`latest.json`: SHA-256
+`39b2ea00e46d737eded4046e18825d269bd15bccbed33eea795462fd6af08f5d` (APK)
+and `4832f52abc5ea4c7a83ed9015ef12f1badf23dfc0404648066259d2bd3bf7c4b`
+(AAB). The public manifest reports version code/name `429`/`0.429` and the
+package remains `com.ampere.batterylab`. Play alpha publishing workflow
+[`35243246120`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35243246120)
+passed.
+
 Version `0.428` clarifies the history metric formerly shown as “Charged/Usage”
 to “Charge/usage ratio”, so a value such as 712% is visibly identified as a
 ratio rather than a second consumption amount. The history audit confirmed
