@@ -2,6 +2,23 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.449` fixes additional mixed-language English output found in the
+charging, battery-health and history summaries, including “Measurement status”,
+“used”, “battery efficiency” and duplicate punctuation. Direct and Play each
+pass 220 unit tests; both debug lint tasks and release builds pass. The signed
+`v0.449` tag is GitHub-verified, and release workflow
+[`35268532155`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35268532155)
+passed. Public update-repository commit
+[`2b320f5`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/2b320f5)
+publishes the artifacts. Fresh public downloads match `latest.json`: APK
+SHA-256 `8c14292769bae88e220d0fbe79c39c8d7bc4eaf1ebf4596129027ccf742729f1`
+and Play AAB SHA-256
+`ac526c70fc31c0234514ab7b2a7566b61c2ae86bc47850ebaee0c916a2be9019`. The
+public APK reports package `com.ampere.batterylab`, version code/name
+`449`/`0.449`. Play alpha publishing workflow
+[`35269160939`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35269160939)
+passed.
+
 Version `0.445` fixes mixed German/English battery-state phrases caused by
 translation replacement order. “Akku ist voll”, “Akku wird geladen”, “Akku
 entlädt sich” and “Akku fast leer” now render fully in English. The public
