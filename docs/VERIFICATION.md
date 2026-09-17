@@ -2,6 +2,25 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.431` aligns the history summary cards with the visible chart
+window. Daily, weekly and monthly views now aggregate the complete displayed
+window, while the chart keeps its individual buckets; the range label names
+that same window. The emulator audit confirmed the monthly view no longer
+shows a single month's values under a six-month chart. Direct and Play each
+pass 218 unit tests and both debug lint tasks pass. The signed `v0.431` tag is
+GitHub-verified, and release workflow
+[`35245871375`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35245871375)
+passed. Public update-repository commit
+[`43fabc0`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/43fabc0)
+publishes the artifacts. Fresh public APK and AAB downloads match
+`latest.json`: SHA-256
+`1c672d3dc85a1a294f13b3e88eda986c5afdb44dba09531c7b2da5b2719d4ed0` (APK)
+and `640559437875830211c3b798d841365e907c3ee3c64d9bd0cdb1fb07f8798dcc`
+(AAB). The public manifest reports version code/name `431`/`0.431` and the
+package remains `com.ampere.batterylab`. Play alpha publishing workflow
+[`35246489865`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35246489865)
+passed.
+
 Version `0.430` completes the English UI pass for action feedback as well as
 the main screens. Backup, export and measurement toasts, capacity dialogs,
 copied status text and large-text actions now use the active English locale.
