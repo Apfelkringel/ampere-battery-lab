@@ -1,0 +1,1 @@
+Die Berechtigungsprüfung ist jetzt direkt unter „Benachrichtigungen“ in den Einstellungen zu finden.

@@ -2,6 +2,17 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.399` moves the permission-status checklist from the eleventh settings
+position to the second, immediately after Notifications. In a fresh API-36
+emulator audit at 320 × 640 dp, the old row was below the first visible menu
+page; after the change it is visible at both normal and 130% system font scale.
+Live taps opened the permission checklist and, separately, still routed the
+following "Ladeziel & Ladealarm" item to the Charge page after menu indices
+shifted. At 130% font scale, permission states, optionality, explanatory copy,
+and the Finish button remained visible and readable. Direct and Play each pass
+203 unit tests; both lint tasks and debug APK builds pass. Release verification
+will be recorded after publication.
+
 Version `0.398` fixes three narrow-screen usability defects found in the live
 API-36 emulator audit: Canvas navigation targets were 40 dp high (and under
 48 dp wide at 240 dp), the page title clipped at 240 dp, and the health/discharge

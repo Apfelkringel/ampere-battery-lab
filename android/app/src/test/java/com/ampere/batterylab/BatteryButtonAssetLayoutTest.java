@@ -141,6 +141,29 @@ public class BatteryButtonAssetLayoutTest {
                 dashboard.contains("int bg = Color.rgb(4, 52, 56)"));
     }
 
+    @Test public void permissionChecklistIsDiscoverableNearSettingsTop() throws IOException {
+        String dashboard = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
+                StandardCharsets.UTF_8);
+        int optionsStart = dashboard.indexOf("String[] options = {\"Benachrichtigungen\"");
+        assertTrue("settings options must begin with the notification entry", optionsStart >= 0);
+        int optionsEnd = dashboard.indexOf("};", optionsStart);
+        assertTrue("settings options must have a closing brace", optionsEnd > optionsStart);
+        String options = dashboard.substring(optionsStart, optionsEnd);
+        assertTrue("permission status must be immediately discoverable after notifications",
+                options.indexOf("Benachrichtigungen") < options.indexOf("Berechtigungen prüfen")
+                        && options.indexOf("Berechtigungen prüfen") < options.indexOf("Ladeziel & Ladealarm"));
+
+        int handlerStart = dashboard.indexOf("setItems(options, (itemDialog, which) -> {");
+        int handlerEnd = dashboard.indexOf("}).create();", handlerStart);
+        assertTrue("settings item handler must exist", handlerStart >= 0 && handlerEnd > handlerStart);
+        String handler = dashboard.substring(handlerStart, handlerEnd);
+        assertTrue("the new second settings item must open the permission checklist",
+                handler.indexOf("which == 1") < handler.indexOf("showPermissionChecklist(false)")
+                        && handler.indexOf("showPermissionChecklist(false)") < handler.indexOf("which == 2")
+                        && handler.contains("selectPage(1)"));
+    }
+
     @Test public void emptyHistoryCalloutDoesNotCoverTimeAxis() throws IOException {
         String dashboard = Files.readString(findRepositoryRoot()
                 .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),

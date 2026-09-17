@@ -103,6 +103,11 @@ unchanged.
 When a discharge forecast is unavailable during charging, its hint says
 "Nach dem Abstecken" instead of the ambiguous "Nach Entladung".
 
+The settings menu places "Berechtigungen prüfen" directly after
+"Benachrichtigungen" so users can find the live permission checklist without
+scrolling through unrelated preferences. The checklist continues to distinguish
+required notifications from optional app-usage and overlay access.
+
 On widths below 320 dp, the title shrinks to keep its full page name visible;
 the discharge and health hero cards also hide the decorative battery character
 so it cannot cover the primary text. The forecast helper then uses the newly

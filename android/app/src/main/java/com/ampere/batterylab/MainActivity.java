@@ -2327,7 +2327,7 @@ class BatteryDashboard extends View {
                 : "Tiefstandwarnung · aus";
         String samplingOption = "Datenerfassung · alle " + BatterySamplingPolicy.normalizeMinutes(
                 prefs.getInt("samplingIntervalMin", 15)) + " Minuten";
-        String[] options = {"Benachrichtigungen", "Ladeziel & Ladealarm", temperatureOption, dischargeOption, "Overlay-Berechtigung", "Daten & Datenschutz", "Sicherung & Wiederherstellung", "Hintergrundüberwachung", samplingOption, "Nach Updates suchen", "Berechtigungen prüfen", "Kurzanleitung", "Gesundheitsbasis zurücksetzen", "Aktuellen Status kopieren", "Aktuellen Status teilen", "Lokale Daten löschen"};
+        String[] options = {"Benachrichtigungen", "Berechtigungen prüfen", "Ladeziel & Ladealarm", temperatureOption, dischargeOption, "Overlay-Berechtigung", "Daten & Datenschutz", "Sicherung & Wiederherstellung", "Hintergrundüberwachung", samplingOption, "Nach Updates suchen", "Kurzanleitung", "Gesundheitsbasis zurücksetzen", "Aktuellen Status kopieren", "Aktuellen Status teilen", "Lokale Daten löschen"};
         LinearLayout titleBar = new LinearLayout(getContext());
         titleBar.setOrientation(LinearLayout.HORIZONTAL);
         titleBar.setGravity(Gravity.CENTER_VERTICAL);
@@ -2364,30 +2364,30 @@ class BatteryDashboard extends View {
                     getContext().startActivity(notificationSettings);
                 } catch (Exception ignored) { }
             } else if (which == 1) {
+                ((MainActivity) getContext()).showPermissionChecklist(false);
+            } else if (which == 2) {
                 itemDialog.dismiss();
                 selectPage(1);
                 updateAccessibilitySummary();
                 updateLayoutHeight();
                 invalidate();
-            } else if (which == 2) {
-                showTemperatureAlarmSettings();
             } else if (which == 3) {
-                showDischargeAlarmSettings();
+                showTemperatureAlarmSettings();
             } else if (which == 4) {
+                showDischargeAlarmSettings();
+            } else if (which == 5) {
                 prefs.edit().putBoolean("permissionOverlayRequested", true).apply();
                 try { getContext().startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getContext().getPackageName()))); } catch (Exception ignored) { }
-            } else if (which == 5) {
-                showDataPrivacy();
             } else if (which == 6) {
-                showBackupRestore();
+                showDataPrivacy();
             } else if (which == 7) {
-                requestBackgroundMonitoring();
+                showBackupRestore();
             } else if (which == 8) {
-                showDataCollection();
+                requestBackgroundMonitoring();
             } else if (which == 9) {
-                UpdateChecker.checkNow((Activity) getContext());
+                showDataCollection();
             } else if (which == 10) {
-                ((MainActivity) getContext()).showPermissionChecklist(false);
+                UpdateChecker.checkNow((Activity) getContext());
             } else if (which == 11) {
                 showTutorial(true);
             } else if (which == 12) {

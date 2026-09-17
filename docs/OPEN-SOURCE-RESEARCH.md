@@ -824,3 +824,17 @@ mindestens 48 × 48 dp für interaktive Ziele
 Die Canvas-Ziele nutzen nun die volle Zellenhöhe/-breite; im getesteten
 240-dp-Layout wird die Navigation randlos statt mit zu kleinen Seiteneinzügen
 gezeichnet.
+
+Im 320 × 640-dp-Audit lag „Berechtigungen prüfen“ am Ende des langen
+Einstellungsdialogs und war beim ersten Öffnen vollständig unterhalb der
+sichtbaren Liste. Android empfiehlt, Berechtigungen an der zugehörigen Funktion
+zu erklären, jede Nutzung erneut gegen den aktuellen Status zu prüfen und bei
+Ablehnung die übrige App weiter nutzbar zu lassen
+([Runtime-Permission-Leitfaden](https://developer.android.com/training/permissions/requesting)).
+Das GitHub-Projekt
+[Corta-Spam](https://github.com/cpinan/Corta-Spam) beschreibt einen ähnlichen
+Discoverability-Fehler: eine kritische Berechtigung war in einer „mehr beheben“-
+Unterseite versteckt und wurde in die sichtbare Onboarding-Checkliste gerückt.
+Ampere verschiebt deshalb die bestehende freiwillige Statusprüfung direkt unter
+„Benachrichtigungen“, ohne neue Berechtigungsabfragen einzuführen. Es wurde kein
+Code aus dem Fremdprojekt übernommen.
