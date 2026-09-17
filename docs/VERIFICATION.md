@@ -2,6 +2,26 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.426` completes another English UI/accessibility pass. The
+dashboard now translates Screen time and keeps the history title as “Battery
+level · 7 days”; the previous replacement-order bug produced “Batterystand ·
+7 daye”. TalkBack labels for history periods, runtime forecasts, CSV export,
+capacity actions and exact balance values are localized as well. The emulator
+confirmed the corrected dashboard visually. Direct and Play each pass 218
+unit tests and both debug lint tasks pass. The signed `v0.426` tag is
+GitHub-verified, and release workflow
+[`35239013511`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35239013511)
+passed. Public update-repository commit
+[`e878c1a`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/e878c1a)
+publishes the artifacts. Fresh public APK and AAB downloads match
+`latest.json`: SHA-256
+`d161854ddc3d97b08b5b70009ddf4547c13e87aae7acbe3c11c24ea566b7ed9e` (APK)
+and `41f0f41957928ca483962fd4083e02e84a68162418f12e25330b4e784ad59251`
+(AAB). The public manifest reports version code/name `426`/`0.426` and the
+package remains `com.ampere.batterylab`. Play alpha publishing workflow
+[`35239641979`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35239641979)
+passed.
+
 Version `0.425` clarifies the discharging page when the device is charging:
 the page now distinguishes the last discharge summary from a ready-to-start
 state instead of presenting a misleading daily-pattern title. App-usage
