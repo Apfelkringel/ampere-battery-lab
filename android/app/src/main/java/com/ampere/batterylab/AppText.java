@@ -24,7 +24,10 @@ final class AppText {
     }
 
     static String t(Context context, String value) {
-        return isEnglish(context) ? t(value) : value;
+        // Use the context locale here instead of Locale.getDefault(). Android
+        // supports an app-specific language, so the app can be English while
+        // the rest of the device remains in another language.
+        return isEnglish(context) ? translate(value) : value;
     }
 
     /**
@@ -35,6 +38,11 @@ final class AppText {
     static String t(String value) {
         if (value == null || value.isEmpty()
                 || !"en".equalsIgnoreCase(Locale.getDefault().getLanguage())) return value;
+        return translate(value);
+    }
+
+    private static String translate(String value) {
+        if (value == null || value.isEmpty()) return value;
         String result = value;
         String[][] phrases = {
                 {"Beobachte deinen Akku", "Monitor your battery"},
@@ -217,6 +225,16 @@ final class AppText {
                 {"Forschungs-Export gespeichert.", "Research export saved."},
                 {"Live-Daten aktualisiert.", "Live data updated."},
                 {"Akkuüberwachung", "Battery monitoring"}, {"Ladealarm", "Charge alert"},
+                {"Warte auf Akkudaten", "Waiting for battery data"},
+                {"Akku ist voll", "Battery is full"},
+                {"Akku wird geladen", "Charging now"},
+                {"Akku entlädt sich", "Battery is discharging"},
+                {"Akkubetrieb aktiv", "On battery"},
+                {"Keine Daten verfügbar.", "No data available."},
+                {"Bereit für die Nutzung.", "Ready to use."},
+                {"Laden wird überwacht.", "Charging is monitored."},
+                {"Verbrauch wird live erfasst.", "Usage is tracked live."},
+                {"Überwachung läuft weiter.", "Monitoring continues."},
                 {"Live-Akkuanzeige", "Live battery overlay"},
                 {"App-Aktualisierungen", "App updates"},
                 {"Update verfügbar · ", "Update available · "},

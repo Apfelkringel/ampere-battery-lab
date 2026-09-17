@@ -3371,8 +3371,8 @@ class BatteryDashboard extends View {
             // illustration carries the battery story while the level remains
             // the dominant, instantly readable datum.
             drawBatteryCareIllustration(c, 18, top, heroW);
-            displayText(c, "Alles läuft", 36, top + 58, 19, heroPrimary);
-            displayText(c, "ganz entspannt.", 36, top + 80, 19, heroPrimary);
+            displayText(c, overviewHeroLineOne(batteryAvailable), 36, top + 58, 19, heroPrimary);
+            displayText(c, overviewHeroLineTwo(batteryAvailable), 36, top + 80, 19, heroPrimary);
             displayText(c, levelDisplay(), 36, top + 125, heroW < 300f ? 38 : 48, heroPrimary);
             text(c, batteryModeLabel(), 38, top + 148, 9, heroMuted, false);
             rounded(c, 36, top + 170, 119, top + 192, 11,
@@ -3465,6 +3465,22 @@ class BatteryDashboard extends View {
 
         float lowerTop = cardsTop + 234;
         drawChart(c, 18, lowerTop, w - 36, 360, panel, border, primary, muted, faint);
+    }
+
+    private String overviewHeroLineOne(boolean batteryAvailable) {
+        if (!batteryAvailable) return "Warte auf Akkudaten";
+        if (charging && level >= 99) return "Akku ist voll";
+        if (charging) return "Akku wird geladen";
+        if (currentMa >= 50) return "Akku entlädt sich";
+        return "Akkubetrieb aktiv";
+    }
+
+    private String overviewHeroLineTwo(boolean batteryAvailable) {
+        if (!batteryAvailable) return "Keine Daten verfügbar.";
+        if (charging && level >= 99) return "Bereit für die Nutzung.";
+        if (charging) return "Laden wird überwacht.";
+        if (currentMa >= 50) return "Verbrauch wird live erfasst.";
+        return "Überwachung läuft weiter.";
     }
 
     /** Keeps the current direction and the two most useful rate perspectives together. */
