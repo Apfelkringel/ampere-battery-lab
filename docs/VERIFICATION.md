@@ -10,7 +10,20 @@ illustration could overlap its primary copy. Targets now expose at least 48 ×
 Health and History. The title remains whole at 240 dp; the decorative figure
 recedes below 320 dp; charging forecasts now say "Nach dem Abstecken" when no
 discharge data exists yet. Direct and Play each pass 202 unit tests; both lint
-tasks and debug APK builds pass. Release and public artifact verification follow.
+tasks and debug APK builds pass. The signed tag `v0.398` is GitHub-verified.
+Release workflow
+[`35165504218`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35165504218)
+passed, and the public artifacts in update-repository commit
+[`21abd3e`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/21abd3e)
+were downloaded again and matched the manifest hashes: APK
+`df00fd3bd8a8633ebf0b973c297de2eadf40ea4eff4431343b762d31ebf71bed`, Play AAB
+`0b0e6d16309b10845303e4cb3b48ed711e396e8657fbe86e47ae52d1b61889bf`. The APK
+package is `com.ampere.batterylab`, version code/name `398`/`0.398`, signed by
+the expected certificate SHA-256
+`301bed44b5cc342485b485b24baeea404dbdb216e6e3e134ad2ebd6b28d1dce3`. Play
+alpha publishing workflow
+[`35165941677`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35165941677)
+also passed.
 
 Version `0.397` switches to a native, scalable, reflowable dashboard when the
 system font scale is at least 1.25; the normal-size illustrated Canvas UI is
