@@ -475,6 +475,7 @@ final class AppText {
                 {"Die Charge/usage ratio vergleicht geladene mit useder Energie und ist keine gemessene Battery-Efficiency. Balkenwerte (jede Kennzahl ist separat skaliert):", "The charge/usage ratio compares charged with used energy and is not measured battery efficiency. Bar values (each metric is scaled separately):"},
                 {"Die Charge/usage ratio vergleicht geladene mit used Energie und ist keine gemessene battery efficiency.", "The charge/usage ratio compares charged with used energy and is not measured battery efficiency."},
                 {"Usage wird live erfasst.", "Usage is tracked live."},
+                {"LIVE-ENERGIEFLUSS", "LIVE ENERGY FLOW"},
                 {"..", "."}
         };
         for (String[] phrase : phrases) result = result.replace(phrase[0], phrase[1]);
