@@ -2,6 +2,28 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.435` extends the English UI to system-facing surfaces. The home
+widget, Quick Settings tile, live overlay and charging screensaver now use the
+active app locale for labels and decimal separators; the previous malformed
+English compound for “Akkubetrieb” is covered by a regression test. Android
+13+ can now expose Deutsch and English in the per-app language settings via
+the locale configuration. The emulator audit confirmed the English home
+screen in
+[`02-home.png`](/tmp/ampere-audit-ui/02-home.png).
+Direct and Play each pass 219 unit tests and both debug lint tasks pass. The
+signed `v0.435` tag is GitHub-verified, and release workflow
+[`35251758255`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35251758255)
+passed. Public update-repository commit
+[`00aeb67`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/00aeb67)
+publishes the artifacts. Fresh public APK and AAB downloads match
+`latest.json`: SHA-256
+`5df7a9794f0efd303bc5b48955224a8596cc024564bc2d6fc4dbf64475f64093` (APK)
+and `8f818fe386f4578b4e86002b468f4d2ee77a469097677b746fbe4ab64241d8a1`
+(AAB). The public manifest reports version code/name `435`/`0.435` and the
+package remains `com.ampere.batterylab`. Play alpha publishing workflow
+[`35252450353`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35252450353)
+passed.
+
 Version `0.434` makes numeric and date formatting follow the active app
 language. English history and status views now use English decimal/grouping
 separators and date formatting, for example `0.54 EFC` and `1,000 mAh`
