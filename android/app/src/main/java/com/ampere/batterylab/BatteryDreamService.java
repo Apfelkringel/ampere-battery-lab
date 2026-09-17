@@ -211,10 +211,12 @@ final class BatteryDreamView extends View {
     private void boundedText(Canvas canvas, String value, float left, float right, float y, float size, int color, boolean bold) {
         paint.setTextSize(size);
         paint.setTypeface(android.graphics.Typeface.create("sans", bold ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL));
-        String fitted = value;
-        while (paint.measureText(fitted) > right - left && fitted.length() > 1) {
-            fitted = fitted.substring(0, fitted.length() - 2) + "…";
-        }
-        text(canvas, fitted, left, y, size, color, bold);
+        float measured = paint.measureText(value);
+        float scale = measured <= right - left || measured <= 0f
+                ? 1f : (right - left) / measured;
+        canvas.save();
+        canvas.scale(scale, 1f, left, 0f);
+        text(canvas, value, left, y, size, color, bold);
+        canvas.restore();
     }
 }

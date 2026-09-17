@@ -2,6 +2,12 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.406` removes text ellipsizing from the shared canvas labels and
+system battery widgets: long values are fitted to their lane instead of being
+replaced by three dots. Direct and Play each pass 209 unit tests; both debug
+lint tasks pass. Signed release, public APK/manifest and Play alpha publication
+are pending.
+
 Version `0.405` labels the discharge-current chart with the exact start and end
 time, elapsed duration and number of plotted local samples (including a date
 when samples cross midnight, and an explicit momentary-sample label). Direct

@@ -2764,26 +2764,36 @@ class BatteryDashboard extends View {
         displayType(size, color);
         c.drawText(value, u(x), u(y), p);
     }
+    private void drawFitWithin(Canvas c, String value, float x, float y, float widthDp) {
+        float measured = p.measureText(value);
+        float scale = measured <= u(widthDp) || measured <= 0f
+                ? 1f : u(widthDp) / measured;
+        c.save();
+        c.scale(scale, 1f, u(x), 0f);
+        c.drawText(value, u(x), u(y), p);
+        c.restore();
+    }
     private void text(Canvas c, String value, float x, float y, float size, int color, boolean bold) {
         float viewWidth = layoutWidthDp > 0f ? layoutWidthDp : getWidth() / density;
         float safeX = Math.max(8f, Math.min(x, Math.max(8f, viewWidth - 8f)));
         String fitted = fitText(value, Math.max(1f, viewWidth - safeX - 8f), size, bold);
         type(size, color, bold);
-        c.drawText(fitted, u(safeX), u(y), p);
+        drawFitWithin(c, fitted, safeX, y, Math.max(1f, viewWidth - safeX - 8f));
     }
     private void boundedText(Canvas c, String value, float leftX, float rightX, float y, float size, int color, boolean bold) {
         float left = Math.max(8f, leftX);
         float right = Math.max(left + 1f, rightX);
         String fitted = fitText(value, right - left, size, bold);
         type(size, color, bold);
-        c.drawText(fitted, u(left), u(y), p);
+        drawFitWithin(c, fitted, left, y, right - left);
     }
     private void centeredText(Canvas c, String value, float centerX, float y, float size, int color, boolean bold) {
         float viewWidth = layoutWidthDp > 0f ? layoutWidthDp : getWidth() / density;
         float halfWidth = Math.max(1f, Math.min(centerX - 8f, viewWidth - centerX - 8f));
         String fitted = fitText(value, halfWidth * 2f, size, bold);
         type(size, color, bold);
-        c.drawText(fitted, u(centerX) - p.measureText(fitted) / 2f, u(y), p);
+        drawFitWithin(c, fitted, centerX - p.measureText(fitted) / (2f * density), y,
+                halfWidth * 2f);
     }
     private void centeredBoundedText(Canvas c, String value, float leftX, float rightX,
                                     float y, float size, int color, boolean bold) {
@@ -2791,21 +2801,24 @@ class BatteryDashboard extends View {
         float right = Math.max(left + 1f, rightX);
         String fitted = fitText(value, right - left, size, bold);
         type(size, color, bold);
-        c.drawText(fitted, u((left + right) / 2f) - p.measureText(fitted) / 2f, u(y), p);
+        drawFitWithin(c, fitted, (left + right) / 2f - p.measureText(fitted) / (2f * density),
+                y, right - left);
     }
     private void rightText(Canvas c, String value, float rightX, float y, float size, int color, boolean bold) {
         float viewWidth = layoutWidthDp > 0f ? layoutWidthDp : getWidth() / density;
         float safeRight = Math.max(8f, Math.min(rightX, viewWidth - 8f));
         String fitted = fitText(value, Math.max(1f, safeRight - 8f), size, bold);
         type(size, color, bold);
-        c.drawText(fitted, u(safeRight) - p.measureText(fitted), u(y), p);
+        drawFitWithin(c, fitted, safeRight - p.measureText(fitted) / density, y,
+                Math.max(1f, safeRight - 8f));
     }
     private void boundedRightText(Canvas c, String value, float leftX, float rightX, float y, float size, int color, boolean bold) {
         float right = Math.max(8f, rightX);
         float left = Math.max(0f, Math.min(leftX, right - 1f));
         String fitted = fitText(value, Math.max(1f, right - left), size, bold);
         type(size, color, bold);
-        c.drawText(fitted, u(right) - p.measureText(fitted), u(y), p);
+        drawFitWithin(c, fitted, right - p.measureText(fitted) / density, y,
+                Math.max(1f, right - left));
     }
     private void rounded(Canvas c, float l, float t, float r, float b, float radius, int color) {
         fill(c, color); rect.set(u(l), u(t), u(r), u(b)); c.drawRoundRect(rect, u(radius), u(radius), p);
@@ -3033,15 +3046,9 @@ class BatteryDashboard extends View {
 
     private String fitText(String value, float maxWidthDp, float size, boolean bold) {
         if (value == null) return "";
-        type(size, Color.WHITE, bold);
-        if (p.measureText(value) <= u(maxWidthDp)) return value;
-        String suffix = "…";
-        String result = value;
-        while (result.length() > 1) {
-            result = result.substring(0, result.length() - 1);
-            if (p.measureText(result + suffix) <= u(maxWidthDp)) return result + suffix;
-        }
-        return suffix;
+        // Preserve complete labels, especially time values. Drawing helpers
+        // horizontally fit the string into its lane instead of adding an ellipsis.
+        return value;
     }
 
     private float contentWidth(float viewWidth) {

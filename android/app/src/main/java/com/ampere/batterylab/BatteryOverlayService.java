@@ -23,7 +23,6 @@ import android.view.Gravity;
 import android.view.WindowManager;
 import android.view.View;
 import android.widget.TextView;
-import android.text.TextUtils;
 import android.graphics.drawable.GradientDrawable;
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -67,7 +66,6 @@ public class BatteryOverlayService extends Service {
         overlay.setTypeface(android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL));
         overlay.setIncludeFontPadding(false);
         overlay.setMaxLines(4);
-        overlay.setEllipsize(TextUtils.TruncateAt.END);
         overlay.setMaxWidth(Math.round(getResources().getDisplayMetrics().widthPixels * 0.78f));
         float density = getResources().getDisplayMetrics().density;
         int horizontalPadding = Math.round(14f * density);
