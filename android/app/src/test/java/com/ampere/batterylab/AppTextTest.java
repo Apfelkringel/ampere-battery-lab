@@ -38,6 +38,8 @@ public class AppTextTest {
             assertEquals("On battery", AppText.t("Akkubetrieb"));
             assertEquals("On battery", AppText.t("Akkubetrieb aktiv"));
             assertEquals("Show overview", AppText.t("Übersicht anzeigen"));
+            assertEquals("Reset health baseline", AppText.t("Gesundheitsbasis zurücksetzen"));
+            assertEquals("Delete local data", AppText.t("Lokale Daten löschen"));
         } finally {
             Locale.setDefault(previous);
         }

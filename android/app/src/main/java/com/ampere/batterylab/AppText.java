@@ -389,7 +389,9 @@ final class AppText {
                 {"On battery aktiv", "On battery"},
                 {"Overview show", "Show overview"}, {"Charging show", "Show charging"},
                 {"Discharging show", "Show discharging"}, {"Battery show", "Show battery"},
-                {"History show", "Show history"}
+                {"History show", "Show history"},
+                {"Healthsbasis zurücksetzen", "Reset health baseline"},
+                {"Lokale Daten löschen", "Delete local data"}
         };
         for (String[] phrase : phrases) result = result.replace(phrase[0], phrase[1]);
         return result;
