@@ -7,7 +7,19 @@ bar height is scaled per metric, and hints that the large-text navigation tabs
 can scroll horizontally. Its emulator audit at 320×640 verified the dashboard,
 monthly-history selection and value chart, as well as the native large-text
 reflow at 150% font scale. Direct and Play each pass 210 unit tests; both debug
-lint tasks pass. Release verification pending.
+lint tasks pass. The signed `v0.407` tag is GitHub-verified, and release
+workflow
+[`35215719696`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35215719696)
+passed. Update-repository commit
+[`ee46a11`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/ee46a11)
+publishes the artifacts. Fresh public APK and AAB downloads match manifest
+SHA-256 values
+`9a7cb2757ac88b46eb03a815f5ecb674580280f25cec86c14541edcd31bd8568` (APK) and
+`a5a691f9a546e384a1f72ef2661d0e2668d91d21e6cb29a72b620b351415f486` (AAB).
+The APK is `com.ampere.batterylab`, version code/name `407`/`0.407`. Play alpha
+publishing workflow
+[`35216260547`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35216260547)
+passed.
 
 Version `0.406` removes text ellipsizing from the shared canvas labels and
 system battery widgets: long values are fitted to their lane instead of being
