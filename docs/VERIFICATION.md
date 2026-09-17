@@ -2,6 +2,23 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.417` completes the English UI pass through settings, permission
+review and background-monitoring status. The emulator confirmed the settings
+dialog in English, including dynamic temperature, low-battery and sampling
+labels. Direct and Play each pass 216 unit tests; both debug lint tasks pass.
+The signed `v0.417` tag is GitHub-verified, and release workflow
+[`35227932669`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35227932669)
+passed. Public update-repository commit
+[`5aa3b77`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/5aa3b77)
+publishes the artifacts. Fresh public APK and AAB downloads match
+`latest.json`: SHA-256
+`ede98fb37e59dd614162036b9cd26207c85454d7e03d778cd4e0962a7bfbfa1b` (APK)
+and `37692cc3a3f989fe6dd54cdc290d68b6b97946b56a16726c63ff9c0550b2f64e`
+(AAB). The public manifest reports version code/name `417`/`0.417` and the
+package remains `com.ampere.batterylab`. Play alpha publishing workflow
+[`35228651750`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35228651750)
+passed.
+
 Version `0.416` continues the English UI pass through charging, health and
 technical dashboard cards, including charge companion status, charge target
 progress, alert/overlay descriptions, sensor headings and capacity guidance.
