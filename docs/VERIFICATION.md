@@ -2,6 +2,24 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.441` fixes a remaining English-locale leak in live refresh
+feedback. Both the normal live-refresh action and its accessibility action now
+show “Live data refreshed.” instead of the German “Live-Daten aktualisiert.”;
+the translation is covered by a regression test. Direct and Play each pass
+220 unit tests and both debug lint tasks pass. The signed `v0.441` tag is
+GitHub-verified, and release workflow
+[`35261573877`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35261573877)
+passed. Public update-repository commit
+[`dbef7d8`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/dbef7d8)
+publishes the artifacts. Fresh public APK and AAB downloads match
+`latest.json`: SHA-256
+`0f5dc33de1aee4647797eeb3504db918adb66bec96692c2a8a0c865a1f825668` (APK)
+and `29c03cac38544d279625d4059daabd9970da4a31ba8f4318cad4a52846258ad0`
+(AAB). The public manifest reports version code/name `441`/`0.441` and the
+package remains `com.ampere.batterylab`. Play alpha publishing workflow
+[`35262180594`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35262180594)
+passed.
+
 Version `0.440` improves discoverability of the app language switcher. The
 Settings dialog now places “App language · English” or “App-Sprache · Deutsch”
 as its first item, so the current language and the way to change it are
