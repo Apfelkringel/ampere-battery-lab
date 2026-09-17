@@ -166,6 +166,7 @@ final class AppText {
                 {"Akkuspannung", "Battery voltage"}, {"Akkuleistung", "Battery power"},
                 {"Akkutemperatur", "Battery temperature"}, {"Temperatur", "Temperature"},
                 {"Spannung", "Voltage"}, {"Verbrauch", "Usage"}, {"Akkuverbrauch", "Battery usage"},
+                {"Bildschirmzeit", "Screen time"}, {"Ladezyklen", "Charge cycles"},
                 {"Verbrauchte Ladung", "Charge used"}, {"Verbrauchte Energie", "Energy used"},
                 {"Geladen/Verbrauch", "Charged/used"}, {"Akkuverschleiß", "Battery wear"},
                 {"Verschleiß", "Wear"}, {"Effizienz", "Efficiency"}, {"Sitzungen", "Sessions"},
@@ -240,6 +241,20 @@ final class AppText {
                 {"Vordergrundzeit-Schätzung", "Foreground-time estimate"},
                 {"Akkuverbrauch nicht verfügbar", "Battery usage unavailable"},
                 {"Zurück", "Back"}, {"SCHLIESSEN", "CLOSE"},
+                {"ausgewählt", "selected"},
+                {"Verlauf täglich", "Daily history"}, {"Verlauf wöchentlich", "Weekly history"},
+                {"Verlauf monatlich", "Monthly history"},
+                {"CSV exportieren", "Export CSV"},
+                {"Exakte Werte im Bilanzdiagramm anzeigen", "Show exact values in the balance chart"},
+                {"Kapazitätsmessung stoppen", "Stop capacity measurement"},
+                {"Kapazität messen", "Measure capacity"},
+                {"Nennkapazität bearbeiten", "Edit design capacity"},
+                {"Restlaufzeit bei dauerhaft eingeschaltetem Bildschirm", "Runtime with screen always on"},
+                {"Restlaufzeit bei ausgeschaltetem Bildschirm", "Runtime with screen off"},
+                {"Restlaufzeit bei normaler Nutzung", "Runtime with normal use"},
+                {"Bildschirm dauerhaft an", "Screen always on"},
+                {"Ladealarm: ", "Charge alert: "}, {"Live-Anzeige: ", "Live overlay: "},
+                {"Ladeziel: ", "Charge target: "},
                 {"Akku ist voll", "Battery is full"},
                 {"Akku wird geladen", "Charging now"},
                 {"Akku entlädt sich", "Battery is discharging"},
@@ -318,7 +333,10 @@ final class AppText {
                 {"Thermik", "Thermal status"}, {"Gesundheit", "Health"}, {"Schätzung", "Estimate"},
                 {"Lokale Akkuüberwachung", "Local battery monitoring"}, {"Laden erkannt", "Charging detected"},
                 {"Bildschirm- und Hintergrundverbrauch lokal erfasst", "Screen and background usage recorded locally"},
-                {"Akkuüberwachung", "Battery monitoring"}, {"Ladealarm", "Charge alert"}
+                {"Akkuüberwachung", "Battery monitoring"}, {"Ladealarm", "Charge alert"},
+                {"Batterystand", "Battery level"}, {"daye", "days"},
+                {"History täglich", "Daily history"}, {"History wöchentlich", "Weekly history"},
+                {"History monatlich", "Monthly history"}
         };
         for (String[] phrase : phrases) result = result.replace(phrase[0], phrase[1]);
         return result;
