@@ -4041,7 +4041,13 @@ class BatteryDashboard extends View {
         int displayLevel = charging ? (savedEnd >= 0 ? savedEnd : level) : level;
         drawEditorialSurface(c, 18, y, w - 18, y + 354, deep, Color.rgb(11, 143, 138), blue);
         text(c, "UNTERWEGS MIT AKKU", 36, y + 29, 9f, blue, true);
-        if (hasHistory || !charging) {
+        if (charging && hasHistory) {
+            displayText(c, "Letzter Entladevorgang", 36, y + 58, 18, cream);
+            displayText(c, "Zusammenfassung.", 36, y + 80, 18, cream);
+        } else if (charging) {
+            displayText(c, "Bereit für Entladung.", 36, y + 58, 18, cream);
+            displayText(c, "Startet beim Abstecken.", 36, y + 80, 18, cream);
+        } else if (hasHistory || !charging) {
             displayText(c, "Dein Tagesrhythmus.", 36, y + 58, 18, cream);
         } else {
             displayText(c, "Wir lernen", 36, y + 58, 19, cream);
