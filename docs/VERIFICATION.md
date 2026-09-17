@@ -6,7 +6,21 @@ Version `0.405` labels the discharge-current chart with the exact start and end
 time, elapsed duration and number of plotted local samples (including a date
 when samples cross midnight, and an explicit momentary-sample label). Direct
 and Play each pass 209 unit tests; both debug lint tasks pass. Signed release,
-public APK/manifest and Play alpha publication are pending.
+public APK/manifest and Play alpha publication are verified. The signed `v0.405`
+tag is GitHub-verified, and release workflow
+[`35213018511`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35213018511)
+passed. Update-repository commit
+[`55f3200`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/55f3200)
+publishes the artifacts. Fresh public APK and AAB downloads match manifest
+SHA-256 values
+`7bea6fd37da65ca4448620a48e87b71d2a3c4d1ca1005a0d3d200e870f9b1a02` (APK) and
+`2a850ddb9bcffcd420418899f5848686b4328db4a0ca959b03a4f92981c1871f` (AAB).
+The APK is `com.ampere.batterylab`, version code/name `405`/`0.405`, signed by
+the expected certificate SHA-256
+`301bed44b5cc342485b485b24baeea404dbdb216e6e3e134ad2ebd6b28d1dce3`. Play
+alpha publishing workflow
+[`35213529756`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35213529756)
+passed.
 
 Version `0.404` redesigns the discharge-page app-use card as an inline
 "Akkuverbrauch deiner Apps" preview with the top three apps ranked by estimated
