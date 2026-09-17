@@ -2613,33 +2613,44 @@ class BatteryDashboard extends View {
     }
 
     private void showDataPrivacy() {
-        String[] exportChoices = {"CSV exportieren", "Forschungs-JSON", "Diagnosebericht"};
+        boolean english = AppText.isEnglish(getContext());
+        String[] exportChoices = english
+                ? new String[]{"Export CSV", "Research JSON", "Diagnostic report"}
+                : new String[]{"CSV exportieren", "Forschungs-JSON", "Diagnosebericht"};
+        String privacyMessage = english
+                ? "Ampere stores measurements locally for history and analysis: time, battery level, charging state, current, temperature, voltage and screen state. If you grant usage access, the active foreground app is also stored locally to estimate its share of usage.\n\nOptional usage analytics sends visited app sections and selected feature usage to Google through Firebase. Firebase also receives app starts, sessions, a pseudonymous installation identifier and technical details such as device model, Android version and app version. Google may infer an approximate location from the IP address during transfer and then discards the IP address. Advertising ID and personalized advertising are disabled. Battery measurements, foreground app names, accounts and precise locations are not sent for this analysis. Analytics events and user data are retained for two months; aggregated reports may remain longer. You can change consent under Usage analytics; it stays off without consent.\n\nAndroid backups may contain history, settings and local telemetry through a suitable encrypted backup service. Android and the device decide whether and when a backup runs. Update checks only retrieve the configured version file. CSV and research JSON are created only after you choose an export; research exports include the device model and Android version, but no serial number or advertising ID."
+                : "Ampere speichert Messwerte lokal für Verlauf und Analyse: Zeit, Akkustand, Ladezustand, Strom, Temperatur, Spannung und Bildschirmstatus. Wenn du den Nutzungszugriff erlaubst, wird zusätzlich die aktive Vordergrund-App lokal gespeichert, um ihren Anteil am Verbrauch zu schätzen.\n\nEine optionale Nutzungsanalyse sendet besuchte App-Bereiche und festgelegte Funktionsnutzungen über Firebase an Google. Firebase erfasst außerdem App-Starts und Sitzungen, bei Google Play gegebenenfalls Installations-/Update-Quelle, eine zufällige pseudonyme Kennung je App-Installation sowie technische Angaben wie Gerätemodell, Betriebssystem und App-Version. Google kann bei der Übertragung aus der IP-Adresse ungefähre Standortinformationen ableiten und verwirft die IP-Adresse danach. Werbe-ID und personalisierte Werbung sind deaktiviert. Akku-Messwerte, Vordergrund-App-Namen, Konten und genaue Standorte werden nicht für diese Analyse übertragen. Ereignis- und Nutzerdaten werden im Analytics-Projekt jeweils zwei Monate aufbewahrt; aggregierte Berichte können länger bestehen bleiben. Zustimmung und Widerruf findest du unter „Nutzungsanalyse“; ohne Zustimmung bleibt sie aus.\n\nAndroid-Sicherungen können Verlauf, Einstellungen und lokale Telemetrie über einen geeigneten verschlüsselten Sicherungsdienst enthalten; Gerät und Android bestimmen, ob und wann gesichert wird. Die Update-Prüfung ruft nur die konfigurierte Versionsdatei ab. CSV und Forschungs-JSON werden erst nach deiner Auswahl erzeugt; der Forschungs-Export enthält Gerätemodell und Android-Version, aber keine Seriennummer oder Werbe-ID.";
         new AlertDialog.Builder(getContext())
-                .setTitle("Daten & Datenschutz")
-                .setMessage("Ampere speichert Messwerte lokal für Verlauf und Analyse: Zeit, Akkustand, Ladezustand, Strom, Temperatur, Spannung und Bildschirmstatus. Wenn du den Nutzungszugriff erlaubst, wird zusätzlich die aktive Vordergrund-App lokal gespeichert, um ihren Anteil am Verbrauch zu schätzen.\n\nEine optionale Nutzungsanalyse sendet besuchte App-Bereiche und festgelegte Funktionsnutzungen über Firebase an Google. Firebase erfasst außerdem App-Starts und Sitzungen, bei Google Play gegebenenfalls Installations-/Update-Quelle, eine zufällige pseudonyme Kennung je App-Installation sowie technische Angaben wie Gerätemodell, Betriebssystem und App-Version. Google kann bei der Übertragung aus der IP-Adresse ungefähre Standortinformationen ableiten und verwirft die IP-Adresse danach. Werbe-ID und personalisierte Werbung sind deaktiviert. Akku-Messwerte, Vordergrund-App-Namen, Konten und genaue Standorte werden nicht für diese Analyse übertragen. Ereignis- und Nutzerdaten werden im Analytics-Projekt jeweils zwei Monate aufbewahrt; aggregierte Berichte können länger bestehen bleiben. Zustimmung und Widerruf findest du unter „Nutzungsanalyse“; ohne Zustimmung bleibt sie aus.\n\nAndroid-Sicherungen können Verlauf, Einstellungen und lokale Telemetrie über einen geeigneten verschlüsselten Sicherungsdienst enthalten; Gerät und Android bestimmen, ob und wann gesichert wird. Die Update-Prüfung ruft nur die konfigurierte Versionsdatei ab. CSV und Forschungs-JSON werden erst nach deiner Auswahl erzeugt; der Forschungs-Export enthält Gerätemodell und Android-Version, aber keine Seriennummer oder Werbe-ID.")
+                .setTitle(english ? "Data & privacy" : "Daten & Datenschutz")
+                .setMessage(privacyMessage)
                 .setItems(exportChoices, (dialog, which) -> {
                     MainActivity activity = (MainActivity) getContext();
                     if (which == 0) activity.createCsvExport();
                     else if (which == 1) activity.createResearchExport();
                     else activity.createDiagnosticExport();
                 })
-                .setNeutralButton("Nutzungsanalyse", (dialog, which) -> showAnalyticsSettings())
-                .setNegativeButton("Schließen", null)
+                .setNeutralButton(english ? "Usage analytics" : "Nutzungsanalyse", (dialog, which) -> showAnalyticsSettings())
+                .setNegativeButton(english ? "Close" : "Schließen", null)
                 .show();
     }
 
     private void showAnalyticsSettings() {
         boolean enabled = AnalyticsTracker.isEnabled(getContext());
-        String state = enabled ? "Derzeit aktiv." : "Derzeit aus.";
+        boolean english = AppText.isEnglish(getContext());
+        String state = english ? (enabled ? "Currently enabled." : "Currently off.")
+                : (enabled ? "Derzeit aktiv." : "Derzeit aus.");
+        String analyticsMessage = english
+                ? state + "\n\nAmpere sends only visited app sections and selected feature usage to Google through Firebase. Firebase also processes a pseudonymous app-instance identifier, sessions and technical app/device information. Google may infer an approximate location from your IP address during transfer and then discards the IP address. The analytics account may use only aggregated, anonymized measurements for industry benchmarks; sharing with Google products and services is disabled. Battery measurements, active app names, accounts, precise locations and advertising IDs are not sent for this analysis. Events and user data are retained for two months; aggregated reports may remain longer.\n\nAnalytics is optional and does not change app functionality. Turning it off stops future collection and resets Ampere's local analytics identifier; already aggregated statistics may remain longer."
+                : state + "\n\n" + "Ampere sendet nur besuchte App-Bereiche und ausgewählte Funktionsnutzungen an Google über Firebase. Firebase verarbeitet außerdem eine pseudonyme App-Instanzkennung, Sitzungen sowie technische App-/Geräteinformationen. Google kann bei der Übertragung aus deiner IP-Adresse ungefähre Standortinformationen ableiten und verwirft die IP-Adresse danach. Das Analytics-Konto kann nur zusammengefasste, anonymisierte Messwerte für Branchen-Benchmarks nutzen; die zusätzliche Freigabe für Google-Produkte und -Dienste ist ausgeschaltet. Akku-Messwerte, aktive App-Namen, Konten, genaue Standortdaten und Werbe-IDs werden nicht für diese Analyse übertragen. Ereignis- und Nutzerdaten werden jeweils zwei Monate aufbewahrt; aggregierte Berichte können länger bestehen bleiben.\n\nDie Analyse ist freiwillig und ändert keine App-Funktion. Beim Ausschalten stoppt Ampere künftige Erfassung und setzt die lokale Analytics-Kennung zurück; bereits erstellte aggregierte Statistiken können länger bestehen bleiben.";
         new AlertDialog.Builder(getContext())
-                .setTitle("Nutzungsanalyse · " + (enabled ? "aktiv" : "aus"))
-                .setMessage(state + "\n\n" + "Ampere sendet nur besuchte App-Bereiche und ausgewählte Funktionsnutzungen an Google über Firebase. Firebase verarbeitet außerdem eine pseudonyme App-Instanzkennung, Sitzungen sowie technische App-/Geräteinformationen. Google kann bei der Übertragung aus deiner IP-Adresse ungefähre Standortinformationen ableiten und verwirft die IP-Adresse danach. Das Analytics-Konto kann nur zusammengefasste, anonymisierte Messwerte für Branchen-Benchmarks nutzen; die zusätzliche Freigabe für Google-Produkte und -Dienste ist ausgeschaltet. Akku-Messwerte, aktive App-Namen, Konten, genaue Standortdaten und Werbe-IDs werden nicht für diese Analyse übertragen. Ereignis- und Nutzerdaten werden jeweils zwei Monate aufbewahrt; aggregierte Berichte können länger bestehen bleiben.\n\nDie Analyse ist freiwillig und ändert keine App-Funktion. Beim Ausschalten stoppt Ampere künftige Erfassung und setzt die lokale Analytics-Kennung zurück; bereits erstellte aggregierte Statistiken können länger bestehen bleiben.")
-                .setPositiveButton(enabled ? "Ausschalten" : "Zustimmen und aktivieren", (dialog, which) -> {
+                .setTitle(english ? "Usage analytics · " + (enabled ? "enabled" : "off") : "Nutzungsanalyse · " + (enabled ? "aktiv" : "aus"))
+                .setMessage(analyticsMessage)
+                .setPositiveButton(english ? (enabled ? "Turn off" : "Agree and enable") : (enabled ? "Ausschalten" : "Zustimmen und aktivieren"), (dialog, which) -> {
                     AnalyticsTracker.setConsent(getContext(), !enabled);
                     if (!enabled) AnalyticsTracker.logSection(getContext(), page);
-                    Toast.makeText(getContext(), enabled ? "Nutzungsanalyse ausgeschaltet." : "Nutzungsanalyse aktiviert.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getContext(), english ? (enabled ? "Usage analytics turned off." : "Usage analytics enabled.") : (enabled ? "Nutzungsanalyse ausgeschaltet." : "Nutzungsanalyse aktiviert."), Toast.LENGTH_LONG).show();
                 })
-                .setNegativeButton("Schließen", null)
+                .setNegativeButton(english ? "Close" : "Schließen", null)
                 .show();
     }
 
@@ -2674,11 +2685,12 @@ class BatteryDashboard extends View {
     }
 
     private void confirmDeleteData() {
+        boolean english = AppText.isEnglish(getContext());
         new AlertDialog.Builder(getContext())
-                .setTitle("Lokale Daten löschen?")
-                .setMessage("Damit werden lokaler Verlauf, Sitzungen, Gesundheitsmessungen, Telemetrie und Einstellungen gelöscht. Eine ältere Android-Sicherung kann bestehen bleiben, bis sie ersetzt wird.")
-                .setNegativeButton("Abbrechen", null)
-                .setPositiveButton("Löschen", (dialog, which) -> {
+                .setTitle(english ? "Delete local data?" : "Lokale Daten löschen?")
+                .setMessage(english ? "This deletes local history, sessions, health measurements, telemetry and settings. An older Android backup may remain until it is replaced." : "Damit werden lokaler Verlauf, Sitzungen, Gesundheitsmessungen, Telemetrie und Einstellungen gelöscht. Eine ältere Android-Sicherung kann bestehen bleiben, bis sie ersetzt wird.")
+                .setNegativeButton(english ? "Cancel" : "Abbrechen", null)
+                .setPositiveButton(english ? "Delete" : "Löschen", (dialog, which) -> {
                     Context context = getContext();
                     AnalyticsTracker.setConsent(context, false);
                     SharedPreferences data = BatteryDataRepository.data(context);
@@ -2688,17 +2700,18 @@ class BatteryDashboard extends View {
                     reloadStoredData();
                     Intent battery = ((Activity) context).registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
                     if (battery != null) readBattery(battery);
-                    Toast.makeText(context, "Lokale Daten gelöscht.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(context, english ? "Local data deleted." : "Lokale Daten gelöscht.", Toast.LENGTH_LONG).show();
                 })
                 .show();
     }
 
     private void confirmResetHealthBaseline() {
+        boolean english = AppText.isEnglish(getContext());
         new AlertDialog.Builder(getContext())
-                .setTitle("Gesundheitsbasis zurücksetzen?")
-                .setMessage("Damit beginnen Akku-Gesundheit, Kapazitätsmessung und tägliche Zyklushistorie neu, zum Beispiel nach einem Akkutausch. Bestehende Sitzungen, Telemetrie, Einstellungen und Exporte bleiben erhalten.")
-                .setNegativeButton("Abbrechen", null)
-                .setPositiveButton("Basis zurücksetzen", (dialog, which) -> {
+                .setTitle(english ? "Reset health baseline?" : "Gesundheitsbasis zurücksetzen?")
+                .setMessage(english ? "This starts battery health, capacity measurement and daily cycle history over, for example after replacing the battery. Existing sessions, telemetry, settings and exports remain." : "Damit beginnen Akku-Gesundheit, Kapazitätsmessung und tägliche Zyklushistorie neu, zum Beispiel nach einem Akkutausch. Bestehende Sitzungen, Telemetrie, Einstellungen und Exporte bleiben erhalten.")
+                .setNegativeButton(english ? "Cancel" : "Abbrechen", null)
+                .setPositiveButton(english ? "Reset baseline" : "Basis zurücksetzen", (dialog, which) -> {
                     Context context = getContext();
                     SharedPreferences data = BatteryDataRepository.data(context);
                     data.edit()
@@ -2716,26 +2729,28 @@ class BatteryDashboard extends View {
                     reloadStoredData();
                     Intent battery = ((Activity) context).registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
                     if (battery != null) readBattery(battery);
-                    Toast.makeText(context, "Gesundheitsbasis zurückgesetzt; Verlauf bleibt erhalten.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(context, english ? "Health baseline reset; history was kept." : "Gesundheitsbasis zurückgesetzt; Verlauf bleibt erhalten.", Toast.LENGTH_LONG).show();
                 })
                 .show();
     }
 
     private void showBackupRestore() {
+        boolean english = AppText.isEnglish(getContext());
         new AlertDialog.Builder(getContext())
-                .setTitle("Sicherung & Wiederherstellung")
-                .setMessage("Updates behalten deine Daten automatisch. Die Überwachung fordert im Hintergrund den Android-Sicherungsdienst an. Bei einem geeigneten verschlüsselten Sicherungsdienst umfasst die automatische Android-Sicherung Verlauf, Einstellungen und lokale Telemetrie. " + backupStatus() + "\n\nErstelle vor der Deinstallation eine Sicherung und stelle sie nach der Neuinstallation wieder her. Eine aktivierte Cloud-/Gerätesicherung kann die enthaltenen Daten automatisch zurückspielen; die sichtbare Sicherung ist die zuverlässige Ausweichlösung.")
-                .setPositiveButton("Sicherung erstellen", (dialog, which) -> ((MainActivity) getContext()).createBackup())
-                .setNeutralButton("Sicherung wiederherstellen", (dialog, which) -> ((MainActivity) getContext()).restoreBackup())
-                .setNegativeButton("Schließen", null)
+                .setTitle(english ? "Backup & restore" : "Sicherung & Wiederherstellung")
+                .setMessage(english ? "Updates keep your data automatically. Background monitoring requests Android's backup service. With a suitable encrypted service, automatic Android backup can include history, settings and local telemetry. " + backupStatus() + "\n\nCreate a backup before uninstalling and restore it after reinstalling. Enabled cloud/device backup may restore the included data automatically; the visible backup is the reliable fallback." : "Updates behalten deine Daten automatisch. Die Überwachung fordert im Hintergrund den Android-Sicherungsdienst an. Bei einem geeigneten verschlüsselten Sicherungsdienst umfasst die automatische Android-Sicherung Verlauf, Einstellungen und lokale Telemetrie. " + backupStatus() + "\n\nErstelle vor der Deinstallation eine Sicherung und stelle sie nach der Neuinstallation wieder her. Eine aktivierte Cloud-/Gerätesicherung kann die enthaltenen Daten automatisch zurückspielen; die sichtbare Sicherung ist die zuverlässige Ausweichlösung.")
+                .setPositiveButton(english ? "Create backup" : "Sicherung erstellen", (dialog, which) -> ((MainActivity) getContext()).createBackup())
+                .setNeutralButton(english ? "Restore backup" : "Sicherung wiederherstellen", (dialog, which) -> ((MainActivity) getContext()).restoreBackup())
+                .setNegativeButton(english ? "Close" : "Schließen", null)
                 .show();
     }
 
     private String backupStatus() {
         long lastRequest = prefs.getLong("lastBackupRequestAt", 0L);
-        if (lastRequest <= 0L) return "Noch keine automatische Sicherung angefordert.";
+        boolean english = AppText.isEnglish(getContext());
+        if (lastRequest <= 0L) return english ? "No automatic backup has been requested yet." : "Noch keine automatische Sicherung angefordert.";
         String date = new SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.GERMANY).format(new Date(lastRequest));
-        return "Letzte automatische Sicherungsanforderung: " + date + ". Android steuert Dienst und Zeitpunkt der Sicherung.";
+        return english ? "Last automatic backup request: " + date + ". Android controls the backup service and timing." : "Letzte automatische Sicherungsanforderung: " + date + ". Android steuert Dienst und Zeitpunkt der Sicherung.";
     }
 
     void startSavedOverlay() {
