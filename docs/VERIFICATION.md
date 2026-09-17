@@ -2,6 +2,25 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.430` completes the English UI pass for action feedback as well as
+the main screens. Backup, export and measurement toasts, capacity dialogs,
+copied status text and large-text actions now use the active English locale.
+The translation regression suite also guards against broad word replacements
+corrupting longer dialog text. Direct and Play each pass 218 unit tests and
+both debug lint tasks pass. The signed `v0.430` tag is GitHub-verified, and
+release workflow
+[`35243922387`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35243922387)
+passed. Public update-repository commit
+[`f1e9260`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/f1e9260)
+publishes the artifacts. Fresh public APK and AAB downloads match
+`latest.json`: SHA-256
+`cacb9c73f7ef7d9e611abec0901f9d51ae2a4f92c5b3254855a3da9f097974f6` (APK)
+and `b62d30070ce4bd9a603c9d5d89ffbaacc060eb6d0bc0d88eb01cc1f59ce0875c`
+(AAB). The public manifest reports version code/name `430`/`0.430` and the
+package remains `com.ampere.batterylab`. Play alpha publishing workflow
+[`35245005927`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35245005927)
+passed.
+
 Version `0.429` polishes the app-usage surface. System launcher packages now
 use a human label (“Home screen”), the discharge summary uses “Battery level at
 start” and “Current battery level”, and unavailable app rates are shown as
