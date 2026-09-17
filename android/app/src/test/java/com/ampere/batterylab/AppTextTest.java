@@ -15,8 +15,11 @@ public class AppTextTest {
             assertEquals("Screen time", AppText.t("Bildschirmzeit"));
             assertEquals("Battery level · 7 days",
                     AppText.t("Akkustand · 7 Tage"));
+            assertEquals("100% of 80%", AppText.t("100% von 80%"));
             assertEquals("Runtime with normal use: 8 Std.",
                     AppText.t("Restlaufzeit bei normaler Nutzung: 8 Std."));
+            assertEquals("Learning takes a little time.",
+                    AppText.t("Lernen braucht ein wenig Zeit."));
         } finally {
             Locale.setDefault(previous);
         }

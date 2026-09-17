@@ -471,7 +471,8 @@ public class BatteryButtonAssetLayoutTest {
         assertTrue("very narrow navigation must shorten labels and skip stretched image buttons",
                 dashboard.contains("boolean ultraCompactNav = w < 280f")
                         && dashboard.contains("new String[]{\"Start\", \"Laden\", \"Entl.\", \"Akku\", \"Verl.\"}")
-                        && dashboard.contains("compactNav && !ultraCompactNav && (active || pressed)"));
+                        && dashboard.contains("compactNav && !ultraCompactNav && !AppText.isEnglish(getContext())")
+                        && dashboard.contains("(active || pressed)"));
     }
 
     @Test public void denseHistoryValuesStayReadableAndLargeTextTabsShowOverflow() throws IOException {

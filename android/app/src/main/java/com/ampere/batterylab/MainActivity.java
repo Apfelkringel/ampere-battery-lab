@@ -3259,7 +3259,8 @@ class BatteryDashboard extends View {
             boolean active = page == i;
             boolean pressed = isPressed(10 + i);
             boolean bakedActiveAsset = false;
-            if (compactNav && !ultraCompactNav && (active || pressed)) {
+            if (compactNav && !ultraCompactNav && !AppText.isEnglish(getContext())
+                    && (active || pressed)) {
                 // The reference uses a clear filled selection state. A
                 // finished bitmap keeps its icon, label and surface together;
                 // no separately positioned text can fall off the button.

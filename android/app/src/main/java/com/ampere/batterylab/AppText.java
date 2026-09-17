@@ -167,6 +167,15 @@ final class AppText {
                 {"Akkutemperatur", "Battery temperature"}, {"Temperatur", "Temperature"},
                 {"Spannung", "Voltage"}, {"Verbrauch", "Usage"}, {"Akkuverbrauch", "Battery usage"},
                 {"Bildschirmzeit", "Screen time"}, {"Ladezyklen", "Charge cycles"},
+                {"Lernen braucht", "Learning takes"}, {"ein wenig Zeit.", "a little time."},
+                {"Eine volle Ladung", "One full charge"}, {"schafft die Messbasis", "provides the baseline"},
+                {"geeignete Sitzungen", "valid sessions"},
+                {"Kapazitätsmessung weiter unten starten", "Start capacity measurement below"},
+                {"Systemzyklen", "System cycles"}, {"von Android gemeldet", "reported by Android"},
+                {"Android-Testwert", "Android test value"}, {"Android-Akkusensor", "Android battery sensor"},
+                {"Ampere-Vollzyklen", "Ampere full cycles"}, {"MESSBASIS", "MEASUREMENT BASELINE"},
+                {"VOLLE KAPAZITÄT", "FULL CAPACITY"}, {"AKKUSPANNUNG", "BATTERY VOLTAGE"},
+                {"SYSTEMZYKLEN", "SYSTEM CYCLES"},
                 {"Verbrauchte Ladung", "Charge used"}, {"Verbrauchte Energie", "Energy used"},
                 {"Geladen/Verbrauch", "Charged/used"}, {"Akkuverschleiß", "Battery wear"},
                 {"Verschleiß", "Wear"}, {"Effizienz", "Efficiency"}, {"Sitzungen", "Sessions"},
@@ -336,7 +345,7 @@ final class AppText {
                 {"Akkuüberwachung", "Battery monitoring"}, {"Ladealarm", "Charge alert"},
                 {"Batterystand", "Battery level"}, {"daye", "days"},
                 {"History täglich", "Daily history"}, {"History wöchentlich", "Weekly history"},
-                {"History monatlich", "Monthly history"}
+                {"History monatlich", "Monthly history"}, {" von ", " of "}
         };
         for (String[] phrase : phrases) result = result.replace(phrase[0], phrase[1]);
         return result;
