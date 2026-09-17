@@ -2,6 +2,25 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.424` completes the English history-chart polish and fixes a
+layout overlap in the history page. Month and weekday labels, chart legends
+and values now remain English; the Recent Sessions section starts below the
+Analysis card instead of drawing over it. Emulator screenshots confirmed the
+monthly chart and the separated sections. Direct and Play each pass 216 unit
+tests and both debug lint tasks pass. The signed `v0.424` tag is
+GitHub-verified, and release workflow
+[`35236306297`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35236306297)
+passed. Public update-repository commit
+[`642932f`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/642932f)
+publishes the artifacts. Fresh public APK and AAB downloads match
+`latest.json`: SHA-256
+`5dc8141145c8aeb7e25c7d172f1ac5eca05e5c9c385952dcae0f26aa23a9ca47` (APK)
+and `77657349a618453c1daad5552d58958c449629466b983b13f20ab6557a1a33b7`
+(AAB). The public manifest reports version code/name `424`/`0.424` and the
+package remains `com.ampere.batterylab`. Play alpha publishing workflow
+[`35236865020`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35236865020)
+passed.
+
 Version `0.423` improves the start page with state-aware messaging (for
 example, a full battery now says “Battery is full” instead of claiming that
 everything is simply running smoothly). The translation layer now respects an
