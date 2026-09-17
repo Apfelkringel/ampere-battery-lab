@@ -21,7 +21,7 @@ public class AppTextTest {
             assertEquals("Rate unavailable", AppText.t("Rate n/v"));
             assertEquals("Since unplugging · estimated values",
                     AppText.t("Seit dem Abstecken · geschätzte Werte"));
-            assertEquals("Runtime with normal use: 8 Std.",
+            assertEquals("Runtime with normal use: 8 hr",
                     AppText.t("Restlaufzeit bei normaler Nutzung: 8 Std."));
             assertEquals("Learning takes a little time.",
                     AppText.t("Lernen braucht ein wenig Zeit."));
