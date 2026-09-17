@@ -6,7 +6,18 @@ Version `0.411` fixes the focused history chart axis: short measurement
 windows now show clock times instead of repeating the same weekday at every
 tick. The emulator confirmed the visible `12:43 · 13:09 · 13:36 · 14:03`
 labels. Direct and Play each pass 215 unit tests; both debug lint tasks pass.
-Release, public artifact hashes and Play alpha publication are pending.
+The signed `v0.411` tag is GitHub-verified, and release workflow
+[`35220093642`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35220093642)
+passed. Update-repository commit
+[`7f23454`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/7f23454)
+publishes the artifacts. Fresh public APK and AAB downloads match manifest
+SHA-256 values
+`8224102e22f12603b7a0ae15e587a5c40acc54bf7e97b6b8f57078ed47dc00c6` (APK) and
+`dc0d3488b4846eb22572846f0659301261c3d61193b58036cafa0ce50cad1cbf` (AAB).
+The APK is `com.ampere.batterylab`, version code/name `411`/`0.411`. Play alpha
+publishing workflow
+[`35220566780`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35220566780)
+passed.
 
 Version `0.410` keeps long duration values in the dashboard metric cards fully
 visible with a dedicated readable size, including the “Dein Tagesrhythmus”
