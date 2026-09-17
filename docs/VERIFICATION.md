@@ -2,6 +2,13 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.400` prints the exact charge, consumption, wear and charge-ratio
+values below each daily, weekly and monthly chart group, aligned by period and
+colored in the same order as the legend. Missing periods and unavailable wear
+or ratio data remain `—`; measured zeroes are shown as `0`. The chart card was
+expanded to contain the added value rows. Automated test and publication status
+will be recorded here after release.
+
 Version `0.399` moves the permission-status checklist from the eleventh settings
 position to the second, immediately after Notifications. In a fresh API-36
 emulator audit at 320 × 640 dp, the old row was below the first visible menu

@@ -1,0 +1,1 @@
+Die Akkubilanz zeigt jetzt die exakten Werte direkt unter den Balken – passend zu Farbe und Zeitraum.

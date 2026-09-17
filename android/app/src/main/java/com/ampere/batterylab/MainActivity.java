@@ -5023,18 +5023,20 @@ class BatteryDashboard extends View {
         text(c, "— = keine auswertbaren Messwerte", 36, cardsTop + 232, 8, faint, false);
 
         float chartTop = y + 430;
-        rounded(c, 18, chartTop, w - 18, chartTop + 280, 16, panel);
+        rounded(c, 18, chartTop, w - 18, chartTop + 340, 16, panel);
         stroke(c, border, 1);
-        rect.set(u(18), u(chartTop), u(w - 18), u(chartTop + 280));
+        rect.set(u(18), u(chartTop), u(w - 18), u(chartTop + 340));
         c.drawRoundRect(rect, u(16), u(16), p);
         text(c, "AKKU-BILANZ · " + historyChartRangeLabel(), 36, chartTop + 29, 9, muted, true);
         text(c, historyPeriodLabel(), 36, chartTop + 53, 16, primary, true);
         drawHistoryLegend(c, buckets, 36, w - 36, chartTop + 80, muted);
         drawHistoryBars(c, buckets, 36, chartTop + 116, w - 36, 96, primary, muted, faint);
-        centeredText(c, "Skalenmaximum in Legende · antippen für Werte",
-                w / 2f, chartTop + 270, 8, faint, false);
+        drawHistoryBucketValues(c, buckets, 36, chartTop + 116, w - 36,
+                calculationCapacityMah() > 0);
+        centeredText(c, "Werte je Zeitraum · Farbe/Reihenfolge wie Legende",
+                w / 2f, chartTop + 329, 8, faint, false);
 
-        float insightTop = chartTop + 298;
+        float insightTop = chartTop + 358;
         rounded(c, 18, insightTop, w - 18, insightTop + 92, 14, raised);
         text(c, "AUSWERTUNG", 36, insightTop + 25, 8, lime, true);
         String ratioText = selectedPeriod.consumedMah > 0
@@ -5134,6 +5136,22 @@ class BatteryDashboard extends View {
         if (barHeight <= 0f) return;
         rounded(c, left, top + height - barHeight, left + width, top + height,
                 Math.min(2f, width / 2f), color);
+    }
+
+    private void drawHistoryBucketValues(Canvas c, ArrayList<BatteryHistoryStats.Bucket> buckets,
+                                         float left, float top, float right, boolean hasCapacity) {
+        if (buckets == null || buckets.isEmpty()) return;
+        int[] colors = {historyChargedColor, historyConsumedColor, historyWearColor, secondaryTone};
+        float groupWidth = (right - left) / buckets.size();
+        float firstRow = top + 96 + 31;
+        for (int i = 0; i < buckets.size(); i++) {
+            float center = left + groupWidth * (i + .5f);
+            String[] values = BatteryHistoryChartValues.forBucket(buckets.get(i), hasCapacity);
+            for (int row = 0; row < values.length; row++) {
+                centeredText(c, values[row], center, firstRow + row * 11f,
+                        6.5f, colors[row], true);
+            }
+        }
     }
 
     private ArrayList<BatteryHistoryStats.Bucket> historyStatsBuckets() {

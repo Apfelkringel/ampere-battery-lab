@@ -315,8 +315,9 @@ public class BatteryButtonAssetLayoutTest {
                 dashboard.contains("bucket.chargeConsumptionRatioPercent / (float) maxRatio"));
         assertTrue("dash values should be explained as unavailable, not zero",
                 dashboard.contains("— = keine auswertbaren Messwerte"));
-        assertTrue("the chart must show the numerical scale and invite inspection of exact values",
-                dashboard.contains("Skalenmaximum in Legende · antippen für Werte"));
+        assertTrue("the chart must display exact values for every plotted period",
+                dashboard.contains("drawHistoryBucketValues(c, buckets")
+                        && dashboard.contains("BatteryHistoryChartValues.forBucket(buckets.get(i), hasCapacity)"));
         assertTrue("chart details must disclose separate scales and distinguish missing data",
                 dashboard.contains("Jede Kennzahl hat im Diagramm eine eigene Skala.")
                         && dashboard.contains("keine auswertbaren Strommessungen"));
