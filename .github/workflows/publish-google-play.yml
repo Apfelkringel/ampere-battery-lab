@@ -108,5 +108,5 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.AMPERE_PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.ampere.batterylab
           releaseFiles: build/Ampere-Battery-Lab-play-release.aab
-          track: ${{ inputs.track }}
+          tracks: ${{ inputs.track }}
           status: ${{ inputs.status }}
