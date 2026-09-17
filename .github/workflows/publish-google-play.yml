@@ -45,10 +45,14 @@ jobs:
           set -euo pipefail
           mkdir -p build
           curl --fail --silent --show-error --location \
-            "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/refs/heads/main/Ampere-Battery-Lab-play-release.aab?version=${RELEASE_VERSION}" \
+            --header 'Accept: application/vnd.github.raw+json' \
+            --header 'X-GitHub-Api-Version: 2022-11-28' \
+            "https://api.github.com/repos/Apfelkringel/ampere-battery-lab-updates/contents/Ampere-Battery-Lab-play-release.aab?ref=main" \
             --output build/Ampere-Battery-Lab-play-release.aab
           curl --fail --silent --show-error \
-            "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/latest.json" \
+            --header 'Accept: application/vnd.github.raw+json' \
+            --header 'X-GitHub-Api-Version: 2022-11-28' \
+            "https://api.github.com/repos/Apfelkringel/ampere-battery-lab-updates/contents/latest.json?ref=main" \
             --output build/latest.json
           test "$(jq -r .versionName build/latest.json)" = "$RELEASE_VERSION"
           expected="$(jq -r .aabSha256 build/latest.json)"
