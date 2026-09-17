@@ -444,6 +444,21 @@ public class BatteryButtonAssetLayoutTest {
                         && dashboard.contains("compactNav && !ultraCompactNav && (active || pressed)"));
     }
 
+    @Test public void denseHistoryValuesStayReadableAndLargeTextTabsShowOverflow() throws IOException {
+        String dashboard = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
+                StandardCharsets.UTF_8);
+        assertTrue("monthly values must stay legible below the bars",
+                dashboard.contains("firstRow + row * 11f")
+                        && dashboard.contains("8f, colors[row], true"));
+        assertTrue("the chart must explain its per-metric bar scaling",
+                dashboard.contains("Balkenhöhe je Kennzahl relativ zum Maximum")
+                        && dashboard.contains("Zahlen = Messwerte · Farben wie Legende"));
+        assertTrue("large-text tab strip must visibly hint that more tabs are off-screen",
+                dashboard.contains("setHorizontalFadingEdgeEnabled(true)")
+                        && dashboard.contains("setFadingEdgeLength(dp(18))"));
+    }
+
     private static int countOccurrences(String value, String needle) {
         int count = 0;
         int offset = 0;

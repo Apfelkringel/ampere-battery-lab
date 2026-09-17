@@ -2,6 +2,13 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.407` makes the values below the history bars larger, explains that
+bar height is scaled per metric, and hints that the large-text navigation tabs
+can scroll horizontally. Its emulator audit at 320×640 verified the dashboard,
+monthly-history selection and value chart, as well as the native large-text
+reflow at 150% font scale. Direct and Play each pass 210 unit tests; both debug
+lint tasks pass. Release verification pending.
+
 Version `0.406` removes text ellipsizing from the shared canvas labels and
 system battery widgets: long values are fitted to their lane instead of being
 replaced by three dots. Direct and Play each pass 209 unit tests; both debug

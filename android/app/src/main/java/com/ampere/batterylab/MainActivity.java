@@ -253,6 +253,8 @@ public class MainActivity extends Activity {
 
         HorizontalScrollView tabScroller = new HorizontalScrollView(this);
         tabScroller.setHorizontalScrollBarEnabled(false);
+        tabScroller.setHorizontalFadingEdgeEnabled(true);
+        tabScroller.setFadingEdgeLength(dp(18));
         LinearLayout tabRow = new LinearLayout(this);
         tabRow.setOrientation(LinearLayout.HORIZONTAL);
         String[] tabNames = {"Übersicht", "Laden", "Entladen", "Akku", "Verlauf"};
@@ -5110,7 +5112,9 @@ class BatteryDashboard extends View {
         drawHistoryBars(c, buckets, 36, chartTop + 116, w - 36, 96, primary, muted, faint);
         drawHistoryBucketValues(c, buckets, 36, chartTop + 116, w - 36,
                 calculationCapacityMah() > 0);
-        centeredText(c, "Werte je Zeitraum · Farbe/Reihenfolge wie Legende",
+        centeredText(c, "Balkenhöhe je Kennzahl relativ zum Maximum",
+                w / 2f, chartTop + 311, 8, faint, false);
+        centeredText(c, "Zahlen = Messwerte · Farben wie Legende",
                 w / 2f, chartTop + 329, 8, faint, false);
 
         float insightTop = chartTop + 358;
@@ -5226,7 +5230,7 @@ class BatteryDashboard extends View {
             String[] values = BatteryHistoryChartValues.forBucket(buckets.get(i), hasCapacity);
             for (int row = 0; row < values.length; row++) {
                 centeredText(c, values[row], center, firstRow + row * 11f,
-                        6.5f, colors[row], true);
+                        8f, colors[row], true);
             }
         }
     }
