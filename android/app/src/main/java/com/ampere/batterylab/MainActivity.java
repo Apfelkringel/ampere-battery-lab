@@ -2025,7 +2025,7 @@ class BatteryDashboard extends View {
     }
 
     private String screenOnTimeCard() {
-        return BatteryDuration.compact(prefs.getLong("screenOnMs", 0L) / 60000L);
+        return BatteryDuration.dashboard(prefs.getLong("screenOnMs", 0L) / 60000L);
     }
 
     private String deepSleepTime() {

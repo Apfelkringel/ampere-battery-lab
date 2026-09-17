@@ -866,6 +866,13 @@ public class BatteryRulesTest {
         assertEquals("20 h 4 m", BatteryDuration.compact(1204));
     }
 
+    @Test public void dashboardDurationsFitNarrowScreenTimeCards() {
+        assertEquals("—", BatteryDuration.dashboard(0));
+        assertEquals("45m", BatteryDuration.dashboard(45));
+        assertEquals("2h", BatteryDuration.dashboard(120));
+        assertEquals("16h 22m", BatteryDuration.dashboard(982));
+    }
+
     @Test public void liveHeaderRefreshHasASeparateWideHitbox() {
         assertEquals(BatteryHeaderLayout.LIVE_REFRESH,
                 BatteryHeaderLayout.actionAt(379f, 36f, 411f));

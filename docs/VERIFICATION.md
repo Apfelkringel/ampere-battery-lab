@@ -2,6 +2,12 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.402` fixes the home dashboard's screen-time tile: short durations
+use compact hour/minute labels (for example, `16h 22m`) so the full value is
+visible instead of ending in an ellipsis. Direct and Play each pass unit tests;
+both debug lint tasks pass. The signed release, public APK/manifest, and Play
+alpha publication are pending.
+
 Version `0.401` completes the two-step first-run guide by requesting Android's
 notification permission only after the user chooses “Loslegen”. App-usage and
 overlay access remain optional and in-context. Opening the checklist starts

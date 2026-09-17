@@ -1,0 +1,2 @@
+Die Bildschirmzeit auf der Startseite wird jetzt vollständig und ohne
+abgeschnittene Auslassungspunkte angezeigt.
