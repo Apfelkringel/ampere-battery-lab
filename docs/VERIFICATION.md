@@ -2,6 +2,12 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.412` adds the real launcher icon beside each app in the “Akkuverbrauch
+deiner Apps” summary. This improves visual scanning while keeping estimated
+values explicitly marked with `~`. Direct and Play each pass 216 unit tests;
+both debug lint tasks pass. Release, public artifact hashes and Play alpha
+publication are pending.
+
 Version `0.411` fixes the focused history chart axis: short measurement
 windows now show clock times instead of repeating the same weekday at every
 tick. The emulator confirmed the visible `12:43 · 13:09 · 13:36 · 14:03`

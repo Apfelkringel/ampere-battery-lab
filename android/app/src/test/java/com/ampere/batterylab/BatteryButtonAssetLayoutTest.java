@@ -47,6 +47,17 @@ public class BatteryButtonAssetLayoutTest {
                         && dashboard.contains("? \"HH:mm\" : historyDays == 30 ? \"d. MMM\" : \"EEE\""));
     }
 
+    @Test public void appUsageRowsUseLauncherIconsWithoutHidingTheirEstimateLabels()
+            throws IOException {
+        String dashboard = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
+                StandardCharsets.UTF_8);
+        assertTrue("app rows should identify packages visually with their launcher icon",
+                dashboard.contains("drawAppIcon(c, usage.packageName"));
+        assertTrue("app rows must keep the estimated mAh marker visible",
+                dashboard.contains("appMah > 0 ? \"~\" + appMah + \" mAh\""));
+    }
+
     @Test public void historyChartBucketsAreIndividualAccessibleControls() throws IOException {
         String dashboard = Files.readString(findRepositoryRoot()
                 .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),

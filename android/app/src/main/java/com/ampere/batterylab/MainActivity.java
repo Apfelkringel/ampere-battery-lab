@@ -4603,12 +4603,13 @@ class BatteryDashboard extends View {
             String rateLabel = BatteryAppAttribution.appRateLabel(appRate, hasDirectTelemetry);
             float rowTop = y + row * 28f;
             float amountWidth = appMah > 0 ? 68f : 38f;
-            text(c, fitText(app, Math.max(80f, w - 72f - amountWidth), 9.5f, true),
-                    36, rowTop, 9.5f, primary, true);
+            drawAppIcon(c, usage.packageName, 36f, rowTop - 9f, 18f);
+            text(c, fitText(app, Math.max(64f, w - 98f - amountWidth), 9.5f, true),
+                    62, rowTop, 9.5f, primary, true);
             rightText(c, appMah > 0 ? "~" + appMah + " mAh" : "— mAh",
                     w - 36, rowTop, 8.5f, appMah > 0 ? lime : faint, true);
-            text(c, fitText(minutes + " Min. · " + rateLabel, w - 72f, 7.5f, false),
-                    36, rowTop + 10f, 7.5f, muted, false);
+            text(c, fitText(minutes + " Min. · " + rateLabel, w - 98f, 7.5f, false),
+                    62, rowTop + 10f, 7.5f, muted, false);
             float barLeft = 36f;
             float barRight = w - 36f;
             rounded(c, barLeft, rowTop + 16f, barRight, rowTop + 18f, 1,
@@ -4622,6 +4623,18 @@ class BatteryDashboard extends View {
         }
         if (row == 0) text(c, "Seit dem Trennen keine App-Nutzung erfasst.", 36, y, 9, faint, false);
         text(c, "ALLE APP-DETAILS ANSEHEN  →", 36, y + 88, 8, lime, true);
+    }
+
+    /** Uses the launcher icon as a quick visual anchor for each package. */
+    private void drawAppIcon(Canvas c, String packageName, float left, float top, float size) {
+        try {
+            Drawable icon = getContext().getPackageManager().getApplicationIcon(packageName);
+            icon.setBounds(Math.round(u(left)), Math.round(u(top)),
+                    Math.round(u(left + size)), Math.round(u(top + size)));
+            icon.draw(c);
+        } catch (Exception ignored) {
+            // A removed or restricted package keeps the row readable by name.
+        }
     }
 
     private void showAppUsageDetails() {
