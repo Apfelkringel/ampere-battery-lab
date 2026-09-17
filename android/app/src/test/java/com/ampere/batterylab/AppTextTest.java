@@ -31,6 +31,10 @@ public class AppTextTest {
                     AppText.t("Starte die Kapazitätsmessung getrennt vom Ladegerät unter 25 %."));
             assertEquals("Battery status copied.", AppText.t("Akkustatus kopiert."));
             assertEquals("Start a discharge session", AppText.t("Entladung starten"));
+            assertEquals("Charge target reached", AppText.t("Ladeziel erreicht"));
+            assertEquals("High battery temperature", AppText.t("Hohe Akkutemperatur"));
+            assertEquals("Total CPU 42% · Foreground app: Photos · Process load 8%",
+                    AppText.t("CPU gesamt 42% · Vordergrund-App: Photos · Prozesslast 8%"));
         } finally {
             Locale.setDefault(previous);
         }

@@ -1051,8 +1051,8 @@ public class BatteryMonitorService extends Service {
         PendingIntent pending = PendingIntent.getActivity(this, 1, launch, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? new Notification.Builder(this, ALARM_CHANNEL_ID) : new Notification.Builder(this);
         return builder.setSmallIcon(com.ampere.batterylab.R.drawable.ic_launcher)
-                .setContentTitle("Ladeziel erreicht")
-                .setContentText("Akku bei " + value + "% · eingestelltes Ziel " + limit + "%")
+                .setContentTitle(AppText.t(this, "Ladeziel erreicht"))
+                .setContentText(AppText.t(this, "Akku bei " + value + "% · eingestelltes Ziel " + limit + "%"))
                 .setContentIntent(pending)
                 .setAutoCancel(true)
                 .build();
@@ -1063,8 +1063,9 @@ public class BatteryMonitorService extends Service {
         PendingIntent pending = PendingIntent.getActivity(this, 3, launch, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? new Notification.Builder(this, ALARM_CHANNEL_ID) : new Notification.Builder(this);
         return builder.setSmallIcon(com.ampere.batterylab.R.drawable.ic_launcher)
-                .setContentTitle("Hohe Akkutemperatur")
-                .setContentText(String.format(Locale.GERMANY, "Akku bei %.1f °C · Grenzwert %.1f °C", temperatureTenths / 10f, thresholdTenths / 10f))
+                .setContentTitle(AppText.t(this, "Hohe Akkutemperatur"))
+                .setContentText(AppText.t(this, String.format(Locale.GERMANY,
+                        "Akku bei %.1f °C · Grenzwert %.1f °C", temperatureTenths / 10f, thresholdTenths / 10f)))
                 .setContentIntent(pending)
                 .setAutoCancel(false)
                 .build();
@@ -1075,8 +1076,8 @@ public class BatteryMonitorService extends Service {
         PendingIntent pending = PendingIntent.getActivity(this, 4, launch, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? new Notification.Builder(this, ALARM_CHANNEL_ID) : new Notification.Builder(this);
         return builder.setSmallIcon(com.ampere.batterylab.R.drawable.ic_launcher)
-                .setContentTitle("Akku fast leer")
-                .setContentText("Akku bei " + value + "% · Grenzwert " + threshold + "%")
+                .setContentTitle(AppText.t(this, "Akku fast leer"))
+                .setContentText(AppText.t(this, "Akku bei " + value + "% · Grenzwert " + threshold + "%"))
                 .setContentIntent(pending)
                 .setAutoCancel(false)
                 .build();
