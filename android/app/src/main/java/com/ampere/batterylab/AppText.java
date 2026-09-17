@@ -518,6 +518,8 @@ final class AppText {
                 {"Gesamtzähler im dayssverlauf", "Daily total counter"},
                 {"Session antippen für Details", "Tap a session for details"},
                 {"Source: lokale EFC-Estimate", "Source: local EFC estimate"},
+                {"Akkustand · 7 Tage", "Battery level · 7 days"},
+                {"Akkustand · 30 Tage", "Battery level · 30 days"},
                 {"..", "."}
         };
         // Apply complete phrases before short vocabulary fragments. Otherwise
