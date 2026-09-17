@@ -345,7 +345,8 @@ final class AppText {
                 {"Akkuüberwachung", "Battery monitoring"}, {"Ladealarm", "Charge alert"},
                 {"Batterystand", "Battery level"}, {"daye", "days"},
                 {"History täglich", "Daily history"}, {"History wöchentlich", "Weekly history"},
-                {"History monatlich", "Monthly history"}, {" von ", " of "}
+                {"History monatlich", "Monthly history"}, {" von ", " of "},
+                {"Charged/Usage", "Charge/usage ratio"}
         };
         for (String[] phrase : phrases) result = result.replace(phrase[0], phrase[1]);
         return result;
