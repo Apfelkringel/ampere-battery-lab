@@ -391,7 +391,11 @@ final class AppText {
                 {"Discharging show", "Show discharging"}, {"Battery show", "Show battery"},
                 {"History show", "Show history"},
                 {"Healthsbasis zurücksetzen", "Reset health baseline"},
-                {"Lokale Daten löschen", "Delete local data"}
+                {"Lokale Daten löschen", "Delete local data"},
+                {"AKKU-BILANZ", "BATTERY BALANCE"},
+                {"KALENDERTAGE", "CALENDAR DAYS"},
+                {"KALENDERWOCHEN", "CALENDAR WEEKS"},
+                {"KALENDERMONATE", "CALENDAR MONTHS"}
         };
         for (String[] phrase : phrases) result = result.replace(phrase[0], phrase[1]);
         return result;

@@ -40,6 +40,8 @@ public class AppTextTest {
             assertEquals("Show overview", AppText.t("Übersicht anzeigen"));
             assertEquals("Reset health baseline", AppText.t("Gesundheitsbasis zurücksetzen"));
             assertEquals("Delete local data", AppText.t("Lokale Daten löschen"));
+            assertEquals("BATTERY BALANCE · 6 CALENDAR MONTHS",
+                    AppText.t("AKKU-BILANZ · 6 KALENDERMONATE"));
         } finally {
             Locale.setDefault(previous);
         }
