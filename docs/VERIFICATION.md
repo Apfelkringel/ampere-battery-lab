@@ -3,7 +3,21 @@
 Last verified: 2026-09-17 (Europe/Berlin)
 
 Version `0.408` wraps long app names and usage details over two lines instead of
-ellipsizing them. Direct and Play test and lint verification is pending.
+ellipsizing them. Direct and Play each pass 211 unit tests; both debug lint
+tasks pass. The signed `v0.408` tag is GitHub-verified, and release workflow
+[`35216844013`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35216844013)
+passed. Update-repository commits
+[`58b8bd2`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/58b8bd2)
+and
+[`6509ef4`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/6509ef4)
+publish the manifest and artifacts. Fresh public APK and AAB downloads match
+manifest SHA-256 values
+`898b0b807343d0d6c04bb1c894a5bfccc891520db8da4a5eed729e26669a6c0e` (APK) and
+`1723ae7a56a0726f8c85d52ef458a687cbeda11858eb23b7a0dc7c34eda94156` (AAB).
+The APK is `com.ampere.batterylab`, version code/name `408`/`0.408`. Play alpha
+publishing workflow
+[`35217315729`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35217315729)
+passed.
 
 Version `0.407` makes the values below the history bars larger, explains that
 bar height is scaled per metric, and hints that the large-text navigation tabs
