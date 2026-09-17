@@ -454,7 +454,22 @@ final class AppText {
                 {"Batterystrom", "Battery current"}, {"Temperaturee", "Temperature"},
                 {"Grad Celsius", "degrees Celsius"},
                 {"Battery ist voll", "Battery is full"}, {"Battery wird geladen", "Charging now"},
-                {"Battery entlädt sich", "Battery is discharging"}, {"Battery fast leer", "Battery nearly empty"}
+                {"Battery entlädt sich", "Battery is discharging"}, {"Battery fast leer", "Battery nearly empty"},
+                {"Ladestatus", "Charge status"}, {"Erreicht", "Reached"},
+                {"Charge rate bei ", "Charge rate with "}, {"Chargede Energy", "Charged energy"},
+                {"Sessionsdauer", "Session duration"}, {"Netzteil", "Power adapter"},
+                {"Std.", "hr"}, {"Min.", "min"},
+                {"Geschätzte Vollkapazität", "Estimated full capacity"},
+                {"Messquelle", "Measurement source"}, {"Keine Messung", "No measurement"},
+                {"Mindestens 5 % Battery level nötig", "At least 5% battery level required"},
+                {"Belastung bis zum Charge target", "Wear at charge target"},
+                {"Kapazität und Belastung sind Estimateen, keine direkte chemische Messung.", "Capacity and wear are estimates, not a direct chemical measurement."},
+                {"History Monthlich", "Monthly history"}, {"Offgewählter Zeitraum", "Selected period"},
+                {"Lade-/Usagesquote", "Charge/usage ratio"},
+                {"geladen geteilt durch verbraucht", "charged divided by used"},
+                {"aufgeladen", "charged"}, {"verbraucht", "used"},
+                {"Die Lade-/Usagesquote vergleicht geladene mit verbrauchter Energie und ist keine gemessene Battery-Efficiency. Balkenwerte (jede Kennzahl ist separat skaliert):", "The charge/usage ratio compares charged with used energy and is not measured battery efficiency. Bar values (each metric is scaled separately):"},
+                {"EFC sind äquivalente Vollzyklen, kein direkt gemessener chemischer Healthsverlust.", "EFC are equivalent full cycles, not a directly measured chemical health loss."}
         };
         for (String[] phrase : phrases) result = result.replace(phrase[0], phrase[1]);
         return result;

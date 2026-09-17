@@ -56,6 +56,10 @@ public class AppTextTest {
             assertEquals("Battery is full", AppText.t("Akku ist voll"));
             assertEquals("Charging now", AppText.t("Akku wird geladen"));
             assertEquals("Battery is discharging", AppText.t("Akku entlädt sich"));
+            assertEquals("Charge status: Not available. Charge target: Reached. Charged energy: 7612 mAh. Session duration: 8 hr 29 min.",
+                    AppText.t("Ladestatus: Nicht verfügbar. Ladeziel: Erreicht. Geladene Energie: 7612 mAh. Sitzungsdauer: 8 Std. 29 Min."));
+            assertEquals("Monthly history. Selected period: 6 CALENDAR MONTHS. Charge/usage ratio (charged divided by used): 1424 percent",
+                    AppText.t("Verlauf monatlich. Ausgewählter Zeitraum: 6 KALENDERMONATE. Lade-/Verbrauchsquote (geladen geteilt durch verbraucht): 1424 Prozent"));
             assertEquals("BATTERY BALANCE · 6 CALENDAR MONTHS",
                     AppText.t("AKKU-BILANZ · 6 KALENDERMONATE"));
         } finally {
