@@ -458,7 +458,7 @@ final class AppText {
                 {"Ladestatus", "Charge status"}, {"Erreicht", "Reached"},
                 {"Charge rate bei ", "Charge rate with "}, {"Chargede Energy", "Charged energy"},
                 {"Sessionsdauer", "Session duration"}, {"Netzteil", "Power adapter"},
-                {"Std.", "hr"}, {"Min.", "min"},
+                {"Std.", "hr"}, {"Min.", "min."},
                 {"Geschätzte Vollkapazität", "Estimated full capacity"},
                 {"Messquelle", "Measurement source"}, {"Keine Messung", "No measurement"},
                 {"Mindestens 5 % Battery level nötig", "At least 5% battery level required"},
