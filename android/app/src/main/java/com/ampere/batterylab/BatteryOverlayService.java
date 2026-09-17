@@ -93,7 +93,8 @@ public class BatteryOverlayService extends Service {
     private void createChannel() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
         NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        if (manager != null) manager.createNotificationChannel(new NotificationChannel(CHANNEL_ID, "Live-Akkuanzeige", NotificationManager.IMPORTANCE_LOW));
+        if (manager != null) manager.createNotificationChannel(new NotificationChannel(CHANNEL_ID,
+                AppText.t(this, "Live-Akkuanzeige"), NotificationManager.IMPORTANCE_LOW));
     }
 
     private Notification notification() {

@@ -173,7 +173,7 @@ final class UpdateChecker {
         prefs.edit().putLong("lastCheck", now).apply();
 
         WeakReference<Activity> activityRef = new WeakReference<>(activity);
-        if (force) Toast.makeText(activity, "Suche nach Aktualisierungen …", Toast.LENGTH_SHORT).show();
+        if (force) Toast.makeText(activity, AppText.t(activity, "Suche nach Aktualisierungen …"), Toast.LENGTH_SHORT).show();
         EXECUTOR.execute(() -> {
             try {
                 FetchResult result = fetch(manifestUrl);
@@ -195,7 +195,7 @@ final class UpdateChecker {
             if (checkInProgress || downloadInProgress || downloadCompletionInProgress || installInProgress
                     || hasPendingUpdateWork(context)) {
                 if (notify) {
-                    Toast.makeText(context, "Ein anderer Update-Vorgang läuft bereits.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, AppText.t(context, "Ein anderer Update-Vorgang läuft bereits."), Toast.LENGTH_SHORT).show();
                 }
                 return false;
             }
@@ -212,8 +212,8 @@ final class UpdateChecker {
 
     private static void showCheckResult(Activity activity, String message) {
         new AlertDialog.Builder(activity)
-                .setTitle("Update-Prüfung")
-                .setMessage(message)
+                .setTitle(AppText.t(activity, "Update-Prüfung"))
+                .setMessage(AppText.t(activity, message))
                 .setPositiveButton("Erneut prüfen", (dialog, which) -> checkNow(activity))
                 .setNegativeButton("Schließen", null)
                 .show();
@@ -347,10 +347,10 @@ final class UpdateChecker {
         NotificationManager manager = (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
         if (manager != null) manager.cancel(UPDATE_NOTIFICATION_ID);
         new AlertDialog.Builder(activity)
-                .setTitle("Update verfügbar · " + update.versionName)
-                .setMessage(update.notes + "\n\nDie kostenlose APK wird vor der Installation auf Hash, Paketname, Version und Release-Signatur geprüft. Android fragt anschließend noch einmal nach deiner Bestätigung.")
-                .setNegativeButton("Später", null)
-                .setPositiveButton("Herunterladen", (dialog, which) -> download(activity, update))
+                .setTitle(AppText.t(activity, "Update verfügbar · " + update.versionName))
+                .setMessage(update.notes + "\n\n" + AppText.t(activity, "Die kostenlose APK wird vor der Installation auf Hash, Paketname, Version und Release-Signatur geprüft. Android fragt anschließend noch einmal nach deiner Bestätigung."))
+                .setNegativeButton(AppText.t(activity, "Später"), null)
+                .setPositiveButton(AppText.t(activity, "Herunterladen"), (dialog, which) -> download(activity, update))
                 .show();
     }
 
@@ -358,7 +358,8 @@ final class UpdateChecker {
         NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if (manager == null) return;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                manager.createNotificationChannel(new NotificationChannel(UPDATE_CHANNEL_ID, "App-Aktualisierungen", NotificationManager.IMPORTANCE_DEFAULT));
+                manager.createNotificationChannel(new NotificationChannel(UPDATE_CHANNEL_ID,
+                        AppText.t(context, "App-Aktualisierungen"), NotificationManager.IMPORTANCE_DEFAULT));
         }
         Intent open = new Intent(context, MainActivity.class).setAction(ACTION_SHOW_UPDATE)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -367,8 +368,8 @@ final class UpdateChecker {
         Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
                 ? new Notification.Builder(context, UPDATE_CHANNEL_ID) : new Notification.Builder(context);
         builder.setSmallIcon(R.drawable.ic_launcher)
-                .setContentTitle("Ampere-Update verfügbar · " + update.versionName)
-                .setContentText("Tippen, um die kostenlose Aktualisierung zu prüfen")
+                .setContentTitle(AppText.t(context, "Ampere-Update verfügbar · " + update.versionName))
+                .setContentText(AppText.t(context, "Tippen, um die kostenlose Aktualisierung zu prüfen"))
                 .setStyle(new Notification.BigTextStyle().bigText(update.notes))
                 .setContentIntent(pending)
                 .setAutoCancel(true)
@@ -385,14 +386,14 @@ final class UpdateChecker {
         }
         DownloadManager manager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
         if (manager == null) {
-            Toast.makeText(activity, "Download ist auf diesem Gerät nicht verfügbar.", Toast.LENGTH_LONG).show();
+            Toast.makeText(activity, AppText.t(activity, "Download ist auf diesem Gerät nicht verfügbar."), Toast.LENGTH_LONG).show();
             return;
         }
         if (!tryStartDownload(activity)) return;
         try {
             DownloadManager.Request request = new DownloadManager.Request(Uri.parse(withCacheBuster(update.apkUrl)));
-            request.setTitle("Ampere-Update " + update.versionName);
-            request.setDescription("Kostenloses Update wird heruntergeladen");
+            request.setTitle(AppText.t(activity, "Ampere-Update " + update.versionName));
+            request.setDescription(AppText.t(activity, "Kostenloses Update wird heruntergeladen"));
             request.setMimeType("application/vnd.android.package-archive");
             request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
             request.setAllowedOverMetered(true);
@@ -420,14 +421,14 @@ final class UpdateChecker {
                 manager.remove(id);
                 clearDownloadState(activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE));
                 finishDownload();
-                Toast.makeText(activity, "Update konnte nicht sicher vorbereitet werden.", Toast.LENGTH_LONG).show();
+                Toast.makeText(activity, AppText.t(activity, "Update konnte nicht sicher vorbereitet werden."), Toast.LENGTH_LONG).show();
                 return;
             }
-            Toast.makeText(activity, "Update wird heruntergeladen …", Toast.LENGTH_LONG).show();
+            Toast.makeText(activity, AppText.t(activity, "Update wird heruntergeladen …"), Toast.LENGTH_LONG).show();
         } catch (Exception error) {
             clearDownloadState(activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE));
             finishDownload();
-            Toast.makeText(activity, "Update konnte nicht gestartet werden.", Toast.LENGTH_LONG).show();
+            Toast.makeText(activity, AppText.t(activity, "Update konnte nicht gestartet werden."), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -439,9 +440,9 @@ final class UpdateChecker {
         SharedPreferences prefs = activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         persistPendingUpdate(prefs, update);
         new AlertDialog.Builder(activity)
-                .setTitle("Installation einmal erlauben")
-                .setMessage("Android braucht deine Freigabe, damit Ampere eine APK zur Installation übergeben darf. Es wird noch nichts heruntergeladen. Nach der Freigabe erscheint das Update hier erneut; Android fragt vor der Installation zusätzlich nach deiner Bestätigung.")
-                .setNegativeButton("Abbrechen", (dialog, which) -> clearPendingUpdate(prefs))
+                .setTitle(AppText.t(activity, "Installation einmal erlauben"))
+                .setMessage(AppText.t(activity, "Android braucht deine Freigabe, damit Ampere eine APK zur Installation übergeben darf. Es wird noch nichts heruntergeladen. Nach der Freigabe erscheint das Update hier erneut; Android fragt vor der Installation zusätzlich nach deiner Bestätigung."))
+                .setNegativeButton(AppText.t(activity, "Abbrechen"), (dialog, which) -> clearPendingUpdate(prefs))
                 .setPositiveButton("Einstellung öffnen", (dialog, which) -> {
                     try {
                         Intent intent = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
@@ -449,7 +450,7 @@ final class UpdateChecker {
                         activity.startActivity(intent);
                     } catch (Exception error) {
                         Toast.makeText(activity,
-                                "Installationsfreigabe bitte in den App-Einstellungen aktivieren.",
+                                AppText.t(activity, "Installationsfreigabe bitte in den App-Einstellungen aktivieren."),
                                 Toast.LENGTH_LONG).show();
                     }
                 }).show();
@@ -459,7 +460,7 @@ final class UpdateChecker {
         synchronized (OPERATION_LOCK) {
             if (checkInProgress || downloadInProgress || downloadCompletionInProgress || installInProgress
                     || hasPendingUpdateWork(context)) {
-                Toast.makeText(context, "Ein anderer Update-Vorgang läuft bereits.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, AppText.t(context, "Ein anderer Update-Vorgang läuft bereits."), Toast.LENGTH_SHORT).show();
                 return false;
             }
             downloadInProgress = true;
@@ -509,21 +510,21 @@ final class UpdateChecker {
         if (!successful) {
             clearDownloadState(prefs);
             finishDownload();
-            Toast.makeText(context, "Update-Download fehlgeschlagen.", Toast.LENGTH_LONG).show();
+            Toast.makeText(context, AppText.t(context, "Update-Download fehlgeschlagen."), Toast.LENGTH_LONG).show();
             return;
         }
         if (totalSize > MAX_APK_BYTES) {
             manager.remove(received);
             clearDownloadState(prefs);
             finishDownload();
-            Toast.makeText(context, "Update verworfen: Datei ist zu groß.", Toast.LENGTH_LONG).show();
+            Toast.makeText(context, AppText.t(context, "Update verworfen: Datei ist zu groß."), Toast.LENGTH_LONG).show();
             return;
         }
         Uri apkUri = manager.getUriForDownloadedFile(received);
         if (apkUri == null) {
             clearDownloadState(prefs);
             finishDownload();
-            Toast.makeText(context, "Update-Datei konnte nicht geöffnet werden.", Toast.LENGTH_LONG).show();
+            Toast.makeText(context, AppText.t(context, "Update-Datei konnte nicht geöffnet werden."), Toast.LENGTH_LONG).show();
             return;
         }
         String expectedSha256 = prefs.getString(DOWNLOAD_SHA256, "");
@@ -535,7 +536,7 @@ final class UpdateChecker {
                     manager.remove(received);
                     clearDownloadState(prefs);
                     finishDownload();
-                    Toast.makeText(context, "Update verworfen: Hash, Version oder Release-Signatur ungültig.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(context, AppText.t(context, "Update verworfen: Hash, Version oder Release-Signatur ungültig."), Toast.LENGTH_LONG).show();
                     return;
                 }
                 synchronized (OPERATION_LOCK) {
@@ -548,7 +549,7 @@ final class UpdateChecker {
                     manager.remove(received);
                     clearDownloadState(prefs);
                     finishDownload();
-                    Toast.makeText(context, "Update konnte nicht sicher gestartet werden.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(context, AppText.t(context, "Update konnte nicht sicher gestartet werden."), Toast.LENGTH_LONG).show();
                     return;
                 }
                 Intent install = new Intent(Intent.ACTION_VIEW).setDataAndType(apkUri, "application/vnd.android.package-archive");
@@ -560,7 +561,7 @@ final class UpdateChecker {
                     prefs.edit().remove(INSTALL_IN_PROGRESS).apply();
                     clearDownloadState(prefs);
                     finishDownload();
-                    Toast.makeText(context, "Bitte die heruntergeladene APK aus den Dateien öffnen.", Toast.LENGTH_LONG).show();
+                Toast.makeText(context, AppText.t(context, "Bitte die heruntergeladene APK aus den Dateien öffnen."), Toast.LENGTH_LONG).show();
                 }
             });
         });

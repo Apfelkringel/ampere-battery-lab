@@ -110,12 +110,13 @@ public class BatteryQuickSettingsService extends TileService {
         tile.setLabel("Ampere");
         tile.setState(level >= 0 ? Tile.STATE_INACTIVE : Tile.STATE_UNAVAILABLE);
         if (Build.VERSION.SDK_INT >= 29) tile.setSubtitle(level >= 0
-                ? shortSubtitle(level, status, charging, current, temp)
-                : "Akku nicht verfügbar");
+                ? AppText.t(this, shortSubtitle(level, status, charging, current, temp))
+                : AppText.t(this, "Akku nicht verfügbar"));
         if (Build.VERSION.SDK_INT >= 30) {
             tile.setContentDescription(level >= 0
-                    ? "Akkustand " + level + " Prozent, " + subtitle(status, charging, current, temp, voltage)
-                    : "Akkustand nicht verfügbar");
+                    ? AppText.t(this, "Akkustand " + level + " Prozent, "
+                    + subtitle(status, charging, current, temp, voltage))
+                    : AppText.t(this, "Akkustand nicht verfügbar"));
         }
         tile.updateTile();
     }
