@@ -1483,12 +1483,17 @@ class BatteryDashboard extends View {
 
     private String healthDisplay() { return healthReading.percent > 0 ? String.valueOf(healthReading.percent) : "—"; }
 
-    private String temperatureDisplay() { return temperature > 0f ? String.format(Locale.GERMANY, "%.1f", temperature) : "—"; }
+    /** Keeps decimal separators, grouping and dates aligned with the app UI language. */
+    private Locale uiLocale() {
+        return AppText.isEnglish(getContext()) ? Locale.US : Locale.GERMANY;
+    }
 
-    private String voltageDisplay() { return voltage > 0f ? String.format(Locale.GERMANY, "%.2f", voltage) : "—"; }
+    private String temperatureDisplay() { return temperature > 0f ? String.format(uiLocale(), "%.1f", temperature) : "—"; }
+
+    private String voltageDisplay() { return voltage > 0f ? String.format(uiLocale(), "%.2f", voltage) : "—"; }
 
     private String mahDisplay(int value) {
-        return String.format(Locale.GERMANY, "%,d mAh", value);
+        return String.format(uiLocale(), "%,d mAh", value);
     }
 
     private String designCapacityDisplay() {
@@ -1506,13 +1511,13 @@ class BatteryDashboard extends View {
         int capacity = calculationCapacityMah();
         if (percentPerHour <= 0f || capacity <= 0) return "—";
         int mahPerHour = Math.round(percentPerHour * capacity / 100f);
-        return String.format(Locale.GERMANY, "%d mAh/h", mahPerHour);
+        return String.format(uiLocale(), "%d mAh/h", mahPerHour);
     }
 
     private String averageConsumptionPercentDisplay() {
         float percentPerHour = mixedDischargeRate();
         return percentPerHour > 0f
-                ? String.format(Locale.GERMANY, "%.1f %%/h", percentPerHour) : "—";
+                ? String.format(uiLocale(), "%.1f %%/h", percentPerHour) : "—";
     }
 
     private String livePowerDisplay() {
@@ -1862,7 +1867,7 @@ class BatteryDashboard extends View {
         }
         float average = score / Math.max(1, chargeLimit - Math.max(0, level));
         String label = average < .95f ? "Niedrig" : average < 1.35f ? "Mittel" : "Hoch";
-        return label + " · " + String.format(Locale.GERMANY, "%.1f×", average);
+        return label + " · " + String.format(uiLocale(), "%.1f×", average);
     }
 
     /** Calculates a local 7-day discharge rate from consecutive telemetry points. */
@@ -1946,7 +1951,7 @@ class BatteryDashboard extends View {
 
     private String averageDischargeRateDisplay() {
         float rate = mixedDischargeRate();
-        return rate > 0f ? String.format(Locale.GERMANY, "%.1f%%/h", rate) : "—";
+        return rate > 0f ? String.format(uiLocale(), "%.1f%%/h", rate) : "—";
     }
 
     private String runtimeEstimate() {
@@ -2025,7 +2030,7 @@ class BatteryDashboard extends View {
     private String drainRate() {
         int capacity = calculationCapacityMah();
         if (charging || currentMa < 50 || capacity <= 0) return "—";
-        return String.format(Locale.GERMANY, "%.1f%% / Std.", currentMa * 100f / capacity);
+        return String.format(uiLocale(), "%.1f%% / Std.", currentMa * 100f / capacity);
     }
 
     private String dischargeSpeed(boolean screenOn) {
@@ -2038,12 +2043,12 @@ class BatteryDashboard extends View {
         float percent = BatteryPercentage.normalizePhase(prefs.getFloat(percentKey, 0f));
         long minutes = prefs.getLong(durationKey, 0L) / 60000L;
         float storedRate = percent > 0f && minutes >= 5 ? percent * 60f / minutes : 0f;
-        if (Float.isFinite(storedRate) && storedRate > 0f) return String.format(Locale.GERMANY, "%.1f%%/h", storedRate);
+        if (Float.isFinite(storedRate) && storedRate > 0f) return String.format(uiLocale(), "%.1f%%/h", storedRate);
         int capacity = calculationCapacityMah();
         if (charging || currentMa < 50 || capacity <= 0) return "—";
         float liveRate = currentMa * 100f / capacity;
         return Float.isFinite(liveRate) && liveRate > 0f
-                ? String.format(Locale.GERMANY, "%.1f%%/h", liveRate) : "—";
+                ? String.format(uiLocale(), "%.1f%%/h", liveRate) : "—";
     }
 
     private String screenOnTime() {
@@ -2070,7 +2075,7 @@ class BatteryDashboard extends View {
         if (deepMs <= 0L || offMs <= 0L) return "—";
         float ratio = deepMs * 100f / offMs;
         return Float.isFinite(ratio) && ratio >= 0f
-                ? String.format(Locale.GERMANY, "%.0f%%", Math.min(100f, ratio)) : "—";
+                ? String.format(uiLocale(), "%.0f%%", Math.min(100f, ratio)) : "—";
     }
 
     private int wakeupCount() {
@@ -2095,7 +2100,7 @@ class BatteryDashboard extends View {
         if (!prefs.getBoolean("sinceFullActive", false)) return "Noch keine Ladebasis";
         float consumedPercent = BatteryPercentage.normalizeCumulative(prefs.getFloat("sinceFullPercent", 0f));
         String range = consumedPercent > 0f
-                ? String.format(Locale.GERMANY, "%.0f%% verbraucht", consumedPercent) : "Noch kein Verbrauch";
+                ? String.format(uiLocale(), "%.0f%% verbraucht", consumedPercent) : "Noch kein Verbrauch";
         int mah = prefs.getInt("sinceFullMah", 0);
         return range + " · " + sinceFullDuration() + " · " + (mah > 0 ? mah + " mAh" : "—");
     }
@@ -2159,7 +2164,7 @@ class BatteryDashboard extends View {
     private String chargeStartForDisplay() {
         long start = charging ? prefs.getLong("monitorSessionStartedAt", sessionStartedAt)
                 : prefs.getLong("lastChargeStartAt", 0L);
-        return start > 0L ? new SimpleDateFormat("dd.MM. HH:mm", Locale.GERMANY).format(new Date(start)) : "—";
+        return start > 0L ? new SimpleDateFormat("dd.MM. HH:mm", uiLocale()).format(new Date(start)) : "—";
     }
 
     private int chargeEnergyForDisplay() {
@@ -2205,7 +2210,7 @@ class BatteryDashboard extends View {
         String key = screenOn ? "dischargeScreenOnPercent" : "dischargeScreenOffPercent";
         if (charging) key = "last" + Character.toUpperCase(key.charAt(0)) + key.substring(1);
         float value = BatteryPercentage.normalizePhase(prefs.getFloat(key, 0f));
-        return value > 0f ? String.format(Locale.GERMANY, "%.0f%%", value) : "—";
+        return value > 0f ? String.format(uiLocale(), "%.0f%%", value) : "—";
     }
 
     private String dischargeDuration(boolean screenOn) {
@@ -2296,19 +2301,19 @@ class BatteryDashboard extends View {
         int mahPerHour = chargeSpeedMahPerHour(screenOn);
         if (mahPerHour <= 0) return "—";
         float percentPerHour = chargeSpeedPercentPerHour(screenOn);
-        if (percentPerHour > 0f) return String.format(Locale.GERMANY, "%d mAh/h · %.1f%%/h", mahPerHour, percentPerHour);
-        return String.format(Locale.GERMANY, "%d mAh/h", mahPerHour);
+        if (percentPerHour > 0f) return String.format(uiLocale(), "%d mAh/h · %.1f%%/h", mahPerHour, percentPerHour);
+        return String.format(uiLocale(), "%d mAh/h", mahPerHour);
     }
 
     private String compactChargeSpeed(boolean screenOn) {
         int mahPerHour = chargeSpeedMahPerHour(screenOn);
         if (mahPerHour <= 0) return "—";
-        return String.format(Locale.GERMANY, "%d mAh/h", mahPerHour);
+        return String.format(uiLocale(), "%d mAh/h", mahPerHour);
     }
 
     private String compactChargeSpeedRate(boolean screenOn) {
         float percentPerHour = chargeSpeedPercentPerHour(screenOn);
-        return percentPerHour > 0f ? String.format(Locale.GERMANY, "%.1f%%/h", percentPerHour) : "Rate nicht verfügbar";
+        return percentPerHour > 0f ? String.format(uiLocale(), "%.1f%%/h", percentPerHour) : "Rate nicht verfügbar";
     }
 
     private int chargeCycles() {
@@ -2328,13 +2333,13 @@ class BatteryDashboard extends View {
     private String lastChargeEquivalentCycles() {
         int energy = lastChargeEnergyMah();
         int design = designCapacityMah();
-        return energy > 0 && design > 0 ? String.format(Locale.GERMANY, "%.2f EFC", energy / (float) design) : "—";
+        return energy > 0 && design > 0 ? String.format(uiLocale(), "%.2f EFC", energy / (float) design) : "—";
     }
 
     private String totalEquivalentCycles() {
         int charged = prefs.getInt("totalChargedMah", 0);
         int design = designCapacityMah();
-        return charged > 0 && design > 0 ? String.format(Locale.GERMANY, "%.2f EFC", charged / (float) design) : "—";
+        return charged > 0 && design > 0 ? String.format(uiLocale(), "%.2f EFC", charged / (float) design) : "—";
     }
 
     private ArrayList<String[]> chargeWearRows() {
@@ -2756,7 +2761,7 @@ class BatteryDashboard extends View {
         long lastRequest = prefs.getLong("lastBackupRequestAt", 0L);
         boolean english = AppText.isEnglish(getContext());
         if (lastRequest <= 0L) return english ? "No automatic backup has been requested yet." : "Noch keine automatische Sicherung angefordert.";
-        String date = new SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.GERMANY).format(new Date(lastRequest));
+        String date = new SimpleDateFormat("dd.MM.yyyy HH:mm", uiLocale()).format(new Date(lastRequest));
         return english ? "Last automatic backup request: " + date + ". Android controls the backup service and timing." : "Letzte automatische Sicherungsanforderung: " + date + ". Android steuert Dienst und Zeitpunkt der Sicherung.";
     }
 
@@ -3370,7 +3375,7 @@ class BatteryDashboard extends View {
             boundedText(c, batteryChipLabel(), 57, 122, top + 82, 8, stateColor, true);
         }
         int health = healthPercent();
-        String powerText = currentMa > 0 ? String.format(Locale.GERMANY, "ca. %.1f W aktueller Verbrauch", currentMa * voltage / 1000f) : "Warte auf Strommessung";
+        String powerText = currentMa > 0 ? String.format(uiLocale(), "ca. %.1f W aktueller Verbrauch", currentMa * voltage / 1000f) : "Warte auf Strommessung";
         String detectionText = batteryAvailable
                 ? (charging ? chargerTypeDisplay() + " · automatisch von Android erkannt" : powerText + " · automatisch von Android erkannt")
                 : "Warte auf Android-Akkuwert";
@@ -3754,7 +3759,7 @@ class BatteryDashboard extends View {
         else if ("grid".equals(glyph)) drawGrid(c, l + 29.5f, t + 29.5f, lime);
         else if ("moon".equals(glyph)) drawMoon(c, l + 29.5f, t + 29.5f, lime);
         else drawBolt(c, l + 29.5f, t + 29.5f, lime, .65f);
-        text(c, eyebrow.toUpperCase(Locale.GERMANY), l + 14, t + 65, 8.8f, muted, true);
+        text(c, eyebrow.toUpperCase(uiLocale()), l + 14, t + 65, 8.8f, muted, true);
         boundedText(c, value, l + 14, r - 12, t + 88, metricValueSize(value), primary, true);
         boundedText(c, caption, l + 14, r - 12, t + 105, 9.2f, muted, false);
     }
@@ -3846,24 +3851,24 @@ class BatteryDashboard extends View {
     private String chargeEnergyWhDisplay() {
         int mah = chargeEnergyForDisplay();
         if (mah <= 0 || voltage <= 0f) return "Noch offen";
-        return String.format(Locale.GERMANY, "≈ %.2f Wh", mah * voltage / 1000f);
+        return String.format(uiLocale(), "≈ %.2f Wh", mah * voltage / 1000f);
     }
 
     private String dischargeEnergyWhDisplay() {
         int mah = dischargeMah();
         if (mah <= 0 || voltage <= 0f) return "Noch offen";
-        return String.format(Locale.GERMANY, "≈ %.2f Wh", mah * voltage / 1000f);
+        return String.format(uiLocale(), "≈ %.2f Wh", mah * voltage / 1000f);
     }
 
     private String powerRangeDisplay(BatteryPowerStats.Range range) {
         if (range == null || !range.isAvailable()) return "Noch keine Reihe";
-        return String.format(Locale.GERMANY, "%.1f / %.1f / %.1f W",
+        return String.format(uiLocale(), "%.1f / %.1f / %.1f W",
                 range.minimumMw / 1000f, range.averageMw / 1000f, range.maximumMw / 1000f);
     }
 
     private String temperatureRangeDisplay(BatteryTelemetryDiagnostics.Summary summary) {
         if (summary == null || !summary.hasTemperatureData()) return "Noch keine Reihe";
-        return String.format(Locale.GERMANY, "%.1f / %.1f / %.1f °C",
+        return String.format(uiLocale(), "%.1f / %.1f / %.1f °C",
                 summary.minTemperatureTenths / 10f,
                 summary.averageTemperatureTenths / 10f,
                 summary.maxTemperatureTenths / 10f);
@@ -3915,10 +3920,10 @@ class BatteryDashboard extends View {
         float percentPerHour = Math.max(chargeSpeedPercentPerHour(true), chargeSpeedPercentPerHour(false));
         if (mahPerHour <= 0 && percentPerHour <= 0f) return "Noch offen";
         if (mahPerHour > 0 && percentPerHour > 0f) {
-            return String.format(Locale.GERMANY, "%d mAh/h · %.1f %%/h", mahPerHour, percentPerHour);
+            return String.format(uiLocale(), "%d mAh/h · %.1f %%/h", mahPerHour, percentPerHour);
         }
         return mahPerHour > 0 ? mahPerHour + " mAh/h"
-                : String.format(Locale.GERMANY, "%.1f %%/h", percentPerHour);
+                : String.format(uiLocale(), "%.1f %%/h", percentPerHour);
     }
 
     private String healthSampleRangeDisplay() {
@@ -3931,7 +3936,7 @@ class BatteryDashboard extends View {
             maximum = Math.max(maximum, sample);
             sum += sample;
         }
-        return String.format(Locale.GERMANY, "%d / %d / %d mAh",
+        return String.format(uiLocale(), "%d / %d / %d mAh",
                 minimum, Math.round(sum / (float) healthSamples.size()), maximum);
     }
 
@@ -4932,7 +4937,7 @@ class BatteryDashboard extends View {
         labels.addView(name, new LinearLayout.LayoutParams(-1, -2));
         String rateLabel = BatteryAppAttribution.appRateLabel(
                 estimate.rateMahPerHour, estimate.directTelemetry);
-        String usageDetail = String.format(Locale.GERMANY, "%d Min. · %s · %s",
+        String usageDetail = String.format(uiLocale(), "%d Min. · %s · %s",
                 Math.max(1L, estimate.usage.foregroundMs / 60000L),
                 estimate.directTelemetry ? "Telemetrie-Schätzung" : "Vordergrundzeit-Schätzung", rateLabel);
         TextView detail = usageText(usageDetail, 10, secondary, false);
@@ -5228,7 +5233,7 @@ class BatteryDashboard extends View {
         text(c, historyPeriodRangeLabel(), 36, cardsTop - 8, 8, faint, false);
         drawStat(c, 18, cardsTop, cardW, 104, "Aufgeladen", selectedPeriod.chargedMah > 0 ? "+" + selectedPeriod.chargedMah : "—", "mAh", lime, primary, muted, border, panel, "bolt");
         drawStat(c, 18 + cardW + cardGap, cardsTop, cardW, 104, "Akkuverbrauch", selectedPeriod.consumedMah > 0 ? "−" + selectedPeriod.consumedMah : "—", "mAh", blue, primary, muted, border, panel, "arrow");
-        drawStat(c, 18, cardsTop + 116, cardW, 104, "Akkuverschleiß", selectedPeriod.wearCycles > 0f ? String.format(Locale.GERMANY, "%.2f", selectedPeriod.wearCycles) : "—", "EFC", amber, primary, muted, border, panel, "heart");
+        drawStat(c, 18, cardsTop + 116, cardW, 104, "Akkuverschleiß", selectedPeriod.wearCycles > 0f ? String.format(uiLocale(), "%.2f", selectedPeriod.wearCycles) : "—", "EFC", amber, primary, muted, border, panel, "heart");
         drawStat(c, 18 + cardW + cardGap, cardsTop + 116, cardW, 104, "Geladen/Verbrauch", selectedPeriod.consumedMah > 0 ? selectedPeriod.chargeConsumptionRatioPercent + "" : "—", selectedPeriod.consumedMah > 0 ? "%" : "", lime, primary, muted, border, panel, "grid");
         text(c, "— = keine auswertbaren Messwerte", 36, cardsTop + 232, 8, faint, false);
 
@@ -5255,7 +5260,7 @@ class BatteryDashboard extends View {
                 ? "Geladen/Verbrauch: " + selectedPeriod.chargeConsumptionRatioPercent + "%"
                 : "Noch keine Verbrauchsdaten für die Quote";
         String wearText = selectedPeriod.wearCycles > 0f
-                ? String.format(Locale.GERMANY, "%.2f EFC", selectedPeriod.wearCycles) : "EFC n/v";
+                ? String.format(uiLocale(), "%.2f EFC", selectedPeriod.wearCycles) : "EFC n/v";
         boundedText(c, ratioText + " · " + wearText, 36, w - 36, insightTop + 51, 10, primary, true);
         boundedText(c, "Quote = geladen ÷ Verbrauch · EFC = Vollzyklen, kein Zellwirkungsgrad.", 36, w - 36, insightTop + 72, 8, muted, false);
 
@@ -5378,7 +5383,7 @@ class BatteryDashboard extends View {
         BatteryHistoryStats.Bucket bucket = buckets.get(bucketIndex);
         String datePattern = historyPeriodDays == 1 ? "EEEE, d. MMMM"
                 : historyPeriodDays == 7 ? "d. MMMM yyyy" : "MMMM yyyy";
-        String date = new SimpleDateFormat(datePattern, Locale.GERMANY)
+        String date = new SimpleDateFormat(datePattern, uiLocale())
                 .format(new Date(bucket.start));
         String message;
         if (bucket.measuredIntervals <= 0) {
@@ -5386,7 +5391,7 @@ class BatteryDashboard extends View {
                     + "\n\nDie Balken jeder Kennzahl werden separat skaliert.";
         } else {
             String wear = calculationCapacityMah() > 0
-                    ? String.format(Locale.GERMANY, "%.2f EFC", bucket.wearCycles)
+                    ? String.format(uiLocale(), "%.2f EFC", bucket.wearCycles)
                     : "— · Kapazität fehlt";
             String ratio = bucket.consumedMah > 0
                     ? bucket.chargeConsumptionRatioPercent + "%" : "— · kein Verbrauchswert";
@@ -5567,28 +5572,28 @@ class BatteryDashboard extends View {
         if (summary.maxTemperatureTenths > 0) {
             result.append(" · T ");
             if (summary.hasTemperatureData()) {
-                result.append(String.format(Locale.GERMANY, "%.1f/%.1f/%.1f°C",
+                result.append(String.format(uiLocale(), "%.1f/%.1f/%.1f°C",
                         summary.minTemperatureTenths / 10f,
                         summary.averageTemperatureTenths / 10f,
                         summary.maxTemperatureTenths / 10f));
             } else {
-                result.append("max ").append(String.format(Locale.GERMANY, "%.1f°C",
+                result.append("max ").append(String.format(uiLocale(), "%.1f°C",
                         summary.maxTemperatureTenths / 10f));
             }
         }
         if (summary.hasVoltageData()) {
-            result.append(" · min ").append(String.format(Locale.GERMANY, "%.2fV",
+            result.append(" · min ").append(String.format(uiLocale(), "%.2fV",
                     summary.minDischargeVoltageMv / 1000f));
         }
         if (summary.powerStats.hasData()) {
             result.append(" · P ");
             if (summary.powerStats.charging.isAvailable()) {
-                result.append("L ").append(String.format(Locale.GERMANY, "%.1fW",
+                result.append("L ").append(String.format(uiLocale(), "%.1fW",
                         summary.powerStats.charging.averageMw / 1000f));
             }
             if (summary.powerStats.discharging.isAvailable()) {
                 if (summary.powerStats.charging.isAvailable()) result.append(" / ");
-                result.append("E ").append(String.format(Locale.GERMANY, "%.1fW",
+                result.append("E ").append(String.format(uiLocale(), "%.1fW",
                         summary.powerStats.discharging.averageMw / 1000f));
             }
         }
@@ -5605,7 +5610,7 @@ class BatteryDashboard extends View {
     private String telemetryTemperatureDisplay() {
         BatteryTelemetryDiagnostics.Summary summary = telemetryDiagnostics();
         return summary.hasTemperatureData()
-                ? String.format(Locale.GERMANY, "%.1f/%.1f/%.1f°C",
+                ? String.format(uiLocale(), "%.1f/%.1f/%.1f°C",
                 summary.minTemperatureTenths / 10f,
                 summary.averageTemperatureTenths / 10f,
                 summary.maxTemperatureTenths / 10f) : "—";
@@ -5706,7 +5711,7 @@ class BatteryDashboard extends View {
     private String formatTimestamp(String value) {
         try {
             long timestamp = Long.parseLong(value);
-            return new SimpleDateFormat("dd.MM., HH:mm", Locale.GERMANY).format(new Date(timestamp));
+            return new SimpleDateFormat("dd.MM., HH:mm", uiLocale()).format(new Date(timestamp));
         } catch (NumberFormatException ignored) {
             return value;
         }
@@ -6136,7 +6141,7 @@ class BatteryDashboard extends View {
         long span = Math.max(0L, end - start);
         String pattern = span <= 36L * 60L * 60L * 1000L
                 ? "HH:mm" : historyDays == 30 ? "d. MMM" : "EEE";
-        return new SimpleDateFormat(pattern, Locale.GERMANY).format(new Date(start + (long) ((end - start) * fraction)));
+        return new SimpleDateFormat(pattern, uiLocale()).format(new Date(start + (long) ((end - start) * fraction)));
     }
 
     private float[] chartValues() {
@@ -6156,7 +6161,7 @@ class BatteryDashboard extends View {
         if (source.isEmpty()) return "—";
         int total = 0;
         for (Integer value : source) total += Math.max(0, Math.min(100, value));
-        return String.format(Locale.GERMANY, "%.0f%%", total / (float) source.size());
+        return String.format(uiLocale(), "%.0f%%", total / (float) source.size());
     }
 
     private String chartRange() {
@@ -6638,13 +6643,13 @@ class BatteryDashboard extends View {
                 String searched, int virtualViewId) {
             ArrayList<AccessibilityNodeInfo> result = new ArrayList<>();
             if (searched == null) return result;
-            String query = searched.toLowerCase(Locale.GERMANY);
+            String query = searched.toLowerCase(uiLocale());
             int lastId = page == 4 ? 99 + historyChartBucketCount()
                     : BatteryAccessibilityLayout.DISCHARGE_NORMAL;
             for (int id = 1; id <= lastId; id++) {
                 if (!isVisibleVirtualView(id)) continue;
                 String label = virtualViewLabel(id);
-                if (label.toLowerCase(Locale.GERMANY).contains(query)) {
+                if (label.toLowerCase(uiLocale()).contains(query)) {
                     AccessibilityNodeInfo node = createAccessibilityNodeInfo(id);
                     if (node != null) result.add(node);
                 }
