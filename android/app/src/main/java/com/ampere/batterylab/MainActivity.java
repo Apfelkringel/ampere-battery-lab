@@ -413,7 +413,7 @@ public class MainActivity extends Activity {
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override public void onProgressChanged(SeekBar view, int progress, boolean fromUser) {
                 int limit = 50 + progress;
-                label.setText(AppText.t(this, "Ladeziel: " + limit + " Prozent"));
+                label.setText(AppText.t(MainActivity.this, "Ladeziel: " + limit + " Prozent"));
                 if (fromUser) dashboard.setChargeLimitFromLargeText(limit);
             }
 
@@ -4911,7 +4911,7 @@ class BatteryDashboard extends View {
 
     private TextView usageText(String value, float size, int color, boolean bold) {
         TextView text = new TextView(getContext());
-        text.setText(AppText.t(this, value));
+        text.setText(AppText.t(getContext(), value));
         text.setTextSize(size);
         text.setTextColor(color);
         text.setTypeface(Typeface.DEFAULT, bold ? Typeface.BOLD : Typeface.NORMAL);
