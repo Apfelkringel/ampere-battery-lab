@@ -5,8 +5,20 @@ Last verified: 2026-09-17 (Europe/Berlin)
 Version `0.403` aligns the dashboard's 7-day/30-day button hitboxes with their
 drawn positions and fixes the chart's vertical hitbox origin in compact layouts.
 Touch, TalkBack and selected-range feedback now use the same bounds. Direct and
-Play each pass unit tests; both debug lint tasks pass. Signed release, public
-APK/manifest and Play alpha publication are pending.
+Play each pass 208 unit tests; both debug lint tasks pass. The signed `v0.403`
+tag is GitHub-verified, and release workflow
+[`35210773409`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35210773409)
+passed. Update-repository commit
+[`ef397da`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/ef397da)
+publishes the artifacts. Fresh public downloads match manifest SHA-256 values
+`80064c4da41d94bd186c21d732762200cf61b7e3b08a6ec15611ee893377e59e` (APK) and
+`321ab8e24adb65ddb7a7cd535114c8b6e1d4e626c967f78f3f18922395d314f5` (AAB).
+The APK is `com.ampere.batterylab`, version code/name `403`/`0.403`, signed by
+the expected certificate SHA-256
+`301bed44b5cc342485b485b24baeea404dbdb216e6e3e134ad2ebd6b28d1dce3`. Play
+alpha publishing workflow
+[`35211181290`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35211181290)
+passed.
 
 Version `0.402` fixes the home dashboard's screen-time tile: short durations
 use compact hour/minute labels (for example, `16h 22m`) so the full value is
