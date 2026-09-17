@@ -2,6 +2,28 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.401` completes the two-step first-run guide by requesting Android's
+notification permission only after the user chooses “Loslegen”. App-usage and
+overlay access remain optional and in-context. Opening the checklist starts
+the reminder cooldown, preventing an immediate duplicate after denial; a
+previously granted optional access is now treated as tracked even if it was
+enabled outside Ampere, so its later revocation is detected. Direct and Play
+each pass 206 unit tests; both lint tasks and both debug APK builds pass. A
+local Android emulator was unavailable for visual verification. GitHub verifies
+the signed `v0.401` tag, and release workflow
+[`35208960083`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35208960083)
+passed. Update-repository commit
+[`93ef3bb`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/93ef3bb)
+publishes the artifacts. Fresh public downloads match manifest SHA-256 values
+`616c22dfbb18b55a9f8988222e24fc2488ac0cd29f9d5bea655d11fc6957418d` (APK) and
+`a183beca374fa3fbaa63d163e5a45c275b082c4ca912fcc86a56cf2ea3f24fcc` (AAB).
+The APK is `com.ampere.batterylab`, version code/name `401`/`0.401`, signed by
+the expected certificate SHA-256
+`301bed44b5cc342485b485b24baeea404dbdb216e6e3e134ad2ebd6b28d1dce3`. Play
+alpha publishing workflow
+[`35209495681`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35209495681)
+passed.
+
 Version `0.400` prints the exact charge, consumption, wear and charge-ratio
 values below each daily, weekly and monthly chart group, aligned by period and
 colored in the same order as the legend. Missing periods and unavailable wear
