@@ -2,6 +2,24 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.433` localizes the remaining user-visible system surfaces for the
+English locale: the live overlay and charge-target, high-temperature and low-
+battery alarm notifications now translate their labels while preserving live
+values such as CPU load, voltage and thresholds. Direct and Play each pass
+218 unit tests and both debug lint tasks pass. The signed `v0.433` tag is
+GitHub-verified, and release workflow
+[`35248010726`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35248010726)
+passed. Public update-repository commit
+[`3c83954`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/3c83954)
+publishes the artifacts. Fresh public APK and AAB downloads match
+`latest.json`: SHA-256
+`61bc31919868bd96aecc82d4622d3779b9bec4f99a805b367d0252a786177c2a` (APK)
+and `91b51c80dcbcf1ee98108118f25c5afdc86f3e77706fd6dacc6bfefb19771ada`
+(AAB). The public manifest reports version code/name `433`/`0.433` and the
+package remains `com.ampere.batterylab`. Play alpha publishing workflow
+[`35248654360`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35248654360)
+passed after a transient public API 403 retry.
+
 Version `0.432` clarifies empty discharge forecasts. When the device is
 charging without a usable discharge history, each unavailable forecast now
 shows the actionable hint “Start a discharge session” instead of the vague
