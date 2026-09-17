@@ -3,10 +3,22 @@
 Last verified: 2026-09-17 (Europe/Berlin)
 
 Version `0.413` adds a complete English UI layer selected from the device
-language. The custom dashboard, large-text mode, app-usage view, accessibility
-summaries, widgets, live monitoring notification and overlay notification now
-translate their visible battery vocabulary while preserving measurements and
-app names. Direct and Play debug tests and lint are pending release verification.
+language. The custom dashboard, large-text mode, app-usage view, widgets, live
+monitoring notification and overlay notification translate their visible
+battery vocabulary while preserving measurements and app names. Direct and
+Play each pass 216 unit tests; both debug lint tasks pass. The signed `v0.413`
+tag is GitHub-verified, and release workflow
+[`35223121207`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35223121207)
+passed. Update-repository commit
+[`6d14c45`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/6d14c45)
+publishes the artifacts. Fresh public APK and AAB downloads match manifest
+SHA-256 values
+`8daeb7e9c3eb19f8b4b82885b9c1fc7b7b31c96fec4b296223e81632dd8e8053` (APK) and
+`fab3df6094662209823d98dbd6e7be78d6c45d29c9a04ab7d79a2092fee1872f` (AAB).
+The APK is `com.ampere.batterylab`, version code/name `413`/`0.413`. Play alpha
+publishing workflow
+[`35223671829`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35223671829)
+passed.
 
 Version `0.412` adds the real launcher icon beside each app in the “Akkuverbrauch
 deiner Apps” summary. This improves visual scanning while keeping estimated
