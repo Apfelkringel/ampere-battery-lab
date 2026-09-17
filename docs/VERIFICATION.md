@@ -2,6 +2,18 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.452` translates the live energy-flow heading (`LIVE ENERGY FLOW`)
+and the excellent battery-health label (`Very good`) in English. Regression
+tests cover both strings. CI release workflow
+[`35272018692`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35272018692)
+and Play alpha publishing workflow
+[`35272858313`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35272858313)
+passed. Public update-repository commit
+[`a6d5f77`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/a6d5f77)
+publishes the artifacts. The public APK matches `latest.json` with SHA-256
+`e0998c1b828230f23cdd4911c490984dbc9734a0c259d35cd6c130f9a2af95fb` and
+reports package `com.ampere.batterylab`, version code/name `452`/`0.452`.
+
 Version `0.450` fixes the remaining mixed-language live usage status: the
 English overview now shows “Usage is tracked live.” instead of “Usage wird live
 erfasst.” A regression test covers the replacement-order case. The signed
