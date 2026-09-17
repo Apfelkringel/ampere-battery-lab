@@ -2,6 +2,9 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.408` wraps long app names and usage details over two lines instead of
+ellipsizing them. Direct and Play test and lint verification is pending.
+
 Version `0.407` makes the values below the history bars larger, explains that
 bar height is scaled per metric, and hints that the large-text navigation tabs
 can scroll horizontally. Its emulator audit at 320×640 verified the dashboard,

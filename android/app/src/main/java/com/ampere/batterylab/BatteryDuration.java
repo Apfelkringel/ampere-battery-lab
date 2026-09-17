@@ -14,7 +14,7 @@ final class BatteryDuration {
                 : hours + " h " + remainingMinutes + " m";
     }
 
-    /** Short label for narrow dashboard cards, where even a compact value is ellipsized. */
+    /** Short label for narrow dashboard cards while keeping the complete duration. */
     static String dashboard(long minutes) {
         if (minutes <= 0L) return "—";
         long hours = minutes / 60L;

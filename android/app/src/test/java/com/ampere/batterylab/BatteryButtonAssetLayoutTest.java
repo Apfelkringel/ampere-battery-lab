@@ -459,6 +459,17 @@ public class BatteryButtonAssetLayoutTest {
                         && dashboard.contains("setFadingEdgeLength(dp(18))"));
     }
 
+    @Test public void appUsageLabelsWrapInsteadOfHidingTheirEnd() throws IOException {
+        String dashboard = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
+                StandardCharsets.UTF_8);
+        assertTrue("app usage names and details must wrap to two lines",
+                dashboard.contains("name.setMaxLines(2)")
+                        && dashboard.contains("detail.setMaxLines(2)")
+                        && dashboard.contains("name.setEllipsize(null)")
+                        && dashboard.contains("detail.setEllipsize(null)"));
+    }
+
     private static int countOccurrences(String value, String needle) {
         int count = 0;
         int offset = 0;

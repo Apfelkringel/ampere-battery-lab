@@ -4796,8 +4796,10 @@ class BatteryDashboard extends View {
         labels.setPadding(dp(12), 0, dp(6), 0);
         LinearLayout.LayoutParams labelsParams = new LinearLayout.LayoutParams(0, -2, 1f);
         TextView name = usageText(estimate.label, 15, ink, true);
-        name.setMaxLines(1);
-        name.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        // Keep app identities complete on narrow screens; wrap instead of hiding
+        // the meaningful end of a package/app name behind an ellipsis.
+        name.setMaxLines(2);
+        name.setEllipsize(null);
         labels.addView(name, new LinearLayout.LayoutParams(-1, -2));
         String rateLabel = BatteryAppAttribution.appRateLabel(
                 estimate.rateMahPerHour, estimate.directTelemetry);
@@ -4805,8 +4807,8 @@ class BatteryDashboard extends View {
                 Math.max(1L, estimate.usage.foregroundMs / 60000L),
                 estimate.directTelemetry ? "Telemetrie-Schätzung" : "Vordergrundzeit-Schätzung", rateLabel);
         TextView detail = usageText(usageDetail, 10, secondary, false);
-        detail.setMaxLines(1);
-        detail.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        detail.setMaxLines(2);
+        detail.setEllipsize(null);
         labels.addView(detail, new LinearLayout.LayoutParams(-1, -2));
         heading.addView(labels, labelsParams);
 
