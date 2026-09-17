@@ -30,6 +30,7 @@ public class AppTextTest {
             assertEquals("Start the capacity measurement unplugged and below 25%.",
                     AppText.t("Starte die Kapazitätsmessung getrennt vom Ladegerät unter 25 %."));
             assertEquals("Battery status copied.", AppText.t("Akkustatus kopiert."));
+            assertEquals("Start a discharge session", AppText.t("Entladung starten"));
         } finally {
             Locale.setDefault(previous);
         }

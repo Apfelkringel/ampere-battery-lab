@@ -81,6 +81,7 @@ final class AppText {
                 {"Bildschirm an", "Screen on"}, {"Bildschirm aus", "Screen off"},
                 {"Bildschirm an / aus", "Screen on / off"},
                 {"Nach dem Abstecken", "After unplugging"},
+                {"Entladung starten", "Start a discharge session"},
                 {"Normale Nutzung", "Normal use"}, {"Mehr Daten", "More data"},
                 {"seit dem Abstecken", "since unplugging"},
                 {"Seit dem Abstecken", "Since unplugging"},
@@ -365,6 +366,7 @@ final class AppText {
                 {"Battery level aktuell", "Current battery level"},
                 // The broad navigation word "Start" must not alter "Starte ..." in dialogs.
                 {"Homee die Kapazitätsmessung getrennt vom Ladegerät unter 25 %.", "Start the capacity measurement unplugged and below 25%."},
+                {"Home a discharge session", "Start a discharge session"},
                 {"Batterystatus kopiert.", "Battery status copied."},
                 {"Since unplugging · geschätzte Werte", "Since unplugging · estimated values"}
         };

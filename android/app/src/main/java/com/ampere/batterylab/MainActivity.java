@@ -3773,9 +3773,14 @@ class BatteryDashboard extends View {
                                         String label, String value, String source,
                                         int valueColor, int labelColor) {
         float valueLeft = Math.max(left + 112f, right - 82f);
+        // A dash plus “After unplugging” looked like a broken estimate. Make
+        // the empty state actionable while retaining the precise source once
+        // enough discharge data exists.
+        String visibleSource = "—".equals(value) && "Nach dem Abstecken".equals(source)
+                ? "Entladung starten" : source;
         boundedText(c, label, left, valueLeft - 8f, top, 9.5f, labelColor, true);
         boundedRightText(c, value, valueLeft, right, top, 12f, valueColor, true);
-        boundedText(c, source, left, right, top + 17f, 9.2f, labelColor, false);
+        boundedText(c, visibleSource, left, right, top + 17f, 9.2f, labelColor, false);
         if (top < 500f) line(c, left, top + 25f, right, top + 25f,
                 Color.rgb(24, 118, 119), .7f);
     }
