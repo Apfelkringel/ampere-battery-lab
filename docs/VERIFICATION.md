@@ -2,6 +2,12 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.403` aligns the dashboard's 7-day/30-day button hitboxes with their
+drawn positions and fixes the chart's vertical hitbox origin in compact layouts.
+Touch, TalkBack and selected-range feedback now use the same bounds. Direct and
+Play each pass unit tests; both debug lint tasks pass. Signed release, public
+APK/manifest and Play alpha publication are pending.
+
 Version `0.402` fixes the home dashboard's screen-time tile: short durations
 use compact hour/minute labels (for example, `16h 22m`) so the full value is
 visible instead of ending in an ellipsis. Direct and Play each pass 207 unit

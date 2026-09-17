@@ -1207,7 +1207,9 @@ class BatteryDashboard extends View {
         float heroWidth = Math.min(bodyWidth - 36, 520);
         boolean compact = viewportWidthDp > 0f ? viewportWidthDp < 600f : width < 600f;
         float heroHeight = compact ? 410f : 320f;
-        return 182 + heroHeight + 14 + 210 + 234;
+        float liveHeight = BatteryMetricLayout.shouldUseCompactLiveFlow(bodyWidth - 36f)
+                ? 230f : 196f;
+        return 182 + heroHeight + 14 + liveHeight + 14 + 234;
     }
 
     private int sessionCount(String type) {
@@ -2983,11 +2985,9 @@ class BatteryDashboard extends View {
                 && x >= 52 && x <= 18 + compactHeroWidth - 34) {
             return 23;
         }
-        if (page == 0 && y >= overviewChartTop() + 8f && y < overviewChartTop() + 60f
-                && x >= contentInset(w) + contentWidth(w) - 112f) {
-            float bodyX = x - contentInset(w);
-            if (bodyX <= contentWidth(w) - 58f) return BatteryAccessibilityLayout.OVERVIEW_7D;
-            if (bodyX >= contentWidth(w) - 54f) return BatteryAccessibilityLayout.OVERVIEW_30D;
+        if (page == 0) {
+            int rangeControl = overviewRangeControlAt(x, y, w);
+            if (rangeControl != 0) return rangeControl;
         }
         if (page == 1 && isWithinCanvasControl(BatteryAccessibilityLayout.CHARGE_LIMIT, x, y, w)) return 20;
         if (page == 1 && isWithinCanvasControl(BatteryAccessibilityLayout.CHARGE_ALARM, x, y, w)) return 21;
@@ -3016,6 +3016,19 @@ class BatteryDashboard extends View {
                 historyExportTop(), usesEditorialPortrait(screenWidth));
         return screenX >= bounds[0] && screenX < bounds[2]
                 && y >= bounds[1] && y < bounds[3];
+    }
+
+    private int overviewRangeControlAt(float screenX, float y, float screenWidth) {
+        float bodyInset = contentInset(screenWidth);
+        float bodyWidth = contentWidth(screenWidth);
+        for (int control : new int[]{BatteryAccessibilityLayout.OVERVIEW_7D,
+                BatteryAccessibilityLayout.OVERVIEW_30D}) {
+            int[] bounds = BatteryAccessibilityLayout.bounds(control, bodyInset, bodyWidth,
+                    overviewChartTop(), historyExportTop(), usesEditorialPortrait(screenWidth));
+            if (screenX >= bounds[0] && screenX < bounds[2]
+                    && y >= bounds[1] && y < bounds[3]) return control;
+        }
+        return 0;
     }
 
     private String fitText(String value, float maxWidthDp, float size, boolean bold) {
@@ -6652,19 +6665,15 @@ class BatteryDashboard extends View {
             showHistoryBucketDetails(releasedRegion - 100);
             return true;
         }
-        if (page == 0 && y > overviewChartTop() + 8 && y < overviewChartTop() + 60) {
-            int rangeControl = 0;
-            if (x >= bodyW - 112 && x <= bodyW - 58) {
-                rangeControl = BatteryAccessibilityLayout.OVERVIEW_7D;
-            } else if (x >= bodyW - 54 && x <= bodyW) {
-                rangeControl = BatteryAccessibilityLayout.OVERVIEW_30D;
-            }
-            if (rangeControl != 0) {
-                historyDays = BatteryAccessibilityLayout.historyDaysForControl(rangeControl, historyDays);
-                prefs.edit().putInt("historyDays", historyDays).apply();
-                invalidate();
-                return true;
-            }
+        if (page == 0 && (releasedRegion == BatteryAccessibilityLayout.OVERVIEW_7D
+                || releasedRegion == BatteryAccessibilityLayout.OVERVIEW_30D)
+                && overviewRangeControlAt(screenX, y, w) == releasedRegion) {
+            hapticClick();
+            historyDays = BatteryAccessibilityLayout.historyDaysForControl(releasedRegion, historyDays);
+            prefs.edit().putInt("historyDays", historyDays).apply();
+            updateAccessibilitySummary();
+            invalidate();
+            return true;
         }
         if (page == 1 && isWithinCanvasControl(BatteryAccessibilityLayout.CHARGE_ALARM, screenX, y, w)) {
             hapticClick();

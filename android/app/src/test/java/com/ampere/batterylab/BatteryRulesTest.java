@@ -401,6 +401,19 @@ public class BatteryRulesTest {
                 BatteryAccessibilityLayout.OVERVIEW_30D, 7));
     }
 
+    @Test public void overviewRangeTargetsStayInsideTheRenderedChartButtons() {
+        int[] sevenDays = BatteryAccessibilityLayout.bounds(
+                BatteryAccessibilityLayout.OVERVIEW_7D, 0f, 320f, 1000f, 0f, true);
+        int[] thirtyDays = BatteryAccessibilityLayout.bounds(
+                BatteryAccessibilityLayout.OVERVIEW_30D, 0f, 320f, 1000f, 0f, true);
+        assertEquals(190, sevenDays[0]);
+        assertEquals(244, sevenDays[2]);
+        assertEquals(248, thirtyDays[0]);
+        assertEquals(302, thirtyDays[2]);
+        assertEquals(1002, sevenDays[1]);
+        assertEquals(1050, thirtyDays[3]);
+    }
+
     @Test public void pageAccessibilityLabelsExposeCurrentToggleState() {
         assertEquals("7 Tage", BatteryAccessibilityLayout.label(
                 BatteryAccessibilityLayout.OVERVIEW_7D, false, true, false, false));

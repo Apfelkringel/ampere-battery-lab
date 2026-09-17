@@ -135,15 +135,15 @@ final class BatteryAccessibilityLayout {
         float bottom;
         switch (virtualViewId) {
             case OVERVIEW_7D:
-                left = bodyInset + bodyWidth - 112f;
+                left = bodyInset + bodyWidth - 130f;
                 top = overviewChartTop + 2f;
-                right = bodyInset + bodyWidth - 58f;
+                right = bodyInset + bodyWidth - 76f;
                 bottom = overviewChartTop + 50f;
                 break;
             case OVERVIEW_30D:
-                left = bodyInset + bodyWidth - 54f;
+                left = bodyInset + bodyWidth - 72f;
                 top = overviewChartTop + 2f;
-                right = bodyInset + bodyWidth;
+                right = bodyInset + bodyWidth - 18f;
                 bottom = overviewChartTop + 50f;
                 break;
             case CHARGE_ALARM:

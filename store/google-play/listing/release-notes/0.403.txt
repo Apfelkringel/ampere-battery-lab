@@ -1,0 +1,2 @@
+Die Zeitraum-Schaltflächen 7D und 30D im Akkustandsdiagramm reagieren jetzt
+zuverlässig an ihrer sichtbaren Position.
