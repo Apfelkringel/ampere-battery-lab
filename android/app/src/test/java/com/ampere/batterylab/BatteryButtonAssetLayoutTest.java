@@ -175,8 +175,8 @@ public class BatteryButtonAssetLayoutTest {
         String dashboard = Files.readString(findRepositoryRoot()
                 .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
                 StandardCharsets.UTF_8);
-        int optionsStart = dashboard.indexOf("String[] options = {\"Benachrichtigungen\"");
-        assertTrue("settings options must begin with the notification entry", optionsStart >= 0);
+        int optionsStart = dashboard.indexOf("String[] options = {languageOption, \"Benachrichtigungen\"");
+        assertTrue("settings options must begin with the language entry", optionsStart >= 0);
         int optionsEnd = dashboard.indexOf("};", optionsStart);
         assertTrue("settings options must have a closing brace", optionsEnd > optionsStart);
         String options = dashboard.substring(optionsStart, optionsEnd);
@@ -188,9 +188,9 @@ public class BatteryButtonAssetLayoutTest {
         int handlerEnd = dashboard.indexOf("}).create();", handlerStart);
         assertTrue("settings item handler must exist", handlerStart >= 0 && handlerEnd > handlerStart);
         String handler = dashboard.substring(handlerStart, handlerEnd);
-        assertTrue("the new second settings item must open the permission checklist",
-                handler.indexOf("which == 1") < handler.indexOf("showPermissionChecklist(false)")
-                        && handler.indexOf("showPermissionChecklist(false)") < handler.indexOf("which == 2")
+        assertTrue("the third settings item must open the permission checklist",
+                handler.indexOf("which == 2") < handler.indexOf("showPermissionChecklist(false)")
+                        && handler.indexOf("showPermissionChecklist(false)") < handler.indexOf("which == 3")
                         && handler.contains("selectPage(1)"));
         assertTrue("the onboarding completion action must start the explained permission flow",
                 dashboard.contains("activity.completeFirstRunOnboarding();")

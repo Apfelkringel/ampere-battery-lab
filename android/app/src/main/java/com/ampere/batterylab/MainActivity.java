@@ -2396,7 +2396,9 @@ class BatteryDashboard extends View {
                 : "Tiefstandwarnung · aus";
         String samplingOption = "Datenerfassung · alle " + BatterySamplingPolicy.normalizeMinutes(
                 prefs.getInt("samplingIntervalMin", 15)) + " Minuten";
-        String[] options = {"Benachrichtigungen", "Berechtigungen prüfen", "Ladeziel & Ladealarm", temperatureOption, dischargeOption, "Overlay-Berechtigung", "Daten & Datenschutz", "Sicherung & Wiederherstellung", "Hintergrundüberwachung", samplingOption, "Nach Updates suchen", "Kurzanleitung", "Gesundheitsbasis zurücksetzen", "Aktuellen Status kopieren", "Aktuellen Status teilen", "Lokale Daten löschen", "App-Sprache"};
+        String languageOption = AppText.isEnglish(getContext())
+                ? "App language · English" : "App-Sprache · Deutsch";
+        String[] options = {languageOption, "Benachrichtigungen", "Berechtigungen prüfen", "Ladeziel & Ladealarm", temperatureOption, dischargeOption, "Overlay-Berechtigung", "Daten & Datenschutz", "Sicherung & Wiederherstellung", "Hintergrundüberwachung", samplingOption, "Nach Updates suchen", "Kurzanleitung", "Gesundheitsbasis zurücksetzen", "Aktuellen Status kopieren", "Aktuellen Status teilen", "Lokale Daten löschen"};
         for (int i = 0; i < options.length; i++) options[i] = AppText.t(getContext(), options[i]);
         LinearLayout titleBar = new LinearLayout(getContext());
         titleBar.setOrientation(LinearLayout.HORIZONTAL);
@@ -2422,6 +2424,8 @@ class BatteryDashboard extends View {
 
         AlertDialog dialog = new AlertDialog.Builder(getContext()).setCustomTitle(titleBar).setItems(options, (itemDialog, which) -> {
             if (which == 0) {
+                showLanguageSettings();
+            } else if (which == 1) {
                 try {
                     Intent notificationSettings;
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -2433,43 +2437,41 @@ class BatteryDashboard extends View {
                     }
                     getContext().startActivity(notificationSettings);
                 } catch (Exception ignored) { }
-            } else if (which == 1) {
-                ((MainActivity) getContext()).showPermissionChecklist(false);
             } else if (which == 2) {
+                ((MainActivity) getContext()).showPermissionChecklist(false);
+            } else if (which == 3) {
                 itemDialog.dismiss();
                 selectPage(1);
                 updateAccessibilitySummary();
                 updateLayoutHeight();
                 invalidate();
-            } else if (which == 3) {
-                showTemperatureAlarmSettings();
             } else if (which == 4) {
-                showDischargeAlarmSettings();
+                showTemperatureAlarmSettings();
             } else if (which == 5) {
+                showDischargeAlarmSettings();
+            } else if (which == 6) {
                 prefs.edit().putBoolean("permissionOverlayRequested", true).apply();
                 try { getContext().startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getContext().getPackageName()))); } catch (Exception ignored) { }
-            } else if (which == 6) {
-                showDataPrivacy();
             } else if (which == 7) {
-                showBackupRestore();
+                showDataPrivacy();
             } else if (which == 8) {
-                requestBackgroundMonitoring();
+                showBackupRestore();
             } else if (which == 9) {
-                showDataCollection();
+                requestBackgroundMonitoring();
             } else if (which == 10) {
-                UpdateChecker.checkNow((Activity) getContext());
+                showDataCollection();
             } else if (which == 11) {
-                showTutorial(true);
+                UpdateChecker.checkNow((Activity) getContext());
             } else if (which == 12) {
-                confirmResetHealthBaseline();
+                showTutorial(true);
             } else if (which == 13) {
-                copyCurrentStatus();
+                confirmResetHealthBaseline();
             } else if (which == 14) {
-                shareCurrentStatus();
+                copyCurrentStatus();
             } else if (which == 15) {
-                confirmDeleteData();
+                shareCurrentStatus();
             } else {
-                showLanguageSettings();
+                confirmDeleteData();
             }
             invalidate();
         }).create();
