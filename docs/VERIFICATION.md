@@ -10,8 +10,20 @@ Live taps opened the permission checklist and, separately, still routed the
 following "Ladeziel & Ladealarm" item to the Charge page after menu indices
 shifted. At 130% font scale, permission states, optionality, explanatory copy,
 and the Finish button remained visible and readable. Direct and Play each pass
-203 unit tests; both lint tasks and debug APK builds pass. Release verification
-will be recorded after publication.
+203 unit tests; both lint tasks and debug APK builds pass. The signed tag
+`v0.399` is GitHub-verified. Release workflow
+[`35166613585`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35166613585)
+passed; update-repository commit
+[`60da845`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/60da845)
+publishes the artifacts. Fresh public APK and AAB downloads match manifest
+SHA-256 values `450ea62d8d7214776966700e45d4e08f05b3cb231d832ff844848ae360b20afe`
+and `e1c73be9056b296ab6013c71a123eca5f6cbcd26b0a8204ded3bc1f8fd31c004`.
+The APK is package `com.ampere.batterylab`, version code/name `399`/`0.399`,
+signed by the expected certificate SHA-256
+`301bed44b5cc342485b485b24baeea404dbdb216e6e3e134ad2ebd6b28d1dce3`. Play
+alpha publishing workflow
+[`35206188016`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35206188016)
+passed.
 
 Version `0.398` fixes three narrow-screen usability defects found in the live
 API-36 emulator audit: Canvas navigation targets were 40 dp high (and under
