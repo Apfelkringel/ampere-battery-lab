@@ -36,6 +36,20 @@ zu benennen; es wurde kein fremder Code übernommen.
 
 ## Erststart und Verlauf · 0.391
 
+## Erststart-Berechtigungsfluss · 0.401
+
+Die Implementierung folgt den aktuellen [Android-Hinweisen für
+Laufzeitberechtigungen](https://developer.android.com/training/permissions/requesting),
+[Sonderzugriffe](https://developer.android.com/training/permissions/requesting-special)
+und die [Benachrichtigungsberechtigung](https://developer.android.com/develop/ui/compose/notifications/notification-permission):
+Der erste Guide erklärt den Zweck vor der Android-Abfrage für Benachrichtigungen;
+Nutzungszugriff und Overlay bleiben optionale, kontextbezogene Sonderzugriffe.
+Die Berechtigungsprüfung liest den tatsächlichen Systemstatus bei jeder Rückkehr
+in die App. Zuletzt gewährte optionale Zugriffe werden auch dann als widerrufen
+erkannt, wenn der Nutzer sie zuvor außerhalb der Ampere-Checkliste aktiviert
+hatte. Das Öffnen der Checkliste startet die Erinnerungsfrist, damit eine
+Ablehnung nicht sofort einen zweiten Dialog auslöst.
+
 Für die Einwilligungs- und Berechtigungsführung wurden die offiziellen
 [Android-Empfehlungen für Laufzeitberechtigungen](https://developer.android.com/training/permissions/requesting),
 [Sonderberechtigungen](https://developer.android.com/training/permissions/requesting-special)

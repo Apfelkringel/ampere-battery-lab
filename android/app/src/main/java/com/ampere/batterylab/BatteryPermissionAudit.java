@@ -13,4 +13,12 @@ final class BatteryPermissionAudit {
         if (lastReminderAt <= 0L || now < lastReminderAt) return true;
         return now - lastReminderAt >= REMINDER_INTERVAL_MS;
     }
+
+    static boolean wasRevoked(boolean previouslyGranted, boolean currentlyGranted) {
+        return previouslyGranted && !currentlyGranted;
+    }
+
+    static boolean trackOptionalAccess(boolean explicitlyRequested, boolean previouslyGranted) {
+        return explicitlyRequested || previouslyGranted;
+    }
 }

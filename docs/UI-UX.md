@@ -106,7 +106,11 @@ When a discharge forecast is unavailable during charging, its hint says
 The settings menu places "Berechtigungen prüfen" directly after
 "Benachrichtigungen" so users can find the live permission checklist without
 scrolling through unrelated preferences. The checklist continues to distinguish
-required notifications from optional app-usage and overlay access.
+required notifications from optional app-usage and overlay access. Finishing the
+first-run guide requests Android's notification permission after explaining its
+use; special access is only opened when the matching optional feature is chosen.
+Every visible checklist also starts the reminder cooldown so denying a request
+does not cause a duplicate dialog as soon as the user returns to Ampere.
 
 On widths below 320 dp, the title shrinks to keep its full page name visible;
 the discharge and health hero cards also hide the decorative battery character

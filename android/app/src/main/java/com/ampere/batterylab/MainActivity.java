@@ -485,8 +485,7 @@ public class MainActivity extends Activity {
     }
 
     private boolean hasNotificationAccess() {
-        if (Build.VERSION.SDK_INT >= 33
-                && checkSelfPermission("android.permission.POST_NOTIFICATIONS") != getPackageManager().PERMISSION_GRANTED) return false;
+        if (!hasNotificationRuntimePermission()) return false;
         NotificationManager notifications = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         if (Build.VERSION.SDK_INT >= 24 && notifications != null && !notifications.areNotificationsEnabled()) return false;
         if (Build.VERSION.SDK_INT >= 26 && notifications != null) {
@@ -496,23 +495,34 @@ public class MainActivity extends Activity {
         return true;
     }
 
+    private boolean hasNotificationRuntimePermission() {
+        return Build.VERSION.SDK_INT < 33
+                || checkSelfPermission("android.permission.POST_NOTIFICATIONS")
+                == getPackageManager().PERMISSION_GRANTED;
+    }
+
     private void auditPermissions() {
         if (dashboard == null || isFinishing()) return;
         SharedPreferences audit = getSharedPreferences(UI_STATE_PREFS, MODE_PRIVATE);
         SharedPreferences appPrefs = BatteryDataRepository.data(this);
         boolean notification = hasNotificationAccess();
         boolean usage = hasUsageStatsAccess();
+        boolean usageWasGranted = audit.getBoolean("permissionUsageGranted", usage);
         boolean usageRequested = appPrefs.getBoolean("permissionUsageRequested", false);
         boolean overlayRequested = appPrefs.getBoolean("permissionOverlayRequested", false)
                 || appPrefs.getBoolean("overlayEnabled", false);
         boolean overlay = Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(this);
-        boolean revoked = (audit.getBoolean("permissionNotificationGranted", notification) && !notification)
-                || (usageRequested && audit.getBoolean("permissionUsageGranted", usage) && !usage)
-                || (overlayRequested && audit.getBoolean("permissionOverlayGranted", overlay) && !overlay);
+        boolean overlayWasGranted = audit.getBoolean("permissionOverlayGranted", overlay);
+        boolean revoked = BatteryPermissionAudit.wasRevoked(
+                audit.getBoolean("permissionNotificationGranted", notification), notification)
+                || BatteryPermissionAudit.wasRevoked(usageWasGranted, usage)
+                || BatteryPermissionAudit.wasRevoked(overlayWasGranted, overlay);
         audit.edit().putBoolean("permissionNotificationGranted", notification)
                 .putBoolean("permissionUsageGranted", usage)
                 .putBoolean("permissionOverlayGranted", overlay).apply();
-        boolean missing = !notification || (usageRequested && !usage) || (overlayRequested && !overlay);
+        boolean missing = !notification
+                || (BatteryPermissionAudit.trackOptionalAccess(usageRequested, usageWasGranted) && !usage)
+                || (BatteryPermissionAudit.trackOptionalAccess(overlayRequested, overlayWasGranted) && !overlay);
         boolean onboardingDone = appPrefs.getBoolean("tutorialShown", false);
         long lastReminder = audit.getLong(PERMISSION_REMINDER_AT, 0L);
         long now = System.currentTimeMillis();
@@ -523,6 +533,7 @@ public class MainActivity extends Activity {
 
     void showPermissionChecklist(boolean reminder) {
         if (isFinishing()) return;
+        if (!reminder) snoozePermissionReminder();
         boolean notifications = hasNotificationAccess();
         boolean usage = hasUsageStatsAccess();
         boolean overlay = Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(this);
@@ -622,6 +633,26 @@ public class MainActivity extends Activity {
             } else startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
                     Uri.parse("package:" + getPackageName())));
         } catch (Exception ignored) { }
+    }
+
+    void completeFirstRunOnboarding() {
+        SharedPreferences appPrefs = BatteryDataRepository.data(this);
+        appPrefs.edit().putBoolean("tutorialShown", true).apply();
+        if (Build.VERSION.SDK_INT >= 33 && !hasNotificationRuntimePermission()) {
+            // The guide has explained the live-status and alarm use; request
+            // only after the user explicitly chooses to begin.
+            snoozePermissionReminder();
+            int requests = appPrefs.getInt("notificationPermissionRequests", 0);
+            if (requests > 0 && !shouldShowRequestPermissionRationale(
+                    "android.permission.POST_NOTIFICATIONS")) {
+                openNotificationSettings();
+            } else {
+                appPrefs.edit().putInt("notificationPermissionRequests", requests + 1).apply();
+                requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"}, 44);
+            }
+            return;
+        }
+        showPermissionChecklist(false);
     }
 
     void restartMonitorService() {
@@ -2697,7 +2728,7 @@ class BatteryDashboard extends View {
         String title = firstStep ? "Ampere kennenlernen · 1 von 2" : "Zugriffe & Start · 2 von 2";
         String message = firstStep
                 ? "Übersicht zeigt den Live-Akkustand, Temperatur, Spannung und Verlauf.\n\nLaden enthält Ladeziel und Sitzungen. Entladen zeigt Verbrauch und Laufzeit. Akku erklärt Gesundheit und Kapazität. Verlauf vergleicht Tag, Woche und Monat.\n\nDie fünf Bereiche wechselst du über die Leiste unten. Deine Akku-Messwerte bleiben lokal auf diesem Gerät."
-                : "Benachrichtigungen halten Hintergrundstatus und Ladealarme sichtbar.\n\nApp-Nutzungszugriff ist nur für Verbrauch pro App nötig. Overlay erlaubt die Live-Anzeige über anderen Apps. Beide sind optional; ohne sie funktionieren die übrigen Ansichten weiter. Du kannst jeden Zugriff später unter Einstellungen → Berechtigungen prüfen.\n\nFür die Gesundheitsmessung: unter 25 % starten und über 95 % laden. Nutzungsanalyse ist freiwillig und bleibt aus, bis du sie in Daten & Datenschutz einschaltest.";
+                : "Benachrichtigungen halten Hintergrundstatus und Ladealarme sichtbar. Bei „Loslegen“ fragt Android dich danach, falls sie noch nicht erlaubt sind.\n\nApp-Nutzungszugriff ist nur für Verbrauch pro App nötig. Overlay erlaubt die Live-Anzeige über anderen Apps. Beide sind optional und werden erst bei Nutzung der jeweiligen Funktion angefragt. Du kannst jeden Zugriff später unter Einstellungen → Berechtigungen prüfen.\n\nFür die Gesundheitsmessung: unter 25 % starten und über 95 % laden. Nutzungsanalyse ist freiwillig und bleibt aus, bis du sie in Daten & Datenschutz einschaltest.";
         AlertDialog.Builder guide = new AlertDialog.Builder(getContext())
                 .setTitle(title)
                 .setMessage(message);
@@ -2710,8 +2741,7 @@ class BatteryDashboard extends View {
         } else {
             guide.setNegativeButton("Zurück", (dialog, which) -> showTutorialStep(0))
                     .setPositiveButton("Loslegen", (dialog, which) -> {
-                        prefs.edit().putBoolean("tutorialShown", true).apply();
-                        activity.showPermissionChecklist(false);
+                        activity.completeFirstRunOnboarding();
                     });
         }
         guide.show();

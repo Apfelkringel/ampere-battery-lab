@@ -1,0 +1,1 @@
+Der Erststart erklärt die App und fragt Benachrichtigungen nachvollziehbar ab. Widerrufene Zugriffe werden erkannt, ohne nach einer Ablehnung sofort erneut zu fragen.

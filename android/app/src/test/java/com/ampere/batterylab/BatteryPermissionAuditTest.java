@@ -23,4 +23,11 @@ public class BatteryPermissionAuditTest {
         assertTrue(BatteryPermissionAudit.shouldRemind(true, true, false,
                 now + 1000L, now));
     }
+
+    @Test public void previouslyGrantedOptionalAccessIsTrackedEvenWithoutInAppRequest() {
+        assertTrue(BatteryPermissionAudit.wasRevoked(true, false));
+        assertFalse(BatteryPermissionAudit.wasRevoked(false, false));
+        assertTrue(BatteryPermissionAudit.trackOptionalAccess(false, true));
+        assertFalse(BatteryPermissionAudit.trackOptionalAccess(false, false));
+    }
 }

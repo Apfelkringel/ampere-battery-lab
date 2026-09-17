@@ -162,6 +162,11 @@ public class BatteryButtonAssetLayoutTest {
                 handler.indexOf("which == 1") < handler.indexOf("showPermissionChecklist(false)")
                         && handler.indexOf("showPermissionChecklist(false)") < handler.indexOf("which == 2")
                         && handler.contains("selectPage(1)"));
+        assertTrue("the onboarding completion action must start the explained permission flow",
+                dashboard.contains("activity.completeFirstRunOnboarding();")
+                        && dashboard.contains("requestPermissions(new String[]{\"android.permission.POST_NOTIFICATIONS\"}, 44)"));
+        assertTrue("a displayed checklist must suppress an immediate duplicate reminder",
+                dashboard.contains("if (!reminder) snoozePermissionReminder();"));
     }
 
     @Test public void emptyHistoryCalloutDoesNotCoverTimeAxis() throws IOException {
