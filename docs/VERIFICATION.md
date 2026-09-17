@@ -2,6 +2,25 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.445` fixes mixed German/English battery-state phrases caused by
+translation replacement order. “Akku ist voll”, “Akku wird geladen”, “Akku
+entlädt sich” and “Akku fast leer” now render fully in English. The public
+English APK was installed on the emulator and its live accessibility summary
+was verified as “Battery is full”/English vocabulary with no mixed phrase.
+Direct and Play each pass 220 unit tests and both debug lint tasks pass. The
+signed `v0.445` tag is GitHub-verified, and release workflow
+[`35266137145`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35266137145)
+passed. Public update-repository commit
+[`2eb2002`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/2eb2002)
+publishes the artifacts. Fresh public APK download matches `latest.json`:
+SHA-256
+`dcefc12f608ab51c35d13173d58a1b3925933b1196e7c337cfb0c1370e93f834` (APK)
+and `f9adf2bdab8be7e63fb9f3ce9e18d2b7b61d800d1e35cb7de27136f49f410063`
+(AAB). The public manifest reports version code/name `445`/`0.445` and the
+package remains `com.ampere.batterylab`. Play alpha publishing workflow
+[`35266740057`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35266740057)
+passed after a transient GitHub API 403 on the first attempt.
+
 Version `0.444` fixes remaining German text in the English accessibility and
 large-text summaries. Content descriptions now translate status, battery
 values, tab names, active-tab text, the charge-target slider and navigation
