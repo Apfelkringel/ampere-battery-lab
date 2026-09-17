@@ -477,6 +477,16 @@ final class AppText {
                 {"Usage wird live erfasst.", "Usage is tracked live."},
                 {"LIVE-ENERGIEFLUSS", "LIVE ENERGY FLOW"},
                 {"Sehr gut", "Very good"},
+                {"Batterytemperatur", "Battery temperature"},
+                {"aktueller Current + lokale Messwerte", "current + local measurements"},
+                {"aktueller Current", "current"},
+                {"lokale 7 days", "local 7 days"},
+                {"lokale 7-Tage-Schätzung", "local 7-day estimate"},
+                {"Letzte Sessionen", "Recent sessions"},
+                {"Letzte Sessions", "Recent sessions"},
+                {"Weitere Sessionen im History", "More sessions in history"},
+                {"Weitere Sessions im History", "More sessions in history"},
+                {"Nicht verbunden", "Not connected"},
                 {"..", "."}
         };
         for (String[] phrase : phrases) result = result.replace(phrase[0], phrase[1]);

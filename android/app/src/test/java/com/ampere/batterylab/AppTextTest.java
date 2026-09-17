@@ -59,6 +59,13 @@ public class AppTextTest {
             assertEquals("Usage is tracked live.", AppText.t("Verbrauch wird live erfasst."));
             assertEquals("LIVE ENERGY FLOW", AppText.t("LIVE-ENERGIEFLUSS"));
             assertEquals("Very good", AppText.t("Sehr gut"));
+            assertEquals("Battery temperature", AppText.t("Akkutemperatur"));
+            assertEquals("current + local measurements", AppText.t("aktueller Strom + lokale Messwerte"));
+            assertEquals("local 7 days", AppText.t("lokale 7 Tage"));
+            assertEquals("local 7-day estimate", AppText.t("lokale 7-Tage-Schätzung"));
+            assertEquals("Recent sessions", AppText.t("Letzte Sitzungen"));
+            assertEquals("More sessions in history", AppText.t("Weitere Sitzungen im Verlauf"));
+            assertEquals("Not connected", AppText.t("Nicht verbunden"));
             assertEquals("Charge status: Not available. Charge target: Reached. Charged energy: 7612 mAh. Session duration: 8 hr 29 min.",
                     AppText.t("Ladestatus: Nicht verfügbar. Ladeziel: Erreicht. Geladene Energie: 7612 mAh. Sitzungsdauer: 8 Std. 29 Min."));
             assertEquals("Monthly history. Selected period: 6 CALENDAR MONTHS. Charge/usage ratio (charged divided by used): 1424 percent",
