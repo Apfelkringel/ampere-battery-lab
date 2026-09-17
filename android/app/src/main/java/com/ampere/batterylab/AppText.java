@@ -369,6 +369,7 @@ final class AppText {
                 {"Ladealarm: ", "Charge alert: "}, {"Live-Anzeige: ", "Live overlay: "},
                 {"Ladeziel: ", "Charge target: "},
                 {"Akku ist voll", "Battery is full"},
+                {"Voll geladen", "Fully charged"},
                 {"Akku wird geladen", "Charging now"},
                 {"Akku entlädt sich", "Battery is discharging"},
                 {"Akkubetrieb aktiv", "On battery"},

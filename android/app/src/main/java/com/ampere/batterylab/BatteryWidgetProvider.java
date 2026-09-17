@@ -92,7 +92,9 @@ public class BatteryWidgetProvider extends AppWidgetProvider {
         views.setTextViewText(R.id.widget_status, AppText.t(context, statusText));
         views.setTextViewText(R.id.widget_details, AppText.t(context, detailsText));
         views.setTextViewText(R.id.widget_caption, AppText.t(context, "Akku"));
-        views.setTextColor(R.id.widget_status, context.getColor(state.charging ? R.color.widget_accent : R.color.widget_muted));
+        views.setTextColor(R.id.widget_status, context.getColor(
+                BatteryWidgetStatus.accent(state.status, state.charging)
+                ? R.color.widget_accent : R.color.widget_muted));
 
         Intent launch = new Intent(context, MainActivity.class);
         PendingIntent pending = PendingIntent.getActivity(context, REQUEST_CODE, launch,
@@ -123,9 +125,7 @@ public class BatteryWidgetProvider extends AppWidgetProvider {
     }
 
     private static String statusText(int status, boolean charging) {
-        if (charging) return "Laden";
-        if (status == BatteryManager.BATTERY_STATUS_UNKNOWN) return "Unbekannt";
-        return "Akku";
+        return BatteryWidgetStatus.label(status, charging);
     }
 
     private static String detailsText(Context context, boolean charging, int currentMa, int temperatureTenths,
