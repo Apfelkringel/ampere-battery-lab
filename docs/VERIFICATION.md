@@ -23,7 +23,10 @@ signed by the expected certificate SHA-256
 `301bed44b5cc342485b485b24baeea404dbdb216e6e3e134ad2ebd6b28d1dce3`. Play
 alpha publishing workflow
 [`35206188016`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35206188016)
-passed.
+passed. The workflow's Play Action configuration now uses the upstream-supported
+`tracks` input instead of deprecated `track`; credential, bundle and manifest
+validation passed in a non-uploading check
+[`35206375898`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35206375898).
 
 Version `0.398` fixes three narrow-screen usability defects found in the live
 API-36 emulator audit: Canvas navigation targets were 40 dp high (and under
