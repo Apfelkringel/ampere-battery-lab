@@ -28,6 +28,16 @@ public class BatteryButtonAssetLayoutTest {
                 dashboard.contains("toolbar.addView(back, new LinearLayout.LayoutParams(dp(48), dp(54)))"));
     }
 
+    @Test public void durationCardsNeverAddVisualTruncationMarkers() throws IOException {
+        String dashboard = Files.readString(findRepositoryRoot()
+                .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
+                StandardCharsets.UTF_8);
+        assertTrue("long metric values must use the dedicated readable size",
+                dashboard.contains("metricValueSize(value)"));
+        assertFalse("diagnostic lines must not add an ellipsis marker",
+                dashboard.contains("line + \" · …\""));
+    }
+
     @Test public void historyChartBucketsAreIndividualAccessibleControls() throws IOException {
         String dashboard = Files.readString(findRepositoryRoot()
                 .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),

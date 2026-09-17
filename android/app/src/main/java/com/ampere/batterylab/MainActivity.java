@@ -3681,8 +3681,18 @@ class BatteryDashboard extends View {
         else if ("moon".equals(glyph)) drawMoon(c, l + 29.5f, t + 29.5f, lime);
         else drawBolt(c, l + 29.5f, t + 29.5f, lime, .65f);
         text(c, eyebrow.toUpperCase(Locale.GERMANY), l + 14, t + 65, 8.8f, muted, true);
-        boundedText(c, value, l + 14, r - 12, t + 88, value.length() > 12 ? 13 : 18, primary, true);
+        boundedText(c, value, l + 14, r - 12, t + 88, metricValueSize(value), primary, true);
         boundedText(c, caption, l + 14, r - 12, t + 105, 9.2f, muted, false);
+    }
+
+    /** Keeps complete time values readable in narrow metric cards. */
+    private float metricValueSize(String value) {
+        if (value == null || value.isEmpty()) return 18f;
+        if (value.contains(" h ") || value.contains("h ") || value.contains(" m")
+                || value.contains("Std.") || value.contains("Min.")) {
+            return value.length() > 9 ? 15f : 17f;
+        }
+        return value.length() > 12 ? 13f : 18f;
     }
 
     private void drawRuntimeForecastRow(Canvas c, float left, float right, float top,
@@ -5401,7 +5411,9 @@ class BatteryDashboard extends View {
                 line = chunk;
                 lineY += 16;
                 if (++lines >= 2) {
-                    boundedText(c, line + " · …", 36, w - 36, lineY, 8, color, false);
+                    // Fit the complete remaining diagnostic line; never add
+                    // an ellipsis that could be mistaken for truncated data.
+                    boundedText(c, line, 36, w - 36, lineY, 8, color, false);
                     line = "";
                     break;
                 }
@@ -5594,12 +5606,13 @@ class BatteryDashboard extends View {
             boundedText(c, compactLabel, x + 10, x + width - 10, y + 58, 9, muted, false);
             type(9, muted, false);
             float compactUnitWidth = unit.isEmpty() ? 0f : p.measureText(unit) / density + 4f;
-            String compactValue = fitText(value, Math.max(20f, width - 20f - compactUnitWidth), 17, true);
-            boundedText(c, compactValue, x + 10, x + width - 10 - compactUnitWidth, y + 86, 17, primary, true);
+            float valueSize = metricValueSize(value);
+            String compactValue = fitText(value, Math.max(20f, width - 20f - compactUnitWidth), valueSize, true);
+            boundedText(c, compactValue, x + 10, x + width - 10 - compactUnitWidth, y + 86, valueSize, primary, true);
             if (!unit.isEmpty()) {
-                type(17, primary, true);
+                type(valueSize, primary, true);
                 boundedText(c, unit, x + 10 + p.measureText(compactValue) / density + 3,
-                        x + width - 8, y + 86, 9, muted, false);
+                        x + width - 8, y + 86, Math.min(9f, valueSize), muted, false);
             }
             return;
         }
@@ -5608,12 +5621,13 @@ class BatteryDashboard extends View {
         boundedText(c, label, x + 58, x + width - 12, y + 30, 10, muted, false);
         type(10, muted, false);
         float unitWidth = unit.isEmpty() ? 0f : p.measureText(unit) / density + 4f;
-        String fittedValue = fitText(value, Math.max(24f, width - 72f - unitWidth), 21, true);
-        boundedText(c, fittedValue, x + 58, x + width - 12 - unitWidth, y + 62, 21, primary, true);
+        float valueSize = metricValueSize(value);
+        String fittedValue = fitText(value, Math.max(24f, width - 72f - unitWidth), valueSize, true);
+        boundedText(c, fittedValue, x + 58, x + width - 12 - unitWidth, y + 62, valueSize, primary, true);
         if (!unit.isEmpty()) {
-            type(21, primary, true);
+            type(valueSize, primary, true);
             float valueWidth = p.measureText(fittedValue) / density;
-            boundedText(c, unit, x + 58 + valueWidth + 4, x + width - 8, y + 62, 10, muted, false);
+            boundedText(c, unit, x + 58 + valueWidth + 4, x + width - 8, y + 62, Math.min(10f, valueSize), muted, false);
         }
     }
 

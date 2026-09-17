@@ -2,6 +2,13 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.410` is prepared for release. Long duration values in the dashboard
+metric cards now use a dedicated readable size so the complete time remains
+visible in the “Dein Tagesrhythmus” area; the diagnostic renderer no longer
+adds a truncation marker. Direct and Play each pass 214 unit tests; both debug
+lint tasks pass. Release, public artifact hashes and Play alpha publication are
+pending.
+
 Version `0.409` adds a visible freshness label to the live energy-flow card,
 so the current sensor reading is explicitly marked as recent or aged. Direct
 and Play each pass 213 unit tests; both debug lint tasks pass. The emulator
