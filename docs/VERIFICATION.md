@@ -1,5 +1,18 @@
 # Verification record
 
+Version `0.461` makes a full battery explicit in the widget. Android reports a
+full battery as both `BATTERY_STATUS_FULL` and charging, so the widget now shows
+`Voll geladen` and uses the neutral status color instead of the charging accent.
+The rule is covered by `BatteryWidgetStatusTest`. The focused test, the full
+Direct-Debug unit-test suite, build and lint passed locally. CI release workflow
+[`35284381231`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35284381231)
+passed and the signed tag is `v0.461`. Public update-repository commit
+[`7e1d990`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/7e1d9904a10bf906088603e433ba99aa4e6a6b22)
+publishes the artifacts. A fresh public APK download matches `latest.json` with
+SHA-256
+`6dc658f3706d8fc9bf59a5967097f332ee5c023eea82596ed69e434d722f64ac` and reports
+package `com.ampere.batterylab`, version code/name `461`/`0.461`.
+
 Last verified: 2026-09-17 (Europe/Berlin)
 
 Version `0.460` improves the compact widget percentage readability. The value

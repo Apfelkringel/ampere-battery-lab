@@ -11,7 +11,7 @@ closed-test invite.
 ## German post
 
 Ich suche mindestens 12 Android-Nutzer für einen geschlossenen Google-Play-Test
-von **Ampere Battery Lab** (Version 0.382). Die App zeigt Akkustand und
+von **Ampere Battery Lab** (Version 0.461). Die App zeigt Akkustand und
 Ladezustand, erkennt Lade- und Entladesitzungen und zeichnet – soweit das
 jeweilige Gerät die Werte bereitstellt – Strom, Spannung und Temperatur lokal
 auf. Dazu kommen Widget, Benachrichtigung, Schnelleinstellungen-Kachel und
@@ -46,7 +46,7 @@ sind, hängt vom Gerät ab.
 **Looking for Android testers: Ampere Battery Lab (German-language battery app)**
 
 I'm looking for at least 12 Android users for a genuine closed Google Play test
-of **Ampere Battery Lab** (version 0.382). It tracks battery level and charging
+of **Ampere Battery Lab** (version 0.461). It tracks battery level and charging
 sessions, and records current, voltage and temperature locally when the device
 provides those values. It also includes a widget, persistent notification,
 Quick Settings tile and CSV export. The app UI is currently in German, so please
