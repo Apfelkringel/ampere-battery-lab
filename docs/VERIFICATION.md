@@ -2,6 +2,26 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
+Version `0.425` clarifies the discharging page when the device is charging:
+the page now distinguishes the last discharge summary from a ready-to-start
+state instead of presenting a misleading daily-pattern title. App-usage
+details also use the complete English terminology, including telemetry and
+foreground-time estimates, unavailable-state text and dialog actions. The
+emulator confirmed the new “Last discharge” state visually; direct and Play
+each pass 216 unit tests and both debug lint tasks pass. The signed `v0.425`
+tag is GitHub-verified, and release workflow
+[`35237521603`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35237521603)
+passed. Public update-repository commit
+[`e97e971`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/e97e971)
+publishes the artifacts. Fresh public APK and AAB downloads match
+`latest.json`: SHA-256
+`001d7bb0b25113ae9a3f3f0792d4e160cc720827b95810f5f05f66bec795440b` (APK)
+and `a7798e937c09b646a19df2a126f538eb1fde03a5d6ba4e8483a0e866ec214231`
+(AAB). The public manifest reports version code/name `425`/`0.425` and the
+package remains `com.ampere.batterylab`. Play alpha publishing workflow
+[`35238099134`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35238099134)
+passed.
+
 Version `0.424` completes the English history-chart polish and fixes a
 layout overlap in the history page. Month and weekday labels, chart legends
 and values now remain English; the Recent Sessions section starts below the
