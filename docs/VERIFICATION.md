@@ -2,12 +2,22 @@
 
 Last verified: 2026-09-17 (Europe/Berlin)
 
-Version `0.410` is prepared for release. Long duration values in the dashboard
-metric cards now use a dedicated readable size so the complete time remains
-visible in the “Dein Tagesrhythmus” area; the diagnostic renderer no longer
-adds a truncation marker. Direct and Play each pass 214 unit tests; both debug
-lint tasks pass. Release, public artifact hashes and Play alpha publication are
-pending.
+Version `0.410` keeps long duration values in the dashboard metric cards fully
+visible with a dedicated readable size, including the “Dein Tagesrhythmus”
+area; the diagnostic renderer no longer adds a truncation marker. Direct and
+Play each pass 214 unit tests; both debug lint tasks pass. The signed `v0.410`
+tag is GitHub-verified, and release workflow
+[`35218917665`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35218917665)
+passed. Update-repository commit
+[`d43624d`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/d43624d)
+publishes the artifacts. Fresh public APK and AAB downloads match manifest
+SHA-256 values
+`caa9617322f4b0866c98f9e72d5ff9761c908eeacb21a40e194e7c5dcb99eca6` (APK) and
+`f90c916c95ee0bb90b0075134fa1da49cfbc3e21c6998e33f04c3f048958d7bc` (AAB).
+The APK is `com.ampere.batterylab`, version code/name `410`/`0.410`. Play alpha
+publishing workflow
+[`35219517255`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35219517255)
+passed.
 
 Version `0.409` adds a visible freshness label to the live energy-flow card,
 so the current sensor reading is explicitly marked as recent or aged. Direct
