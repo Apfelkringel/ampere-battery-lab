@@ -520,6 +520,18 @@ final class AppText {
                 {"Source: lokale EFC-Estimate", "Source: local EFC estimate"},
                 {"..", "."}
         };
+        // Apply complete phrases before short vocabulary fragments. Otherwise
+        // replacing "Akku", "Tage" or "Schätzung" first can corrupt a full
+        // sentence and leave mixed-language output behind.
+        for (int i = 0; i < phrases.length - 1; i++) {
+            for (int j = i + 1; j < phrases.length; j++) {
+                if (phrases[j][0].length() > phrases[i][0].length()) {
+                    String[] swap = phrases[i];
+                    phrases[i] = phrases[j];
+                    phrases[j] = swap;
+                }
+            }
+        }
         for (String[] phrase : phrases) result = result.replace(phrase[0], phrase[1]);
         return result;
     }
