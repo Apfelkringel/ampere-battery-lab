@@ -18,7 +18,8 @@ public class AppTextTest {
             assertEquals("100% of 80%", AppText.t("100% von 80%"));
             assertEquals("Charge/usage ratio", AppText.t("Charged/Usage"));
             assertEquals("Battery level at start", AppText.t("Akkustand beim Start"));
-            assertEquals("Rate unavailable", AppText.t("Rate n/v"));
+            assertEquals("Rate unavailable", AppText.t("Rate nicht verfügbar"));
+            assertEquals("EFC unavailable", AppText.t("EFC nicht verfügbar"));
             assertEquals("Since unplugging · estimated values",
                     AppText.t("Seit dem Abstecken · geschätzte Werte"));
             assertEquals("Runtime with normal use: 8 hr",

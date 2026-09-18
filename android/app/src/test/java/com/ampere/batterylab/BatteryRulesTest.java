@@ -62,7 +62,7 @@ public class BatteryRulesTest {
         assertEquals("foreground-time apportionment must not masquerade as a per-app rate", 0,
                 BatteryAppAttribution.appRateMahPerHour(120, 30L * 60L * 1000L, false));
         assertEquals("~240 mAh/h", BatteryAppAttribution.appRateLabel(240, true));
-        assertEquals("Rate n/v", BatteryAppAttribution.appRateLabel(240, false));
+        assertEquals("Rate nicht verfügbar", BatteryAppAttribution.appRateLabel(240, false));
     }
 
     @Test public void appAttributionExplainsTelemetryAndForegroundTimeEstimateSources() {

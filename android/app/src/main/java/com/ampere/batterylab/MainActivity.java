@@ -5248,9 +5248,12 @@ class BatteryDashboard extends View {
         drawHistoryPeriodButton(c, 48 + controlWidth, controlTop, 48 + controlWidth * 2, "Woche", 7, primary, muted, border);
         drawHistoryPeriodButton(c, 60 + controlWidth * 2, controlTop, w - 36, "Monat", 30, primary, muted, border);
 
-        ArrayList<BatteryHistoryStats.Bucket> buckets = historyStatsBuckets();
-        BatteryHistoryStats.Bucket selectedPeriod = selectedHistoryPeriod(buckets);
-        float cardsTop = y + 179;
+       ArrayList<BatteryHistoryStats.Bucket> buckets = historyStatsBuckets();
+       BatteryHistoryStats.Bucket selectedPeriod = selectedHistoryPeriod(buckets);
+        if (selectedPeriod == null) {
+            selectedPeriod = new BatteryHistoryStats.Bucket(0, "");
+        }
+       float cardsTop = y + 179;
         float cardGap = 12;
         float cardW = (w - 36 - cardGap) / 2f;
         text(c, historyPeriodRangeLabel(), 36, cardsTop - 8, 8, faint, false);
@@ -5283,7 +5286,8 @@ class BatteryDashboard extends View {
                 ? "Geladen/Verbrauch: " + selectedPeriod.chargeConsumptionRatioPercent + "%"
                 : "Noch keine Verbrauchsdaten für die Quote";
         String wearText = selectedPeriod.wearCycles > 0f
-                ? String.format(uiLocale(), "%.2f EFC", selectedPeriod.wearCycles) : "EFC n/v";
+                ? String.format(uiLocale(), "%.2f EFC", selectedPeriod.wearCycles)
+                : AppText.t(getContext(), "EFC nicht verfügbar");
         boundedText(c, ratioText + " · " + wearText, 36, w - 36, insightTop + 51, 10, primary, true);
         boundedText(c, "Quote = geladen ÷ Verbrauch · EFC = Vollzyklen, kein Zellwirkungsgrad.", 36, w - 36, insightTop + 72, 8, muted, false);
 

@@ -162,7 +162,7 @@ final class BatteryAppAttribution {
 
     static String appRateLabel(int rateMahPerHour, boolean hasDirectAppTelemetry) {
         return hasDirectAppTelemetry && rateMahPerHour > 0
-                ? "~" + rateMahPerHour + " mAh/h" : "Rate n/v";
+                ? "~" + rateMahPerHour + " mAh/h" : "Rate nicht verfügbar";
     }
 
     /** Distinguishes missing device measurements from measured but unattributed drain. */
