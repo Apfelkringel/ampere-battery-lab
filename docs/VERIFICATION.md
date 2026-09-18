@@ -1,5 +1,32 @@
 # Verification record
 
+Version `0.463` adds two UI/UX improvements spotted while reviewing the
+status-surfacing code paths. Status toasts for backup, CSV export,
+diagnostic export, research export, Akkustatus copied, "Live-Daten
+aktualisiert" and the analytics/settings toggles are now routed through a
+`Toasts` helper that coalesces identical translated strings inside a
+two-second window, so rapid taps no longer stack overlapping toasts over
+each other. The app-icon `ImageView` in the Entlade-Ansicht usage rows is
+now explicitly marked decorative, so the screen reader does not double-name
+each package next to its already-correct label. The changes are covered by
+new `ToastsTest` cases plus the existing AppText coverage. The full
+Direct-Debug unit-test suite, build and lint passed locally. CI release
+workflow
+[`35380300306`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35380300306)
+passed and the signed tag is `v0.463`. Public update-repository commit
+[`b095db6`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/b095db6)
+publishes the artifacts. A fresh public APK download matches `latest.json`
+with SHA-256
+`c6c3feb849084cd4254b1c1866d5f4e3e5f9215f386b82cb8d90f73696106495` and
+reports package `com.ampere.batterylab`, version code/name `463`/`0.463`.
+Play internal-track publishing workflow
+[`35380890453`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35380890453)
+passed.
+
+Last verified: 2026-09-18 (Europe/Berlin)
+
+# Verification record
+
 Version `0.462` hardens the German history view against two bugs found in a
 final-pass code scan. The chart's "EFC" and per-app "Rate" fallbacks used the
 untranslated abbreviation `n/v` instead of the same `nicht verfügbar` phrase
