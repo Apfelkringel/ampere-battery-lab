@@ -1,5 +1,55 @@
 # Verification record
 
+Version `0.462` hardens the German history view against two bugs found in a
+final-pass code scan. The chart's "EFC" and per-app "Rate" fallbacks used the
+untranslated abbreviation `n/v` instead of the same `nicht verfügbar` phrase
+already used everywhere else, and `selectedHistoryPeriod` returned `null` when
+no usable telemetry rows existed, which the chart's `onDraw` consumed
+unchecked. The chart now renders an empty summary instead of crashing, and both
+labels spell the unavailability in full. `AppText.t` now translates both
+phrases; `BatteryRulesTest` and `AppTextTest` guard the change. The focused
+test, the full Direct-Debug unit-test suite, build and lint passed locally. CI
+release workflow
+[`35377461160`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35377461160)
+passed and the signed tag is `v0.462`. Public update-repository commit
+[`b24ff3a`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/b24ff3a)
+publishes the artifacts. A fresh public APK download matches `latest.json` with
+SHA-256
+`7efc8f1d8487cf9fdbc99ce780d39185ca7a6f82ecb0962fb1694b3d2ce43963` and reports
+package `com.ampere.batterylab`, version code/name `462`/`0.462`. Play
+internal-track publishing workflow
+[`35378904388`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35378904388)
+passed.
+
+Last verified: 2026-09-18 (Europe/Berlin)
+
+# Verification record
+
+Version `0.462` hardens the German history view against two bugs found in a
+final-pass code scan. The chart's "EFC" and per-app "Rate" fallbacks used the
+untranslated abbreviation `n/v` instead of the same `nicht verfügbar` phrase
+already used everywhere else, and `selectedHistoryPeriod` returned `null` when
+no usable telemetry rows existed, which the chart's `onDraw` consumed
+unchecked. The chart now renders an empty summary instead of crashing, and both
+labels spell the unavailability in full. `AppText.t` now translates both
+phrases; `BatteryRulesTest` and `AppTextTest` guard the change. The focused
+test, the full Direct-Debug unit-test suite, build and lint passed locally. CI
+release workflow
+[`35377461160`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35377461160)
+passed and the signed tag is `v0.462`. Public update-repository commit
+[`b24ff3a`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/b24ff3a)
+publishes the artifacts. A fresh public APK download matches `latest.json` with
+SHA-256
+`7efc8f1d8487cf9fdbc99ce780d39185ca7a6f82ecb0962fb1694b3d2ce43963` and reports
+package `com.ampere.batterylab`, version code/name `462`/`0.462`. Play
+internal-track publishing workflow
+[`35378904388`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35378904388)
+passed.
+
+Last verified: 2026-09-18 (Europe/Berlin)
+
+# Verification record
+
 Version `0.461` makes a full battery explicit in the widget. Android reports a
 full battery as both `BATTERY_STATUS_FULL` and charging, so the widget now shows
 `Voll geladen` and uses the neutral status color instead of the charging accent.
