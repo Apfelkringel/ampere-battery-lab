@@ -45,7 +45,6 @@ import android.widget.TextView;
 import android.widget.Button;
 import android.widget.HorizontalScrollView;
 import android.widget.SeekBar;
-import android.widget.Toast;
 import android.text.InputType;
 import android.content.SharedPreferences;
 import android.os.Build;
@@ -735,9 +734,9 @@ public class MainActivity extends Activity {
             byte[] output = root.toString(2).getBytes(StandardCharsets.UTF_8);
             if (output.length > MAX_BACKUP_BYTES) throw new IllegalArgumentException("Backup too large");
             stream.write(output);
-            Toast.makeText(this, AppText.t(this, "Backup gespeichert."), Toast.LENGTH_LONG).show();
+            Toasts.show(this, AppText.t(this, "Backup gespeichert."));
         } catch (Exception error) {
-            Toast.makeText(this, AppText.t(this, "Backup konnte nicht gespeichert werden."), Toast.LENGTH_LONG).show();
+            Toasts.show(this, AppText.t(this, "Backup konnte nicht gespeichert werden."));
         }
     }
 
@@ -777,9 +776,9 @@ public class MainActivity extends Activity {
             dashboard.reloadStoredData();
             Intent battery = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
             if (battery != null) dashboard.readBattery(battery);
-            Toast.makeText(this, AppText.t(this, "Backup wiederhergestellt."), Toast.LENGTH_LONG).show();
+            Toasts.show(this, AppText.t(this, "Backup wiederhergestellt."));
         } catch (Exception error) {
-            Toast.makeText(this, AppText.t(this, "Backup ist ungültig oder konnte nicht gelesen werden."), Toast.LENGTH_LONG).show();
+            Toasts.show(this, AppText.t(this, "Backup ist ungültig oder konnte nicht gelesen werden."));
         }
     }
 
@@ -817,9 +816,9 @@ public class MainActivity extends Activity {
             byte[] output = dashboard.historyCsv().getBytes(StandardCharsets.UTF_8);
             if (output.length > MAX_BACKUP_BYTES) throw new IllegalArgumentException("CSV export too large");
             stream.write(output);
-            Toast.makeText(this, AppText.t(this, "CSV-Export gespeichert."), Toast.LENGTH_LONG).show();
+            Toasts.show(this, AppText.t(this, "CSV-Export gespeichert."));
         } catch (Exception ignored) {
-            Toast.makeText(this, AppText.t(this, "CSV-Export konnte nicht gespeichert werden."), Toast.LENGTH_LONG).show();
+            Toasts.show(this, AppText.t(this, "CSV-Export konnte nicht gespeichert werden."));
         }
     }
 
@@ -832,9 +831,9 @@ public class MainActivity extends Activity {
                     System.currentTimeMillis()).getBytes(StandardCharsets.UTF_8);
             if (output.length > MAX_BACKUP_BYTES) throw new IllegalArgumentException("Report too large");
             stream.write(output);
-            Toast.makeText(this, AppText.t(this, "Diagnosebericht gespeichert."), Toast.LENGTH_LONG).show();
+            Toasts.show(this, AppText.t(this, "Diagnosebericht gespeichert."));
         } catch (Exception ignored) {
-            Toast.makeText(this, AppText.t(this, "Diagnosebericht konnte nicht gespeichert werden."), Toast.LENGTH_LONG).show();
+            Toasts.show(this, AppText.t(this, "Diagnosebericht konnte nicht gespeichert werden."));
         }
     }
 
@@ -976,9 +975,9 @@ public class MainActivity extends Activity {
             byte[] output = root.toString(2).getBytes(StandardCharsets.UTF_8);
             if (output.length > MAX_BACKUP_BYTES) throw new IllegalArgumentException("Research export too large");
             stream.write(output);
-            Toast.makeText(this, AppText.t(this, "Forschungs-Export gespeichert."), Toast.LENGTH_LONG).show();
+            Toasts.show(this, AppText.t(this, "Forschungs-Export gespeichert."));
         } catch (Exception ignored) {
-            Toast.makeText(this, AppText.t(this, "Forschungs-Export konnte nicht gespeichert werden."), Toast.LENGTH_LONG).show();
+            Toasts.show(this, AppText.t(this, "Forschungs-Export konnte nicht gespeichert werden."));
         }
     }
 }
@@ -1696,7 +1695,7 @@ class BatteryDashboard extends View {
                     .remove("benchmarkChargeLastCounterMah").remove("benchmarkChargeAddedMah")
                     .remove("benchmarkChargeStatsBaselineMah").apply();
         } else if (charging || level > 25) {
-            Toast.makeText(getContext(), AppText.t(getContext(), "Starte die Kapazitätsmessung getrennt vom Ladegerät unter 25 %."), Toast.LENGTH_LONG).show();
+            Toasts.show(getContext(), AppText.t(getContext(), "Starte die Kapazitätsmessung getrennt vom Ladegerät unter 25 %."));
         } else {
             benchmarkActive = true;
             AnalyticsTracker.logFeature(getContext(), "health_measurement");
@@ -2536,7 +2535,7 @@ class BatteryDashboard extends View {
                             .putInt("temperatureAlarmThresholdTenths", threshold)
                             .remove("temperatureAlarmSent").apply();
                     AnalyticsTracker.logFeature(getContext(), "temperature_alarm");
-                    Toast.makeText(getContext(), enabled ? labels[choice[0]] : AppText.t(getContext(), "Temperaturwarnung ausgeschaltet"), Toast.LENGTH_LONG).show();
+                    Toasts.show(getContext(), enabled ? labels[choice[0]] : AppText.t(getContext(), "Temperaturwarnung ausgeschaltet"));
                 }).show();
     }
 
@@ -2564,7 +2563,7 @@ class BatteryDashboard extends View {
                             .putInt("dischargeAlarmThreshold", threshold)
                             .remove("dischargeAlarmSent").remove("dischargeAlarmLastLevel").apply();
                     AnalyticsTracker.logFeature(getContext(), "discharge_alarm");
-                    Toast.makeText(getContext(), alarmEnabled ? labels[choice[0]] : AppText.t(getContext(), "Tiefstandwarnung ausgeschaltet"), Toast.LENGTH_LONG).show();
+                    Toasts.show(getContext(), alarmEnabled ? labels[choice[0]] : AppText.t(getContext(), "Tiefstandwarnung ausgeschaltet"));
                 }).show();
     }
 
@@ -2589,7 +2588,7 @@ class BatteryDashboard extends View {
 
     private void requestBackgroundMonitoring() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            Toast.makeText(getContext(), AppText.t(getContext(), "Hintergrundüberwachung ist ab Android 6 verfügbar."), Toast.LENGTH_LONG).show();
+            Toasts.show(getContext(), AppText.t(getContext(), "Hintergrundüberwachung ist ab Android 6 verfügbar."));
             return;
         }
         PowerManager power = (PowerManager) getContext().getSystemService(Context.POWER_SERVICE);
@@ -2681,7 +2680,7 @@ class BatteryDashboard extends View {
                 .setPositiveButton(english ? (enabled ? "Turn off" : "Agree and enable") : (enabled ? "Ausschalten" : "Zustimmen und aktivieren"), (dialog, which) -> {
                     AnalyticsTracker.setConsent(getContext(), !enabled);
                     if (!enabled) AnalyticsTracker.logSection(getContext(), page);
-                    Toast.makeText(getContext(), english ? (enabled ? "Usage analytics turned off." : "Usage analytics enabled.") : (enabled ? "Nutzungsanalyse ausgeschaltet." : "Nutzungsanalyse aktiviert."), Toast.LENGTH_LONG).show();
+                    Toasts.show(getContext(), english ? (enabled ? "Usage analytics turned off." : "Usage analytics enabled.") : (enabled ? "Nutzungsanalyse ausgeschaltet." : "Nutzungsanalyse aktiviert."));
                 })
                 .setNegativeButton(english ? "Close" : "Schließen", null)
                 .show();
@@ -2707,7 +2706,7 @@ class BatteryDashboard extends View {
                 getContext().getSystemService(Context.CLIPBOARD_SERVICE);
         if (clipboard != null) {
             clipboard.setPrimaryClip(android.content.ClipData.newPlainText("Ampere-Akkustatus", currentStatusText()));
-            Toast.makeText(getContext(), AppText.t(getContext(), "Akkustatus kopiert."), Toast.LENGTH_SHORT).show();
+            Toasts.show(getContext(), AppText.t(getContext(), "Akkustatus kopiert."));
         }
     }
 
@@ -2735,7 +2734,7 @@ class BatteryDashboard extends View {
                     reloadStoredData();
                     Intent battery = ((Activity) context).registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
                     if (battery != null) readBattery(battery);
-                    Toast.makeText(context, english ? "Local data deleted." : "Lokale Daten gelöscht.", Toast.LENGTH_LONG).show();
+                    Toasts.show(context, english ? "Local data deleted." : "Lokale Daten gelöscht.");
                 })
                 .show();
     }
@@ -2764,7 +2763,7 @@ class BatteryDashboard extends View {
                     reloadStoredData();
                     Intent battery = ((Activity) context).registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
                     if (battery != null) readBattery(battery);
-                    Toast.makeText(context, english ? "Health baseline reset; history was kept." : "Gesundheitsbasis zurückgesetzt; Verlauf bleibt erhalten.", Toast.LENGTH_LONG).show();
+                    Toasts.show(context, english ? "Health baseline reset; history was kept." : "Gesundheitsbasis zurückgesetzt; Verlauf bleibt erhalten.");
                 })
                 .show();
     }
@@ -4940,6 +4939,10 @@ class BatteryDashboard extends View {
         heading.setGravity(Gravity.CENTER_VERTICAL);
         ImageView icon = new ImageView(getContext());
         icon.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        // The text label beside the icon already names the app; marking the
+        // icon decorative avoids duplicate screen-reader output for the same
+        // package.
+        icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         try {
             Drawable appIcon = getContext().getPackageManager().getApplicationIcon(estimate.usage.packageName);
             icon.setImageDrawable(appIcon);
@@ -6481,7 +6484,7 @@ class BatteryDashboard extends View {
             Intent battery = ((Activity) getContext()).registerReceiver(
                     null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
             if (battery != null) readBattery(battery);
-            Toast.makeText(getContext(), AppText.t(getContext(), "Live-Daten aktualisiert."), Toast.LENGTH_SHORT).show();
+            Toasts.show(getContext(), AppText.t(getContext(), "Live-Daten aktualisiert."));
         } else if (virtualViewId >= 10 && virtualViewId <= 14) {
             selectPage(virtualViewId - 10);
             updateAccessibilitySummary();
@@ -6854,7 +6857,7 @@ class BatteryDashboard extends View {
             Intent battery = ((Activity) getContext()).registerReceiver(
                     null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
             if (battery != null) readBattery(battery);
-            Toast.makeText(getContext(), AppText.t(getContext(), "Live-Daten aktualisiert."), Toast.LENGTH_SHORT).show();
+            Toasts.show(getContext(), AppText.t(getContext(), "Live-Daten aktualisiert."));
             return true;
         }
         int navigationTab = BatteryAccessibilityLayout.navigationTabAt(screenX, w);
