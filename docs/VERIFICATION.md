@@ -1,5 +1,34 @@
 # Verification record
 
+Version `0.464` addresses two issues spotted in a UI/UX scan of the
+App-Verbrauch surface. The dashboard's per-row label and launcher icon were
+resolved through `PackageManager.getApplicationLabel` and
+`getApplicationIcon` once per row per `onDraw` frame — every invalidation
+during a scroll or live update could fan out into hundreds of
+ActivityManagerService round-trips. A new `AppLabelCache` memoises the
+label and the icon per package in bounded LRU maps, and the row-drawing
+helpers now call into it. In the same dialog pass, three `TextView`
+close-style buttons (Settings "×", App-Verbrauch "‹", and App-Verbrauch
+"SCHLIESSEN") had an `OnClickListener` but were not declared clickable,
+so the dismissal never fired; the views are now explicitly
+`setClickable(true)` and `setFocusable(true)`. New `AppLabelCacheTest`
+cases guard the cache behaviour. The full Direct-Debug unit-test suite,
+build and lint passed locally. CI release workflow
+[`35381916030`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35381916030)
+passed and the signed tag is `v0.464`. Public update-repository commit
+[`7bde813`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/7bde813)
+publishes the artifacts. A fresh public APK download matches `latest.json`
+with SHA-256
+`cb16537ec6e106e88f09033e8c8e673054f168edad99f1b7ea7f9cdc062e71dc` and
+reports package `com.ampere.batterylab`, version code/name `464`/`0.464`.
+Play internal-track publishing workflow
+[`35382641138`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35382641138)
+passed.
+
+Last verified: 2026-09-18 (Europe/Berlin)
+
+# Verification record
+
 Version `0.463` adds two UI/UX improvements spotted while reviewing the
 status-surfacing code paths. Status toasts for backup, CSV export,
 diagnostic export, research export, Akkustatus copied, "Live-Daten
