@@ -2418,6 +2418,10 @@ class BatteryDashboard extends View {
         close.setGravity(Gravity.CENTER);
         close.setTextColor(Color.WHITE);
         close.setContentDescription(AppText.t(getContext(), "Einstellungen schließen"));
+        // TextView is not clickable by default; without these flags the
+        // OnClickListener below never fires and the close × is dead.
+        close.setClickable(true);
+        close.setFocusable(true);
         int closeSize = Math.round(48 * density);
         titleBar.addView(close, new LinearLayout.LayoutParams(closeSize, closeSize));
 
@@ -4748,24 +4752,9 @@ class BatteryDashboard extends View {
         }
     }
 
-    /** Prefer human-readable labels for system packages and restricted app metadata. */
+    /** Cached lookup so repeated {@code onDraw} calls do not re-enter PackageManager. */
     private String appUsageLabel(String packageName) {
-        if ("com.google.android.apps.nexuslauncher".equals(packageName)
-                || "com.google.android.apps.pixel.launcher".equals(packageName)
-                || "com.android.launcher3".equals(packageName)) {
-            return AppText.t(getContext(), "Startbildschirm");
-        }
-        try {
-            CharSequence label = getContext().getPackageManager().getApplicationLabel(
-                    getContext().getPackageManager().getApplicationInfo(packageName, 0));
-            if (label != null && label.length() > 0 && !packageName.equals(label.toString())) {
-                return label.toString();
-            }
-        } catch (Exception ignored) { }
-        int separator = packageName == null ? -1 : packageName.lastIndexOf('.');
-        String fallback = separator >= 0 && separator + 1 < packageName.length()
-                ? packageName.substring(separator + 1) : packageName;
-        return fallback == null || fallback.isEmpty() ? "Unbekannte App" : fallback;
+        return AppLabelCache.labelFor(getContext(), packageName);
     }
 
     private void showAppUsageDetails() {
@@ -4841,6 +4830,8 @@ class BatteryDashboard extends View {
         back.setGravity(Gravity.CENTER);
         toolbar.addView(back, new LinearLayout.LayoutParams(dp(48), dp(54)));
         back.setContentDescription(AppText.t(getContext(), "Zurück"));
+        back.setClickable(true);
+        back.setFocusable(true);
         back.setOnClickListener(view -> dialog.dismiss());
         TextView title = usageText("App-Verbrauch", 20, ink, true);
         LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(0, -2, 1f);
@@ -4849,6 +4840,8 @@ class BatteryDashboard extends View {
         TextView close = usageText("SCHLIESSEN", 10, accent, true);
         close.setGravity(Gravity.CENTER);
         toolbar.addView(close, new LinearLayout.LayoutParams(-2, dp(54)));
+        close.setClickable(true);
+        close.setFocusable(true);
         close.setOnClickListener(view -> dialog.dismiss());
         page.addView(toolbar, new LinearLayout.LayoutParams(-1, dp(58)));
 
