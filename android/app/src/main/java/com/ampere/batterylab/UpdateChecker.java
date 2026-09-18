@@ -19,7 +19,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
 import android.util.Log;
-import android.widget.Toast;
 
 import org.json.JSONObject;
 
@@ -35,6 +34,7 @@ import java.security.MessageDigest;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import com.ampere.batterylab.Toasts;
 
 /** Checks for optional APK updates. No battery or usage data is sent. */
 final class UpdateChecker {
@@ -173,7 +173,7 @@ final class UpdateChecker {
         prefs.edit().putLong("lastCheck", now).apply();
 
         WeakReference<Activity> activityRef = new WeakReference<>(activity);
-        if (force) Toast.makeText(activity, AppText.t(activity, "Suche nach Aktualisierungen …"), Toast.LENGTH_SHORT).show();
+        if (force) Toasts.show(activity, AppText.t(activity, "Suche nach Aktualisierungen …"));
         EXECUTOR.execute(() -> {
             try {
                 FetchResult result = fetch(manifestUrl);
@@ -195,7 +195,7 @@ final class UpdateChecker {
             if (checkInProgress || downloadInProgress || downloadCompletionInProgress || installInProgress
                     || hasPendingUpdateWork(context)) {
                 if (notify) {
-                    Toast.makeText(context, AppText.t(context, "Ein anderer Update-Vorgang läuft bereits."), Toast.LENGTH_SHORT).show();
+                    Toasts.show(context, AppText.t(context, "Ein anderer Update-Vorgang läuft bereits."));
                 }
                 return false;
             }
@@ -386,7 +386,7 @@ final class UpdateChecker {
         }
         DownloadManager manager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
         if (manager == null) {
-            Toast.makeText(activity, AppText.t(activity, "Download ist auf diesem Gerät nicht verfügbar."), Toast.LENGTH_LONG).show();
+            Toasts.show(activity, AppText.t(activity, "Download ist auf diesem Gerät nicht verfügbar."));
             return;
         }
         if (!tryStartDownload(activity)) return;
@@ -421,14 +421,14 @@ final class UpdateChecker {
                 manager.remove(id);
                 clearDownloadState(activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE));
                 finishDownload();
-                Toast.makeText(activity, AppText.t(activity, "Update konnte nicht sicher vorbereitet werden."), Toast.LENGTH_LONG).show();
+                Toasts.show(activity, AppText.t(activity, "Update konnte nicht sicher vorbereitet werden."));
                 return;
             }
-            Toast.makeText(activity, AppText.t(activity, "Update wird heruntergeladen …"), Toast.LENGTH_LONG).show();
+            Toasts.show(activity, AppText.t(activity, "Update wird heruntergeladen …"));
         } catch (Exception error) {
             clearDownloadState(activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE));
             finishDownload();
-            Toast.makeText(activity, AppText.t(activity, "Update konnte nicht gestartet werden."), Toast.LENGTH_LONG).show();
+            Toasts.show(activity, AppText.t(activity, "Update konnte nicht gestartet werden."));
         }
     }
 
@@ -449,9 +449,7 @@ final class UpdateChecker {
                                 Uri.parse("package:" + activity.getPackageName()));
                         activity.startActivity(intent);
                     } catch (Exception error) {
-                        Toast.makeText(activity,
-                                AppText.t(activity, "Installationsfreigabe bitte in den App-Einstellungen aktivieren."),
-                                Toast.LENGTH_LONG).show();
+                        Toasts.show(activity, AppText.t(activity, "Installationsfreigabe bitte in den App-Einstellungen aktivieren."));
                     }
                 }).show();
     }
@@ -460,7 +458,7 @@ final class UpdateChecker {
         synchronized (OPERATION_LOCK) {
             if (checkInProgress || downloadInProgress || downloadCompletionInProgress || installInProgress
                     || hasPendingUpdateWork(context)) {
-                Toast.makeText(context, AppText.t(context, "Ein anderer Update-Vorgang läuft bereits."), Toast.LENGTH_SHORT).show();
+                Toasts.show(context, AppText.t(context, "Ein anderer Update-Vorgang läuft bereits."));
                 return false;
             }
             downloadInProgress = true;
@@ -510,21 +508,21 @@ final class UpdateChecker {
         if (!successful) {
             clearDownloadState(prefs);
             finishDownload();
-            Toast.makeText(context, AppText.t(context, "Update-Download fehlgeschlagen."), Toast.LENGTH_LONG).show();
+            Toasts.show(context, AppText.t(context, "Update-Download fehlgeschlagen."));
             return;
         }
         if (totalSize > MAX_APK_BYTES) {
             manager.remove(received);
             clearDownloadState(prefs);
             finishDownload();
-            Toast.makeText(context, AppText.t(context, "Update verworfen: Datei ist zu groß."), Toast.LENGTH_LONG).show();
+            Toasts.show(context, AppText.t(context, "Update verworfen: Datei ist zu groß."));
             return;
         }
         Uri apkUri = manager.getUriForDownloadedFile(received);
         if (apkUri == null) {
             clearDownloadState(prefs);
             finishDownload();
-            Toast.makeText(context, AppText.t(context, "Update-Datei konnte nicht geöffnet werden."), Toast.LENGTH_LONG).show();
+            Toasts.show(context, AppText.t(context, "Update-Datei konnte nicht geöffnet werden."));
             return;
         }
         String expectedSha256 = prefs.getString(DOWNLOAD_SHA256, "");
@@ -536,7 +534,7 @@ final class UpdateChecker {
                     manager.remove(received);
                     clearDownloadState(prefs);
                     finishDownload();
-                    Toast.makeText(context, AppText.t(context, "Update verworfen: Hash, Version oder Release-Signatur ungültig."), Toast.LENGTH_LONG).show();
+                    Toasts.show(context, AppText.t(context, "Update verworfen: Hash, Version oder Release-Signatur ungültig."));
                     return;
                 }
                 synchronized (OPERATION_LOCK) {
@@ -549,7 +547,7 @@ final class UpdateChecker {
                     manager.remove(received);
                     clearDownloadState(prefs);
                     finishDownload();
-                    Toast.makeText(context, AppText.t(context, "Update konnte nicht sicher gestartet werden."), Toast.LENGTH_LONG).show();
+                    Toasts.show(context, AppText.t(context, "Update konnte nicht sicher gestartet werden."));
                     return;
                 }
                 Intent install = new Intent(Intent.ACTION_VIEW).setDataAndType(apkUri, "application/vnd.android.package-archive");
@@ -561,7 +559,7 @@ final class UpdateChecker {
                     prefs.edit().remove(INSTALL_IN_PROGRESS).apply();
                     clearDownloadState(prefs);
                     finishDownload();
-                Toast.makeText(context, AppText.t(context, "Bitte die heruntergeladene APK aus den Dateien öffnen."), Toast.LENGTH_LONG).show();
+                Toasts.show(context, AppText.t(context, "Bitte die heruntergeladene APK aus den Dateien öffnen."));
                 }
             });
         });
