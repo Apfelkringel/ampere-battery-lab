@@ -1,5 +1,34 @@
 # Verification record
 
+Version `0.466` adds three more regression suites so the data pipeline and
+alarm triggers cannot silently drift. `BatteryExportRulesTest` covers the
+legacy-telemetry validator (short rows, out-of-range levels, implausible
+current, contradictory sign, malformed numbers) as well as the chronological
+sort, the inclusive time window filter and the safe-by-default
+`normalizeTelemetry` used by backup restore and migrations.
+`BatteryChargeAlarmTest` pins the edge-triggered charge-target alarm
+behaviour — including hysteresis, missing-baseline handling, "already
+sent" suppression and invalid level rejection — so an off-by-one in the
+upward-crossing test does not silence a legitimate target-hit notification.
+`BatteryDischargeAlarmTest` locks down the threshold clamp range, the
+edge-triggered low-battery alarm and the reset band after the threshold.
+The full Direct-Debug unit-test suite (now 295 tests), build and lint
+passed locally. CI release workflow
+[`35408763547`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35408763547)
+passed and the signed tag is `v0.466`. Public update-repository commit
+[`caee6a5`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/caee6a5)
+publishes the artifacts. A fresh public APK download matches `latest.json`
+with SHA-256
+`b6d11c06eefe0cba8666164280a3c4544a2cd4f6bb6dcd075f3d74ef2c10b825` and
+reports package `com.ampere.batterylab`, version code/name `466`/`0.466`.
+Play internal-track publishing workflow
+[`35409070005`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35409070005)
+passed.
+
+Last verified: 2026-09-19 (Europe/Berlin)
+
+# Verification record
+
 Version `0.465` adds regression coverage to four chart helper classes that
 previously only lived inside `MainActivity` — `BatteryHistoryChartSelection`
 hit-test boundaries, `BatteryCurrentChartWindow` date formatting and duration
