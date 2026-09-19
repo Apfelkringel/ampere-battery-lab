@@ -22,9 +22,10 @@ with SHA-256
 reports package `com.ampere.batterylab`, version code/name `468`/`0.468`.
 The Play internal-track publishing workflow
 [`35410822711`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35410822711)
-reported a billing-related GitHub-side failure that has to be retried
+and a retry ([`35410914739`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35410914739))
+both returned a billing-related GitHub-side error that has to be retried
 once the account is restored; the signed APK and AAB are byte-identical
-with `latest.json` and are ready for upload.
+with `latest.json` and ready for upload.
 
 Last verified: 2026-09-19 (Europe/Berlin)
 
