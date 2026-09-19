@@ -4937,7 +4937,7 @@ class BatteryDashboard extends View {
         // package.
         icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         try {
-            Drawable appIcon = getContext().getPackageManager().getApplicationIcon(estimate.usage.packageName);
+            Drawable appIcon = AppLabelCache.iconFor(getContext(), estimate.usage.packageName);
             icon.setImageDrawable(appIcon);
         } catch (Exception ignored) {
             icon.setImageResource(android.R.drawable.sym_def_app_icon);
