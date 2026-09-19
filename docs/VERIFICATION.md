@@ -1,5 +1,32 @@
 # Verification record
 
+Version `0.465` adds regression coverage to four chart helper classes that
+previously only lived inside `MainActivity` — `BatteryHistoryChartSelection`
+hit-test boundaries, `BatteryCurrentChartWindow` date formatting and duration
+rounding, `BatteryHistoryChartValues` empty-bucket fallbacks, and
+`BatteryLevelChartSeries` daily grouping plus missing-day gap detection.
+These helpers are the ones the chart rendering depends on, so locking their
+behaviour in tests catches off-by-one and locale regressions early. The same
+release also routes every status message in `UpdateChecker` through the
+`Toasts` dedup helper so update-success and update-failure toasts no longer
+stack when an in-app update flow is exercised in quick succession. The full
+Direct-Debug unit-test suite (now 263 tests), build and lint passed locally.
+CI release workflow
+[`35384098397`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35384098397)
+passed and the signed tag is `v0.465`. Public update-repository commit
+[`e376c2d`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/e376c2d)
+publishes the artifacts. A fresh public APK download matches `latest.json`
+with SHA-256
+`400be4b5a1542e785226f819b52bd9efd4cc16831b250840f5705889330b188f` and
+reports package `com.ampere.batterylab`, version code/name `465`/`0.465`.
+Play internal-track publishing workflow
+[`35384648388`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35384648388)
+passed.
+
+Last verified: 2026-09-19 (Europe/Berlin)
+
+# Verification record
+
 Version `0.464` addresses two issues spotted in a UI/UX scan of the
 App-Verbrauch surface. The dashboard's per-row label and launcher icon were
 resolved through `PackageManager.getApplicationLabel` and
