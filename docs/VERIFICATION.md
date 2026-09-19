@@ -1,5 +1,34 @@
 # Verification record
 
+Version `0.467` finishes the App-Verbrauchs perf pass and adds two more
+regression suites. The App-Verbrauchs dialog now routes its launcher icon
+through `AppLabelCache.iconFor` so the previously cached drawables from the
+canvas variant are reused instead of triggering a fresh `getApplicationIcon`
+lookup per row. `UsageEventAccumulatorTest` pins the activity-aware
+foreground/background accounting — single-class close, MOVE_TO_BACKGROUND
+without a class name, multi-activity overlap, duplicate close events, the
+window-end early-return filter and independent package sessions.
+`BatteryAppAttributionTest` covers the `sourceLabel` strings, the
+`observedWindowMah` fallback chain, the proportional mAh scaling rules, the
+apportion rounding-remainder distribution, the direct-to-observed scale,
+the `sampleMah` linear-energy conversion, the per-app rate helpers and the
+summary label paths. The full Direct-Debug unit-test suite (now 339
+tests), build and lint passed locally. CI release workflow
+[`35409811956`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35409811956)
+passed and the signed tag is `v0.467`. Public update-repository commit
+[`6d688ae`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/6d688ae)
+publishes the artifacts. A fresh public APK download matches `latest.json`
+with SHA-256
+`e5a6ced3d5e4173b1472508449042e03e85907482002978548bf6236e3126fbc` and
+reports package `com.ampere.batterylab`, version code/name `467`/`0.467`.
+Play internal-track publishing workflow
+[`35410055087`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35410055087)
+passed.
+
+Last verified: 2026-09-19 (Europe/Berlin)
+
+# Verification record
+
 Version `0.466` adds three more regression suites so the data pipeline and
 alarm triggers cannot silently drift. `BatteryExportRulesTest` covers the
 legacy-telemetry validator (short rows, out-of-range levels, implausible
