@@ -1,5 +1,35 @@
 # Verification record
 
+Version `0.468` adds three more regression suites for the duration,
+fuel-gauge and time-to-target helpers, all of which were previously
+covered only by the runtime. `BatteryDurationTest` pins the compact and
+dashboard minute/hour formatting including whole-hour, hour+minute and
+the non-positive fallback to the em-dash. `BatteryFuelGaugeTimeTest`
+pins the kernel-fuel-gauge normalizer including the 48-hour sentinel,
+truncation-to-minute behaviour, the instantaneous-vs-average preference
+and the all-invalid fallback to 0. `BatteryTimeEstimateTest` pins the
+bounded minutes-to-target calculation including the 50 mA minimum,
+100 000 mA maximum, non-finite historical rate, integer overflow and
+the trivial-missing capacity clamping to at least one minute. The full
+Direct-Debug unit-test suite (now 363 tests), build and lint passed
+locally. CI release workflow
+[`35410532448`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35410532448)
+passed and the signed tag is `v0.468`. Public update-repository commit
+[`7e7e21c`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/7e7e21c)
+publishes the artifacts. A fresh public APK download matches `latest.json`
+with SHA-256
+`6ada4ecfaff4dead3b2cc86a61232518cebc4df157530f710eb7f1eb210a2f86` and
+reports package `com.ampere.batterylab`, version code/name `468`/`0.468`.
+The Play internal-track publishing workflow
+[`35410822711`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35410822711)
+reported a billing-related GitHub-side failure that has to be retried
+once the account is restored; the signed APK and AAB are byte-identical
+with `latest.json` and are ready for upload.
+
+Last verified: 2026-09-19 (Europe/Berlin)
+
+# Verification record
+
 Version `0.467` finishes the App-Verbrauchs perf pass and adds two more
 regression suites. The App-Verbrauchs dialog now routes its launcher icon
 through `AppLabelCache.iconFor` so the previously cached drawables from the
