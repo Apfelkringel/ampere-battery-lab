@@ -991,6 +991,7 @@ class BatteryDashboard extends View {
     private final Bitmap[] navButtonArtwork = new Bitmap[5];
     private final Bitmap headerLiveArtwork;
     private final Bitmap headerOverflowArtwork;
+    private android.text.TextPaint updateBannerPaint;
     private final Bitmap actionActiveArtwork;
     private final Bitmap actionStartArtwork;
     private final Bitmap actionStartenArtwork;
@@ -3079,6 +3080,7 @@ class BatteryDashboard extends View {
         // geometry; this avoids a drawn control with a dead or shifted target.
         int headerAction = BatteryHeaderLayout.actionAt(x, y, w);
         if (headerAction != BatteryHeaderLayout.NONE) return headerAction;
+        if (isUpdateBannerAt(x, y, w)) return 60;
         if (y >= 118 && y < 176) {
             int tab = BatteryAccessibilityLayout.navigationTabAt(x, w);
             if (tab >= 0) return 10 + tab;
@@ -3246,6 +3248,7 @@ class BatteryDashboard extends View {
         // makes room for hierarchy instead of repeating the navigation.
         text(c, page == 0 ? "Beobachte deinen Akku" : pageName(),
                 18, 105, BatteryHeaderLayout.pageTitleSize(w), headerText, true);
+        drawUpdateBanner(c, w, headerMid, headerText);
         final float controlTop = 12f;
         final float controlBottom = 60f;
         if (w < 390f) {
@@ -3264,6 +3267,58 @@ class BatteryDashboard extends View {
                     isPressed(3), false);
         }
         drawNav(c, w, primary, muted, border, panel);
+    }
+
+    /**
+     * Small header pill shown while a validated update is known but not yet
+     * installed. Tapping it re-opens the update dialog; the pill disappears
+     * automatically after the update dialog has been dismissed or handled.
+     */
+    private void drawUpdateBanner(Canvas c, float w, int headerMid, int headerText) {
+        Activity activity = (Activity) getContext();
+        String versionName = UpdateChecker.knownUpdateVersionName(activity);
+        if (versionName.isEmpty()) return;
+        String label = AppText.t(getContext(), "Update " + versionName + " verfügbar");
+        float textWidth = labelPaint().measureText(label);
+        float padding = 10f * density;
+        float bannerWidth = Math.min(textWidth + padding * 2f, w - 36f * density);
+        float left = (getWidth() - bannerWidth) / 2f;
+        float top = 64f * density;
+        float bottom = top + 24f * density;
+        GradientDrawable background = new GradientDrawable();
+        background.setColor(Color.argb(80, 115, 228, 216));
+        background.setCornerRadius(12f * density);
+        background.setStroke(Math.round(1 * density), Color.rgb(115, 228, 216));
+        background.setBounds(Math.round(left), Math.round(top), Math.round(left + bannerWidth), Math.round(bottom));
+        background.draw(c);
+        android.text.TextPaint paint = new android.text.TextPaint(labelPaint());
+        paint.setColor(headerText);
+        paint.setTextSize(11f * density);
+        float textLeft = left + (bannerWidth - paint.measureText(label)) / 2f;
+        c.drawText(label, textLeft, (top + bottom) / 2f - (paint.ascent() + paint.descent()) / 2f, paint);
+    }
+
+    private android.text.TextPaint labelPaint() {
+        if (updateBannerPaint == null) {
+            updateBannerPaint = new android.text.TextPaint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+            updateBannerPaint.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        }
+        return updateBannerPaint;
+    }
+
+    /** True when the tap lands inside the drawn update banner pill. */
+    private boolean isUpdateBannerAt(float x, float y, float w) {
+        Activity activity = (Activity) getContext();
+        String versionName = UpdateChecker.knownUpdateVersionName(activity);
+        if (versionName.isEmpty()) return false;
+        String label = AppText.t(getContext(), "Update " + versionName + " verfügbar");
+        float textWidth = labelPaint().measureText(label);
+        float padding = 10f * density;
+        float bannerWidth = Math.min(textWidth + padding * 2f, w * density - 36f * density);
+        float left = (getWidth() - bannerWidth) / 2f;
+        float top = 64f * density;
+        float bottom = top + 24f * density;
+        return x >= left && x <= left + bannerWidth && y >= top && y <= bottom;
     }
 
     private void drawHeaderOverflow(Canvas c, float cx, int color) {
@@ -6842,6 +6897,12 @@ class BatteryDashboard extends View {
         float w = getWidth() / density;
         int releasedHeader = BatteryHeaderLayout.actionAt(screenX, y, w);
         if (releasedRegion == BatteryHeaderLayout.OVERFLOW && releasedHeader == releasedRegion) { hapticClick(); showSettings(); return true; }
+        if (releasedRegion == 60 && isUpdateBannerAt(screenX, y, w)) {
+            hapticClick();
+            UpdateChecker.checkNow((Activity) getContext());
+            invalidate();
+            return true;
+        }
         if (releasedRegion == BatteryHeaderLayout.LIVE_REFRESH && releasedHeader == releasedRegion) {
             // The LIVE control is an explicit refresh action: Android's
             // sticky battery broadcast is read immediately, so the user can

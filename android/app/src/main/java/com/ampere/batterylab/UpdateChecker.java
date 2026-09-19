@@ -41,7 +41,10 @@ final class UpdateChecker {
     private static final String TAG = "AmpereUpdate";
     private static final String PREFS = "ampere-update";
     private static final String UPDATE_CHANNEL_ID = "ampere-updates";
-    private static final int UPDATE_NOTIFICATION_ID = 10;
+    // The monitor service owns notification IDs 7-10 for its live card and
+    // the three alarms. Using one of those IDs here let a new update banner
+    // silently replace a pending discharge alarm on the same device.
+    private static final int UPDATE_NOTIFICATION_ID = 11;
     private static final String ACTION_SHOW_UPDATE = "com.ampere.batterylab.SHOW_UPDATE";
     private static final String DOWNLOAD_ID = "downloadId";
     private static final String DOWNLOAD_SHA256 = "downloadSha256";
@@ -214,8 +217,8 @@ final class UpdateChecker {
         new AlertDialog.Builder(activity)
                 .setTitle(AppText.t(activity, "Update-Prüfung"))
                 .setMessage(AppText.t(activity, message))
-                .setPositiveButton("Erneut prüfen", (dialog, which) -> checkNow(activity))
-                .setNegativeButton("Schließen", null)
+                .setPositiveButton(AppText.t(activity, "Erneut prüfen"), (dialog, which) -> checkNow(activity))
+                .setNegativeButton(AppText.t(activity, "Schließen"), null)
                 .show();
     }
 
@@ -246,6 +249,28 @@ final class UpdateChecker {
     private static void clearPendingUpdate(SharedPreferences prefs) {
         prefs.edit().remove(PENDING_VERSION_CODE).remove(PENDING_VERSION_NAME)
                 .remove(PENDING_APK_URL).remove(PENDING_SHA256).remove(PENDING_NOTES).apply();
+    }
+
+    /**
+     * True when a validated background check has stored a newer release that
+     * the user has not installed yet. The dashboard header uses this to show
+     * its update banner without re-fetching the manifest on the UI thread.
+     */
+    static boolean isUpdateKnown(Context context) {
+        if (context == null || !BuildConfig.DIRECT_DISTRIBUTION) return false;
+        SharedPreferences prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        int versionCode = prefs.getInt(PENDING_VERSION_CODE, 0);
+        return versionCode > BuildConfig.VERSION_CODE
+                && !prefs.getString(PENDING_APK_URL, "").isEmpty()
+                && prefs.getString(PENDING_SHA256, "").matches("[0-9a-f]{64}");
+    }
+
+    /** Version name of the known update, or an empty string when none exists. */
+    static String knownUpdateVersionName(Context context) {
+        if (context == null || !BuildConfig.DIRECT_DISTRIBUTION) return "";
+        SharedPreferences prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        String versionName = prefs.getString(PENDING_VERSION_NAME, "");
+        return isUpdateKnown(context) ? versionName : "";
     }
 
     private static FetchResult fetch(String manifestUrl) {
