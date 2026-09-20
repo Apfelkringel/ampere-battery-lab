@@ -2263,3 +2263,17 @@ Public verification: `latest.json` in
 `ampere-battery-lab-updates` publishes versionCode `471`, versionName
 `0.471` and the matching APK SHA-256. The publicly downloadable APK was
 re-downloaded, shows the correct version and matches the published hash.
+
+## Release 0.472 verification
+
+Version `0.472` completes the update-check i18n: the check-again button and
+all seven manifest failure messages now translate on English devices, so the
+dialog no longer mixes German error text into an English session. Tests,
+the direct-debug build and `lintDirectDebug` pass locally.
+
+The release is signed with the debug keystore ancestor of the documented
+lineage (the original rotating keystore remains unrecoverable) and pinned to
+the same certificate SHA-256 as `0.471`, so in-app updates from `0.471`
+reach this release. Public verification: the published `latest.json`
+reports versionCode `472` and the publicly downloaded APK matches the
+published SHA-256 and shows the correct version.
