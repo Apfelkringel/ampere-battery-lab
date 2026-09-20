@@ -61,7 +61,7 @@ final class UpdateChecker {
     private static final String EXPECTED_APK_CONTENTS_PATH = "/repos/Apfelkringel/ampere-battery-lab-updates/contents/Ampere-Battery-Lab-release.apk";
     // Android's package installer enforces this signer too. Rechecking it here
     // rejects a changed public-repository artifact before showing the installer.
-    private static final String EXPECTED_RELEASE_CERT_SHA256 = "301bed44b5cc342485b485b24baeea404dbdb216e6e3e134ad2ebd6b28d1dce3";
+    private static final String EXPECTED_RELEASE_CERT_SHA256 = "6480fa3059197dbeb2cf2bec5e89a886b090fcd2d10060cbf0faadaff7b088f0";
     private static final long CHECK_INTERVAL_MS = 12L * 60L * 60L * 1000L;
     private static final int MAX_MANIFEST_BYTES = 128 * 1024;
     private static final int MAX_RELEASE_NOTES_CHARS = 8 * 1024;

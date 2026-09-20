@@ -2239,3 +2239,27 @@ Capacity-dependent projections remain unavailable until Android exposes a value
 or the user enters the factory capacity. App drain attribution is an estimate
 based on foreground usage and local battery telemetry, not a privileged
 replacement for Android's internal battery stats.
+## Release 0.471 verification
+
+Version `0.471` adds a tappable update banner in the header that runs an
+immediate update check, fixes the notification ID collision between the
+monitor service and the update check notification, and completes the
+translations of the update-check dialogs. The local test suite
+`testDirectDebugUnitTest`, the direct-release build and
+`lintDirectDebug` all pass.
+
+The original rotating-release keystore could not be recovered after the
+`/tmp` cleanup, so this release is signed with the debug keystore that is
+the documented ancestor in `android/ampere-release.lineage`.
+Devices with API ≥ 28 accept the update through the OS signature check when
+it is installed manually from the public APK. The in-app update checker now
+pins the new certificate SHA-256
+`6480fa3059197dbeb2cf2bec5e89a886b090fcd2d10060cbf0faadaff7b088f0`, so
+future in-app updates from `0.471` work normally again. Installations of
+`0.468` or older do not receive this release through the in-app update
+because their pinned certificate is the lost one.
+
+Public verification: `latest.json` in
+`ampere-battery-lab-updates` publishes versionCode `471`, versionName
+`0.471` and the matching APK SHA-256. The publicly downloadable APK was
+re-downloaded, shows the correct version and matches the published hash.
