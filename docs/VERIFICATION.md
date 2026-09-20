@@ -2277,3 +2277,13 @@ the same certificate SHA-256 as `0.471`, so in-app updates from `0.471`
 reach this release. Public verification: the published `latest.json`
 reports versionCode `472` and the publicly downloaded APK matches the
 published SHA-256 and shows the correct version.
+
+## Release 0.473 verification
+
+Version `0.473` fixes the update-download rejection: the pinned release
+certificate SHA-256 pointed at the pre-rotation certificate instead of the
+actual debug signer, so the in-app APK verification discarded its own
+signature. The pin now matches the debug certificate
+`eabc1c630a28daf5fff5f67c70d4382d16784da89019321bb107da41abb60eba`, and
+in-app updates from `0.472` reach this release. Tests and lint pass;
+the public APK was re-downloaded and matches the published hash and version.
