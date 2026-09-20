@@ -2287,3 +2287,13 @@ signature. The pin now matches the debug certificate
 `eabc1c630a28daf5fff5f67c70d4382d16784da89019321bb107da41abb60eba`, and
 in-app updates from `0.472` reach this release. Tests and lint pass;
 the public APK was re-downloaded and matches the published hash and version.
+
+## Release 0.474 verification
+
+Version `0.474` keeps the header update banner visible when the user picks
+`Later` in the update dialog: the pending-update entry stays persisted
+instead of being cleared the moment the dialog opens, so a known update is
+not silently forgotten. The entry clears when the user chooses to download,
+and the version-code guard hides the banner after the update is installed.
+Tests and lint pass; the public APK was re-downloaded and matches the
+published hash and version.
