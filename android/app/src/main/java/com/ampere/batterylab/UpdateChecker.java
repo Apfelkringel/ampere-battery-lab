@@ -233,7 +233,10 @@ final class UpdateChecker {
         String notes = prefs.getString(PENDING_NOTES, "Neue Version verfügbar.");
         if (versionCode <= BuildConfig.VERSION_CODE || versionName.isEmpty()
                 || apkUrl.isEmpty() || !sha256.matches("[0-9a-f]{64}")) return;
-        clearPendingUpdate(prefs);
+        // The pending entry stays persisted while the user reads the dialog:
+        // picking "Later" keeps the header banner visible, so the known
+        // update is not silently forgotten. The download path clears it
+        // once the update is actually being handled.
         showUpdateDialog(activity, new UpdateInfo(versionCode, versionName, apkUrl, sha256, notes));
     }
 
@@ -368,7 +371,6 @@ final class UpdateChecker {
 
     private static void showUpdateDialog(Activity activity, UpdateInfo update) {
         if (activity.isFinishing() || activity.isDestroyed()) return;
-        clearPendingUpdate(activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE));
         NotificationManager manager = (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
         if (manager != null) manager.cancel(UPDATE_NOTIFICATION_ID);
         new AlertDialog.Builder(activity)
@@ -415,6 +417,9 @@ final class UpdateChecker {
             return;
         }
         if (!tryStartDownload(activity)) return;
+        // The user chose to handle the update now: the header banner and
+        // the pending-notification guard retire while the download runs.
+        clearPendingUpdate(activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE));
         try {
             DownloadManager.Request request = new DownloadManager.Request(Uri.parse(withCacheBuster(update.apkUrl)));
             request.setTitle(AppText.t(activity, "Ampere-Update " + update.versionName));
