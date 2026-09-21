@@ -715,7 +715,17 @@ final class UpdateChecker {
             // newer builds. Accept the unknown signer so those testers can
             // receive this fix, but log loudly so the next release
             // re-tightens the pin set once the user base has converged.
-            android.util.Log.w(TAG, "Update signer not in pinned set; accepting due to sha256 match.");
+            // Log full verifier context so a tester can grab the values from
+            // `adb logcat -d -s AmpereUpdate` when an update is rejected.
+            StringBuilder seen = new StringBuilder("signer-hashes=[");
+            for (int i = 0; i < signatures.length; i++) {
+                if (i > 0) seen.append(',');
+                seen.append(toHex(certDigest.digest(signatures[i].toByteArray())));
+            }
+            seen.append("] packageName=").append(info.packageName)
+                .append(" archiveVersion=").append(archiveVersion)
+                .append(" expectedVersionCode=").append(expectedVersionCode);
+            android.util.Log.w(TAG, "Update signer not in pinned set; accepting due to sha256 match. " + seen);
             return true;
         } catch (Exception ignored) {
             return false;

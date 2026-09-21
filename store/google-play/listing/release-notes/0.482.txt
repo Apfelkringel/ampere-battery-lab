@@ -1,0 +1,1 @@
+0.482 setzt den Fail-Open-Pin-Check aus 0.481 fort und erg\u00e4nzt Logging f\u00fcr die Fehlersuche. Auf API < 28 in 0.475-0.478 schl\u00e4gt der V1-Pin fehl (info.signatures = [eabc1c], Pin = fa29b8).
