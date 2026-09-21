@@ -245,17 +245,16 @@ final class UpdateChecker {
         if (activity == null || activity.isFinishing() || activity.isDestroyed()) return;
         SharedPreferences prefs = activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         int versionCode = prefs.getInt(PENDING_VERSION_CODE, 0);
-        String versionName = prefs.getString(PENDING_VERSION_NAME, "");
         String apkUrl = prefs.getString(PENDING_APK_URL, "");
         String sha256 = prefs.getString(PENDING_SHA256, "");
-        String notes = prefs.getString(PENDING_NOTES, "Neue Version verfügbar.");
-        if (versionCode <= BuildConfig.VERSION_CODE || versionName.isEmpty()
-                || apkUrl.isEmpty() || !sha256.matches("[0-9a-f]{64}")) return;
-        // The pending entry stays persisted while the user reads the dialog:
-        // picking "Later" keeps the header banner visible, so the known
-        // update is not silently forgotten. The download path clears it
-        // once the update is actually being handled.
-        showUpdateDialog(activity, new UpdateInfo(versionCode, versionName, apkUrl, sha256, notes));
+        if (versionCode <= BuildConfig.VERSION_CODE || apkUrl.isEmpty()
+                || !sha256.matches("[0-9a-f]{64}")) return;
+        // Persisted banner data may be stale (cached cdn response, key
+        // rotation, or sideload that bypassed this flow). Drop it and
+        // force a fresh check so the next banner is rebuilt from the
+        // current latest.json.
+        clearPendingUpdate(prefs);
+        checkNow(activity);
     }
 
     private static void persistPendingUpdate(SharedPreferences prefs, UpdateInfo update) {

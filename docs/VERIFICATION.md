@@ -2364,3 +2364,20 @@ and the lineage debug signer
 distinct so a future copy/paste mistake cannot silently narrow the
 allowed set. The new APK is rotated through the same debug-to-Ampere
 lineage and uploaded to `ampere-battery-lab-updates` as v0.478.
+
+
+## Release 0.479 verification
+
+Version 0.479 fixes a stale-banner trap that left every previous
+update fix stranded. The persisted "pending update" banner kept the
+apkUrl and sha256 from the last successful `fetch()`, so users whose
+installed app could no longer download the latest APK (because the
+underlying url had been rewritten from `api.github.com` to
+`raw.githubusercontent.com` or the sha256 had rotated) were stuck on
+the cached values. `showPendingUpdateIfAvailable` now drops the
+persisted entry on every cold start and forces `checkNow()`, so the
+next banner is rebuilt from the current `latest.json`. The unit
+tests still pin both `EXPECTED_RELEASE_CERT_SHA256` and
+`EXPECTED_LINEAGE_DEBUG_CERT_SHA256`, the new APK and AAB carry the
+same debug-to-Ampere lineage as 0.477/0.478, and both are tagged
+v0.479.

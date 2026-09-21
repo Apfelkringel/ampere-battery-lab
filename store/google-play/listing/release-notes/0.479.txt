@@ -1,0 +1,1 @@
+0.479 repariert den Update-Banner: \u00e4ltere persistierte Banner mit veralteter apkUrl/sha256 werden beim App-Start verworfen und ein frischer Check gegen latest.json ausgef\u00fchrt. Damit \u00fcbernimmt die App nach jedem Start garantiert die aktuellen Update-Daten.
