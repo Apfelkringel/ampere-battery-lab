@@ -1,0 +1,3 @@
+Das Update-Banner bleibt sichtbar, bis du das Update tatsächlich herunter-
+lädst oder installierst. Wählst du „Später", wird der Hinweis nicht mehr
+stillschweigend verworfen.

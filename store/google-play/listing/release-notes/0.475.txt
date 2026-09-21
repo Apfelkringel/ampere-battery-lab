@@ -1,0 +1,3 @@
+Sicherheits-Update: Die direkte APK ist jetzt mit einem langlebigen
+Ampere-Battery-Lab-Zertifikat signiert. Android verifiziert das Update vor
+der Installation. Bestehende Installationen aktualisieren sich wie gewohnt.

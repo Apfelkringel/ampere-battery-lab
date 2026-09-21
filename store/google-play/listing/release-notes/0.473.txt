@@ -1,0 +1,3 @@
+Die Update-Prüfung ignoriert jetzt HTTP-Fehler des Manifest-Servers, sodass
+kurzzeitige Netzwerkprobleme nicht mehr fälschlich als endgültiges Scheitern
+gemeldet werden.

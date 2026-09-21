@@ -13,3 +13,6 @@ android/ci-release.keystore
 android/ci-old-release.keystore
 keystore.properties
 *.bak
+
+# Local APK build outputs (fresh build copies live in ampere-battery-lab-updates)
+artifacts/
