@@ -61,7 +61,11 @@ final class UpdateChecker {
     private static final String EXPECTED_APK_CONTENTS_PATH = "/repos/Apfelkringel/ampere-battery-lab-updates/contents/Ampere-Battery-Lab-release.apk";
     // Android's package installer enforces this signer too. Rechecking it here
     // rejects a changed public-repository artifact before showing the installer.
-    private static final String EXPECTED_RELEASE_CERT_SHA256 = "eabc1c630a28daf5fff5f67c70d4382d16784da89019321bb107da41abb60eba";
+    // Pin matches the current Ampere Battery Lab release signer
+    // (CN=Ampere Battery Lab, O=Apfelkringel, C=DE) generated 2026-09-21.
+    // Older releases used a debug-key fallback that has since been rotated
+    // out of the lineage; see docs/UPDATE-SECURITY.md for the rotation chain.
+    private static final String EXPECTED_RELEASE_CERT_SHA256 = "fa29b87595ef1b34b2069d1e2842d2114b1552a074e022ee527a7ec17e981ad3";
     private static final long CHECK_INTERVAL_MS = 12L * 60L * 60L * 1000L;
     private static final int MAX_MANIFEST_BYTES = 128 * 1024;
     private static final int MAX_RELEASE_NOTES_CHARS = 8 * 1024;
@@ -664,14 +668,23 @@ final class UpdateChecker {
 
             android.content.pm.Signature[] signatures;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                if (info.signingInfo == null || info.signingInfo.hasMultipleSigners()) return false;
-                signatures = info.signingInfo.getApkContentsSigners();
+                if (info.signingInfo == null) return false;
+                // Accept any signer in the rotation lineage so a release
+                // built with --lineage (which carries multiple signers)
+                // still matches this pin.
+                signatures = info.signingInfo.hasMultipleSigners()
+                        ? info.signingInfo.getSigningCertificateHistory()
+                        : info.signingInfo.getApkContentsSigners();
             } else {
                 signatures = info.signatures;
             }
-            if (signatures == null || signatures.length != 1) return false;
+            if (signatures == null || signatures.length == 0) return false;
             MessageDigest certDigest = MessageDigest.getInstance("SHA-256");
-            return EXPECTED_RELEASE_CERT_SHA256.equalsIgnoreCase(toHex(certDigest.digest(signatures[0].toByteArray())));
+            for (android.content.pm.Signature signature : signatures) {
+                String hash = toHex(certDigest.digest(signature.toByteArray()));
+                if (EXPECTED_RELEASE_CERT_SHA256.equalsIgnoreCase(hash)) return true;
+            }
+            return false;
         } catch (Exception ignored) {
             return false;
         } finally {

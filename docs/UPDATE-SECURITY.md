@@ -15,8 +15,7 @@ Vor dem Öffnen des Android-Installers werden alle folgenden Bedingungen geprüf
    dem Manifest entsprechen.
 3. Paketname und `versionCode` der heruntergeladenen APK müssen exakt zum
    angekündigten Update passen.
-4. Das APK-Zertifikat muss dem fest eingebauten Ampere-Release-Zertifikat
-   entsprechen: `301bed44b5cc342485b485b24baeea404dbdb216e6e3e134ad2ebd6b28d1dce3`.
+4. Das APK-Zertifikat muss einem fest eingebauten Ampere-Release-Zertifikat aus der Lineage entsprechen. Aktueller Pin ist `fa29b87595ef1b34b2069d1e2842d2114b1552a074e022ee527a7ec17e981ad3` (CN=Ampere Battery Lab, O=Apfelkringel, C=DE, RSA-4096, generiert 2026-09-21). Fuer Installationen von 0.471-0.474 ist zusaetzlich der Debug-Key aus `android/ampere-release.lineage` als V1-Primaersigner eingebaut, damit Android In-Place-Updates entlang der Lineage akzeptiert.
 5. Erst danach wird Androids eigener Paket-Installer geöffnet. Android prüft
    zusätzlich die Signaturkompatibilität mit der bereits installierten App und
    verlangt die finale Installationsbestätigung.

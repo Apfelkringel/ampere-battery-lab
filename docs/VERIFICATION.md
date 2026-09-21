@@ -2297,3 +2297,29 @@ not silently forgotten. The entry clears when the user chooses to download,
 and the version-code guard hides the banner after the update is installed.
 Tests and lint pass; the public APK was re-downloaded and matches the
 published hash and version.
+
+
+## Release 0.475 verification
+
+Version `0.475` rotates the release signing certificate. The previous
+AMPERE_ROTATED_KEYSTORE_BASE64 secret was lost, so v0.471-v0.474 were
+signed with the Android debug keystore as a stopgap; this release restores
+the documented Ampere Battery Lab signer.
+
+The directRelease APK is now signed by a fresh RSA-4096 keystore with the
+distinguished name CN=Ampere Battery Lab, O=Apfelkringel, C=DE and SHA-256
+`fa29b87595ef1b34b2069d1e2842d2114b1552a074e022ee527a7ec17e981ad3`. The
+V1/JAR signer keeps the previous debug certificate (eabc1c630a28daf5...)
+so existing 0.471-0.474 installations can update in place through the V3
+lineage. The signing certificate lineage is committed at
+`android/ampere-release.lineage`. The in-app UpdateChecker now iterates
+through SigningInfo.getSigningCertificateHistory() so a rotated APK still
+matches the new pin.
+
+Local test suite testDirectDebugUnitTest, direct-release build and
+lintDirectDebug all pass. The published APK SHA-256
+`254410bd660a9c8ca03d8d66f00a371fbad6a69db3c21e6a94284bdd2f798cc5` and
+Play AAB SHA-256 `ec073c195920595b31d26f8adc147d165a71477db26f487d2ebb8db8f0e7813b`
+match `latest.json` in ampere-battery-lab-updates. The build certificate
+verification in .github/workflows/build-apk.yml (which pins the same
+Ampere Battery Lab SHA-256) would pass against this artifact.
