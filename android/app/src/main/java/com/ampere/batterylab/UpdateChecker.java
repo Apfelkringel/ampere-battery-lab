@@ -71,6 +71,14 @@ final class UpdateChecker {
     private static final int MAX_RELEASE_NOTES_CHARS = 8 * 1024;
     private static final long MAX_APK_BYTES = 128L * 1024L * 1024L;
     private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor();
+
+
+    /** Test-only: parses an HTTPS URL string the same way the
+     *  validation helpers see it. Made package-private so
+     *  UpdateCheckerAllowlistTest can feed arbitrary URLs. */
+    static java.net.URL allowlistTestParse(String raw) throws java.net.MalformedURLException {
+        return new java.net.URL(raw);
+    }
     private static final Object OPERATION_LOCK = new Object();
     private static boolean checkInProgress;
     private static boolean downloadInProgress;
@@ -332,7 +340,7 @@ final class UpdateChecker {
         }
     }
 
-    private static boolean isAllowedManifestUrl(URL url) {
+    static boolean isAllowedManifestUrl(URL url) {
         if (!"https".equalsIgnoreCase(url.getProtocol())
                 || url.getPort() != -1
                 || url.getUserInfo() != null) return false;
@@ -349,12 +357,12 @@ final class UpdateChecker {
                 + "&t=" + System.currentTimeMillis();
     }
 
-    private static boolean isAllowedApkUrl(URL url) {
+    static boolean isAllowedApkUrl(URL url) {
         if (isAllowedUpdateUrl(url) && EXPECTED_APK_RAW_PATH.equals(url.getPath())) return true;
         return isAllowedContentsApkUrl(url);
     }
 
-    private static boolean isAllowedContentsApkUrl(URL url) {
+    static boolean isAllowedContentsApkUrl(URL url) {
         if (!"https".equalsIgnoreCase(url.getProtocol())
                 || url.getPort() != -1
                 || url.getUserInfo() != null
@@ -366,7 +374,7 @@ final class UpdateChecker {
         return false;
     }
 
-    private static boolean isAllowedUpdateUrl(URL url) {
+    static boolean isAllowedUpdateUrl(URL url) {
         return "https".equalsIgnoreCase(url.getProtocol())
                 && url.getPort() == -1
                 && url.getUserInfo() == null
