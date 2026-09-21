@@ -16,3 +16,6 @@ keystore.properties
 
 # Local APK build outputs (fresh build copies live in ampere-battery-lab-updates)
 artifacts/
+
+# Social-watch runtime artifacts
+tooling/social-watch/mentions.log
