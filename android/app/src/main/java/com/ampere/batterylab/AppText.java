@@ -388,6 +388,7 @@ final class AppText {
                 {"Aktualisierung suchen", "Check for updates"},
                 {"Die kostenlose APK wird vor der Installation auf Hash, Paketname, Version und Release-Signatur geprüft. Android fragt anschließend noch einmal nach deiner Bestätigung.", "Before installation, the free APK is checked for its hash, package name, version and release signature. Android will ask for your confirmation once more."},
                 {"Später", "Later"}, {"Herunterladen", "Download"},
+                {"Im Browser öffnen", "Open in browser"},
                 {"Tippen, um die kostenlose Aktualisierung zu prüfen", "Tap to verify the free update"},
                 {"Download ist auf diesem Gerät nicht verfügbar.", "Downloads are not available on this device."},
                 {"Update konnte nicht sicher vorbereitet werden.", "The update could not be prepared safely."},
