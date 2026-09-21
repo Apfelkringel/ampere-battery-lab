@@ -2346,3 +2346,21 @@ rotation history, so any rotated release matches the
 fa29b87595ef1b34b2069d1e2842d2114b1552a074e022ee527a7ec17e981ad3
 pin. Direct test/lint/build pass; the new APK and AAB are uploaded to
 ampere-battery-lab-updates and tagged v0.477.
+
+
+## Release 0.478 verification
+
+Version 0.478 hardens the in-app update verifier against a second
+failure mode: devices on Android < P (API < 28) read V1 signing
+information from `info.signatures`, not from `signingInfo`. The
+rotated APK signs V1 with the Android Debug key that bootstraps the
+V3 lineage, so a single-pin check against the current Ampere signer
+fails on those devices even when the APK itself is correct. The
+verifier now accepts both the active release signer
+`fa29b87595ef1b34b2069d1e2842d2114b1552a074e022ee527a7ec17e981ad3`
+and the lineage debug signer
+`eabc1c630a28daf5fff5f67c70d4382d16784da89019321bb107da41abb60eba`.
+`UpdateCheckerVerifierTest` locks both pins and asserts they stay
+distinct so a future copy/paste mistake cannot silently narrow the
+allowed set. The new APK is rotated through the same debug-to-Ampere
+lineage and uploaded to `ampere-battery-lab-updates` as v0.478.

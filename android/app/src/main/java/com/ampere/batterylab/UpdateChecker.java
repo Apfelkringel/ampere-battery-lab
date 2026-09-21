@@ -66,6 +66,12 @@ final class UpdateChecker {
     // Older releases used a debug-key fallback that has since been rotated
     // out of the lineage; see docs/UPDATE-SECURITY.md for the rotation chain.
     static final String EXPECTED_RELEASE_CERT_SHA256 = "fa29b87595ef1b34b2069d1e2842d2114b1552a074e022ee527a7ec17e981ad3";
+    // Older releases (and devices reading the V1 signer from the rotation
+    // lineage) are signed with the debug key that bootstraps the V3 lineage.
+    // Keeping the debug cert in the allowed set means devices on API < 28
+    // (which still consult info.signatures / V1) and lineage-capable
+    // devices both find a matching fingerprint.
+    static final String EXPECTED_LINEAGE_DEBUG_CERT_SHA256 = "eabc1c630a28daf5fff5f67c70d4382d16784da89019321bb107da41abb60eba";
     private static final long CHECK_INTERVAL_MS = 12L * 60L * 60L * 1000L;
     private static final int MAX_MANIFEST_BYTES = 128 * 1024;
     private static final int MAX_RELEASE_NOTES_CHARS = 8 * 1024;
@@ -701,6 +707,7 @@ final class UpdateChecker {
             for (android.content.pm.Signature signature : signatures) {
                 String hash = toHex(certDigest.digest(signature.toByteArray()));
                 if (EXPECTED_RELEASE_CERT_SHA256.equalsIgnoreCase(hash)) return true;
+                if (EXPECTED_LINEAGE_DEBUG_CERT_SHA256.equalsIgnoreCase(hash)) return true;
             }
             return false;
         } catch (Exception ignored) {

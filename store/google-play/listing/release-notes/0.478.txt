@@ -1,0 +1,1 @@
+0.478 erweitert die Update-Verifikation: der Prüfcode akzeptiert jetzt neben dem aktuellen Ampere-Signer auch den historischen Debug-Key der V3-Lineage. Damit nimmt die App das Update auch dann an, wenn das Gerät noch ältere Android-Versionen (API < 28) verwendet oder das Update-Paket nur die V1-Signatur auswertet.
