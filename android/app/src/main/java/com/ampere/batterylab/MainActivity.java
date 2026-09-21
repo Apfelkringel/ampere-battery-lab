@@ -837,6 +837,42 @@ public class MainActivity extends Activity {
         }
     }
 
+    /** Returns the SHA-256 fingerprint of the APK's signing cert, in
+     *  lowercase hexadecimal without colons. Falls back to an empty
+     *  string when the package info is unavailable, the cert cannot
+     *  be read, or the runtime is below API 28 where signingInfo
+     *  exposes the lineage. */
+    private String installedSigningCertSha256() {
+        try {
+            int flags = Build.VERSION.SDK_INT >= 28
+                    ? android.content.pm.PackageManager.GET_SIGNING_CERTIFICATES
+                    : android.content.pm.PackageManager.GET_SIGNATURES;
+            android.content.pm.PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), flags);
+            android.content.pm.Signature[] sigs;
+            if (Build.VERSION.SDK_INT >= 28) {
+                if (info.signingInfo == null) return "";
+                sigs = info.signingInfo.hasMultipleSigners()
+                        ? info.signingInfo.getSigningCertificateHistory()
+                        : info.signingInfo.getApkContentsSigners();
+            } else {
+                sigs = info.signatures;
+            }
+            if (sigs == null || sigs.length == 0) return "";
+            try {
+                java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+                StringBuilder hex = new StringBuilder();
+                for (byte b : digest.digest(sigs[0].toByteArray())) {
+                    hex.append(String.format(java.util.Locale.US, "%02x", b));
+                }
+                return hex.toString();
+            } catch (java.security.NoSuchAlgorithmException ignored) {
+                return "";
+            }
+        } catch (Exception ignored) {
+            return "";
+        }
+    }
+
     private void writeResearchExport(Uri uri) {
         try (OutputStream stream = getContentResolver().openOutputStream(uri)) {
             if (stream == null) throw new IllegalStateException("No output stream");
@@ -844,6 +880,9 @@ public class MainActivity extends Activity {
             root.put("schema", 1);
             root.put("app", "Ampere Battery Lab");
             root.put("appVersion", BuildConfig.VERSION_NAME);
+            root.put("signingCertSha256", installedSigningCertSha256());
+            root.put("expectedUpdateCertSha256", UpdateChecker.EXPECTED_RELEASE_CERT_SHA256);
+
             root.put("generatedAt", System.currentTimeMillis());
             root.put("androidApi", Build.VERSION.SDK_INT);
             root.put("deviceManufacturer", Build.MANUFACTURER);

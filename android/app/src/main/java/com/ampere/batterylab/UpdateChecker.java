@@ -65,7 +65,7 @@ final class UpdateChecker {
     // (CN=Ampere Battery Lab, O=Apfelkringel, C=DE) generated 2026-09-21.
     // Older releases used a debug-key fallback that has since been rotated
     // out of the lineage; see docs/UPDATE-SECURITY.md for the rotation chain.
-    private static final String EXPECTED_RELEASE_CERT_SHA256 = "fa29b87595ef1b34b2069d1e2842d2114b1552a074e022ee527a7ec17e981ad3";
+    static final String EXPECTED_RELEASE_CERT_SHA256 = "fa29b87595ef1b34b2069d1e2842d2114b1552a074e022ee527a7ec17e981ad3";
     private static final long CHECK_INTERVAL_MS = 12L * 60L * 60L * 1000L;
     private static final int MAX_MANIFEST_BYTES = 128 * 1024;
     private static final int MAX_RELEASE_NOTES_CHARS = 8 * 1024;
