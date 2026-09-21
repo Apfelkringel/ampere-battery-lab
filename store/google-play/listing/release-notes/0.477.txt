@@ -1,0 +1,1 @@
+0.477 ergänzt die Update-Verifikation: Der Prüfcode berücksichtigt jetzt neben der Signaturhistorie auch den aktuellen Ampere-Signer. Damit nimmt die App rotierte APK-Releases wieder an und verwirft das Update nicht mehr.

@@ -677,12 +677,22 @@ final class UpdateChecker {
             android.content.pm.Signature[] signatures;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 if (info.signingInfo == null) return false;
-                // Accept any signer in the rotation lineage so a release
-                // built with --lineage (which carries multiple signers)
-                // still matches this pin.
-                signatures = info.signingInfo.hasMultipleSigners()
-                        ? info.signingInfo.getSigningCertificateHistory()
-                        : info.signingInfo.getApkContentsSigners();
+                // Accept any signer in the rotation lineage. The signing
+                // certificate history exposes only past signers, so a freshly
+                // rotated release also needs its current certificate (apk
+                // contents signers) merged into the candidate set.
+                java.util.ArrayList<android.content.pm.Signature> combined = new java.util.ArrayList<>();
+                android.content.pm.Signature[] apkContents = info.signingInfo.getApkContentsSigners();
+                if (apkContents != null) {
+                    for (android.content.pm.Signature signature : apkContents) combined.add(signature);
+                }
+                if (info.signingInfo.hasMultipleSigners()) {
+                    android.content.pm.Signature[] history = info.signingInfo.getSigningCertificateHistory();
+                    if (history != null) {
+                        for (android.content.pm.Signature signature : history) combined.add(signature);
+                    }
+                }
+                signatures = combined.toArray(new android.content.pm.Signature[0]);
             } else {
                 signatures = info.signatures;
             }

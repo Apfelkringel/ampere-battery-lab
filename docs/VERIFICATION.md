@@ -2335,3 +2335,14 @@ and verifies the complete lineage from the Android Debug signer
 to the Ampere signer. The app also exposes the installed certificate
 fingerprint in the shareable battery status so a mismatch is visible on
 device.
+## Release 0.477 verification
+
+Version 0.477 repairs the in-app update verifier. The previous verifier
+iterated only SigningInfo.getSigningCertificateHistory() when the APK
+was rotated, which exposes only past signers, so the freshly rotated
+0.476 APK was rejected even though it carried the current Ampere signer.
+The verifier now unions the current apkContentsSigners with the
+rotation history, so any rotated release matches the
+fa29b87595ef1b34b2069d1e2842d2114b1552a074e022ee527a7ec17e981ad3
+pin. Direct test/lint/build pass; the new APK and AAB are uploaded to
+ampere-battery-lab-updates and tagged v0.477.
