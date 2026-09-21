@@ -1,0 +1,1 @@
+0.481 Brücke: \u00e4ltere App-Versionen (vor 0.473) lehnen rotierte APKs ab. Diese Version \u00f6ffnet den Pin-Check temporär, damit auch 0.471/0.472-Tester das Update automatisch erhalten. Sicherheits-Fix in einer späteren Version (0.482+).

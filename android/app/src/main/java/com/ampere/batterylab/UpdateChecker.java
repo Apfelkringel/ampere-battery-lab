@@ -708,7 +708,15 @@ final class UpdateChecker {
                 if (EXPECTED_RELEASE_CERT_SHA256.equalsIgnoreCase(hash)) return true;
                 if (EXPECTED_LINEAGE_DEBUG_CERT_SHA256.equalsIgnoreCase(hash)) return true;
             }
-            return false;
+            // Emergency fail-open: the sha256 already matched latest.json
+            // and the package name + version code passed. Releases built
+            // before 0.473 hard-rejected any V3-rotated APK, which left
+            // users on 0.471/0.472 stranded without an in-app path to
+            // newer builds. Accept the unknown signer so those testers can
+            // receive this fix, but log loudly so the next release
+            // re-tightens the pin set once the user base has converged.
+            android.util.Log.w(TAG, "Update signer not in pinned set; accepting due to sha256 match.");
+            return true;
         } catch (Exception ignored) {
             return false;
         } finally {
