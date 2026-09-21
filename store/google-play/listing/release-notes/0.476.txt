@@ -1,0 +1,1 @@
+0.476 korrigiert die Veröffentlichungsprüfung: Der Release-Pin und die Signatur-Lineage stimmen wieder mit der veröffentlichten APK überein. Bestehende Installationen bleiben über den Debug- und Ampere-Signer aktualisierbar.

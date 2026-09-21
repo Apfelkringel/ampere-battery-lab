@@ -54,17 +54,17 @@ jobs:
       - name: Build direct-distribution release APK
         env:
           AMPERE_KEYSTORE_FILE: ${{ github.workspace }}/android/ci-release.keystore
-          AMPERE_KEYSTORE_PASSWORD: ${{ secrets.AMPERE_ROTATED_KEYSTORE_PASSWORD }}
-          AMPERE_KEY_ALIAS: ${{ secrets.AMPERE_ROTATED_KEY_ALIAS }}
-          AMPERE_KEY_PASSWORD: ${{ secrets.AMPERE_ROTATED_KEY_PASSWORD }}
+          AMPERE_KEYSTORE_PASSWORD: ${{ secrets.AMPERE_KEYSTORE_PASSWORD }}
+          AMPERE_KEY_ALIAS: ${{ secrets.AMPERE_KEY_ALIAS }}
+          AMPERE_KEY_PASSWORD: ${{ secrets.AMPERE_KEY_PASSWORD }}
         run: gradle -p android :app:assembleDirectRelease -x lintVitalAnalyzeDirectRelease
 
       - name: Build Google Play App Bundle
         env:
           AMPERE_KEYSTORE_FILE: ${{ github.workspace }}/android/ci-release.keystore
-          AMPERE_KEYSTORE_PASSWORD: ${{ secrets.AMPERE_ROTATED_KEYSTORE_PASSWORD }}
-          AMPERE_KEY_ALIAS: ${{ secrets.AMPERE_ROTATED_KEY_ALIAS }}
-          AMPERE_KEY_PASSWORD: ${{ secrets.AMPERE_ROTATED_KEY_PASSWORD }}
+          AMPERE_KEYSTORE_PASSWORD: ${{ secrets.AMPERE_KEYSTORE_PASSWORD }}
+          AMPERE_KEY_ALIAS: ${{ secrets.AMPERE_KEY_ALIAS }}
+          AMPERE_KEY_PASSWORD: ${{ secrets.AMPERE_KEY_PASSWORD }}
         run: gradle -p android :app:bundlePlayRelease -x lintVitalAnalyzePlayRelease
 
       - name: Apply signing certificate rotation
@@ -72,9 +72,9 @@ jobs:
           OLD_KEYSTORE_PASSWORD: android
           OLD_KEY_ALIAS: androiddebugkey
           OLD_KEY_PASSWORD: android
-          NEW_KEYSTORE_PASSWORD: ${{ secrets.AMPERE_ROTATED_KEYSTORE_PASSWORD }}
-          NEW_KEY_ALIAS: ${{ secrets.AMPERE_ROTATED_KEY_ALIAS }}
-          NEW_KEY_PASSWORD: ${{ secrets.AMPERE_ROTATED_KEY_PASSWORD }}
+          NEW_KEYSTORE_PASSWORD: ${{ secrets.AMPERE_KEYSTORE_PASSWORD }}
+          NEW_KEY_ALIAS: ${{ secrets.AMPERE_KEY_ALIAS }}
+          NEW_KEY_PASSWORD: ${{ secrets.AMPERE_KEY_PASSWORD }}
         run: |
           "$ANDROID_HOME/build-tools/37.0.0/zipalign" -f 4 android/app/build/outputs/apk/direct/release/app-direct-release.apk android/app/build/outputs/apk/direct/release/app-direct-release-aligned.apk
           "$ANDROID_HOME/build-tools/37.0.0/apksigner" sign \
@@ -95,10 +95,12 @@ jobs:
 
       - name: Verify release signing identity
         run: |
-          expected="301bed44b5cc342485b485b24baeea404dbdb216e6e3e134ad2ebd6b28d1dce3"
-          actual=$("$ANDROID_HOME/build-tools/37.0.0/apksigner" verify --print-certs android/app/build/outputs/apk/direct/release/app-direct-release.apk | awk -F': ' '/SHA-256 digest/ { print $NF; exit }')
-          test "$actual" = "$expected"
-          ! "$ANDROID_HOME/build-tools/37.0.0/apksigner" verify --print-certs android/app/build/outputs/apk/direct/release/app-direct-release.apk | grep -q 'CN=Android Debug'
+          APK=android/app/build/outputs/apk/direct/release/app-direct-release.apk
+          certs=$("$ANDROID_HOME/build-tools/37.0.0/apksigner" verify --print-certs "$APK")
+          printf '%s\n' "$certs" | grep -q 'certificate SHA-256 digest: fa29b87595ef1b34b2069d1e2842d2114b1552a074e022ee527a7ec17e981ad3'
+          lineage=$("$ANDROID_HOME/build-tools/37.0.0/apksigner" lineage --in "$APK" --print-certs -v)
+          printf '%s\n' "$lineage" | grep -q 'Signer #1 in lineage certificate SHA-256 digest: eabc1c630a28daf5fff5f67c70d4382d16784da89019321bb107da41abb60eba'
+          printf '%s\n' "$lineage" | grep -q 'Signer #2 in lineage certificate SHA-256 digest: fa29b87595ef1b34b2069d1e2842d2114b1552a074e022ee527a7ec17e981ad3'
           "$ANDROID_HOME/build-tools/37.0.0/apksigner" verify --min-sdk-version 23 android/app/build/outputs/apk/direct/release/app-direct-release.apk
           "$ANDROID_HOME/build-tools/37.0.0/apksigner" verify --min-sdk-version 34 android/app/build/outputs/apk/direct/release/app-direct-release.apk
 

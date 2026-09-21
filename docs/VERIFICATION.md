@@ -2323,3 +2323,15 @@ Play AAB SHA-256 `ec073c195920595b31d26f8adc147d165a71477db26f487d2ebb8db8f0e781
 match `latest.json` in ampere-battery-lab-updates. The build certificate
 verification in .github/workflows/build-apk.yml (which pins the same
 Ampere Battery Lab SHA-256) would pass against this artifact.
+
+## Release 0.476 verification
+
+Version `0.476` repairs the release gate that still expected the retired
+`301bed44b5cc342485b485b24baeea404dbdb216e6e3e134ad2ebd6b28d1dce3`
+certificate. The CI check now accepts the current Ampere signer
+`fa29b87595ef1b34b2069d1e2842d2114b1552a074e022ee527a7ec17e981ad3`
+and verifies the complete lineage from the Android Debug signer
+`eabc1c630a28daf5fff5f67c70d4382d16784da89019321bb107da41abb60eba`
+to the Ampere signer. The app also exposes the installed certificate
+fingerprint in the shareable battery status so a mismatch is visible on
+device.

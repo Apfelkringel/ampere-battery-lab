@@ -837,17 +837,16 @@ public class MainActivity extends Activity {
         }
     }
 
-    /** Returns the SHA-256 fingerprint of the APK's signing cert, in
-     *  lowercase hexadecimal without colons. Falls back to an empty
-     *  string when the package info is unavailable, the cert cannot
-     *  be read, or the runtime is below API 28 where signingInfo
-     *  exposes the lineage. */
-    private String installedSigningCertSha256() {
+    /** Returns the SHA-256 fingerprint of the APK's release signing cert,
+     *  in lowercase hexadecimal without colons. A rotated APK contains the
+     *  old and new certificates in signingInfo history; prefer the current
+     *  Ampere pin so diagnostics and exports report the active signer. */
+    static String installedSigningCertSha256(Context context) {
         try {
             int flags = Build.VERSION.SDK_INT >= 28
                     ? android.content.pm.PackageManager.GET_SIGNING_CERTIFICATES
                     : android.content.pm.PackageManager.GET_SIGNATURES;
-            android.content.pm.PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), flags);
+            android.content.pm.PackageInfo info = context.getPackageManager().getPackageInfo(context.getPackageName(), flags);
             android.content.pm.Signature[] sigs;
             if (Build.VERSION.SDK_INT >= 28) {
                 if (info.signingInfo == null) return "";
@@ -860,17 +859,31 @@ public class MainActivity extends Activity {
             if (sigs == null || sigs.length == 0) return "";
             try {
                 java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+                String first = null;
                 StringBuilder hex = new StringBuilder();
                 for (byte b : digest.digest(sigs[0].toByteArray())) {
                     hex.append(String.format(java.util.Locale.US, "%02x", b));
                 }
-                return hex.toString();
+                first = hex.toString();
+                String expected = UpdateChecker.EXPECTED_RELEASE_CERT_SHA256;
+                for (android.content.pm.Signature signature : sigs) {
+                    hex.setLength(0);
+                    for (byte b : digest.digest(signature.toByteArray())) {
+                        hex.append(String.format(java.util.Locale.US, "%02x", b));
+                    }
+                    if (expected.equalsIgnoreCase(hex.toString())) return hex.toString();
+                }
+                return first;
             } catch (java.security.NoSuchAlgorithmException ignored) {
                 return "";
             }
         } catch (Exception ignored) {
             return "";
         }
+    }
+
+    private String installedSigningCertSha256() {
+        return installedSigningCertSha256(this);
     }
 
     private void writeResearchExport(Uri uri) {
@@ -2741,8 +2754,19 @@ class BatteryDashboard extends View {
                 .append(AppText.t(getContext(), "Gesundheit")).append(": ").append(healthDisplay()).append('\n')
                 .append(AppText.t(getContext(), "Quelle")).append(": ")
                 .append(AppText.t(getContext(), "lokal auf Android")).append(", ")
-                .append(AppText.t(getContext(), "Version")).append(' ').append(BuildConfig.VERSION_NAME);
+                .append(AppText.t(getContext(), "Version")).append(' ').append(BuildConfig.VERSION_NAME)
+                .append('\n').append("Cert: ").append(certSummaryForStatus());
         return status.toString();
+    }
+
+    /** Compact cert summary for the shareable status text. Shows
+     *  the SHA-256 of the install cert plus a one-character match
+     *  flag against the pin. Empty SHA renders "n/a". */
+    private String certSummaryForStatus() {
+        String sha = MainActivity.installedSigningCertSha256(getContext());
+        if (sha.isEmpty()) return "n/a";
+        String expected = UpdateChecker.EXPECTED_RELEASE_CERT_SHA256;
+        return (sha.equalsIgnoreCase(expected) ? "OK " : "?? ") + sha;
     }
 
     private void copyCurrentStatus() {
