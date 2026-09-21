@@ -1,0 +1,1 @@
+0.480 ist die neue In-App-Update-Verteilung: alle Tester auf 0.475-0.479 erhalten das Update automatisch über den normalen In-App-Update. Tester auf \u00e4lteren Versionen (vor 0.475) m\u00fcssen einmalig die APK manuell herunterladen.
