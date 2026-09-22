@@ -38,6 +38,9 @@ jobs:
           sdkmanager "platforms;android-36" "platforms;android-37.0" "build-tools;37.0.0"
           test -e "$ANDROID_HOME/platforms/android-37" || ln -s "$ANDROID_HOME/platforms/android-37.0" "$ANDROID_HOME/platforms/android-37"
 
+      - name: Validate Google Play store metadata
+        run: bash tooling/validate-google-play-metadata.sh
+
       - name: Run direct flavor unit tests and lint
         run: gradle -p android :app:testDirectDebugUnitTest :app:lintDirectDebug
 

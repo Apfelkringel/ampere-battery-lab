@@ -158,6 +158,7 @@ changing product decisions.
 
 - Saved German short description draft: `Batterienutzung, Ladestatus und Verlauf — lokal, transparent, ohne Konto.` (73/80 characters). This exact text is also synchronized to `store/google-play/listing/short-description.txt`; the Play editor accepted it without the dash-policy warning.
 - Publication overview currently holds 31 unsubmitted Store-entry changes (28 locale additions plus German text/media changes) under `Für später gespeichert`. None were submitted; the pre-existing phone-screenshot and feature-graphic drafts remain untouched.
+- A local regression guard at `tooling/validate-google-play-metadata.sh` checks the synchronized German source for Play's 1–80 character limit and dash policy; `.github/workflows/build-apk.yml` runs it before Android tests and release builds.
 
 ### Play Statistics snapshot (2026-09-22)
 
