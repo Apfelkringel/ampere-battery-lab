@@ -164,6 +164,7 @@ changing product decisions.
 - Fast metadata CI verification (2026-09-22): push run `35761077182` completed successfully for commit `a36bdc7`.
 - App-name guard verification (2026-09-22): push run `35761445345` completed successfully for commit `14a3909`, validating app name `18/30` and short description `73/80`.
 - CI verification (2026-09-22): GitHub Actions run `35760526133` passed the metadata guard (`73/80`), direct tests/lint, signed direct APK and Play App Bundle builds, certificate-lineage verification, provenance attestations, and artifact upload. The run completed successfully; GitHub's Node.js/runner migration notices and existing APK/JAR metadata signature warnings were non-blocking.
+- CI action maintenance (2026-09-22): updated pinned Actions across Android, iOS, TestFlight, and metadata workflows to verified current releases: checkout `v7.0.1`, setup-java `v6.0.1`, setup-gradle `v6.3.0`, setup-android `v4.0.4`, upload-artifact `v7.0.1`, and attest-build-provenance `v4.2.2`. The Android workflow must be re-run to verify compatibility.
 
 ### Play Statistics snapshot (2026-09-22)
 
