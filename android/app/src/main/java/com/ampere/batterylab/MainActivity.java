@@ -1036,6 +1036,7 @@ public class MainActivity extends Activity {
 
 class BatteryDashboard extends View {
     private static final long LIVE_REFRESH_INTERVAL_MS = 1_000L;
+    private static final long LIVE_RUNTIME_CACHE_MS = 60_000L;
     private final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final RectF rect = new RectF();
     private final float density;
@@ -1070,6 +1071,9 @@ class BatteryDashboard extends View {
     private BatteryChargeType.Reading kernelChargeType = BatteryChargeType.Reading.unavailable();
     private BatteryChargeBehaviour.Reading kernelChargeBehaviour = BatteryChargeBehaviour.Reading.unavailable();
     private int currentMa = 0;
+    private long liveRuntimeCacheAt = 0L;
+    private long liveRuntimeScreenOnMinutes = 0L;
+    private long liveRuntimeScreenOffMinutes = 0L;
     private int signedCurrentMa = 0;
     private int chargeCounterMah = 0;
     private int plugged = 0;
@@ -2301,10 +2305,28 @@ class BatteryDashboard extends View {
         if (rate > 0f) return formatDuration(Math.max(1, Math.round(referenceLevel * 60f / rate)));
         if (currentMa < 50) return "—";
         int capacityMah = calculationCapacityMah();
-        int modeCurrent = screenOn ? currentMa : Math.max(50, Math.round(currentMa * .35f));
-        long currentEstimateMinutes = BatteryRuntimeEstimate.minutesFromCurrent(
-                referenceLevel, capacityMah, modeCurrent);
+        long currentEstimateMinutes = liveRuntimeEstimateMinutes(
+                screenOn, referenceLevel, capacityMah);
         return currentEstimateMinutes > 0L ? formatDuration(currentEstimateMinutes) : "—";
+    }
+
+    /**
+     * A live-current forecast is inherently noisy. Keep the displayed value
+     * stable for one refresh window so a changing sensor reading is not shown
+     * as a random screen-on/screen-off statistic every second.
+     */
+    private long liveRuntimeEstimateMinutes(boolean screenOn, int referenceLevel,
+                                            int capacityMah) {
+        long now = System.currentTimeMillis();
+        if (now - liveRuntimeCacheAt >= LIVE_RUNTIME_CACHE_MS
+                || liveRuntimeCacheAt <= 0L) {
+            liveRuntimeScreenOnMinutes = BatteryRuntimeEstimate.minutesFromCurrent(
+                    referenceLevel, capacityMah, currentMa);
+            liveRuntimeScreenOffMinutes = BatteryRuntimeEstimate.minutesFromCurrent(
+                    referenceLevel, capacityMah, Math.max(50, Math.round(currentMa * .35f)));
+            liveRuntimeCacheAt = now;
+        }
+        return screenOn ? liveRuntimeScreenOnMinutes : liveRuntimeScreenOffMinutes;
     }
 
     private String dischargeRuntimeSource(boolean screenOn) {
