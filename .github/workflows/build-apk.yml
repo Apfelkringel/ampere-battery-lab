@@ -54,9 +54,9 @@ jobs:
       - name: Build direct-distribution release APK
         env:
           AMPERE_KEYSTORE_FILE: ${{ github.workspace }}/android/ci-release.keystore
-          AMPERE_KEYSTORE_PASSWORD: ${{ secrets.AMPERE_KEYSTORE_PASSWORD }}
-          AMPERE_KEY_ALIAS: ${{ secrets.AMPERE_KEY_ALIAS }}
-          AMPERE_KEY_PASSWORD: ${{ secrets.AMPERE_KEY_PASSWORD }}
+          AMPERE_KEYSTORE_PASSWORD: ${{ secrets.AMPERE_ROTATED_KEYSTORE_PASSWORD }}
+          AMPERE_KEY_ALIAS: ${{ secrets.AMPERE_ROTATED_KEY_ALIAS }}
+          AMPERE_KEY_PASSWORD: ${{ secrets.AMPERE_ROTATED_KEY_PASSWORD }}
         run: gradle -p android :app:assembleDirectRelease -x lintVitalAnalyzeDirectRelease
 
       - name: Build Google Play App Bundle
@@ -72,9 +72,9 @@ jobs:
           OLD_KEYSTORE_PASSWORD: android
           OLD_KEY_ALIAS: androiddebugkey
           OLD_KEY_PASSWORD: android
-          NEW_KEYSTORE_PASSWORD: ${{ secrets.AMPERE_KEYSTORE_PASSWORD }}
-          NEW_KEY_ALIAS: ${{ secrets.AMPERE_KEY_ALIAS }}
-          NEW_KEY_PASSWORD: ${{ secrets.AMPERE_KEY_PASSWORD }}
+          NEW_KEYSTORE_PASSWORD: ${{ secrets.AMPERE_ROTATED_KEYSTORE_PASSWORD }}
+          NEW_KEY_ALIAS: ${{ secrets.AMPERE_ROTATED_KEY_ALIAS }}
+          NEW_KEY_PASSWORD: ${{ secrets.AMPERE_ROTATED_KEY_PASSWORD }}
         run: |
           "$ANDROID_HOME/build-tools/37.0.0/zipalign" -f 4 android/app/build/outputs/apk/direct/release/app-direct-release.apk android/app/build/outputs/apk/direct/release/app-direct-release-aligned.apk
           "$ANDROID_HOME/build-tools/37.0.0/apksigner" sign \
