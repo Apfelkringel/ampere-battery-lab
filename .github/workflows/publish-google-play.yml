@@ -1,6 +1,8 @@
 name: Publish Google Play bundle
 
 on:
+  schedule:
+    - cron: "17 * * * *"
   workflow_dispatch:
     inputs:
       version:
@@ -37,10 +39,12 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    env:
+      RELEASE_VERSION: ${{ inputs.version || '0.487' }}
+      RELEASE_TRACK: ${{ inputs.track || 'internal' }}
+      RELEASE_STATUS: ${{ inputs.status || 'completed' }}
     steps:
       - name: Download and verify public Play bundle
-        env:
-          RELEASE_VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
           mkdir -p build
@@ -105,12 +109,26 @@ jobs:
             'https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.ampere.batterylab/reviews?maxResults=1'
           echo 'Google OAuth and read-only Play API access validated.'
 
+          desired_code="$(jq -er .versionCode build/latest.json)"
+          track_json="$tmp_dir/track.json"
+          curl --fail --silent --show-error \
+            --output "$track_json" \
+            --header "Authorization: Bearer $access_token" \
+            "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.ampere.batterylab/tracks/$RELEASE_TRACK"
+          if jq -e --arg code "$desired_code" \
+            '.releases[]?.versionCodes[]? | tostring | . == $code' "$track_json" >/dev/null; then
+            echo "Version code $desired_code is already on the $RELEASE_TRACK track; skipping upload."
+            echo 'skip_upload=true' >> "$GITHUB_ENV"
+          else
+            echo 'skip_upload=false' >> "$GITHUB_ENV"
+          fi
+
       - name: Upload bundle to Google Play
-        if: ${{ !inputs.validate_only }}
+        if: ${{ !inputs.validate_only && env.skip_upload != 'true' }}
         uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5 # v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.AMPERE_PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.ampere.batterylab
           releaseFiles: build/Ampere-Battery-Lab-play-release.aab
-          tracks: ${{ inputs.track }}
-          status: ${{ inputs.status }}
+          tracks: ${{ env.RELEASE_TRACK }}
+          status: ${{ env.RELEASE_STATUS }}
