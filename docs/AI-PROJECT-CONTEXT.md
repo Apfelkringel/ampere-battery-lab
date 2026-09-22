@@ -160,6 +160,7 @@ changing product decisions.
 - Publication overview currently holds 31 unsubmitted Store-entry changes (28 locale additions plus German text/media changes) under `Für später gespeichert`. None were submitted; the pre-existing phone-screenshot and feature-graphic drafts remain untouched.
 - A local regression guard at `tooling/validate-google-play-metadata.sh` checks the synchronized German source for Play's 1–80 character limit and dash policy; `.github/workflows/build-apk.yml` runs it before Android tests and release builds.
 - `.github/workflows/validate-play-metadata.yml` now runs the same guard on relevant pushes, pull requests, and manual dispatches, providing a fast metadata-only gate before a full signed build is needed.
+- Fast metadata CI verification (2026-09-22): push run `35761077182` completed successfully for commit `a36bdc7`.
 - CI verification (2026-09-22): GitHub Actions run `35760526133` passed the metadata guard (`73/80`), direct tests/lint, signed direct APK and Play App Bundle builds, certificate-lineage verification, provenance attestations, and artifact upload. The run completed successfully; GitHub's Node.js/runner migration notices and existing APK/JAR metadata signature warnings were non-blocking.
 
 ### Play Statistics snapshot (2026-09-22)
