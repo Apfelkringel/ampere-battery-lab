@@ -135,6 +135,21 @@ jobs:
             "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.ampere.batterylab/edits/$edit_id" \
             >/dev/null
 
+      - name: Wait for upload certificate activation
+        run: |
+          set -euo pipefail
+          cert_url='https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab/main/android/ampere-upload-certificate.pem'
+          curl --fail --silent --show-error --location "$cert_url" --output build/ampere-upload-certificate.pem
+          not_before="$(openssl x509 -in build/ampere-upload-certificate.pem -noout -startdate | cut -d= -f2-)"
+          start_epoch="$(date -u -d "$not_before" +%s)"
+          now_epoch="$(date -u +%s)"
+          if (( now_epoch < start_epoch )); then
+            echo "Upload certificate is not valid yet (starts at $not_before UTC); skipping upload."
+            echo 'skip_upload=true' >> "$GITHUB_ENV"
+          else
+            echo "Upload certificate is active (started at $not_before UTC)."
+          fi
+
       - name: Upload bundle to Google Play
         if: ${{ !inputs.validate_only && env.skip_upload != 'true' }}
         uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5 # v1

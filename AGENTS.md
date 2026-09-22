@@ -1,6 +1,121 @@
-# Ampere project completion rule
+# Ampere Battery Lab — AI project instructions
 
-User-visible Ampere changes are not complete when source code is merely pushed.
-Unless the user explicitly says otherwise, finish by incrementing the app version,
-publishing the signed tagged release, updating the public APK and `latest.json` in
-`ampere-battery-lab-updates`, and verifying the public APK version and SHA-256 hash.
+Read this file before changing code, release metadata, analytics, store text, or tester-recruitment material. The detailed project map is in `docs/AI-PROJECT-CONTEXT.md`.
+
+## Project identity
+
+- Product: Ampere Battery Lab, an Android-first local battery-analysis app.
+- Android package and iOS bundle ID: `com.ampere.batterylab`.
+- Android source: `android/`; iOS port: `ios/`; web prototype: `prototypes/web/`.
+- Battery readings, history, sessions, and telemetry remain on-device. There is no Ampere application server.
+- Public binary/update repository: `https://github.com/Apfelkringel/ampere-battery-lab-updates`.
+
+## Safety and privacy rules
+
+- Never commit signing keys, passwords, service-account JSON, API secrets, personal tester email addresses, or private analytics exports.
+- Do not add analytics for battery values, foreground-app names, precise location, account identifiers, or free-form user content.
+- Analytics is opt-in only. Preserve default-off manifest flags, consent storage, Firebase consent, and reset-on-withdrawal behavior.
+- Never claim live Google Analytics numbers without an authenticated source, query period, filters, and freshness.
+
+## Current verified implementation
+
+- Android compile/target SDK: 37; min SDK: 23.
+- Distribution flavors: `direct` and `play`; direct may use the signed GitHub APK update flow, while Play relies on Google Play updates.
+- Firebase Analytics uses Firebase BoM `34.19.0`; `android/app/google-services.json` is public project configuration, not a secret or Console access.
+- Gradle currently contains `versionCode 482` and `versionName "0.482"`. Git HEAD is a `0.483 prep` commit, so version state must be reconciled before any release claim.
+
+## Analytics contract
+
+Implementation: `android/app/src/main/java/com/ampere/batterylab/AnalyticsTracker.java`.
+
+Consent is stored separately in `ampere-privacy`, outside exported/restored battery preferences. Collection is disabled until enabled by the user; disabling calls `resetAnalyticsData()`.
+
+| Event | Parameters | Meaning |
+| --- | --- | --- |
+| `ampere_section_view` | `section`: `overview`, `charge`, `discharge`, `battery_health`, `history` | A section opened after consent. |
+| `ampere_feature_used` | `feature`: `health_measurement`, `history_export`, `charge_alarm`, `discharge_alarm`, `temperature_alarm`, `overlay` | An allow-listed feature activated after consent. |
+
+Automatic screen reporting is disabled. Ad storage, ad user data, and ad personalization are explicitly denied. Do not broaden this vocabulary without updating privacy text, Play Data Safety, tests, and this document.
+
+Repository inspection establishes schema and privacy boundaries, but not active users, retention, conversion, or event counts. For those metrics, use the authenticated Firebase/Google Analytics property and record property/stream, UTC date range, timezone, consent population, filters, freshness, and sampling/modeling status. If unavailable, report the limitation rather than guessing or substituting Reddit activity.
+
+## Architecture map
+
+- `MainActivity` is the lifecycle/UI adapter and canvas-style dashboard renderer.
+- `BatteryDataRepository` is the persistence seam; current storage uses `SharedPreferences`.
+- `BatterySamplingPolicy` owns sampling interval, rollback handling, and about 30-day telemetry retention.
+- `BatteryMonitorService` collects validated snapshots and system events on a background thread.
+- `BatteryBackupCodec` owns backup/restore allowlists and type encoding.
+- `BatteryTelemetryDiagnostics`, `BatteryExportRules`, and `Battery*Rules` centralize validation and deterministic exports.
+- Read `docs/ARCHITECTURE.md` and `docs/PROJECT-STRUCTURE.md` when boundaries change.
+
+## Verification commands
+
+Use Java 17 and explicit flavor/task names from `android/`:
+
+```sh
+gradle --no-daemon :app:testDirectDebugUnitTest :app:lintDirectDebug :app:assembleDirectDebug
+gradle --no-daemon :app:testPlayDebugUnitTest :app:lintPlayDebug :app:assemblePlayDebug
+```
+
+Release tasks require private signing credentials and must fail rather than fall back to a debug key. Analytics changes need tests for consent persistence, allow-listed events, denial/reset behavior, and parameter boundaries.
+
+## Release completion rule
+
+User-visible Ampere changes are not complete when source code is merely pushed. Unless the user explicitly says otherwise, finish by:
+
+1. incrementing Android app version code/name;
+2. running relevant tests and lint;
+3. publishing the signed, tagged release;
+4. updating the public APK and `latest.json` in `ampere-battery-lab-updates`;
+5. verifying public APK package/version and SHA-256 against `latest.json`.
+
+Follow `docs/STORE-PUBLISHING.md`, `docs/UPDATE-SECURITY.md`, and `tooling/release-ampere/README.md`. Never expose signing material in logs.
+
+## Working conventions
+
+- Preserve unrelated user changes and inspect `git status` before editing.
+- Prefer small, testable Java rule classes over adding logic to the renderer.
+- Keep unavailable measurements explicitly unavailable; never invent zeroes.
+- Preserve German and English strings together through `AppText`.
+- Check accessibility, narrow layouts, landscape, backup/restore, and both distribution flavors for UI or data-flow changes.
+- Record new durable facts in `docs/AI-PROJECT-CONTEXT.md` and update this file when an instruction or invariant changes.
+
+## Tester, Reddit, and document maintenance
+
+- The current closed-test objective is to maintain at least 12 continuously opted-in Google Play testers for the required 14-day period before requesting production access. Treat the Play Console dashboard as authoritative; Reddit replies, group membership, and chat messages are only supporting evidence.
+- Whenever Reddit is opened for tester recruitment, first inspect notifications, red markers, inbox messages, and chat requests. Read the full message before responding. Accept relevant tester/test-for-test chat requests, keep coordination public where practical, and never request or publish tester email addresses.
+- For each tester who joins, send the official Ampere group, opt-in, and install links; ask the tester to remain opted in and keep the app installed for the full period. Do not promise ratings or positive reviews.
+- Before claiming tester-goal completion, re-check the Play Console count/status and record whether the 14-day criterion is still running or complete. Never infer the count from Reddit activity alone.
+- Keep the tester-link document current and ordered per app as: opt-in/test group, then install link, then any internal-test caveat. Current document: `https://docs.google.com/document/d/10eYlUuuS6M93f26NxNXU4eu3q64PyqyCS5NyzWfYx0I/edit`.
+- `AGENTS.md` is not updated by a background process. At the start of each substantive project session, inspect it and `docs/AI-PROJECT-CONTEXT.md`; after any durable change to project facts, tester workflow, analytics/privacy rules, release process, or document links, update both files in the same change.
+- A daily Codex thread monitor named `Ampere Play-Console-Gate überwachen` is active. It checks submission 60, the 14-day gate, production access, Alpha/Upload status, and the GitHub upload workflow; it stays quiet when unchanged and must update both project context files when a material change occurs. This monitor does not authorize Alpha/Production releases.
+- Before handoff, verify that these instructions still match the current Play Console status, public update metadata, analytics implementation, and tester document. State any unavailable or stale external information explicitly instead of guessing.
+
+### Latest Play Console inspection (2026-09-22)
+
+- Dashboard: the closed-test release criterion and the minimum-12-testers criterion show green checks; the 14-day closed-test criterion is still in progress and Production access remains disabled.
+- Closed track: `alpha`, active, 177 countries/regions, newest track release `0.459` published 18 Sep 2026. Do not replace this release during the active 14-day window without checking the effect on continuous tester eligibility.
+- Tester selection: Google Group `ampere-battery-lab-testers@googlegroups.com`; Android participation and web opt-in links are visible in the track's Tester tab.
+- Optimization applied: the closed track feedback channel was set to the public Reddit test thread `https://www.reddit.com/r/AndroidAppTesting/comments/1whdrqe/looking_for_12_android_testers_ampere_battery_lab/`.
+- The feedback-channel change was submitted on 2026-09-22; submission activity entry 60 was published by Play Console at 18:16 (submitted 17:56 as displayed by Console). Treat the Reddit feedback channel as live.
+- Submission 60 details were re-opened: source is Play Console and exactly one change is listed—changing the Alpha tester feedback channel to the public Reddit thread. No binary, version, or track-release change was included.
+- Future Play Console review order: Dashboard gates → closed-track release/tester settings → pending publication changes → app content/policy declarations → store listing → statistics/quality → App integrity. Record each concrete finding here and in `docs/AI-PROJECT-CONTEXT.md`.
+- Additional inspection: Policy status reports “Keine Sicherheitslücken gefunden”; App content has no declarations awaiting review.
+- Store listing is live in German with category `Tools`, four phone screenshots, no video, no website contact, and no selected Play Store tags. The current Growth overview (22 Sep 2026, last 28 days) shows 5 device impressions, 0% delta, and no available device-acquisition/first-open/MAU/7-day-retention data; the last-90-days Store-entry card shows 66.67% conversion. Treat the conversion as an extremely sparse signal, not a stable KPI. Do not start a Store-listing experiment or invent tags/copy until traffic is materially larger.
+- Store-listing validation was rechecked on 2026-09-22: the German default listing reached the review step without a visible blocking validation error. Current assets are one icon, one feature graphic, and four phone screenshots; no video or tablet/Chromebook/XR assets are configured. A free Google Play machine-translation order was completed on 2026-09-22 for 28 languages (order `7430adcd1v2`, 0.00 USD, source en-US, Store entry only). The generated listings were reviewed in the Console and accepted as drafts; the brand name was normalized back to `Ampere Battery Lab` and overlong machine-generated short descriptions were shortened to the 80-character limit. The publication overview then showed 31 changes (28 locale additions plus existing German copy/media drafts); all 31 were moved to `Für später gespeichert`, leaving the review-submission queue empty. They are not live publication and must remain deferred until provenance and language quality are checked.
+- Play protection recheck (2026-09-22): automatic protection is 1/1 active; Google Play Store protection is 6/7 active; and Google Play installations are 100.0% in the displayed 30-day card, with unknown sharing shown as `-`. Play Integrity is 0/7 active and explicitly not integrated; enabling it requires an SDK/backend integration and a new release, so it is a planned engineering item, not a console toggle to change during the active closed test. Play Billing protection is 0/4 and is not relevant unless the app adds Play Billing.
+- Device-check option audit (2026-09-22): the missing Store-protection service is `Geräteprüfungen für Store-Eintrag`; it is disabled and Google requires acceptance of the device-catalog terms before enabling Basic, Device (recommended), or Strict integrity filtering. Do not enable it automatically: it can reduce visibility for devices/virtual environments and could affect tester reach. Revisit after the closed-test gate with an explicit device-coverage decision.
+- Advanced-distribution audit (2026-09-22): app availability is `Veröffentlicht`; the Formfaktoren page reports Android XR as active. Managed Play Store is disabled; Play-as-you-download is disabled and its controls are unavailable; carrier targeting is off and applies only to Production; App Actions is unchecked and requires policy/terms acceptance; App indexing has no confirmed websites; Inline installations are unchecked and require the Inline Install API plus eligibility. Do not enable these features without matching app/deep-link/Assistant implementations and verified product intent.
+- Security/release alert: Play Console showed an unread 22 Sep 2026 notification that the intentionally initiated upload-key reset for `com.ampere.batterylab` was accepted. The new upload certificate is announced as valid from 24 Sep 2026 15:37 UTC and uploads are blocked until then. Its SHA-1 matches the tracked `android/ampere-upload-certificate.pem` exactly; do not request a second reset or expose private key material.
+- Release automation inspection: `.github/workflows/publish-google-play.yml` is active on GitHub and runs every 15 minutes, verifies the public `latest.json`/AAB hash, validates the Play publisher credential, checks the target track through a temporary Play edit, and skips an upload when the version code is already present. A new certificate-activation preflight downloads the tracked public upload certificate and skips safely until its `notBefore` time instead of producing repeated pre-effective-key failures. The latest verified public manifest is version `0.487`/code `487`; the 22 Sep validation run succeeded after the edit-API fix, while earlier runs failed on the old track endpoint. The schedule defaults to the `internal` track and must not be changed to `alpha` or `production` without explicit release intent.
+- Current live gate recheck: Dashboard still shows the production-access button disabled because the 14-day closed-test criterion is incomplete. Submission 60 is published; the Dashboard has no newly submitted changes. The internal test track is currently shown as inactive; the latest successful GitHub validation run skipped its upload step, so do not claim `0.487` is already active in Internal Testing. Wait for the scheduled post-key-effective retry and verify the track afterward.
+- Closed-test recheck (2026-09-22): Alpha remains active with release `0.459` (published 18 Sep 2026) in 177 countries/regions. The Tester tab still selects `ampere-battery-lab-testers@googlegroups.com`, keeps the Reddit feedback URL, and shows the same Android/web participation links. The Dashboard's minimum-12-tester check remains green, but the Tester tab exposes no exact member/opt-in count; do not infer a numeric tester count from the group address or Reddit activity.
+- SDK warning follow-up: Play Console's 19 Sep warning identifies `androidx.activity:activity:1.0.0` in release `0.459`. The current Gradle graph also inherited that version transitively through Firebase/Google Play Services, so `android/app/build.gradle` now pins stable `androidx.activity:activity:1.13.0`. `dependencyInsight` confirms `1.0.0 -> 1.13.0`; `testDirectDebugUnitTest`, `lintDirectDebug`, `testPlayDebugUnitTest`, and `lintPlayDebug` all pass. This is source-only until a deliberately versioned release is built and published.
+- Manifest/Play-policy audit (2026-09-22): target/compile SDK are 37; analytics collection and ad-ID signals are default-disabled; cleartext traffic is disabled; no location/contact/account permissions are declared; both special-use foreground services have explicit user-facing subtype properties; notifications, overlay, usage access, boot, and internet permissions match documented features. No new Play declaration should be added without checking the App content forms.
+- App-content recheck (2026-09-22): Play Console shows no declarations requiring action and 11 completed declarations. The completed Data-safety summary reports 3 data types collected or shared, automatic deletion over time, and encryption in transit. This remains consistent with the current opt-in-only analytics allow-list and must be revisited if analytics fields, SDKs, permissions, or retention change.
+- Play Statistics snapshot (2026-09-22): the last-28-days App statistics report showed only 2 installed-app users, on 17 and 19 Sep, split between Chile and Italy. The crash metric returned “Daten nicht verfügbar”; this is insufficient to infer stability or market fit. Keep decisions conservative until more data accumulates.
+- Android Vitals recheck (2026-09-22): Play Console reports no data for user-perceived crashes, ANRs, memory, startup/rendering, battery, or permission-denial metrics; the key lost-user metric is marked “Begrenzte Datenbasis”. The App-size page likewise has no representative download-size or optimization data and no recommendations. Treat this as insufficient sample/release coverage, not as proof of zero crashes or optimal size.
+- Store-copy draft (2026-09-22): the German short description was changed and saved as `Akkuverbrauch, Ladestatus und Verlauf – lokal, transparent, ohne Konto.` (71/80 characters), using only verified product behavior. Publication overview now shows three pending store changes: this short description plus pre-existing phone-screenshot and feature-graphic drafts. Automatic prechecks completed and the combined submit control is enabled, but do not submit or remove the mixed asset changes without inspecting their provenance.
+- Machine translation caveat: Google explicitly states these translations are machine-generated and not human-reviewed. Keep the 28 locale drafts separate from the live listing until each important market is spot-checked; do not claim that Google has published them merely because the order is “Abgeschlossen”.
+- Play Store settings audit (2026-09-22): app type is `App`, category is `Tools`, and no tags are currently selected. Searches for the evidence-relevant terms `Batter` and `Akku` returned no available tag, so do not add unrelated tags. Store contact currently has the developer email only; no verified phone number or website is configured. External marketing is enabled; leave it enabled unless a deliberate distribution/privacy decision changes.

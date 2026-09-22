@@ -41,6 +41,10 @@ android {
     dependencies {
         implementation platform("com.google.firebase:firebase-bom:34.19.0")
         implementation "com.google.firebase:firebase-analytics"
+        // Firebase's transitive graph otherwise retains the Play-flagged
+        // androidx.activity:activity:1.0.0. Keep the released app on the
+        // current stable AndroidX Activity line without changing app code.
+        implementation "androidx.activity:activity:1.13.0"
         testImplementation "junit:junit:4.13.2"
     }
 
