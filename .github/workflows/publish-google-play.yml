@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Release version to upload (for example 0.382)"
+        description: "Release version to upload (for example 0.487)"
         required: true
-        default: "0.382"
+        default: "0.487"
         type: string
       track:
         description: "Play testing/release track"
@@ -36,9 +36,14 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: publish-google-play
+  cancel-in-progress: false
+
 jobs:
   publish:
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     env:
       RELEASE_VERSION: ${{ inputs.version || '0.487' }}
       RELEASE_TRACK: ${{ inputs.track || 'internal' }}
