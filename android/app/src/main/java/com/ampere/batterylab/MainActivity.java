@@ -91,6 +91,7 @@ public class MainActivity extends Activity {
     private static final String UI_STATE_PREFS = "ampere-ui-state";
     private static final String MAIN_ACTIVITY_VISIBLE = "mainActivityVisible";
     private static final String PERMISSION_REMINDER_AT = "permissionReminderAt";
+    private static final int STARTUP_PERMISSION_REQUEST = 44;
     private static final int CREATE_BACKUP_REQUEST = 1201;
     private static final int RESTORE_BACKUP_REQUEST = 1202;
     private static final int RESEARCH_EXPORT_REQUEST = 1203;
@@ -143,6 +144,10 @@ public class MainActivity extends Activity {
     private int largeTextRenderedPage = -1;
     private String largeTextRenderedActions = "";
     private boolean batteryReceiverRegistered;
+    private boolean startupPermissionFlow;
+    private boolean startupPermissionPromptVisible;
+    private boolean startupPermissionSettingsLaunched;
+    private int startupPermissionStep;
     private final BroadcastReceiver batteryReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
             if (dashboard == null || intent == null) return;
@@ -204,7 +209,7 @@ public class MainActivity extends Activity {
         }
         startMonitorService();
         dashboard.startSavedOverlay();
-        dashboard.postDelayed(this::showStartupDisclosure, 1000L);
+        dashboard.postDelayed(this::beginStartupPermissionFlow, 500L);
         IntentFilter batteryFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         batteryFilter.addAction(Intent.ACTION_POWER_CONNECTED);
         batteryFilter.addAction(Intent.ACTION_POWER_DISCONNECTED);
@@ -443,7 +448,24 @@ public class MainActivity extends Activity {
         }
         Intent battery = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         if (battery != null) dashboard.readBattery(battery);
-        dashboard.postDelayed(this::auditPermissions, 1200L);
+        dashboard.postDelayed(() -> {
+            if (startupPermissionFlow && startupPermissionSettingsLaunched) {
+                startupPermissionSettingsLaunched = false;
+                boolean stepCompleted = startupPermissionStep == 1
+                        ? hasNotificationAccess()
+                        : startupPermissionStep == 2
+                        ? hasUsageStatsAccess()
+                        : startupPermissionStep == 3
+                        && (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(MainActivity.this));
+                if (stepCompleted) continueStartupPermissionFlow();
+                else {
+                    startupPermissionFlow = false;
+                    showPermissionChecklist(true);
+                }
+            } else if (!startupPermissionPromptVisible) {
+                beginStartupPermissionFlow();
+            }
+        }, 700L);
     }
 
     @Override protected void onStart() {
@@ -465,8 +487,17 @@ public class MainActivity extends Activity {
 
     @Override public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 44) {
-            if (dashboard != null) dashboard.postDelayed(this::auditPermissions, 500L);
+        if (requestCode == STARTUP_PERMISSION_REQUEST) {
+            if (dashboard != null) dashboard.postDelayed(() -> {
+                if (hasNotificationRuntimePermission()) {
+                    continueStartupPermissionFlow();
+                } else {
+                    startupPermissionFlow = false;
+                    showPermissionChecklist(true);
+                }
+            }, 350L);
+        } else if (dashboard != null) {
+            dashboard.postDelayed(this::auditPermissions, 500L);
         }
     }
 
@@ -479,9 +510,83 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void showStartupDisclosure() {
-        if (dashboard == null || isFinishing()) return;
-        dashboard.showTutorial(false);
+    private void beginStartupPermissionFlow() {
+        if (dashboard == null || isFinishing() || hasAllStartupPermissions()) {
+            auditPermissions();
+            return;
+        }
+        if (startupPermissionFlow || startupPermissionPromptVisible) return;
+        startupPermissionPromptVisible = true;
+        boolean english = AppText.isEnglish(this);
+        new AlertDialog.Builder(this)
+                .setTitle(AppText.t(this, english ? "Ampere einrichten" : "Ampere einrichten"))
+                .setMessage(AppText.t(this, english
+                        ? "For complete monitoring, Ampere now guides you through the required Android accesses. Notifications keep the foreground monitor visible. App usage access enables usage by app, and overlay enables the optional live display. Android opens the relevant system pages one after another."
+                        : "Für die vollständige Überwachung führt Ampere dich jetzt durch die benötigten Android-Zugriffe. Benachrichtigungen halten die Akkuüberwachung sichtbar. App-Nutzungszugriff ermöglicht den Verbrauch je App; Overlay aktiviert die optionale Live-Anzeige. Android öffnet die passenden Systemeinstellungen nacheinander."))
+                .setNegativeButton(AppText.t(this, english ? "Later" : "Später"), (dialog, which) -> {
+                    startupPermissionPromptVisible = false;
+                    auditPermissions();
+                })
+                .setPositiveButton(AppText.t(this, english ? "Set up now" : "Jetzt einrichten"), (dialog, which) -> {
+                    startupPermissionPromptVisible = false;
+                    startupPermissionFlow = true;
+                    continueStartupPermissionFlow();
+                })
+                .setOnCancelListener(dialog -> {
+                    startupPermissionPromptVisible = false;
+                    auditPermissions();
+                })
+                .show();
+    }
+
+    private boolean hasAllStartupPermissions() {
+        return hasNotificationAccess() && hasUsageStatsAccess()
+                && (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(this));
+    }
+
+    private void continueStartupPermissionFlow() {
+        if (!startupPermissionFlow || isFinishing()) return;
+        if (!hasNotificationAccess()) {
+            if (Build.VERSION.SDK_INT >= 33 && !hasNotificationRuntimePermission()) {
+                SharedPreferences appPrefs = BatteryDataRepository.data(this);
+                int requests = appPrefs.getInt("notificationPermissionRequests", 0);
+                appPrefs.edit().putInt("notificationPermissionRequests", requests + 1).apply();
+                if (requests > 0 && !shouldShowRequestPermissionRationale(
+                        "android.permission.POST_NOTIFICATIONS")) {
+                    startupPermissionStep = 1;
+                    startupPermissionSettingsLaunched = true;
+                    openNotificationSettings();
+                } else {
+                    requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"},
+                            STARTUP_PERMISSION_REQUEST);
+                }
+            } else {
+                startupPermissionStep = 1;
+                startupPermissionSettingsLaunched = true;
+                openNotificationSettings();
+            }
+            return;
+        }
+        if (!hasUsageStatsAccess()) {
+            BatteryDataRepository.data(this).edit().putBoolean("permissionUsageRequested", true).apply();
+            startupPermissionStep = 2;
+            startupPermissionSettingsLaunched = true;
+            try { startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS,
+                    Uri.parse("package:" + getPackageName()))); }
+            catch (Exception ignored) { startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)); }
+            return;
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
+            BatteryDataRepository.data(this).edit().putBoolean("permissionOverlayRequested", true).apply();
+            startupPermissionStep = 3;
+            startupPermissionSettingsLaunched = true;
+            try { startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:" + getPackageName()))); }
+            catch (Exception ignored) { startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)); }
+            return;
+        }
+        startupPermissionFlow = false;
+        auditPermissions();
     }
 
     private boolean hasUsageStatsAccess() {
