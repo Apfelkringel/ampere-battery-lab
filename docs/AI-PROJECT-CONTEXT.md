@@ -167,6 +167,7 @@ changing product decisions.
 - CI action maintenance (2026-09-22): updated pinned Actions across Android, iOS, TestFlight, and metadata workflows to verified current releases: checkout `v7.0.1`, setup-java `v6.0.1`, setup-gradle `v6.3.0`, setup-android `v4.0.4`, upload-artifact `v7.0.1`, and attest-build-provenance `v4.2.2`. The Android workflow must be re-run to verify compatibility.
 - CI action migration verification (2026-09-22): Android build run `35761765426` passed metadata validation, tests/lint, signed APK/AAB builds, certificate-lineage checks, attestations, and artifact upload with the new pins. The prior Node.js 20 action warnings disappeared; only the independent future `ubuntu-latest` runner migration notice remains.
 - Runner stability (2026-09-22): Linux workflows now pin `runs-on: ubuntu-24.04` for Android builds, Play publishing, and metadata validation, avoiding the announced automatic Ubuntu 26 migration. iOS workflows retain their explicit `xcode-27` runner.
+- Runner verification (2026-09-22): full Android build run `35762509814` succeeded on the pinned Ubuntu 24.04 runner for commit `7e48bda`. Metadata validation, unit tests/lint, signed APK/AAB builds, certificate-lineage verification, provenance attestations, and artifact upload all passed; tagged-release APK attachment was skipped as expected because the dispatch was from `main`, not a tag. The Ubuntu migration notice is gone; remaining warnings are limited to SDK-manager, Gradle, and JAR-signature metadata details.
 
 ### Play Statistics snapshot (2026-09-22)
 
