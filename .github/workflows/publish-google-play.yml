@@ -143,11 +143,16 @@ jobs:
           not_before="$(openssl x509 -in build/ampere-upload-certificate.pem -noout -startdate | cut -d= -f2-)"
           start_epoch="$(date -u -d "$not_before" +%s)"
           now_epoch="$(date -u +%s)"
-          if (( now_epoch < start_epoch )); then
-            echo "Upload certificate is not valid yet (starts at $not_before UTC); skipping upload."
+          # The certificate's own notBefore predates Google's Play Console
+          # activation window after a reset. Honor the Console notification
+          # too, otherwise the uploader still receives "recently reset".
+          play_effective_at='2026-09-24T15:37:00Z'
+          play_effective_epoch="$(date -u -d "$play_effective_at" +%s)"
+          if (( now_epoch < start_epoch || now_epoch < play_effective_epoch )); then
+            echo "Play upload key is not usable yet (certificate starts $not_before UTC; Console activation $play_effective_at); skipping upload."
             echo 'skip_upload=true' >> "$GITHUB_ENV"
           else
-            echo "Upload certificate is active (started at $not_before UTC)."
+            echo "Play upload key is active (certificate started $not_before UTC; Console activation $play_effective_at)."
           fi
 
       - name: Upload bundle to Google Play
