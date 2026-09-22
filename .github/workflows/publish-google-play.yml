@@ -110,11 +110,19 @@ jobs:
           echo 'Google OAuth and read-only Play API access validated.'
 
           desired_code="$(jq -er .versionCode build/latest.json)"
+          edit_json="$tmp_dir/edit.json"
+          curl --fail --silent --show-error \
+            --request POST \
+            --output "$edit_json" \
+            --header "Authorization: Bearer $access_token" \
+            --header 'Content-Length: 0' \
+            'https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.ampere.batterylab/edits'
+          edit_id="$(jq -er .id "$edit_json")"
           track_json="$tmp_dir/track.json"
           curl --fail --silent --show-error \
             --output "$track_json" \
             --header "Authorization: Bearer $access_token" \
-            "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.ampere.batterylab/tracks/$RELEASE_TRACK"
+            "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.ampere.batterylab/edits/$edit_id/tracks/$RELEASE_TRACK"
           if jq -e --arg code "$desired_code" \
             '.releases[]?.versionCodes[]? | tostring | . == $code' "$track_json" >/dev/null; then
             echo "Version code $desired_code is already on the $RELEASE_TRACK track; skipping upload."
@@ -122,6 +130,10 @@ jobs:
           else
             echo 'skip_upload=false' >> "$GITHUB_ENV"
           fi
+          curl --fail --silent --show-error --request DELETE \
+            --header "Authorization: Bearer $access_token" \
+            "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.ampere.batterylab/edits/$edit_id" \
+            >/dev/null
 
       - name: Upload bundle to Google Play
         if: ${{ !inputs.validate_only && env.skip_upload != 'true' }}
