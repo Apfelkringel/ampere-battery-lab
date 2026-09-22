@@ -183,7 +183,7 @@ changing product decisions.
 
 ### Ongoing monitoring (2026-09-22)
 
-- A daily Codex thread monitor `Ampere Play-Console-Gate überwachen` is active with failed-run notifications only. It checks submission 60, the 14-day closed-test gate, production access, Alpha/upload status, the GitHub Play-upload workflow, unread Play notifications, growth metrics, Store Listing tests, translation/listing drafts, and Play-AI/Vitals results. It must not start an experiment on a statistically tiny sample.
+- A twice-daily Codex thread monitor `Ampere Play-Console-Gate überwachen` is active with failed-run notifications only (`FREQ=DAILY;BYHOUR=9,18;BYMINUTE=0`, host/local Europe/Berlin schedule). It checks submission 60, the 14-day closed-test gate, production access, Alpha/upload status, the GitHub Play-upload workflow, unread Play notifications, growth metrics, Store Listing tests, translation/listing drafts, and Play-AI/Vitals results. It must not start an experiment on a statistically tiny sample.
 - The monitor remains silent when state is unchanged and must record material changes in both `AGENTS.md` and this file. It has no authority to publish to Alpha or Production without an explicit, continuity-safe release action.
 
 ## Testing and quality risks
