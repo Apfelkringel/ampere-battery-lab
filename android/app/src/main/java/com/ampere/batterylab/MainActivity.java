@@ -173,8 +173,6 @@ public class MainActivity extends Activity {
         migrateTelemetryPrefs(this);
         AnalyticsTracker.restoreConsent(this);
         Window window = getWindow();
-        window.setStatusBarColor(Color.rgb(9, 18, 23));
-        window.setNavigationBarColor(Color.rgb(9, 18, 23));
         window.getDecorView().setSystemUiVisibility(0);
         dashboard = new BatteryDashboard(this);
         nativeLargeTextMode = BatteryLargeTextMode.shouldUseNativeLayout(
@@ -185,7 +183,6 @@ public class MainActivity extends Activity {
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
         if (Build.VERSION.SDK_INT >= 35) {
-            window.setDecorFitsSystemWindows(false);
             scroll.setOnApplyWindowInsetsListener((view, insets) -> {
                 android.graphics.Insets bars = insets.getInsets(WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout());
                 view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
@@ -1298,12 +1295,7 @@ class BatteryDashboard extends View {
     }
 
     void applySystemBarTheme() {
-        Window window = ((Activity) getContext()).getWindow();
         lime = Color.rgb(53, 211, 200);
-        int surface = Color.rgb(4, 52, 56);
-        window.setStatusBarColor(surface);
-        window.setNavigationBarColor(surface);
-        window.getDecorView().setSystemUiVisibility(0);
     }
 
     void reloadStoredData() {
@@ -5143,8 +5135,6 @@ class BatteryDashboard extends View {
         if (window != null) {
             window.setBackgroundDrawableResource(android.R.color.transparent);
             window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
-            window.setStatusBarColor(Color.rgb(4, 52, 56));
-            window.setNavigationBarColor(Color.rgb(4, 52, 56));
         }
     }
 

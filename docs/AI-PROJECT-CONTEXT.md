@@ -89,8 +89,7 @@ changing product decisions.
 ## Release and distribution facts
 
 - Package/application ID: `com.ampere.batterylab`.
-- Last inspected Gradle version: `versionCode 482`, `versionName 0.482`.
-- Git HEAD was a `0.483 prep` commit while Gradle still reported 0.482; this is an unresolved release inconsistency until verified.
+- Current Gradle release candidate: `versionCode 488`, `versionName 0.488`. This is the next unreleased version after the verified public `0.487` manifest; the active Play Alpha remains `0.459` until a continuity-safe Play release decision.
 - Public update manifest URL: `https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/latest.json`.
 - Direct APK and Play bundle are separate distribution paths.
 - Private signing is mandatory for release builds.
@@ -150,6 +149,7 @@ changing product decisions.
 
 - Android Vitals has no available data for user-perceived crashes, ANRs, memory, startup/rendering, battery, or permission-denial metrics. The lost-user metric is explicitly marked as having a limited data basis.
 - The App-size page has no representative download/install-size data and no optimization recommendations. Do not interpret these missing values as a clean bill of health; collect more release/user data before making performance claims.
+- Technical-quality remediation (2026-09-22): Play's next-release panel flagged transitive `androidx.fragment:fragment:1.1.0` and Android 15 edge-to-edge APIs in Alpha `0.459`. The source now pins stable Fragment `1.9.0`; `dependencyInsight` resolves the old `1.1.0`/`1.0.0` requests to `1.9.0`. `MainActivity` no longer calls Android 15-disabled `setStatusBarColor`, `setNavigationBarColor`, or `setDecorFitsSystemWindows`; its API-35 `WindowInsets` padding remains, and the theme uses a window background instead of deprecated bar-color resources. Direct/Play unit tests, lint, and debug assemblies pass. Candidate `0.488` contains the fix and remains unreleased to Play Alpha pending the continuity-safe release decision.
 - Growth/AI audit (2026-09-22): the Play growth overview showed 5 device impressions in the last 28 days, 1 Store-listing visitor, and a displayed 66.67% Store conversion rate; device acquisitions, first opens, monthly active devices, and 7-day retention were unavailable. The built-in Play AI analysis of perceived crash rate by Android version only confirmed coverage of Android 14, 15, and 16 and had no data-backed recommendation because the breakdown was unavailable. The sample is too small for a Store Listing experiment or targeting decision; the experiment setup was inspected but no test was created and no saved listing/translation changes were submitted.
 
 ### Manifest and Play-policy audit (2026-09-22)

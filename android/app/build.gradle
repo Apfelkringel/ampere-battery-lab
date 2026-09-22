@@ -13,8 +13,8 @@ android {
         // APK installable on older Android versions as a bonus.
         minSdk 23
         targetSdk 37
-        versionCode 487
-        versionName "0.487"
+        versionCode 488
+        versionName "0.488"
     }
 
     // The GitHub APK channel may offer an explicitly user-confirmed update.
@@ -45,6 +45,9 @@ android {
         // androidx.activity:activity:1.0.0. Keep the released app on the
         // current stable AndroidX Activity line without changing app code.
         implementation "androidx.activity:activity:1.13.0"
+        // Google Play flagged the transitive Fragment 1.1.0 pulled through
+        // Play Services. Keep the release graph on the current stable line.
+        implementation "androidx.fragment:fragment:1.9.0"
         testImplementation "junit:junit:4.13.2"
     }
 
