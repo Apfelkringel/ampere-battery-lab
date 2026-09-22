@@ -1,5 +1,30 @@
 # Verification record
 
+Version `0.488` remediates the Play next-release warnings for transitive
+`androidx.fragment:fragment:1.1.0` and Android 15 edge-to-edge system-bar APIs.
+Fragment is pinned to stable `1.9.0`; deprecated direct bar-color and
+`setDecorFitsSystemWindows` calls were removed while API-35 `WindowInsets`
+padding remains. Direct/Play tests, lint, debug assemblies, and the signed
+release workflow passed. GitHub Actions run
+[`35764669114`](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/35764669114)
+published signed tag `v0.488` with APK/AAB provenance and lineage checks. The
+public update repository was updated through commits
+[`20bff3b`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/20bff3b),
+[`0ce7ec2`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/0ce7ec2),
+[`86ceb4f`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/86ceb4f),
+and [`6b74a7a`](https://github.com/Apfelkringel/ampere-battery-lab-updates/commit/6b74a7a).
+A fresh public download reports package `com.ampere.batterylab`, version
+code/name `488`/`0.488`; APK SHA-256 is
+`c2acbfcbf86d40481d5698ba8add3cdbe2d806ef5987d9cc6c2fc0c4f798fec4` and Play
+AAB SHA-256 is
+`6ca8499a35fb3669b7fc505ce45e08370eaf18901b24fd764deb5fd6bf495c37`, both
+matching `latest.json`. The Play Alpha track remains at `0.459` while the
+14-day closed-test gate is active.
+
+Last verified: 2026-09-22 (Europe/Berlin)
+
+# Verification record
+
 Version `0.468` adds three more regression suites for the duration,
 fuel-gauge and time-to-target helpers, all of which were previously
 covered only by the runtime. `BatteryDurationTest` pins the compact and
