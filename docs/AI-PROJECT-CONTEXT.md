@@ -147,6 +147,7 @@ changing product decisions.
 
 - Android Vitals has no available data for user-perceived crashes, ANRs, memory, startup/rendering, battery, or permission-denial metrics. The lost-user metric is explicitly marked as having a limited data basis.
 - The App-size page has no representative download/install-size data and no optimization recommendations. Do not interpret these missing values as a clean bill of health; collect more release/user data before making performance claims.
+- Growth/AI audit (2026-09-22): the Play growth overview showed 5 device impressions in the last 28 days, 1 Store-listing visitor, and a displayed 66.67% Store conversion rate; device acquisitions, first opens, monthly active devices, and 7-day retention were unavailable. The built-in Play AI analysis of perceived crash rate by Android version only confirmed coverage of Android 14, 15, and 16 and had no data-backed recommendation because the breakdown was unavailable. The sample is too small for a Store Listing experiment or targeting decision; the experiment setup was inspected but no test was created and no saved listing/translation changes were submitted.
 
 ### Manifest and Play-policy audit (2026-09-22)
 
