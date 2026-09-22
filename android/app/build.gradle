@@ -13,8 +13,8 @@ android {
         // APK installable on older Android versions as a bonus.
         minSdk 23
         targetSdk 37
-        versionCode 486
-        versionName "0.486"
+        versionCode 487
+        versionName "0.487"
     }
 
     // The GitHub APK channel may offer an explicitly user-confirmed update.
@@ -29,6 +29,8 @@ android {
         play {
             dimension "distribution"
             buildConfigField "boolean", "DIRECT_DISTRIBUTION", "false"
+            // Google Play automatic protection requires API 24+ for this app bundle.
+            minSdk 24
         }
     }
 
