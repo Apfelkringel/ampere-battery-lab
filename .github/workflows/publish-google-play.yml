@@ -38,7 +38,7 @@ permissions:
 
 jobs:
   publish:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       RELEASE_VERSION: ${{ inputs.version || '0.487' }}
       RELEASE_TRACK: ${{ inputs.track || 'internal' }}
