@@ -28,7 +28,15 @@ Alternativ kann der manuelle Workflow `Publish Google Play bundle` nach dem
 Hinterlegen des geschützten Repository-Secrets
 `AMPERE_PLAY_SERVICE_ACCOUNT_JSON` gestartet werden. Er prüft Version und
 SHA-256 aus `latest.json` vor jedem Upload; standardmäßig wird ein Entwurf im
-internen Track erstellt.
+internen Track erstellt. Vor dem Upload liest er die vorhandenen Versionen des
+Ziel-Tracks: Bereits enthaltene Zielversionen werden übersprungen. Wenn nur
+Entwürfe vorhanden sind und auch der neue Status `draft` ist, übergibt der
+Workflow deren Versionscodes als `versionCodesToRetain`, damit die App-Bundles
+im neuen Entwurf erhalten bleiben. Ein vorhandener aktiver/nicht-Entwurfs-
+Release blockiert standardmäßig den Upload; die manuelle Option zum Ersetzen
+darf nur nach Prüfung der Track- und Tester-Kontinuität verwendet werden.
+Alpha- und Produktions-Uploads benötigen immer eine bewusste manuelle Auswahl;
+`validate_only` prüft Zugang und Artefakt, ohne das Bundle hochzuladen.
 
 ## iOS
 

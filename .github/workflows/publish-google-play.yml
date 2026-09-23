@@ -142,8 +142,15 @@ jobs:
             existing_codes="$(jq -r --arg code "$desired_code" \
               '[.releases[]?.versionCodes[]? | tostring | select(. != $code)] | unique | join(",")' \
               "$track_json")"
-            if [[ -n "$existing_codes" && "$ALLOW_TRACK_RELEASE_REPLACEMENT" != 'true' ]]; then
-              echo "::warning title=Existing Play track release::Refusing to replace version code(s) $existing_codes on '$RELEASE_TRACK'. Review all track releases and tester-continuity impact; manually dispatch with allow_track_release_replacement=true only when replacement is explicitly approved."
+            non_draft_release_count="$(jq -r --arg code "$desired_code" \
+              '[.releases[]? | select(any(.versionCodes[]?; tostring != $code)) | select(.status != "draft")] | length' \
+              "$track_json")"
+            if [[ -n "$existing_codes" && "$RELEASE_STATUS" == 'draft' && "$non_draft_release_count" == '0' ]]; then
+              echo "VERSION_CODES_TO_RETAIN=$existing_codes" >> "$GITHUB_ENV"
+              echo "Preserving existing draft version code(s) $existing_codes on '$RELEASE_TRACK' in the new draft release."
+              echo 'skip_upload=false' >> "$GITHUB_ENV"
+            elif [[ -n "$existing_codes" && "$ALLOW_TRACK_RELEASE_REPLACEMENT" != 'true' ]]; then
+              echo "::warning title=Existing Play track release::Refusing to replace non-draft version code(s) $existing_codes on '$RELEASE_TRACK'. Review all track releases and tester-continuity impact; manually dispatch with allow_track_release_replacement=true only when replacement is explicitly approved."
               echo 'skip_upload=true' >> "$GITHUB_ENV"
             else
               echo 'skip_upload=false' >> "$GITHUB_ENV"
@@ -183,3 +190,4 @@ jobs:
           releaseFiles: build/Ampere-Battery-Lab-play-release.aab
           tracks: ${{ env.RELEASE_TRACK }}
           status: ${{ env.RELEASE_STATUS }}
+          versionCodesToRetain: ${{ env.VERSION_CODES_TO_RETAIN }}
