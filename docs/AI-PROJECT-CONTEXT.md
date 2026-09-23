@@ -201,12 +201,21 @@ changing product decisions.
 - A twice-daily Codex thread monitor `Ampere Play-Console-Gate überwachen` is active with failed-run notifications only (`FREQ=DAILY;BYHOUR=9,18;BYMINUTE=0`, host/local Europe/Berlin schedule). It checks submission 60, the 14-day closed-test gate, production access, Alpha/upload status, the GitHub Play-upload workflow, unread Play notifications, growth metrics, Store Listing tests, translation/listing drafts, Store-Tag/device-catalog changes, and Play-AI/Vitals results. It must not start an experiment on a statistically tiny sample.
 - The monitor remains silent when state is unchanged and must record material changes in both `AGENTS.md` and this file. It has no authority to publish to Alpha or Production without an explicit, continuity-safe release action.
 
+### Play quality and localization recheck (2026-09-23)
+
+- The authenticated `Abstürze und ANRs` report, date range 26 Aug–23 Sep 2026, has no listed problem entries. Treat this as “no reported items in this view,” not as evidence of zero crashes/ANRs.
+- The `App-Größe` page currently shows its explanatory introduction but no download-size measurements or optimization recommendations. Revisit after a representative Play release/device sample exists; do not infer that the bundle is small or optimized from missing data.
+- Growth overview rechecked: 6 device impressions, 2 acquisitions, and 2 first opens for the last 28 days; monthly active devices and 7-day retention remain unavailable. The distinct 90-day Store-entry card remains at 66.67% conversion, and Store Listing experiments remain 0 running, 0 completed, 0 applied. These tiny and mismatched samples do not support experimentation or conversion claims.
+- Translation order `7430adcd1v2` remains completed for 28 machine-translated languages at `0.00 USD`. Locale rows still offer `Prüfen und übernehmen`; no translation was imported, no draft was submitted, and no live listing changed during this inspection. Keep these drafts deferred until quality/provenance review, prioritizing human/native review for any future market rollout.
+
 ## Testing and quality risks
 
 - Android OEM battery files and units vary; central validators must remain the only path into calculations and exports.
 - Time changes can move sampling windows backwards; sampling policy must reset its basis rather than fabricate rates.
 - Android backup/restore and old telemetry formats need normalization.
 - Canvas rendering has a large surface area; preserve real accessibility virtual controls when changing visual controls.
+- Large-text dashboard navigation is shared through `BatteryLargeTextTabs`; its labels/actions are unit-tested, active-tab state is announced to accessibility services, and newly selected tabs are scrolled into view.
+- TalkBack live summaries use locale-specific labels and translate app-generated status, estimate-source, and duration values in English mode; unit tests cover representative German-origin values.
 - Check German/English text, small screens, landscape, TalkBack, direct flavor, and Play flavor for user-visible changes.
 
 ## Files to read first
