@@ -215,6 +215,13 @@ changing product decisions.
 - Review of the exact pinned upload action found a supported `versionCodesToRetain` input; its implementation appends retained codes to uploaded codes before writing the draft release. The workflow uses this only when the requested status is `draft` and all conflicting track releases are also drafts. Non-draft conflicts remain blocked by default; the manual override still requires a deliberate continuity review.
 - This retains the previous bundle code in the new draft but does not preserve it as a separate release object or guarantee other per-release metadata. Validation-only run `35877839633` confirmed code `467` will be retained, then skipped the upload until key activation; Play was not mutated. After `2026-09-24 15:37 UTC`, verify the first scheduled run and inspect the resulting internal draft before treating the process as healthy. Do not manually upload or replace Alpha/Production releases.
 
+### Managed Play publication (2026-09-23)
+
+- The authenticated Publishing overview showed `Verwaltete Veröffentlichung aus`. Enabled managed publishing and verified `Verwaltete Veröffentlichung aktiviert` remained after page reload.
+- Google's documented scope holds most approved changes—including Store listings and full/staged rollouts—until a separate manual publish. Tester configuration and tester-list membership are exceptions; this is not a safeguard for edits to the active closed-test configuration.
+- The 31 machine-translation/listing changes remained unsubmitted/deferred; enabling the setting did not submit or publish them. Before any future submission, inspect the full pending queue and manually release only after content review.
+- Dashboard gates were unchanged: minimum-12 check green, continuous 14-day criterion in progress, Production access disabled.
+
 ## Testing and quality risks
 
 - Android OEM battery files and units vary; central validators must remain the only path into calculations and exports.

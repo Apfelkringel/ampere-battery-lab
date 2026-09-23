@@ -6,6 +6,17 @@ Der aktuelle Android-Release wird über den signierten GitHub-Workflow und das
 öffentliche Updates-Repository veröffentlicht. Die jeweils gültige Version,
 Download-Adressen und Prüfsummen stehen in `latest.json` im Updates-Repository.
 
+In der Play Console ist `Verwaltete Veröffentlichung` seit dem 23. September
+2026 aktiviert. Nach einer Prüfung werden die meisten Änderungen – darunter
+Store-Einträge und vollständige bzw. gestaffelte Releases – dadurch erst nach
+einer separaten manuellen Veröffentlichung live. Vor dieser manuellen Aktion
+immer die gesamte Warteschlange prüfen. Die Funktion hält Änderungen an
+Testerkonfigurationen und Testerlisten-Mitgliedschaften ausdrücklich nicht
+zurück; sie ersetzt daher keine Kontinuitätsprüfung am aktiven Closed-Test.
+Aktuell sind 31 maschinell übersetzte bzw. Listing-Änderungen nicht eingereicht
+und bleiben bis zur Qualitätsprüfung zurückgestellt. Die Aktivierung hat sie
+nicht veröffentlicht.
+
 ## Android
 
 Das Projekt erzeugt zwei bewusst getrennte Varianten:
