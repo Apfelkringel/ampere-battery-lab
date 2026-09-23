@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Release version to upload (for example 0.487)"
+        description: "Release version to upload (for example 0.488)"
         required: true
-        default: "0.487"
+        default: "0.488"
         type: string
       track:
         description: "Play testing/release track"
@@ -45,9 +45,9 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:
-      RELEASE_VERSION: ${{ inputs.version || '0.487' }}
+      RELEASE_VERSION: ${{ inputs.version || '0.488' }}
       RELEASE_TRACK: ${{ inputs.track || 'internal' }}
-      RELEASE_STATUS: ${{ inputs.status || 'completed' }}
+      RELEASE_STATUS: ${{ inputs.status || 'draft' }}
     steps:
       - name: Download and verify public Play bundle
         run: |
