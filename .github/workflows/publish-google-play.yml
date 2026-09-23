@@ -32,6 +32,11 @@ on:
         required: true
         default: false
         type: boolean
+      allow_track_release_replacement:
+        description: "Allow replacing existing releases on the selected track after reviewing them"
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -48,6 +53,7 @@ jobs:
       RELEASE_VERSION: ${{ inputs.version || '0.488' }}
       RELEASE_TRACK: ${{ inputs.track || 'internal' }}
       RELEASE_STATUS: ${{ inputs.status || 'draft' }}
+      ALLOW_TRACK_RELEASE_REPLACEMENT: ${{ inputs.allow_track_release_replacement || 'false' }}
     steps:
       - name: Download and verify public Play bundle
         run: |
@@ -133,7 +139,15 @@ jobs:
             echo "Version code $desired_code is already on the $RELEASE_TRACK track; skipping upload."
             echo 'skip_upload=true' >> "$GITHUB_ENV"
           else
-            echo 'skip_upload=false' >> "$GITHUB_ENV"
+            existing_codes="$(jq -r --arg code "$desired_code" \
+              '[.releases[]?.versionCodes[]? | tostring | select(. != $code)] | unique | join(",")' \
+              "$track_json")"
+            if [[ -n "$existing_codes" && "$ALLOW_TRACK_RELEASE_REPLACEMENT" != 'true' ]]; then
+              echo "::warning title=Existing Play track release::Refusing to replace version code(s) $existing_codes on '$RELEASE_TRACK'. Review all track releases and tester-continuity impact; manually dispatch with allow_track_release_replacement=true only when replacement is explicitly approved."
+              echo 'skip_upload=true' >> "$GITHUB_ENV"
+            else
+              echo 'skip_upload=false' >> "$GITHUB_ENV"
+            fi
           fi
           curl --fail --silent --show-error --request DELETE \
             --header "Authorization: Bearer $access_token" \
