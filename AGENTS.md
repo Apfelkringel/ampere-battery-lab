@@ -22,7 +22,7 @@ Read this file before changing code, release metadata, analytics, store text, or
 - Android compile/target SDK: 37; min SDK: 23.
 - Distribution flavors: `direct` and `play`; direct may use the signed GitHub APK update flow, while Play relies on Google Play updates.
 - Firebase Analytics uses Firebase BoM `34.19.0`; `android/app/google-services.json` is public project configuration, not a secret or Console access.
-- The published direct APK/AAB is `versionCode 491` / `versionName "0.491"`. The live Play Alpha is still `0.489` (`versionCode 489`) with fallback `459`; the new Alpha `0.491` release was successfully submitted as Submission `63` at 21:17 UTC and is `Wird überprüft`. The updated API preflight confirmed codes `459,489`; Submission 63 includes only the Alpha binary change and retains `459`. Do not claim `0.491` is downloadable until review completes and the exact submission is published under managed publishing.
+- The published direct APK/AAB is `versionCode 492` / `versionName "0.492"`. At the latest recorded Play check, active Alpha was `0.489` (`versionCode 489`) with fallback `459`; Submission `63` for Alpha `0.491` was under review. Direct `0.492` was not submitted to Play. Do not claim `0.491` is downloadable until review completes and the exact submission is published under managed publishing.
 
 ## Analytics contract
 
@@ -80,6 +80,7 @@ Follow `docs/STORE-PUBLISHING.md`, `docs/UPDATE-SECURITY.md`, and `tooling/relea
 - Keep German and English text pairs in `AppText`; localize text baked into graphics with locale-qualified drawable variants and use localized string resources for widget placeholders.
 - Keep comma-delimited session storage delimiter-safe in both locales; validate German and English duration formats and migrate previously saved English dates containing commas before rendering or export.
 - Translate complete German labels before fragment replacements; leave already-English sentences intact, localize persisted status/source values at display boundaries, preserve externally supplied app names, and review every rendered English screen for fragments the marker-based translator can miss.
+- For battery-usage rows, resolve app labels and icons through `AppLabelCache`/`PackageManager`; declare only `MAIN`/`LAUNCHER` package visibility, avoid `QUERY_ALL_PACKAGES`, and never translate external app labels.
 - Keep both Android locales in each Play install for the app-specific language switch; do not enable language splits unless on-demand locale delivery is implemented and verified.
 - The iOS app follows the system language and keeps German/English entries in `ios/Ampere/{de,en}.lproj/Localizable.strings`; localize dynamic SwiftUI text, status values, sharing summaries, and accessibility labels explicitly.
 - Large-text navigation labels/actions live in `BatteryLargeTextTabs`; preserve tested translations, selected-tab accessibility descriptions, and automatic scroll-to-selected behavior when changing the reflowable dashboard.
@@ -90,6 +91,7 @@ Follow `docs/STORE-PUBLISHING.md`, `docs/UPDATE-SECURITY.md`, and `tooling/relea
 - Localize human-readable diagnostic reports and the optional charging screensaver using the selected app language; keep CSV/JSON schemas and machine-readable values locale-independent.
 - Public update manifests should include `releaseNotes_en` alongside `releaseNotes`; the English UI must not display German release notes when no English version exists.
 - Check accessibility, narrow layouts, landscape, backup/restore, and both distribution flavors for UI or data-flow changes.
+- Direct release 0.492 (2026-09-24 21:40 UTC): signed tag `v0.492`, source commit `9c1f157`, build [36061420227](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/36061420227), and public update-repository commit `1250f7e` publish proper Android app names/icons in Battery usage. Direct and Play unit tests, lint, and debug APK builds passed locally; CI also passed metadata validation, Direct tests/lint, signed APK/AAB builds, signer-lineage verification, and provenance attestations. Fresh public files match `latest.json`: package `com.ampere.batterylab`, code/name `492`/`0.492`, APK SHA-256 `f4a803af943f4f5e6fbbeed7956d9d00ea2286259620ffd5aa00e6e745ee1fca`, AAB SHA-256 `9f87c80029c26dff3ce287c9a3ae0ba2fb91fd63be47b3bb2c230d9a98fce4c6`. This is a Direct release only; no Play track changed.
 - Record new durable facts in `docs/AI-PROJECT-CONTEXT.md` and update this file when an instruction or invariant changes.
 
 ## Tester, Reddit, and document maintenance
