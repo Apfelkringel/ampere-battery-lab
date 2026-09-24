@@ -22,7 +22,7 @@ Read this file before changing code, release metadata, analytics, store text, or
 - Android compile/target SDK: 37; min SDK: 23.
 - Distribution flavors: `direct` and `play`; direct may use the signed GitHub APK update flow, while Play relies on Google Play updates.
 - Firebase Analytics uses Firebase BoM `34.19.0`; `android/app/google-services.json` is public project configuration, not a secret or Console access.
-- The published direct APK/AAB is `versionCode 492` / `versionName "0.492"`. At the latest recorded Play check, active Alpha was `0.489` (`versionCode 489`) with fallback `459`; Submission `63` for Alpha `0.491` was under review. Direct `0.492` was not submitted to Play. Do not claim `0.491` is downloadable until review completes and the exact submission is published under managed publishing.
+- The published direct APK/AAB and latest public Play AAB are `versionCode 492` / `versionName "0.492"`; the public AAB SHA-256 is `9f87c80029c26dff3ce287c9a3ae0ba2fb91fd63be47b3bb2c230d9a98fce4c6`. At the authenticated Console read on 2026-09-24 22:51 UTC / 2026-09-25 00:51 Berlin, active Alpha was still `0.489` (`versionCode 489`) with fallback `459`; Submission `63` for Alpha `0.491` contained exactly one Alpha binary change and remained `Wird überprüft`. Version `0.492` is not yet on Play. Do not start another upload or claim either version newly downloadable while Submission 63 is in review.
 
 ## Analytics contract
 
