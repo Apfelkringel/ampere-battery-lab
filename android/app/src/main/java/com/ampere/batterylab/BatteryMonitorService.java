@@ -806,7 +806,7 @@ public class BatteryMonitorService extends Service {
                     .putInt("monitorSessionStartLevel", level).putInt("monitorSessionStartCounterMah", counterMah).apply();
             return;
         }
-        String datePattern = AppText.isEnglish(this) ? "MMM d, h:mm a" : "dd.MM. HH:mm";
+        String datePattern = BatterySessionRules.datePattern(AppText.isEnglish(this));
         String date = new SimpleDateFormat(datePattern, AppText.uiLocale(this)).format(new Date(now));
         float cycleEquivalent = energy > 0 && designCapacity > 0 ? energy / (float) designCapacity : Math.abs(change) / 100f;
         int screenWakeups = previousCharging ? 0 : prefs.getInt("lastDischargeWakeups", prefs.getInt("dischargeWakeups", 0));

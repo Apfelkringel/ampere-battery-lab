@@ -943,6 +943,15 @@ final class AppText {
             case "Akkustrom live": return "Live battery current";
             case "Temperatur": return "Temperature";
             case "Android-Zustand": return "Android status";
+            case "Datum": return "Date";
+            case "Typ": return "Type";
+            case "Verlust": return "Level drop";
+            case "Leistungsaufnahme": return "Power draw";
+            case "Energie": return "Energy";
+            case "Vergangene Zeit": return "Elapsed time";
+            case "Restlaufzeit · Screen-on": return "Runtime · screen on";
+            case "Leistung Min / Ø / Max": return "Power min / avg / max";
+            case "Min / Ø / Max": return "Min / avg / max";
             case "Voll": return "Full";
             case "Niedrig": return "Low";
             case "Hoch": return "High";

@@ -1405,6 +1405,31 @@ public class BatteryRulesTest {
         assertEquals("", BatterySessionRules.normalizeSerialized(invalid));
     }
 
+    @Test public void legacyEnglishSessionDatesAreRejoinedBeforeValidation() {
+        String legacy = "Charge,+5%,1 hr 15 min,Sep 24, 8:30 PM,95,100,500,0.50,320,180,10,20,0,USB charger,1790272410000,1790274210000,0";
+        String expected = "Charge,+5%,1 hr 15 min,Sep 24 · 8:30 PM,95,100,500,0.50,320,180,10,20,0,USB charger,1790272410000,1790274210000,0";
+
+        assertTrue(BatterySessionRules.isValid(expected));
+        assertEquals(expected, BatterySessionRules.normalizeSerialized(legacy));
+        assertEquals(17, BatterySessionRules.normalizeSerialized(legacy).split(",", -1).length);
+    }
+
+    @Test public void newEnglishSessionDatePatternCannotSplitSerializedRows() {
+        assertEquals("MMM d · h:mm a", BatterySessionRules.datePattern(true));
+        assertEquals("dd.MM. HH:mm", BatterySessionRules.datePattern(false));
+        assertFalse(BatterySessionRules.datePattern(true).contains(","));
+    }
+
+    @Test public void englishSessionDurationsRemainValidAcrossReloads() {
+        String shortSession = "Charge,+5%,30 min,Sep 24 · 8:30 PM,95,100,500,0.50,320,180,10,20,0,USB charger,1790272410000,1790274210000,0";
+        String longSession = "Discharge,-8%,1 hr 15 min,Sep 24 · 8:30 PM,80,72,500,0.08,320,180,10,20,0,Battery,1790272410000,1790276910000,0";
+
+        assertTrue(BatterySessionRules.isValid(shortSession));
+        assertTrue(BatterySessionRules.isValid(longSession));
+        assertEquals(shortSession + "|" + longSession,
+                BatterySessionRules.normalizeSerialized(shortSession + "|" + longSession));
+    }
+
     @Test public void clockRollbackCannotCreateBackwardsSession() {
         assertTrue(BatteryTimelineRules.isRollback(2_000L, 1_999L));
         assertFalse(BatteryTimelineRules.isRollback(2_000L, 2_000L));

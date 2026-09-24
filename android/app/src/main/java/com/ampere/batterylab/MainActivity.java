@@ -6300,7 +6300,10 @@ class BatteryDashboard extends View {
                 tickTwoThirds - chartW / 6f, tickTwoThirds + chartW / 6f, axisY, 8, faint, false);
         boundedRightText(c, chartAxisLabel(1f, axisStart, axisEnd),
                 chartRight - chartW / 6f, chartRight, axisY, 8, faint, false);
-        text(c, "Ø " + chartAverage() + "   ·   Spanne " + chartRange(), x + 18, y + 199, 8, muted, false);
+        String averageRangeLabel = AppText.isEnglish(getContext())
+                ? "Avg " + chartAverage() + " · Range " + chartRange()
+                : "Ø " + chartAverage() + "   ·   Spanne " + chartRange();
+        text(c, averageRangeLabel, x + 18, y + 199, 8, muted, false);
         text(c, "Letzte Sitzungen", x + 18, y + 218, 13, primary, true);
         if (sessions.isEmpty()) {
             text(c, "Nach dem ersten Zyklus sichtbar.", x + 18, y + 244, 9, faint, false);
@@ -6383,7 +6386,8 @@ class BatteryDashboard extends View {
             fill(c, accent);
             c.drawCircle(u(chartX), u(sampleY), u(3f), p);
         }
-        boundedText(c, "Min " + stats.minimumMa + " · Ø " + stats.averageMa
+        String averageLabel = AppText.isEnglish(getContext()) ? "Avg " : "Ø ";
+        boundedText(c, "Min " + stats.minimumMa + " · " + averageLabel + stats.averageMa
                         + " · Max " + stats.maximumMa + " mA",
                 chartX, x + width - 18, y + 181, 8, muted, false);
         boundedText(c, BatteryCurrentChartWindow.label(startAt, endAt, count, uiLocale()),
@@ -6655,10 +6659,15 @@ class BatteryDashboard extends View {
                 + "Akkugesundheit " + (health > 0 ? health + " Prozent" : "nicht gemessen") + ". "
                 + "Android-Zustand " + BatteryPlatformHealth.label(platformHealth) + "." + capacity
                 + chargingProfile + (liveDetails.isEmpty() ? "" : " " + liveDetails + ".");
-        largeTextPageSummary = AppText.t(getContext(), largeTextPageSummary);
-        setContentDescription(largeTextMode
-                ? AppText.t(getContext(), "Grafische " + pageName() + "-Ansicht. Die Werte stehen oben in der Großschrift-Ansicht.")
-                : AppText.t(getContext(), largeTextPageSummary + " Tabs: Übersicht, Laden, Entladen, Gesundheit, Verlauf. Aktiver Tab: " + pageName() + "."));
+        String selectedTabDescription = english
+                ? " Tabs: Overview, Charging, Discharging, Health, History. Active tab: "
+                : " Tabs: Übersicht, Laden, Entladen, Gesundheit, Verlauf. Aktiver Tab: ";
+        String accessibilityDescription = largeTextMode
+                ? (english
+                    ? "Graphical " + pageName() + " view. Values appear above in large-text mode."
+                    : "Grafische " + pageName() + "-Ansicht. Die Werte stehen oben in der Großschrift-Ansicht.")
+                : largeTextPageSummary + selectedTabDescription + pageName() + ".";
+        setContentDescription(accessibilityDescription);
         sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED);
         if (largeTextSummaryListener != null) largeTextSummaryListener.run();
     }

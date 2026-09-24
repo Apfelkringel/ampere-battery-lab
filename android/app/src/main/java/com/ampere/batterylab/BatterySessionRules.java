@@ -1,10 +1,22 @@
 package com.ampere.batterylab;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /** Keeps cable/status blips and malformed legacy rows out of session history. */
 final class BatterySessionRules {
     private static final long MIN_SINGLE_PERCENT_SESSION_MINUTES = 5L;
+    private static final Pattern LEGACY_ENGLISH_DATE_TIME = Pattern.compile(
+            "\\d{1,2}:\\d{2} (?:AM|PM)", Pattern.CASE_INSENSITIVE);
+    private static final Pattern SERIALIZED_DURATION = Pattern.compile(
+            "(?:(\\d+)\\s*(?:Std\\.|hr)\\s+)?(\\d+)\\s*(?:Min\\.|min)",
+            Pattern.CASE_INSENSITIVE);
 
     private BatterySessionRules() { }
+
+    static String datePattern(boolean english) {
+        return english ? "MMM d · h:mm a" : "dd.MM. HH:mm";
+    }
 
     /**
      * Resolves a session's direction without trusting a noisy level snapshot
@@ -93,10 +105,25 @@ final class BatterySessionRules {
     static String normalizeSerialized(String serialized) {
         StringBuilder normalized = new StringBuilder();
         if (serialized == null || serialized.isEmpty()) return "";
-        for (String value : serialized.split("\\|", -1)) {
+        for (String savedValue : serialized.split("\\|", -1)) {
+            String value = normalizeLegacyEnglishDate(savedValue);
             if (value.isEmpty() || !isValid(value)) continue;
             if (normalized.length() > 0) normalized.append('|');
             normalized.append(value);
+        }
+        return normalized.toString();
+    }
+
+    /** Repairs rows written with a comma inside the old English date format. */
+    private static String normalizeLegacyEnglishDate(String value) {
+        String[] parts = value.split(",", -1);
+        if (!(parts.length == 5 || parts.length >= 18)
+                || !LEGACY_ENGLISH_DATE_TIME.matcher(parts[4].trim()).matches()) return value;
+        StringBuilder normalized = new StringBuilder(value.length());
+        for (int i = 0; i < parts.length; i++) {
+            if (i == 4) continue;
+            if (normalized.length() > 0) normalized.append(',');
+            normalized.append(i == 3 ? parts[3] + " · " + parts[4].trim() : parts[i]);
         }
         return normalized.toString();
     }
@@ -157,19 +184,16 @@ final class BatterySessionRules {
     /** Parses the exact human-readable duration written by the monitor. */
     private static long durationMinutes(String value) {
         if (value == null) return -1L;
-        String trimmed = value.trim();
+        Matcher matcher = SERIALIZED_DURATION.matcher(value.trim());
+        if (!matcher.matches()) return -1L;
         try {
-            int separator = trimmed.indexOf(" Std. ");
-            if (separator < 0 && trimmed.endsWith(" Min.")) {
-                long minutes = Long.parseLong(trimmed.substring(0, trimmed.length() - 5).trim());
-                return minutes > 0L ? minutes : -1L;
-            }
-            if (separator <= 0 || !trimmed.endsWith(" Min.")) return -1L;
-            long hours = Long.parseLong(trimmed.substring(0, separator).trim());
-            long minutes = Long.parseLong(trimmed.substring(separator + 6, trimmed.length() - 5).trim());
-            if (hours < 1L || minutes < 0L || minutes > 59L
+            boolean hasHours = matcher.group(1) != null;
+            long hours = hasHours ? Long.parseLong(matcher.group(1)) : 0L;
+            long minutes = Long.parseLong(matcher.group(2));
+            if ((hasHours && hours < 1L) || minutes < 0L || (hasHours && minutes > 59L)
                     || hours > (Long.MAX_VALUE - minutes) / 60L) return -1L;
-            return hours * 60L + minutes;
+            long totalMinutes = hours * 60L + minutes;
+            return totalMinutes > 0L ? totalMinutes : -1L;
         } catch (Exception ignored) {
             return -1L;
         }
