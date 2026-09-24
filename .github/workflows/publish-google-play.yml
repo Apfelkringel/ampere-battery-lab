@@ -1,39 +1,15 @@
 name: Publish Google Play bundle
 
 on:
-  schedule:
-    - cron: "7,22,37,52 * * * *"
   workflow_dispatch:
     inputs:
-      version:
-        description: "Release version to upload (for example 0.491)"
-        required: true
-        default: "0.491"
-        type: string
-      track:
-        description: "Play testing/release track"
-        required: true
-        default: internal
-        type: choice
-        options:
-          - internal
-          - alpha
-          - production
-      status:
-        description: "Release status in the selected track"
-        required: true
-        default: draft
-        type: choice
-        options:
-          - draft
-          - completed
-      validate_only:
-        description: "Validate bundle and Play credential without uploading"
+      console_preflight_confirmed:
+        description: "Confirm the authenticated Console was just checked: no pending/in-review changes, and active Alpha plus fallback verified."
         required: true
         default: false
         type: boolean
-      allow_track_release_replacement:
-        description: "Allow replacing existing releases on the selected track after reviewing them"
+      validate_only:
+        description: "Validate bundle and Play credential without uploading"
         required: true
         default: false
         type: boolean
@@ -50,10 +26,9 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:
-      RELEASE_VERSION: ${{ inputs.version || '0.491' }}
-      RELEASE_TRACK: ${{ inputs.track || 'internal' }}
-      RELEASE_STATUS: ${{ inputs.status || 'draft' }}
-      ALLOW_TRACK_RELEASE_REPLACEMENT: ${{ inputs.allow_track_release_replacement || 'false' }}
+      RELEASE_TRACK: alpha
+      RELEASE_STATUS: completed
+      CONSOLE_PREFLIGHT_CONFIRMED: ${{ inputs.console_preflight_confirmed }}
     steps:
       - name: Download and verify public Play bundle
         run: |
@@ -69,16 +44,27 @@ jobs:
             --header 'X-GitHub-Api-Version: 2022-11-28' \
             "https://api.github.com/repos/Apfelkringel/ampere-battery-lab-updates/contents/latest.json?ref=main" \
             --output build/latest.json
-          test "$(jq -r .versionName build/latest.json)" = "$RELEASE_VERSION"
+          release_version="$(jq -er .versionName build/latest.json)"
+          release_code="$(jq -er .versionCode build/latest.json)"
+          [[ "$release_version" =~ ^[0-9]+(\.[0-9]+)*$ ]]
+          [[ "$release_code" =~ ^[0-9]+$ ]]
+          (( release_code > 0 ))
           expected="$(jq -r .aabSha256 build/latest.json)"
           actual="$(sha256sum build/Ampere-Battery-Lab-play-release.aab | awk '{print $1}')"
           test "$expected" = "$actual"
+          echo "RELEASE_VERSION=$release_version" >> "$GITHUB_ENV"
+          echo "RELEASE_VERSION_CODE=$release_code" >> "$GITHUB_ENV"
+          echo "Verified public Play bundle version $release_version (code $release_code)."
 
       - name: Validate Play publisher credential
         env:
           PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.AMPERE_PLAY_SERVICE_ACCOUNT_JSON }}
         run: |
           set -euo pipefail
+          if [[ "$CONSOLE_PREFLIGHT_CONFIRMED" != 'true' ]]; then
+            echo "::error title=Play Console preflight required::Recheck the authenticated Console immediately before dispatch. Stop if any change is pending/in review, the Alpha track differs, or unrelated Store changes are queued."
+            exit 1
+          fi
           if [[ -z "$PLAY_SERVICE_ACCOUNT_JSON" ]]; then
             echo "::error title=Missing Play API credential::Add AMPERE_PLAY_SERVICE_ACCOUNT_JSON as a repository Actions secret."
             exit 1
@@ -120,7 +106,7 @@ jobs:
             'https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.ampere.batterylab/reviews?maxResults=1'
           echo 'Google OAuth and read-only Play API access validated.'
 
-          desired_code="$(jq -er .versionCode build/latest.json)"
+          desired_code="$RELEASE_VERSION_CODE"
           edit_json="$tmp_dir/edit.json"
           curl --fail --silent --show-error \
             --request POST \
@@ -139,22 +125,23 @@ jobs:
             echo "Version code $desired_code is already on the $RELEASE_TRACK track; skipping upload."
             echo 'skip_upload=true' >> "$GITHUB_ENV"
           else
-            existing_codes="$(jq -r --arg code "$desired_code" \
-              '[.releases[]?.versionCodes[]? | tostring | select(. != $code)] | unique | join(",")' \
-              "$track_json")"
-            non_draft_release_count="$(jq -r --arg code "$desired_code" \
-              '[.releases[]? | select(any(.versionCodes[]?; tostring != $code)) | select(.status != "draft")] | length' \
-              "$track_json")"
-            if [[ -n "$existing_codes" && "$RELEASE_STATUS" == 'draft' && "$non_draft_release_count" == '0' ]]; then
-              echo "VERSION_CODES_TO_RETAIN=$existing_codes" >> "$GITHUB_ENV"
-              echo "Preserving existing draft version code(s) $existing_codes on '$RELEASE_TRACK' in the new draft release."
-              echo 'skip_upload=false' >> "$GITHUB_ENV"
-            elif [[ -n "$existing_codes" && "$ALLOW_TRACK_RELEASE_REPLACEMENT" != 'true' ]]; then
-              echo "::warning title=Existing Play track release::Refusing to replace non-draft version code(s) $existing_codes on '$RELEASE_TRACK'. Review all track releases and tester-continuity impact; manually dispatch with allow_track_release_replacement=true only when replacement is explicitly approved."
-              echo 'skip_upload=true' >> "$GITHUB_ENV"
-            else
-              echo 'skip_upload=false' >> "$GITHUB_ENV"
+            if jq -e '.releases[]? | select(.status != "completed" and .status != "inProgress")' "$track_json" >/dev/null; then
+              echo "::error title=Alpha track needs review::The Alpha track contains a draft or halted release. Do not replace it automatically; inspect continuity in Play Console first."
+              exit 1
             fi
+            existing_codes="$(jq -r '[.releases[]?.versionCodes[]? | tostring] | unique | join(",")' "$track_json")"
+            if [[ -z "$existing_codes" ]]; then
+              echo "::error title=No active Alpha fallback::The Alpha track has no existing release codes to preserve. Initial-track setup requires a separate review."
+              exit 1
+            fi
+            max_existing_code="$(jq -r '[.releases[]?.versionCodes[]? | tonumber] | max // 0' "$track_json")"
+            if (( desired_code <= max_existing_code )); then
+              echo "::error title=Non-monotonic Play version::New code $desired_code must be greater than active Alpha code $max_existing_code."
+              exit 1
+            fi
+            echo "VERSION_CODES_TO_RETAIN=$existing_codes" >> "$GITHUB_ENV"
+            echo "Preserving every current Alpha code ($existing_codes) alongside new code $desired_code."
+            echo 'skip_upload=false' >> "$GITHUB_ENV"
           fi
           curl --fail --silent --show-error --request DELETE \
             --header "Authorization: Bearer $access_token" \
