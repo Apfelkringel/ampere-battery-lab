@@ -5051,13 +5051,11 @@ class BatteryDashboard extends View {
 
     /** Uses the launcher icon as a quick visual anchor for each package. */
     private void drawAppIcon(Canvas c, String packageName, float left, float top, float size) {
-        try {
-            Drawable icon = getContext().getPackageManager().getApplicationIcon(packageName);
+        Drawable icon = AppLabelCache.iconFor(getContext(), packageName);
+        if (icon != null) {
             icon.setBounds(Math.round(u(left)), Math.round(u(top)),
                     Math.round(u(left + size)), Math.round(u(top + size)));
             icon.draw(c);
-        } catch (Exception ignored) {
-            // A removed or restricted package keeps the row readable by name.
         }
     }
 

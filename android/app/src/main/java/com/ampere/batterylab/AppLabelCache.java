@@ -60,12 +60,22 @@ final class AppLabelCache {
         if (context == null || packageName == null || packageName.isEmpty()) return null;
         Drawable cached = ICONS.get(packageName);
         if (cached != null) return cached;
+        PackageManager pm = context.getPackageManager();
         try {
-            Drawable icon = context.getPackageManager().getApplicationIcon(packageName);
+            Drawable icon = pm.getApplicationIcon(packageName);
             ICONS.put(packageName, icon);
             return icon;
         } catch (Exception ignored) {
-            return null;
+            // Historical usage can outlive an uninstall or refer to a system
+            // package without a launcher entry. Keep the row aligned with the
+            // standard Android fallback instead of leaving an empty icon slot.
+            try {
+                Drawable fallback = pm.getDefaultActivityIcon();
+                if (fallback != null) ICONS.put(packageName, fallback);
+                return fallback;
+            } catch (Exception ignoredFallback) {
+                return null;
+            }
         }
     }
 
