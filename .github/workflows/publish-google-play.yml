@@ -81,7 +81,17 @@ jobs:
           # Prove that Google's OAuth service accepts this key and that the
           # account can reach this app through a read-only Play API endpoint.
           tmp_dir="$(mktemp -d)"
-          trap 'rm -rf "$tmp_dir"' EXIT
+          edit_id=''
+          cleanup_play_edit() {
+            if [[ -n "$edit_id" && -n "${access_token:-}" ]]; then
+              curl --fail --silent --show-error --request DELETE \
+                --header "Authorization: Bearer $access_token" \
+                "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.ampere.batterylab/edits/$edit_id" \
+                >/dev/null || true
+            fi
+            rm -rf "$tmp_dir"
+          }
+          trap cleanup_play_edit EXIT
           now="$(date +%s)"
           client_email="$(printf '%s' "$PLAY_SERVICE_ACCOUNT_JSON" | jq -er '.client_email')"
           printf '%s' "$PLAY_SERVICE_ACCOUNT_JSON" | jq -er '.private_key' > "$tmp_dir/private-key.pem"
@@ -121,6 +131,7 @@ jobs:
             --output "$track_json" \
             --header "Authorization: Bearer $access_token" \
             "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.ampere.batterylab/edits/$edit_id/tracks/$RELEASE_TRACK"
+          echo "Play API Alpha snapshot: $(jq -c '[.releases[]? | {status, versionCodes}]' "$track_json")"
           if jq -e --arg code "$desired_code" \
             '.releases[]?.versionCodes[]? | tostring | . == $code' "$track_json" >/dev/null; then
             echo "Version code $desired_code is already on the $RELEASE_TRACK track; skipping upload."
@@ -144,11 +155,6 @@ jobs:
             echo "Preserving API-23 compatibility fallback code $ALPHA_COMPATIBILITY_FALLBACK_CODE alongside new code $desired_code."
             echo 'skip_upload=false' >> "$GITHUB_ENV"
           fi
-          curl --fail --silent --show-error --request DELETE \
-            --header "Authorization: Bearer $access_token" \
-            "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.ampere.batterylab/edits/$edit_id" \
-            >/dev/null
-
       - name: Wait for upload certificate activation
         run: |
           set -euo pipefail
