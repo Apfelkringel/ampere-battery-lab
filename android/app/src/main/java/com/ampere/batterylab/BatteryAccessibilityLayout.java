@@ -18,6 +18,7 @@ final class BatteryAccessibilityLayout {
     static final int DISCHARGE_SCREEN_ON = 63;
     static final int DISCHARGE_SCREEN_OFF = 64;
     static final int DISCHARGE_NORMAL = 65;
+    static final int OVERVIEW_BENCHMARK = 66;
 
     static boolean isDischargeEstimate(int virtualViewId) {
         return virtualViewId >= DISCHARGE_SCREEN_ON && virtualViewId <= DISCHARGE_NORMAL;
@@ -26,7 +27,12 @@ final class BatteryAccessibilityLayout {
     private BatteryAccessibilityLayout() { }
 
     static boolean isVisible(int virtualViewId, int page) {
-        if (page == 0) return virtualViewId == OVERVIEW_7D || virtualViewId == OVERVIEW_30D;
+        return isVisible(virtualViewId, page, false);
+    }
+
+    static boolean isVisible(int virtualViewId, int page, boolean compactOverview) {
+        if (page == 0) return virtualViewId == OVERVIEW_7D || virtualViewId == OVERVIEW_30D
+                || (compactOverview && virtualViewId == OVERVIEW_BENCHMARK);
         if (page == 1) return virtualViewId == CHARGE_ALARM || virtualViewId == CHARGE_OVERLAY
                 || virtualViewId == CHARGE_LIMIT;
         if (page == 2) return virtualViewId == DISCHARGE_USAGE || isDischargeEstimate(virtualViewId);
@@ -38,8 +44,14 @@ final class BatteryAccessibilityLayout {
     }
 
     static int[] pageControlsFor(int page) {
+        return pageControlsFor(page, false);
+    }
+
+    static int[] pageControlsFor(int page, boolean compactOverview) {
         switch (page) {
-            case 0: return new int[]{OVERVIEW_7D, OVERVIEW_30D};
+            case 0: return compactOverview
+                    ? new int[]{OVERVIEW_BENCHMARK, OVERVIEW_7D, OVERVIEW_30D}
+                    : new int[]{OVERVIEW_7D, OVERVIEW_30D};
             case 1: return new int[]{CHARGE_ALARM, CHARGE_OVERLAY, CHARGE_LIMIT};
             case 2: return new int[]{DISCHARGE_SCREEN_ON, DISCHARGE_SCREEN_OFF,
                     DISCHARGE_NORMAL, DISCHARGE_USAGE};
@@ -58,6 +70,8 @@ final class BatteryAccessibilityLayout {
     static String label(int virtualViewId, boolean historyDays30, boolean chargeAlarm,
                         boolean overlayEnabled, boolean benchmarkActive, int chargeLimit) {
         switch (virtualViewId) {
+            case OVERVIEW_BENCHMARK:
+                return overviewBenchmarkLabel(benchmarkActive, false);
             case OVERVIEW_7D: return "7 Tage" + (historyDays30 ? " (ausgewählt)" : "");
             case OVERVIEW_30D: return "30 Tage" + (historyDays30 ? "" : " (ausgewählt)");
             case CHARGE_ALARM: return "Ladealarm: " + (chargeAlarm ? "Aktiv" : "Aus");
@@ -76,6 +90,11 @@ final class BatteryAccessibilityLayout {
             case HISTORY_VALUES: return "Exakte Werte im Bilanzdiagramm anzeigen";
             default: return "";
         }
+    }
+
+    static String overviewBenchmarkLabel(boolean benchmarkActive, boolean measurementAvailable) {
+        if (benchmarkActive) return "Kapazitätsmessung stoppen";
+        return measurementAvailable ? "Messung aktualisieren" : "Messung starten";
     }
 
     static int normalizeChargeLimit(int value) {
@@ -134,6 +153,15 @@ final class BatteryAccessibilityLayout {
         float right;
         float bottom;
         switch (virtualViewId) {
+            case OVERVIEW_BENCHMARK:
+                left = bodyInset + 52f;
+                top = 182f + 232f + 80f;
+                right = bodyInset + Math.min(bodyWidth - 36f, 520f) - 16f;
+                // The visible pill is 25 dp tall. Keep its virtual/touch
+                // target at Android's 48 dp minimum without reaching the
+                // capacity row immediately below it.
+                bottom = top + 48f;
+                break;
             case OVERVIEW_7D:
                 left = bodyInset + bodyWidth - 130f;
                 top = overviewChartTop + 2f;

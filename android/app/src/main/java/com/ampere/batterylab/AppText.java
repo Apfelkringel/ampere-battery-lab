@@ -896,6 +896,8 @@ final class AppText {
         switch (value) {
             case "Dauer": return "Duration";
             case "Gestartet": return "Started";
+            case "Kapazitätsmessung gestartet.": return "Capacity measurement started.";
+            case "Kapazitätsmessung gestoppt.": return "Capacity measurement stopped.";
             case "Fertig": return "Done";
             case "Weiter": return "Continue";
             case "Löschen": return "Delete";

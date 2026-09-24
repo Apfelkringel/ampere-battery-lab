@@ -7,6 +7,26 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class BatteryAccessibilityLayoutTest {
+    @Test public void compactOverviewMeasurementActionHasAVisibleAndAccessibleState() {
+        int action = BatteryAccessibilityLayout.OVERVIEW_BENCHMARK;
+        assertTrue(BatteryAccessibilityLayout.isVisible(action, 0, true));
+        assertFalse(BatteryAccessibilityLayout.isVisible(action, 0, false));
+        assertEquals(3, BatteryAccessibilityLayout.pageControlsFor(0, true).length);
+        assertEquals(2, BatteryAccessibilityLayout.pageControlsFor(0, false).length);
+
+        int[] bounds = BatteryAccessibilityLayout.bounds(action, 0f, 320f, 0f, 0f, true);
+        assertEquals(52, bounds[0]);
+        assertEquals(494, bounds[1]);
+        assertEquals(268, bounds[2]);
+        assertEquals(48, bounds[3] - bounds[1]);
+        assertEquals("Messung starten",
+                BatteryAccessibilityLayout.overviewBenchmarkLabel(false, false));
+        assertEquals("Messung aktualisieren",
+                BatteryAccessibilityLayout.overviewBenchmarkLabel(false, true));
+        assertEquals("Kapazitätsmessung stoppen",
+                BatteryAccessibilityLayout.overviewBenchmarkLabel(true, false));
+    }
+
     @Test public void chartValuesActionIsVisibleAndMeetsFortyEightDpTarget() {
         assertTrue(BatteryAccessibilityLayout.isVisible(BatteryAccessibilityLayout.HISTORY_VALUES, 4));
         assertTrue(BatteryAccessibilityLayout.pageControlsFor(4).length >= 5);
