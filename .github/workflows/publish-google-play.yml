@@ -133,7 +133,7 @@ jobs:
             "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.ampere.batterylab/edits/$edit_id/tracks/$RELEASE_TRACK"
           echo "Play API Alpha snapshot: $(jq -c '[.releases[]? | {status, versionCodes}]' "$track_json")"
           if jq -e --arg code "$desired_code" \
-            '.releases[]?.versionCodes[]? | tostring | . == $code' "$track_json" >/dev/null; then
+            'any(.releases[]?.versionCodes[]?; tostring == $code)' "$track_json" >/dev/null; then
             echo "Version code $desired_code is already on the $RELEASE_TRACK track; skipping upload."
             echo 'skip_upload=true' >> "$GITHUB_ENV"
           else
@@ -142,7 +142,7 @@ jobs:
               exit 1
             fi
             if ! jq -e --arg code "$ALPHA_COMPATIBILITY_FALLBACK_CODE" \
-              '.releases[]?.versionCodes[]? | tostring | . == $code' "$track_json" >/dev/null; then
+              'any(.releases[]?.versionCodes[]?; tostring == $code)' "$track_json" >/dev/null; then
               echo "::error title=Known Alpha fallback missing::Expected API-23 compatibility fallback code $ALPHA_COMPATIBILITY_FALLBACK_CODE is not active on Alpha. Recheck device compatibility before changing the fallback."
               exit 1
             fi
