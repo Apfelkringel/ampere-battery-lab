@@ -30,7 +30,12 @@ final class BatteryEnergy {
     }
 
     static String label(long nanoWattHours) {
+        return label(nanoWattHours, Locale.GERMANY);
+    }
+
+    static String label(long nanoWattHours, Locale locale) {
         double wattHours = wattHours(nanoWattHours);
-        return wattHours > 0d ? String.format(Locale.GERMANY, "%.2f Wh", wattHours) : "—";
+        return wattHours > 0d ? String.format(locale == null ? Locale.GERMANY : locale,
+                "%.2f Wh", wattHours) : "—";
     }
 }

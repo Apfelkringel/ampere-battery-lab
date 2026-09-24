@@ -1,6 +1,7 @@
 package com.ampere.batterylab;
 
 import org.junit.Test;
+import java.util.Locale;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -56,5 +57,16 @@ public class BatteryHistoryChartValuesTest {
         String[] labels = BatteryHistoryChartValues.forBucket(bucket, true);
         assertEquals("0,10", labels[2]);
         assertEquals("—", labels[3]);
+    }
+
+    @Test public void wearValueUsesRequestedNumberLocale() {
+        BatteryHistoryStats.Bucket bucket = new BatteryHistoryStats.Bucket(0, "");
+        bucket.chargedMah = 50;
+        bucket.consumedMah = 20;
+        bucket.wearCycles = .34f;
+        bucket.chargeConsumptionRatioPercent = 250;
+        bucket.measuredIntervals = 1;
+        assertEquals("0.34", BatteryHistoryChartValues.forBucket(bucket, true, Locale.US)[2]);
+        assertEquals("0,34", BatteryHistoryChartValues.forBucket(bucket, true, Locale.GERMANY)[2]);
     }
 }

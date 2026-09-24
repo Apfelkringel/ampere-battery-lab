@@ -1,4 +1,5 @@
 import SwiftUI
+import Foundation
 
 private enum AmperePalette {
     static let background = Color(red: 0.018, green: 0.155, blue: 0.17)
@@ -56,7 +57,9 @@ private struct AppHeader: View {
             .overlay(Capsule().stroke(AmperePalette.border.opacity(0.8), lineWidth: 1))
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Ampere, \(battery.statusTitle), \(battery.levelText)")
+        .accessibilityLabel(Text(verbatim: String.localizedStringWithFormat(
+            NSLocalizedString("Ampere, %@, %@", comment: "Battery overview accessibility summary"),
+            battery.statusTitle, battery.levelText)))
     }
 }
 
@@ -73,7 +76,7 @@ private struct PageShell<Content: View>: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 AppHeader()
-                Text(title).font(.system(size: 30, weight: .bold, design: .serif)).foregroundStyle(AmperePalette.primary)
+                Text(LocalizedStringKey(title)).font(.system(size: 30, weight: .bold, design: .serif)).foregroundStyle(AmperePalette.primary)
                 content
             }
             .padding(.horizontal, 18).padding(.top, 14).padding(.bottom, 28)
@@ -198,7 +201,9 @@ struct HistoryView: View {
                 } else {
                     BatteryHistoryChart(samples: battery.samples)
                         .frame(height: 180)
-                    Text("\(battery.samples.count) echte iOS-Messpunkte · keine künstliche Auffüllung")
+                    Text(verbatim: String.localizedStringWithFormat(
+                        NSLocalizedString("%d authentic iOS readings · no generated fill", comment: "History sample count"),
+                        battery.samples.count))
                         .font(.system(size: 10, design: .rounded)).foregroundStyle(AmperePalette.muted)
                     Button("Lokalen Verlauf löschen", role: .destructive) {
                         showingClearConfirmation = true
@@ -230,7 +235,10 @@ private struct BatteryGauge: View {
                 .font(.title3.weight(.bold)).foregroundStyle(AmperePalette.accent)
         }
         .frame(width: 92, height: 92)
-        .accessibilityLabel("Akkustand \(level.map { "\(Int(($0 * 100).rounded())) Prozent" } ?? "nicht verfügbar")")
+        .accessibilityLabel(Text(verbatim: String.localizedStringWithFormat(
+            NSLocalizedString("Battery level %@", comment: "Battery gauge accessibility value"),
+            level.map { "\(Int(($0 * 100).rounded())) percent" }
+                ?? NSLocalizedString("not available", comment: "Unavailable battery reading"))))
     }
 }
 
@@ -282,8 +290,8 @@ private struct SectionHeading: View {
     let title: String
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
-            Text(eyebrow).font(.system(size: 10, weight: .bold, design: .rounded)).tracking(1.1).foregroundStyle(AmperePalette.accent)
-            Text(title).font(.system(size: 21, weight: .bold, design: .rounded)).foregroundStyle(AmperePalette.primary)
+            Text(LocalizedStringKey(eyebrow)).font(.system(size: 10, weight: .bold, design: .rounded)).tracking(1.1).foregroundStyle(AmperePalette.accent)
+            Text(LocalizedStringKey(title)).font(.system(size: 21, weight: .bold, design: .rounded)).foregroundStyle(AmperePalette.primary)
         }
     }
 }
@@ -293,9 +301,9 @@ private struct InfoRow: View {
     let value: String
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 12) {
-            Text(label).font(.system(size: 12, design: .rounded)).foregroundStyle(AmperePalette.muted)
+            Text(LocalizedStringKey(label)).font(.system(size: 12, design: .rounded)).foregroundStyle(AmperePalette.muted)
             Spacer(minLength: 8)
-            Text(value).font(.system(size: 12, weight: .semibold, design: .rounded)).foregroundStyle(AmperePalette.primary).multilineTextAlignment(.trailing)
+            Text(LocalizedStringKey(value)).font(.system(size: 12, weight: .semibold, design: .rounded)).foregroundStyle(AmperePalette.primary).multilineTextAlignment(.trailing)
         }
     }
 }
@@ -306,8 +314,8 @@ private struct MetricGrid: View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
             ForEach(Array(items.enumerated()), id: \.offset) { _, item in
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(item.0).font(.system(size: 10, design: .rounded)).foregroundStyle(AmperePalette.muted)
-                    Text(item.1).font(.system(size: 13, weight: .semibold, design: .rounded)).foregroundStyle(AmperePalette.primary).lineLimit(2).minimumScaleFactor(0.8)
+                    Text(LocalizedStringKey(item.0)).font(.system(size: 10, design: .rounded)).foregroundStyle(AmperePalette.muted)
+                    Text(LocalizedStringKey(item.1)).font(.system(size: 13, weight: .semibold, design: .rounded)).foregroundStyle(AmperePalette.primary).lineLimit(2).minimumScaleFactor(0.8)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(11)

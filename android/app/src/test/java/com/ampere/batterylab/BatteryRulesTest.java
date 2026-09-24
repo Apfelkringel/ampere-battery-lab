@@ -36,6 +36,7 @@ public class BatteryRulesTest {
         assertEquals(2_500_000_000L, BatteryEnergy.normalizeNanoWattHours(2_500_000_000L));
         assertEquals(2.5d, BatteryEnergy.wattHours(2_500_000_000L), 0.0001d);
         assertEquals("2,50 Wh", BatteryEnergy.label(2_500_000_000L));
+        assertEquals("2.50 Wh", BatteryEnergy.label(2_500_000_000L, Locale.US));
         assertEquals(0L, BatteryEnergy.normalizeNanoWattHours(0L));
         assertEquals(0L, BatteryEnergy.normalizeNanoWattHours(Long.MIN_VALUE));
         assertEquals(0L, BatteryEnergy.normalizeNanoWattHours(100_000_000_000_001L));
@@ -177,6 +178,26 @@ public class BatteryRulesTest {
         }
     }
 
+    @Test public void historyBucketsUseSelectedLocaleForWeekStartAndLabels() {
+        TimeZone zone = TimeZone.getTimeZone("America/Los_Angeles");
+        Calendar current = Calendar.getInstance(zone, Locale.US);
+        current.clear();
+        current.set(2026, Calendar.MAY, 20, 12, 0);
+        long now = current.getTimeInMillis();
+
+        ArrayList<BatteryHistoryStats.Bucket> english = BatteryHistoryStats.calendarBuckets(
+                now, 7, 5, zone, Locale.US);
+        ArrayList<BatteryHistoryStats.Bucket> german = BatteryHistoryStats.calendarBuckets(
+                now, 7, 5, zone, Locale.GERMANY);
+        Calendar boundary = Calendar.getInstance(zone, Locale.US);
+        boundary.setTimeInMillis(english.get(4).start);
+        assertEquals(Calendar.SUNDAY, boundary.get(Calendar.DAY_OF_WEEK));
+        assertTrue(english.get(4).label.matches("[A-Z][a-z]{2} \\d{1,2}"));
+        boundary.setTimeInMillis(german.get(4).start);
+        assertEquals(Calendar.MONDAY, boundary.get(Calendar.DAY_OF_WEEK));
+        assertTrue(german.get(4).label.matches("\\d{1,2}\\. [A-ZÄÖÜ][a-zäöü]{2}"));
+    }
+
     @Test public void monthlyLevelChartUsesLatestRealReadingPerLocalDayAndKeepsGaps() {
         TimeZone berlin = TimeZone.getTimeZone("Europe/Berlin");
         Calendar sample = Calendar.getInstance(berlin, Locale.GERMANY);
@@ -217,6 +238,9 @@ public class BatteryRulesTest {
         assertEquals("Heute · seit Mitternacht", BatteryHistoryStats.rangeLabel(1));
         assertEquals("Diese Woche · Montag bis heute", BatteryHistoryStats.rangeLabel(7));
         assertEquals("Dieser Monat · Monatsanfang bis heute", BatteryHistoryStats.rangeLabel(30));
+        assertEquals("Today · since midnight", BatteryHistoryStats.rangeLabel(1, Locale.US));
+        assertEquals("This week · Sunday through today", BatteryHistoryStats.rangeLabel(7, Locale.US));
+        assertEquals("This month · month to date", BatteryHistoryStats.rangeLabel(30, Locale.US));
     }
 
     @Test public void pageAccessibilityControlsFollowTheActivePage() {
@@ -1319,6 +1343,21 @@ public class BatteryRulesTest {
         assertFalse(report.contains("6.200 V"));
     }
 
+    @Test public void diagnosticReportUsesRequestedEnglishLocale() {
+        String rows = "1700000000000,80,0,-1200,48.0,4.18,6600,1,,12,0\n"
+                + "1700010860000,78,0,-900,46.0,3.95,6400,1,,12,0";
+        String report = BatteryDiagnosticReport.build(rows, 15L * 60L * 1000L, 123L, Locale.US);
+        assertTrue(report.contains("Diagnostic report"));
+        assertTrue(report.contains("Max. battery temperature: 48.0 °C"));
+        assertTrue(report.contains("Min. discharge voltage: 3.950 V at 78 %"));
+        assertTrue(report.contains("WARNING: Battery reached at least 48 °C."));
+        assertTrue(report.contains("NOTE: At least one extended sampling gap exists"));
+        assertTrue(report.contains("not treated as measurements"));
+        assertFalse(report.contains("Diagnosebericht"));
+        assertFalse(report.contains("Messwerte:"));
+        assertFalse(report.contains("nicht verfügbar"));
+    }
+
     @Test public void chargeCounterRejectsSentinelsAndUnknownUnits() {
         assertEquals(6600000L, BatteryChargeCounter.normalizeMicroampereHours(6600000L));
         assertEquals(6600, BatteryChargeCounter.toMilliampereHours(6600000L));
@@ -1497,6 +1536,7 @@ public class BatteryRulesTest {
         assertEquals(0, BatteryChargerCapability.maxPowerMilliwatts(1_500_000, 0));
         assertEquals(0, BatteryChargerCapability.maxPowerMilliwatts(100_000_000, 30_000_000));
         assertEquals("Max. 7,5 W", BatteryChargerCapability.label(7500));
+        assertEquals("Max. 7.5 W", BatteryChargerCapability.label(7500, Locale.US));
     }
 
     @Test public void chargerCapabilityKeepsValidatedRawLimitsSeparateFromPower() {
@@ -1506,6 +1546,7 @@ public class BatteryRulesTest {
         assertEquals(5000, reading.maxVoltageMv);
         assertEquals(7500, reading.maxPowerMilliwatts);
         assertEquals("Ladegerät max. 1,50 A · 5,00 V · 7,5 W", reading.label());
+        assertEquals("Charger max. 1.50 A · 5.00 V · 7.5 W", reading.label(Locale.US));
 
         BatteryChargerCapability.Reading currentOnly = BatteryChargerCapability.Reading.fromRaw(
                 900_000L, 0L);
@@ -1520,6 +1561,7 @@ public class BatteryRulesTest {
         assertEquals(0, hardware.maxVoltageMv);
         assertEquals(0, hardware.maxPowerMilliwatts);
         assertEquals("Ladehardware max. 5,00 A", hardware.label());
+        assertEquals("Charging hardware max. 5.00 A", hardware.label(Locale.US));
         assertEquals("", BatteryChargerCapability.Reading.fromHardwareCurrentLimit(0L).label());
     }
 
@@ -1593,6 +1635,7 @@ public class BatteryRulesTest {
         assertEquals(0, BatteryPower.milliWatts(900, 0));
         assertEquals(0, BatteryPower.milliWatts(Integer.MIN_VALUE, 5000));
         assertEquals("≈ 4,5 W", BatteryPower.label(4500));
+        assertEquals("≈ 4.5 W", BatteryPower.label(4500, Locale.US));
     }
 
     @Test public void sharedTelemetryTextKeepsDirectionAcrossOutputSurfaces() {

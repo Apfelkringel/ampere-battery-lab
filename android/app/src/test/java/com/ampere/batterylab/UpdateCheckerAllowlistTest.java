@@ -3,6 +3,7 @@ package com.ampere.batterylab;
 import java.net.URL;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -79,5 +80,16 @@ public class UpdateCheckerAllowlistTest {
     @Test public void apkRawUrlWrongUserRejected() throws Exception {
         assertFalse(UpdateChecker.isAllowedApkUrl(url(
                 "https://raw.githubusercontent.com/someone-else/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk")));
+    }
+
+    @Test public void updateNotesFollowAppLanguageWithoutShowingGermanInEnglishUi() {
+        assertEquals("Widget pinning is restored automatically.",
+                UpdateChecker.releaseNotes("Kachelbindung wird erneuert.",
+                        "Widget pinning is restored automatically.", true));
+        assertEquals("Release notes are not available in English.",
+                UpdateChecker.releaseNotes("Kachelbindung wird erneuert.", "", true));
+        assertEquals("Kachelbindung wird erneuert.",
+                UpdateChecker.releaseNotes("Kachelbindung wird erneuert.",
+                        "Widget pinning is restored automatically.", false));
     }
 }

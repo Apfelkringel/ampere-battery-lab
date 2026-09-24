@@ -10,6 +10,7 @@
 		A00000000000000000000002 /* BatteryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000002 /* BatteryStore.swift */; };
 		A00000000000000000000003 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000003 /* ContentView.swift */; };
 		A00000000000000000000004 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000005 /* Assets.xcassets */; };
+		A00000000000000000000005 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000007 /* Localizable.strings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -19,7 +20,13 @@
 		A10000000000000000000004 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A10000000000000000000005 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A10000000000000000000006 /* Ampere.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Ampere.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A10000000000000000000008 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		A10000000000000000000009 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXVariantGroup section */
+		A10000000000000000000007 /* Localizable.strings */ = {isa = PBXVariantGroup; children = (A10000000000000000000008 /* en */, A10000000000000000000009 /* de */, ); name = Localizable.strings; sourceTree = "<group>"; };
+/* End PBXVariantGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		A20000000000000000000001 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = ( ); runOnlyForDeploymentPostprocessing = 0; };
@@ -27,7 +34,7 @@
 
 /* Begin PBXGroup section */
 		A30000000000000000000001 = {isa = PBXGroup; children = (A30000000000000000000002, A30000000000000000000003, ); sourceTree = "<group>"; };
-		A30000000000000000000002 /* Ampere */ = {isa = PBXGroup; children = (A10000000000000000000001, A10000000000000000000002, A10000000000000000000003, A10000000000000000000004, A10000000000000000000005, ); path = Ampere; sourceTree = "<group>"; };
+		A30000000000000000000002 /* Ampere */ = {isa = PBXGroup; children = (A10000000000000000000001, A10000000000000000000002, A10000000000000000000003, A10000000000000000000004, A10000000000000000000005, A10000000000000000000007, ); path = Ampere; sourceTree = "<group>"; };
 		A30000000000000000000003 /* Products */ = {isa = PBXGroup; children = (A10000000000000000000006, ); name = Products; sourceTree = "<group>"; };
 /* End PBXGroup section */
 
@@ -40,7 +47,7 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		A20000000000000000000003 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000004 /* Assets.xcassets in Resources */, ); runOnlyForDeploymentPostprocessing = 0; };
+		A20000000000000000000003 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000004 /* Assets.xcassets in Resources */, A00000000000000000000005 /* Localizable.strings in Resources */, ); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */

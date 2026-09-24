@@ -83,4 +83,14 @@ public class BatteryCurrentChartWindowTest {
         assertTrue("expected momentaufnahme fallback in: " + label, label.contains("Momentaufnahme"));
         assertTrue("expected sample count in: " + label, label.contains("Messwerte"));
     }
+
+    @Test public void englishWindowUsesEnglishDatesDurationsAndReadingCounts() {
+        String label = BatteryCurrentChartWindow.label(
+                at(2026, 9, 18, 10, 0), at(2026, 9, 18, 11, 0), 2, Locale.US);
+        assertTrue(label, label.contains("10:00 AM–11:00 AM"));
+        assertTrue(label, label.contains("1 hr"));
+        assertTrue(label, label.contains("2 readings"));
+        assertTrue(BatteryCurrentChartWindow.label(0L, 0L, 0, Locale.US)
+                .contains("No measurements"));
+    }
 }

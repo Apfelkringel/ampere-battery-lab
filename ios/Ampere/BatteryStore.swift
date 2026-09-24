@@ -81,7 +81,10 @@ final class BatteryStore: ObservableObject {
     }
 
     var statusSummary: String {
-        "Ampere Battery Lab\nAkkustand: \(levelText)\nStatus: \(statusTitle)\nLetzte Messung: \(lastUpdatedText)\nNur lokale iOS-Werte; Strom, Spannung und Gesundheit sind öffentlich nicht verfügbar."
+        let format = NSLocalizedString(
+            "Ampere Battery Lab\nBattery level: %@\nStatus: %@\nLast reading: %@\nOnly local iOS readings; current, voltage and battery health are not publicly available.",
+            comment: "Shared battery status summary")
+        return String.localizedStringWithFormat(format, levelText, statusTitle, lastUpdatedText)
     }
 
     func clearHistory() {
@@ -99,10 +102,10 @@ final class BatteryStore: ObservableObject {
 
     var statusTitle: String {
         switch state {
-        case .charging: return "Laden"
-        case .full: return "Voll geladen"
-        case .unplugged: return "Akkubetrieb"
-        default: return "Status unbekannt"
+        case .charging: return NSLocalizedString("Charging", comment: "Battery charging state")
+        case .full: return NSLocalizedString("Fully charged", comment: "Battery full state")
+        case .unplugged: return NSLocalizedString("On battery", comment: "Battery unplugged state")
+        default: return NSLocalizedString("Status unknown", comment: "Unknown battery state")
         }
     }
 
@@ -112,7 +115,7 @@ final class BatteryStore: ObservableObject {
     }
 
     var lastUpdatedText: String {
-        guard let lastUpdated else { return "Noch keine Messung" }
+        guard let lastUpdated else { return NSLocalizedString("No measurement yet", comment: "No battery sample available") }
         return lastUpdated.formatted(date: .omitted, time: .shortened)
     }
 

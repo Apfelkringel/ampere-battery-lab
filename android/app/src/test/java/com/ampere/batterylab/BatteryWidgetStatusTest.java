@@ -35,4 +35,9 @@ public class BatteryWidgetStatusTest {
         assertEquals("Akku", BatteryWidgetStatus.label(
                 BatteryManager.BATTERY_STATUS_DISCHARGING, false));
     }
+
+    @Test public void captionUsesBatteryLabelRatherThanNavigationLabel() {
+        assertEquals("Battery", BatteryWidgetStatus.caption(true));
+        assertEquals("Akku", BatteryWidgetStatus.caption(false));
+    }
 }

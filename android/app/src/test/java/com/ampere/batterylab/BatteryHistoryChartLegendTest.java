@@ -3,8 +3,10 @@ package com.ampere.batterylab;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Locale;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertTrue;
 
 public class BatteryHistoryChartLegendTest {
     @Test public void showsTheActualScaleForEachColorSeries() {
@@ -34,5 +36,16 @@ public class BatteryHistoryChartLegendTest {
         assertArrayEquals(new String[]{"Geladen · max —", "Verbrauch · max —",
                         "Verschleiß · max —", "Ladequote · max —"},
                 BatteryHistoryChartLegend.labels(buckets));
+    }
+
+    @Test public void wearScaleUsesRequestedNumberLocale() {
+        ArrayList<BatteryHistoryStats.Bucket> buckets = new ArrayList<>();
+        BatteryHistoryStats.Bucket bucket = new BatteryHistoryStats.Bucket(1L, "Mo.");
+        bucket.wearCycles = .34f;
+        buckets.add(bucket);
+        assertTrue(BatteryHistoryChartLegend.labels(buckets, Locale.US)[2]
+                .contains("0.34 EFC"));
+        assertTrue(BatteryHistoryChartLegend.labels(buckets, Locale.GERMANY)[2]
+                .contains("0,34 EFC"));
     }
 }

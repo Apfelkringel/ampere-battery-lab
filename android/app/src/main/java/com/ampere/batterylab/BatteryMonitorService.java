@@ -175,12 +175,13 @@ public class BatteryMonitorService extends Service {
         Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
                 ? new Notification.Builder(this, CHANNEL_ID) : new Notification.Builder(this);
         String title = value + "% · " + AppText.t(this, isCharging ? "Laden" : "Akku entlädt");
-        String currentText = BatteryTelemetryText.current(Math.abs(currentMa), isCharging, true);
+        Locale locale = AppText.uiLocale(this);
+        String currentText = BatteryTelemetryText.current(Math.abs(currentMa), isCharging, true, locale);
         StringBuilder details = new StringBuilder(AppText.t(this, "Aktualisiert live · "))
-                .append(AppText.t(this, "Laderate ")).append("—".equals(currentText) ? AppText.t(this, "nicht verfügbar") : currentText);
-        if (temperatureTenths > 0) details.append(" · ").append(String.format(Locale.GERMANY,
+                .append(AppText.t(this, "Ladestrom ")).append("—".equals(currentText) ? AppText.t(this, "nicht verfügbar") : currentText);
+        if (temperatureTenths > 0) details.append(" · ").append(String.format(locale,
                 "%.1f °C", temperatureTenths / 10f));
-        if (voltageMv > 0) details.append(" · ").append(String.format(Locale.GERMANY,
+        if (voltageMv > 0) details.append(" · ").append(String.format(locale,
                 "%.2f V", voltageMv / 1000f));
         return builder.setSmallIcon(com.ampere.batterylab.R.drawable.ic_launcher)
                 .setContentTitle(title)
@@ -202,15 +203,17 @@ public class BatteryMonitorService extends Service {
         Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? new Notification.Builder(this, CHANNEL_ID) : new Notification.Builder(this);
         String title = value >= 0 ? value + "% · " + AppText.t(this, isCharging ? "Laden" : "Akkubetrieb") : AppText.t(this, "Ampere überwacht den Akku");
         int currentMagnitudeMa = Math.abs(currentMa);
+        Locale locale = AppText.uiLocale(this);
         String temperatureText = temperatureTenths > 0
-                ? String.format(Locale.GERMANY, "%.1f°C", temperatureTenths / 10f)
-                : "Temperatur nicht verfügbar";
-        String currentText = BatteryTelemetryText.current(currentMagnitudeMa, isCharging, true);
-        String details = value >= 0 ? ("—".equals(currentText) ? "Strom nicht verfügbar" : currentText) + " · " + temperatureText + (voltageMv > 0 ? " · " + String.format(Locale.GERMANY, "%.2f V", voltageMv / 1000f) : "") : "Akkumesswerte werden auf diesem Gerät gespeichert";
+                ? String.format(locale, "%.1f°C", temperatureTenths / 10f)
+                : AppText.t(this, "Temperatur nicht verfügbar");
+        String currentText = BatteryTelemetryText.current(currentMagnitudeMa, isCharging, true, locale);
+        String details = value >= 0 ? ("—".equals(currentText) ? AppText.t(this, "Strom nicht verfügbar") : currentText) + " · " + temperatureText + (voltageMv > 0 ? " · " + String.format(locale, "%.2f V", voltageMv / 1000f) : "") : AppText.t(this, "Akkumesswerte werden auf diesem Gerät gespeichert");
         long remainingEnergyNanoWattHours = BatteryEnergy.readNanoWattHours(
                 (BatteryManager) getSystemService(BATTERY_SERVICE));
         if (remainingEnergyNanoWattHours > 0L) {
-            details += " · Restenergie " + BatteryEnergy.label(remainingEnergyNanoWattHours);
+            details += " · " + AppText.t(this, "Restenergie") + " " + BatteryEnergy.label(remainingEnergyNanoWattHours,
+                    AppText.uiLocale(this));
         }
         if (value >= 0) {
             android.content.SharedPreferences prefs = BatteryDataRepository.data(this);
@@ -220,7 +223,7 @@ public class BatteryMonitorService extends Service {
             BatteryChargeControl.Reading oemChargeControl = BatteryChargeControl.read();
             BatteryChargeType.Reading kernelChargeType = BatteryChargeType.read();
             BatteryChargeBehaviour.Reading kernelChargeBehaviour = BatteryChargeBehaviour.read();
-            details += "\n" + (isCharging ? "Laden erkannt" : "Bildschirm- und Hintergrundverbrauch lokal erfasst")
+            details += "\n" + AppText.t(this, isCharging ? "Laden erkannt" : "Bildschirm- und Hintergrundverbrauch lokal erfasst")
                     + " · Android-Zustand " + BatteryPlatformHealth.label(platformHealth)
                     + (BatteryCapacityLevel.isAvailable(capacityLevel)
                     ? " · Kapazitätsniveau " + BatteryCapacityLevel.label(capacityLevel) : "")
@@ -231,7 +234,7 @@ public class BatteryMonitorService extends Service {
                     + (kernelChargeBehaviour.isAvailable()
                     ? " · Ladeverhalten " + kernelChargeBehaviour.label() : "")
                     + (isCharging && chargerCapability != null && chargerCapability.isAvailable()
-                    ? " · " + chargerCapability.label() : "")
+                    ? " · " + chargerCapability.label(AppText.uiLocale(this)) : "")
                     + (BatteryThermalStatus.isAvailable(thermalStatus)
                     ? " · Thermik " + BatteryThermalStatus.label(thermalStatus) : "")
                     + (oemChargeControl.isAvailable()
@@ -239,11 +242,11 @@ public class BatteryMonitorService extends Service {
                     + (health > 0 ? " · Gesundheit " + health + "%" : "")
                     + (capacity > 0 ? " · Schätzung " + capacity + " mAh" : "");
         }
-        details = AppText.t(this, details);
+        String localizedDetails = AppText.t(this, details);
         return builder.setSmallIcon(com.ampere.batterylab.R.drawable.ic_launcher)
                 .setContentTitle(title)
-                .setContentText(details)
-                .setStyle(new Notification.BigTextStyle().bigText(details))
+                .setContentText(localizedDetails)
+                .setStyle(new Notification.BigTextStyle().bigText(localizedDetails))
                 .setSubText(AppText.t(this, "Lokale Akkuüberwachung · jede Sekunde"))
                 .setContentIntent(pending)
                 .setOngoing(true)
@@ -803,7 +806,8 @@ public class BatteryMonitorService extends Service {
                     .putInt("monitorSessionStartLevel", level).putInt("monitorSessionStartCounterMah", counterMah).apply();
             return;
         }
-        String date = new SimpleDateFormat("dd.MM. HH:mm", Locale.GERMANY).format(new Date(now));
+        String datePattern = AppText.isEnglish(this) ? "MMM d, h:mm a" : "dd.MM. HH:mm";
+        String date = new SimpleDateFormat(datePattern, AppText.uiLocale(this)).format(new Date(now));
         float cycleEquivalent = energy > 0 && designCapacity > 0 ? energy / (float) designCapacity : Math.abs(change) / 100f;
         int screenWakeups = previousCharging ? 0 : prefs.getInt("lastDischargeWakeups", prefs.getInt("dischargeWakeups", 0));
         String entry = type + "," + (effectiveChange > 0 ? "+" : "") + effectiveChange + "%," + duration(minutes) + "," + date + "," + startLevel + "," + level + "," + energy + "," + String.format(Locale.US, "%.2f", cycleEquivalent)
@@ -1043,6 +1047,10 @@ public class BatteryMonitorService extends Service {
     }
 
     private String duration(long minutes) {
+        if (AppText.isEnglish(this)) {
+            return minutes >= 60 ? (minutes / 60) + " hr " + (minutes % 60) + " min"
+                    : minutes + " min";
+        }
         return minutes >= 60 ? (minutes / 60) + " Std. " + (minutes % 60) + " Min." : minutes + " Min.";
     }
 
@@ -1064,7 +1072,7 @@ public class BatteryMonitorService extends Service {
         Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? new Notification.Builder(this, ALARM_CHANNEL_ID) : new Notification.Builder(this);
         return builder.setSmallIcon(com.ampere.batterylab.R.drawable.ic_launcher)
                 .setContentTitle(AppText.t(this, "Hohe Akkutemperatur"))
-                .setContentText(AppText.t(this, String.format(Locale.GERMANY,
+                .setContentText(AppText.t(this, String.format(AppText.uiLocale(this),
                         "Akku bei %.1f °C · Grenzwert %.1f °C", temperatureTenths / 10f, thresholdTenths / 10f)))
                 .setContentIntent(pending)
                 .setAutoCancel(false)

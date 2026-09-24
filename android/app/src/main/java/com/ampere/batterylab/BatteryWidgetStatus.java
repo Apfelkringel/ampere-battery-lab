@@ -13,6 +13,10 @@ final class BatteryWidgetStatus {
         return "Akku";
     }
 
+    static String caption(boolean english) {
+        return english ? "Battery" : "Akku";
+    }
+
     static boolean accent(int status, boolean charging) {
         return charging && status != BatteryManager.BATTERY_STATUS_FULL;
     }

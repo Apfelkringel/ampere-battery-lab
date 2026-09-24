@@ -26,7 +26,7 @@
         <meta-data android:name="google_analytics_adid_collection_enabled" android:value="false" />
         <meta-data android:name="google_analytics_default_allow_ad_personalization_signals" android:value="false" />
         <meta-data android:name="firebase_analytics_automatic_screen_reporting_enabled" android:value="false" />
-        <activity android:name=".MainActivity" android:exported="true" android:screenOrientation="portrait">
+        <activity android:name=".MainActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -52,7 +52,7 @@
             android:name=".BatteryDreamService"
             android:exported="true"
             android:icon="@drawable/ic_launcher"
-            android:label="Ampere Ladeanzeige"
+            android:label="@string/dream_service_label"
             android:permission="android.permission.BIND_DREAM_SERVICE">
             <intent-filter>
                 <action android:name="android.service.dreams.DreamService" />

@@ -3,6 +3,7 @@ package com.ampere.batterylab;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Locale;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -10,6 +11,58 @@ import static org.junit.Assert.assertTrue;
 
 /** Guards the screen-reader summary strings built for each dashboard view. */
 public class BatteryAccessibilitySummaryTest {
+
+    @Test public void englishOverviewSummaryUsesEnglishLabelsAndUnavailableText() {
+        String summary = BatteryAccessibilitySummary.overview(false, "—", "", "+850 mA",
+                "25.0 °C", "3.8 V", Locale.US);
+        assertEquals("Battery current: +850 mA. Temperature: 25.0 °C. Voltage: 3.8 V. "
+                + "Estimated runtime with normal use: not available", summary);
+    }
+
+    @Test public void englishSummariesTranslateGeneratedGermanValuesAndSources() {
+        String summary = BatteryAccessibilitySummary.overview(false, "8 Std.",
+                "Basierend auf lokaler 7-Tage-Nutzung", "+850 mA", "—", "—", Locale.US);
+        assertTrue(summary, summary.contains("Estimated runtime with normal use: 8 hr"));
+        assertTrue(summary, summary.contains("Data source: Based on local 7-day usage"));
+        assertFalse(summary, summary.contains("Std."));
+        assertFalse(summary, summary.contains("Nutzung"));
+
+        String charging = BatteryAccessibilitySummary.charging(false, "Nicht verbunden", "—",
+                "Erreicht", "Voll", "", "—", "—", "—", "—", "—", "—", "Nicht verbunden", Locale.US);
+        assertTrue(charging, charging.contains("Charge status: Not connected"));
+        assertTrue(charging, charging.contains("Charge target: Reached"));
+        assertFalse(charging, charging.contains("Nicht verbunden"));
+    }
+
+    @Test public void englishChargingSummaryUsesEnglishLabelsAndSource() {
+        String summary = BatteryAccessibilitySummary.charging(true, "Charging", "+900 mA",
+                "80 percent", "2 hr", "Local estimate", "1.2 A", "900 mA",
+                "500 mAh", "30 min", "25 degrees Celsius", "3.8 volts", "USB", Locale.US);
+        assertTrue(summary, summary.startsWith("Charge status: Charging. Battery current: +900 mA."));
+        assertTrue(summary, summary.contains("Time to charge target: 2 hr. Data source: Local estimate"));
+        assertTrue(summary, summary.contains("Charging source: USB"));
+        assertFalse(summary, summary.contains("nicht verfügbar"));
+    }
+
+    @Test public void englishChargingSummaryTranslatesGermanDeviceStatesAndSources() {
+        String charging = BatteryAccessibilitySummary.charging(true, "Zu heiß", "+900 mA",
+                "80 percent", "2 hr", "Android-Systemschätzung", "1.2 A", "900 mA",
+                "500 mAh", "30 min", "25 degrees Celsius", "3.8 volts", "Netzteil", Locale.US);
+        assertTrue(charging, charging.contains("Charge status: Too hot"));
+        assertTrue(charging, charging.contains("Data source: Android system estimate"));
+        assertTrue(charging, charging.contains("Charging source: Power adapter"));
+        assertFalse(charging, charging.contains("Zu heiß"));
+        assertFalse(charging, charging.contains("Netzteil"));
+    }
+
+    @Test public void englishHealthSummaryDoesNotLeaveGermanExplanation() {
+        String summary = BatteryAccessibilitySummary.health("85 percent", "4,000 mAh",
+                "5,000 mAh", "Local estimate", "Ready", "120 cycles", "Low",
+                "25 degrees Celsius", "3.8 volts", Locale.US);
+        assertTrue(summary, summary.startsWith("Battery health. Health: 85 percent"));
+        assertTrue(summary, summary.endsWith("Capacity and wear are estimates, not direct chemical measurements."));
+        assertFalse(summary, summary.contains("Kapazität"));
+    }
 
     @Test public void dischargeEstimateIncludesLabelAndValueAndSource() {
         String summary = BatteryAccessibilitySummary.dischargeEstimate(
@@ -115,6 +168,19 @@ public class BatteryAccessibilitySummaryTest {
         String summary = BatteryAccessibilitySummary.history(
                 "Monat", "Diesen Monat", null, buckets, true);
         assertTrue(summary, summary.contains("keine Messdaten"));
+    }
+
+    @Test public void monthlyHistoryExplainsWhyOlderBucketsMayBeEmpty() {
+        ArrayList<BatteryHistoryStats.Bucket> buckets = new ArrayList<>();
+        String german = BatteryAccessibilitySummary.history(
+                "Monatlich", "6 KALENDERMONATE", null, buckets, true, Locale.GERMANY);
+        String english = BatteryAccessibilitySummary.history(
+                "Monthly", "6 CALENDAR MONTHS", null, buckets, true, Locale.US);
+
+        assertTrue(german, german.contains("Ältere Monate können leer sein"));
+        assertTrue(german, german.contains("etwa 30 Tage aufbewahrt wird"));
+        assertTrue(english, english.contains("Older months may be blank"));
+        assertTrue(english, english.contains("retained for about 30 days"));
     }
 
     @Test public void healthSummaryIncludesAllFields() {

@@ -1,3 +1,5 @@
 <resources>
     <string name="widget_battery">Akku</string>
+    <string name="widget_current_unavailable">Strom —</string>
+    <string name="dream_service_label">Ampere Ladeanzeige</string>
 </resources>

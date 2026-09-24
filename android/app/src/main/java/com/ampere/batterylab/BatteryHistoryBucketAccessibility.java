@@ -15,10 +15,11 @@ final class BatteryHistoryBucketAccessibility {
 
     static String description(BatteryHistoryStats.Bucket bucket, int periodDays,
                               boolean capacityAvailable, Locale locale) {
-        if (bucket == null) return "Zeitraum nicht verfügbar";
-        boolean english = Locale.ENGLISH.getLanguage().equals(locale.getLanguage());
-        String pattern = periodDays == 1 ? "EEEE, d. MMMM"
-                : periodDays == 7 ? "d. MMMM yyyy" : "MMMM yyyy";
+        boolean english = locale != null
+                && Locale.ENGLISH.getLanguage().equals(locale.getLanguage());
+        if (bucket == null) return english ? "Period not available" : "Zeitraum nicht verfügbar";
+        String pattern = periodDays == 1 ? (english ? "EEEE, MMMM d" : "EEEE, d. MMMM")
+                : periodDays == 7 ? (english ? "MMMM d, yyyy" : "d. MMMM yyyy") : "MMMM yyyy";
         String date = new SimpleDateFormat(pattern, locale)
                 .format(new Date(bucket.start));
         if (bucket.measuredIntervals <= 0) {

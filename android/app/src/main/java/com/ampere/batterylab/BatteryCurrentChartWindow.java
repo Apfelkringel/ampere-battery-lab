@@ -10,20 +10,36 @@ final class BatteryCurrentChartWindow {
     private BatteryCurrentChartWindow() { }
 
     static String label(long startMs, long endMs, int sampleCount) {
-        if (sampleCount <= 0) return "Keine Messwerte";
-        String pattern = sameLocalDay(startMs, endMs) ? "HH:mm" : "dd.MM. HH:mm";
-        SimpleDateFormat time = new SimpleDateFormat(pattern, Locale.GERMANY);
+        return label(startMs, endMs, sampleCount, Locale.GERMANY);
+    }
+
+    static String label(long startMs, long endMs, int sampleCount, Locale locale) {
+        Locale safeLocale = locale == null ? Locale.GERMANY : locale;
+        boolean english = Locale.ENGLISH.getLanguage().equals(safeLocale.getLanguage());
+        if (sampleCount <= 0) return english ? "No measurements" : "Keine Messwerte";
+        String pattern = sameLocalDay(startMs, endMs)
+                ? (english ? "h:mm a" : "HH:mm")
+                : (english ? "M/d h:mm a" : "dd.MM. HH:mm");
+        SimpleDateFormat time = new SimpleDateFormat(pattern, safeLocale);
         String start = time.format(new Date(startMs));
         String end = time.format(new Date(endMs));
-        String count = sampleCount + (sampleCount == 1 ? " Messwert" : " Messwerte");
+        String count = sampleCount + (english
+                ? (sampleCount == 1 ? " reading" : " readings")
+                : (sampleCount == 1 ? " Messwert" : " Messwerte"));
         if (sampleCount == 1 || endMs <= startMs) {
-            return "Momentaufnahme · " + start + " · " + count;
+            return (english ? "Snapshot · " : "Momentaufnahme · ") + start + " · " + count;
         }
         long minutes = Math.max(1L, Math.round((endMs - startMs) / 60000.0));
-        String duration = minutes < 60L
-                ? minutes + " Min."
-                : (minutes / 60L) + " h" + (minutes % 60L == 0L
-                ? "" : " " + (minutes % 60L) + " Min.");
+        String duration;
+        if (english) {
+            duration = minutes < 60L ? minutes + " min"
+                    : (minutes / 60L) + " hr" + (minutes % 60L == 0L
+                    ? "" : " " + (minutes % 60L) + " min");
+        } else {
+            duration = minutes < 60L ? minutes + " Min."
+                    : (minutes / 60L) + " h" + (minutes % 60L == 0L
+                    ? "" : " " + (minutes % 60L) + " Min.");
+        }
         return start + "–" + end + " · " + duration + " · " + count;
     }
 

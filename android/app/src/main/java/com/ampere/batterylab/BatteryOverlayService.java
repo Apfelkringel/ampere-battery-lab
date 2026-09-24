@@ -34,6 +34,7 @@ import java.util.Locale;
 /** Local live current overlay, enabled explicitly by the user. */
 public class BatteryOverlayService extends Service {
     private static final String CHANNEL_ID = "ampere-overlay";
+    private static final String APP_LABEL_TOKEN = "\uE100AMPERE_APP_LABEL\uE101";
     private final Handler handler = new Handler(Looper.getMainLooper());
     private WindowManager windowManager;
     private TextView overlay;
@@ -142,8 +143,8 @@ public class BatteryOverlayService extends Service {
         String temperatureText = temperature > 0 ? String.format(locale, "%.1f°C", temperature / 10f) : "—°C";
         String overlayText = BatteryOverlayText.header(levelText, currentText) + "\n"
                 + voltageText + "   " + temperatureText + "   CPU gesamt " + coreCpu
-                + "%\nVordergrund-App: " + topLabel + " · Prozesslast " + processText;
-        overlay.setText(AppText.t(this, overlayText));
+                + "%\nVordergrund-App: " + APP_LABEL_TOKEN + " · Prozesslast " + processText;
+        overlay.setText(AppText.t(this, overlayText).replace(APP_LABEL_TOKEN, topLabel));
     }
 
     private int readCpuPercent() {

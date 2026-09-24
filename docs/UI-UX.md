@@ -30,8 +30,8 @@ turquoise indicates actions or the active destination; a small terminal mark
 replaces decorative gloss and keeps buttons distinct from passive cards.
 The visible button faces are deterministic raster exports of the supplied
 BatteryHub SVG masters rather than generic programmatic fills. Every visible
-image-button state contains its final German label and icon inside the same
-asset, so typography and symbols cannot drift apart at runtime. Five mobile
+image-button state contains the localized label and icon inside the same asset,
+so typography and symbols cannot drift apart at runtime. Five mobile
 navigation derivatives increase the embedded label size and center the complete
 icon/text block for the compact 320 dp rail.
 
@@ -47,12 +47,15 @@ warnings or wear.
 - Charging details switch from three columns to a two-row layout below 380 dp.
 - Charts use their real telemetry timestamps, so uneven background sampling does
   not create false equal time gaps.
+- The six-month battery-balance chart explains that local telemetry is retained
+  for about 30 days; older empty buckets represent missing readings, not zeroes.
 - Charging and discharging estimates keep mixed, screen-on and screen-off modes
   visibly separate so the measurement basis is not hidden in one combined value.
 - Session previews are capped on the overview; the complete list remains in
   History and stays scrollable.
-- The activity is locked to portrait as requested; Android system-bar insets
-  are applied on current Android releases.
+- The activity is not forced into portrait orientation or a fixed size; the
+  adaptive overview supports landscape, and Android system-bar insets are
+  applied on current Android releases.
 
 ## Interaction and accessibility
 
@@ -69,7 +72,15 @@ warnings or wear.
 - The dashboard exposes the current page, battery state, level and available
   tabs as an accessibility summary, and its Canvas header actions and tabs are
   also exposed as individually focusable virtual Android buttons for TalkBack;
-  their screen bounds follow the current scroll position.
+  their screen bounds follow the current scroll position. Live summaries use
+  English labels, statuses, estimate sources and duration units when the app
+  language is English, including in large-text mode. User-selected alarm and
+  sampling values, session-detail dialogs, widgets and battery notifications
+  use the selected app language and its numeric formatting as well. Chart
+  scales, energy, power, charger limits and current-chart time ranges follow the
+  selected numeric locale. The optional charging screensaver and human-readable
+  diagnostic report follow the app language; CSV and research JSON remain
+  machine-readable and locale-independent.
 - Settings, backup/restore, export and text entry use native Android controls or
   the system file picker.
 - Every interactive area is kept inside the scrollable content and is checked on
@@ -96,7 +107,9 @@ At enlarged system font sizes (font scale 1.25 and above), the dashboard uses a
 native, vertically scrolling layout with scalable `sp` text and wrapping rather
 than shrinking Canvas-drawn labels. All five sections remain reachable through
 a horizontal tab row; their key actions are recreated as native buttons and
-controls. The selected section is restored after Android recreates the
+controls. The tab names and actions share one tested source, the selected tab is
+announced to accessibility services, and navigation scrolls the selected tab
+into view. The selected section is restored after Android recreates the
 activity. At normal font sizes the existing illustrated Canvas dashboard is
 unchanged.
 

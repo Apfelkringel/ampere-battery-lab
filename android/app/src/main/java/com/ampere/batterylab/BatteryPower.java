@@ -26,8 +26,13 @@ final class BatteryPower {
     }
 
     static String label(int powerMw) {
+        return label(powerMw, Locale.GERMANY);
+    }
+
+    static String label(int powerMw, Locale locale) {
         return powerMw > 0
-                ? String.format(Locale.GERMANY, "≈ %.1f W", powerMw / 1000f)
+                ? String.format(locale == null ? Locale.GERMANY : locale,
+                        "≈ %.1f W", powerMw / 1000f)
                 : "—";
     }
 }

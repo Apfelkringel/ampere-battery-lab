@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Locale;
 import org.junit.Test;
 
 public class BatteryButtonAssetLayoutTest {
@@ -70,16 +71,17 @@ public class BatteryButtonAssetLayoutTest {
                 dashboard.contains("x - contentInset(w), 36f, contentWidth(w) - 36f"));
     }
 
-    @Test public void documentedOrientationMatchesThePortraitOnlyActivity() throws IOException {
+    @Test public void activityAllowsSystemManagedLandscapeAndLargeScreenResizing() throws IOException {
         Path root = findRepositoryRoot();
         String manifest = Files.readString(root.resolve("android/app/src/main/AndroidManifest.xml"),
                 StandardCharsets.UTF_8);
         String uxNotes = Files.readString(root.resolve("docs/UI-UX.md"), StandardCharsets.UTF_8);
-        assertTrue("the app must remain locked to portrait", manifest.contains("android:screenOrientation=\"portrait\""));
-        assertTrue("UX notes must accurately document portrait-only orientation",
+        assertFalse("large-screen Android must be allowed to resize and rotate the activity",
+                manifest.contains("android:screenOrientation=\"portrait\""));
+        assertTrue("UX notes must document system-managed landscape support",
+                uxNotes.contains("The activity is not forced into portrait orientation"));
+        assertFalse("stale portrait-only guidance must be removed",
                 uxNotes.contains("activity is locked to portrait"));
-        assertFalse("stale landscape-support guidance must be removed",
-                uxNotes.contains("The activity is not forced into portrait"));
     }
 
     @Test public void mobileNavigationKeepsIconAndLabelInSeparateVerticalSlots()
@@ -317,7 +319,8 @@ public class BatteryButtonAssetLayoutTest {
                 .resolve("android/app/src/main/java/com/ampere/batterylab/MainActivity.java"),
                 StandardCharsets.UTF_8);
         assertTrue("system cycle metrics must use a grid icon, not a health heart",
-                dashboard.contains("\"Systemzyklen\", chargeCyclesDisplay(), \"von Android gemeldet\", \"grid\""));
+                dashboard.contains("\"Systemzyklen\", chargeCyclesDisplay(),")
+                        && dashboard.contains("AppText.isEnglish(getContext()) ? \"reported by Android\" : \"von Android gemeldet\", \"grid\""));
         assertTrue("deep-sleep metrics must use a sleep icon",
                 dashboard.contains("\"nach erster Sitzung\", \"moon\""));
         assertTrue("the sleep icon must be implemented in both metric layouts",
@@ -343,16 +346,16 @@ public class BatteryButtonAssetLayoutTest {
         assertTrue("Heute · seit Mitternacht".equals(BatteryHistoryStats.rangeLabel(1)));
         assertTrue("Diese Woche · Montag bis heute".equals(BatteryHistoryStats.rangeLabel(7)));
         assertTrue("Dieser Monat · Monatsanfang bis heute".equals(BatteryHistoryStats.rangeLabel(30)));
-        assertTrue(dashboard.contains("7 KALENDERTAGE"));
-        assertTrue(dashboard.contains("5 KALENDERWOCHEN"));
-        assertTrue(dashboard.contains("6 KALENDERMONATE"));
+        assertTrue(BatteryHistoryStats.chartRangeLabel(1, Locale.GERMANY).equals("7 KALENDERTAGE"));
+        assertTrue(BatteryHistoryStats.chartRangeLabel(7, Locale.GERMANY).equals("5 KALENDERWOCHEN"));
+        assertTrue(BatteryHistoryStats.chartRangeLabel(30, Locale.GERMANY).equals("6 KALENDERMONATE"));
         assertTrue("the chart should plot efficiency rather than label a missing series",
                 dashboard.contains("bucket.chargeConsumptionRatioPercent / (float) maxRatio"));
         assertTrue("dash values should be explained as unavailable, not zero",
                 dashboard.contains("— = keine auswertbaren Messwerte"));
         assertTrue("the chart must display exact values for every plotted period",
                 dashboard.contains("drawHistoryBucketValues(c, buckets")
-                        && dashboard.contains("BatteryHistoryChartValues.forBucket(buckets.get(i), hasCapacity)"));
+                        && dashboard.contains("BatteryHistoryChartValues.forBucket(buckets.get(i), hasCapacity,"));
         assertTrue("chart details must disclose separate scales and distinguish missing data",
                 dashboard.contains("Jede Kennzahl hat im Diagramm eine eigene Skala.")
                         && dashboard.contains("keine auswertbaren Strommessungen"));

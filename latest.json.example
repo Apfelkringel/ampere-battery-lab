@@ -3,5 +3,6 @@
   "versionName": "0.127",
   "apkUrl": "https://raw.githubusercontent.com/Apfelkringel/ampere-battery-lab-updates/main/Ampere-Battery-Lab-release.apk",
   "sha256": "d65f6ea07440276d38d0a7177bce6677689d743b22a729699ec3f07f6856cb84",
-  "releaseNotes": "Kachelbindung wird nach Updates automatisch erneuert; Live-Prozent und Status bleiben erhalten."
+  "releaseNotes": "Kachelbindung wird nach Updates automatisch erneuert; Live-Prozent und Status bleiben erhalten.",
+  "releaseNotes_en": "Widget pinning is restored automatically after updates; the live percentage and status are preserved."
 }

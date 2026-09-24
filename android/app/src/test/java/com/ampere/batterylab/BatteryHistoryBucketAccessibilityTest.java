@@ -42,6 +42,29 @@ public class BatteryHistoryBucketAccessibilityTest {
         assertTrue(description.contains("218%"));
     }
 
+    @Test public void englishBucketLabelsAndMissingValuesStayEnglish() {
+        BatteryHistoryStats.Bucket bucket = new BatteryHistoryStats.Bucket(0L, "Jan.");
+        String missing = BatteryHistoryBucketAccessibility.description(bucket, 30, true, Locale.US);
+        assertTrue(missing, missing.contains("January 1970. No usable current measurements."));
+        assertFalse(missing, missing.contains("Keine auswertbaren"));
+
+        bucket.measuredIntervals = 1;
+        String withoutCapacity = BatteryHistoryBucketAccessibility.description(
+                bucket, 30, false, Locale.US);
+        assertTrue(withoutCapacity, withoutCapacity.contains("not available, design capacity missing"));
+        assertTrue(withoutCapacity, withoutCapacity.contains("not available, no usage value"));
+        assertFalse(withoutCapacity, withoutCapacity.contains("nicht verfügbar"));
+        assertFalse(withoutCapacity, withoutCapacity.contains("Nennkapazität"));
+    }
+
+    @Test public void englishDatesUseEnglishOrderAndMonthNames() {
+        BatteryHistoryStats.Bucket bucket = new BatteryHistoryStats.Bucket(0L, "Jan.");
+        assertTrue(BatteryHistoryBucketAccessibility.description(bucket, 1, false, Locale.US)
+                .contains("Thursday, January 1"));
+        assertTrue(BatteryHistoryBucketAccessibility.description(bucket, 7, false, Locale.US)
+                .contains("January 1, 1970"));
+    }
+
     @Test public void missingIntervalsAreNotReadAsZeroAndCapacityIsExplained() {
         BatteryHistoryStats.Bucket missing = new BatteryHistoryStats.Bucket(0L, "Jan.");
         String missingDescription = BatteryHistoryBucketAccessibility.description(
@@ -56,5 +79,12 @@ public class BatteryHistoryBucketAccessibilityTest {
                 withoutCapacity, 30, false);
         assertTrue(description.contains("Nennkapazität fehlt"));
         assertTrue(description.contains("kein Verbrauchswert"));
+    }
+
+    @Test public void nullBucketUsesTheSelectedLanguage() {
+        assertTrue(BatteryHistoryBucketAccessibility.description(null, 30, false, Locale.US)
+                .contains("Period not available"));
+        assertTrue(BatteryHistoryBucketAccessibility.description(null, 30, false, Locale.GERMANY)
+                .contains("Zeitraum nicht verfügbar"));
     }
 }

@@ -54,6 +54,7 @@ final class UpdateChecker {
     private static final String PENDING_APK_URL = "pendingApkUrl";
     private static final String PENDING_SHA256 = "pendingSha256";
     private static final String PENDING_NOTES = "pendingNotes";
+    private static final String PENDING_NOTES_EN = "pendingNotesEnglish";
     private static final String INSTALL_IN_PROGRESS = "installInProgress";
     private static final String EXPECTED_MANIFEST_PATH = "/repos/Apfelkringel/ampere-battery-lab-updates/contents/latest.json";
     private static final String EXPECTED_MANIFEST_RAW_PATH = "/Apfelkringel/ampere-battery-lab-updates/main/latest.json";
@@ -232,6 +233,7 @@ final class UpdateChecker {
     }
 
     private static void showCheckResult(Activity activity, String message) {
+        if (activity == null || activity.isFinishing() || activity.isDestroyed()) return;
         new AlertDialog.Builder(activity)
                 .setTitle(AppText.t(activity, "Update-Prüfung"))
                 .setMessage(AppText.t(activity, message))
@@ -263,12 +265,14 @@ final class UpdateChecker {
                 .putString(PENDING_APK_URL, update.apkUrl)
                 .putString(PENDING_SHA256, update.sha256)
                 .putString(PENDING_NOTES, update.notes)
+                .putString(PENDING_NOTES_EN, update.notesEnglish)
                 .commit();
     }
 
     private static void clearPendingUpdate(SharedPreferences prefs) {
         prefs.edit().remove(PENDING_VERSION_CODE).remove(PENDING_VERSION_NAME)
-                .remove(PENDING_APK_URL).remove(PENDING_SHA256).remove(PENDING_NOTES).apply();
+                .remove(PENDING_APK_URL).remove(PENDING_SHA256).remove(PENDING_NOTES)
+                .remove(PENDING_NOTES_EN).apply();
     }
 
     /**
@@ -329,14 +333,17 @@ final class UpdateChecker {
             String apkUrl = json.optString("apkUrl", "");
             String sha256 = json.optString("sha256", "").trim().toLowerCase(Locale.US);
             String notes = json.optString("releaseNotes", "Neue Version verfügbar.");
+            String notesEnglish = json.optString("releaseNotes_en", "").trim();
             if (versionCode <= BuildConfig.VERSION_CODE || versionName.isEmpty() || versionName.length() > 64
                     || apkUrl.isEmpty() || apkUrl.length() > 512 || notes.length() > MAX_RELEASE_NOTES_CHARS
+                    || notesEnglish.length() > MAX_RELEASE_NOTES_CHARS
                     || !sha256.matches("[0-9a-f]{64}")) {
                 return FetchResult.failure("Der Server meldet keine neuere Version als " + BuildConfig.VERSION_NAME + ".");
             }
             URL apk = new URL(apkUrl);
             if (!isAllowedApkUrl(apk)) return FetchResult.failure("Die APK-Adresse wurde aus Sicherheitsgründen abgelehnt.");
-            return FetchResult.success(new UpdateInfo(versionCode, versionName, apkUrl, sha256, notes));
+            return FetchResult.success(new UpdateInfo(versionCode, versionName, apkUrl, sha256,
+                    notes, notesEnglish));
         } catch (Exception error) {
             Log.w(TAG, "Update-Prüfung fehlgeschlagen", error);
             return FetchResult.failure("Die Update-Prüfung konnte nicht abgeschlossen werden (" + error.getClass().getSimpleName() + "). Prüfe Internetzugriff und Datum/Uhrzeit des Geräts.");
@@ -392,7 +399,8 @@ final class UpdateChecker {
         if (manager != null) manager.cancel(UPDATE_NOTIFICATION_ID);
         new AlertDialog.Builder(activity)
                 .setTitle(AppText.t(activity, "Update verfügbar · " + update.versionName))
-                .setMessage(update.notes + "\n\n" + AppText.t(activity, "Die kostenlose APK wird vor der Installation auf Hash, Paketname, Version und Release-Signatur geprüft. Android fragt anschließend noch einmal nach deiner Bestätigung."))
+                .setMessage(releaseNotes(update.notes, update.notesEnglish,
+                        AppText.isEnglish(activity)) + "\n\n" + AppText.t(activity, "Die kostenlose APK wird vor der Installation auf Hash, Paketname, Version und Release-Signatur geprüft. Android fragt anschließend noch einmal nach deiner Bestätigung."))
                 .setNegativeButton(AppText.t(activity, "Später"), null)
                 .setPositiveButton(AppText.t(activity, "Herunterladen"), (dialog, which) -> download(activity, update))
                 .show();
@@ -414,7 +422,8 @@ final class UpdateChecker {
         builder.setSmallIcon(R.drawable.ic_launcher)
                 .setContentTitle(AppText.t(context, "Ampere-Update verfügbar · " + update.versionName))
                 .setContentText(AppText.t(context, "Tippen, um die kostenlose Aktualisierung zu prüfen"))
-                .setStyle(new Notification.BigTextStyle().bigText(update.notes))
+                .setStyle(new Notification.BigTextStyle().bigText(releaseNotes(update.notes,
+                        update.notesEnglish, AppText.isEnglish(context))))
                 .setContentIntent(pending)
                 .setAutoCancel(true)
                 .setShowWhen(false);
@@ -746,14 +755,23 @@ final class UpdateChecker {
         final String apkUrl;
         final String sha256;
         final String notes;
+        final String notesEnglish;
 
-        UpdateInfo(int versionCode, String versionName, String apkUrl, String sha256, String notes) {
+        UpdateInfo(int versionCode, String versionName, String apkUrl, String sha256,
+                   String notes, String notesEnglish) {
             this.versionCode = versionCode;
             this.versionName = versionName;
             this.apkUrl = apkUrl;
             this.sha256 = sha256;
             this.notes = notes;
+            this.notesEnglish = notesEnglish;
         }
+    }
+
+    static String releaseNotes(String notes, String notesEnglish, boolean english) {
+        if (!english) return notes;
+        if (notesEnglish != null && !notesEnglish.trim().isEmpty()) return notesEnglish.trim();
+        return "Release notes are not available in English.";
     }
 
     private static final class FetchResult {

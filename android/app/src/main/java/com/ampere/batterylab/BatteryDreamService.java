@@ -139,11 +139,14 @@ final class BatteryDreamView extends View {
     private void drawHeader(Canvas canvas, float width) {
         text(canvas, "AMPERE", 32, 48, 13, muted, true);
         String timePattern = DateFormat.is24HourFormat(getContext()) ? "HH:mm" : "h:mm";
-        String time = new SimpleDateFormat(timePattern, Locale.getDefault()).format(new Date());
+        Locale locale = AppText.uiLocale(getContext());
+        String time = new SimpleDateFormat(timePattern, locale).format(new Date());
         rightText(canvas, time, width - 32, 50, 20, Color.WHITE, true);
-        String date = new SimpleDateFormat("EEEE, d. MMMM", Locale.getDefault()).format(new Date());
+        String datePattern = AppText.isEnglish(getContext()) ? "EEEE, MMMM d" : "EEEE, d. MMMM";
+        String date = new SimpleDateFormat(datePattern, locale).format(new Date());
         text(canvas, date, 32, 73, 11, faint, false);
-        text(canvas, charging ? "LADEN" : "AKKUBETRIEB", 32, 95, 10, charging ? lime : blue, true);
+        text(canvas, AppText.t(getContext(), charging ? "LADEN" : "AKKUBETRIEB"),
+                32, 95, 10, charging ? lime : blue, true);
     }
 
     private void drawGauge(Canvas canvas, float width, float height) {
@@ -162,9 +165,11 @@ final class BatteryDreamView extends View {
         }
         String value = level >= 0 ? level + "%" : "—";
         centeredText(canvas, value, cx, cy + 13, 52, Color.WHITE, true);
-        centeredText(canvas, charging ? "Ladezustand" : "Nicht am Ladegerät", cx, cy + 39, 11, muted, false);
+        centeredText(canvas, AppText.t(getContext(), charging ? "Ladezustand" : "Nicht am Ladegerät"),
+                cx, cy + 39, 11, muted, false);
         if (charging && chargeLimit < 100) {
-            centeredText(canvas, "Ziel " + chargeLimit + "%", cx, cy + radius + 34, 11, lime, true);
+            centeredText(canvas, AppText.t(getContext(), "Ziel ") + chargeLimit + "%",
+                    cx, cy + radius + 34, 11, lime, true);
         }
     }
 

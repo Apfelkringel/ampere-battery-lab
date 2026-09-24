@@ -1,6 +1,7 @@
 package com.ampere.batterylab;
 
 import java.text.SimpleDateFormat;
+import java.text.DateFormatSymbols;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -13,10 +14,15 @@ final class BatteryHistoryStats {
 
     static ArrayList<Bucket> aggregateRows(ArrayList<String> rows, long now, int periodDays,
                                            int capacityMah) {
+        return aggregateRows(rows, now, periodDays, capacityMah, TimeZone.getDefault(), Locale.GERMANY);
+    }
+
+    static ArrayList<Bucket> aggregateRows(ArrayList<String> rows, long now, int periodDays,
+                                           int capacityMah, TimeZone timeZone, Locale locale) {
         int normalizedDays = periodDays == 1 ? 1 : periodDays == 7 ? 7 : 30;
         int bucketCount = normalizedDays == 1 ? 7 : normalizedDays == 7 ? 5 : 6;
         ArrayList<Bucket> result = calendarBuckets(now, normalizedDays, bucketCount,
-                TimeZone.getDefault());
+                timeZone, locale);
         long windowStart = result.get(0).start;
         if (rows == null || rows.isEmpty()) return result;
         ArrayList<String> valid = BatteryExportRules.validTelemetryRows(
@@ -69,12 +75,18 @@ final class BatteryHistoryStats {
         return result;
     }
 
-    /** Builds locally aligned calendar days, Monday-based weeks and calendar months. */
+    /** Builds locally aligned calendar days, locale-based weeks and calendar months. */
     static ArrayList<Bucket> calendarBuckets(long now, int periodDays, int bucketCount,
                                               TimeZone timeZone) {
+        return calendarBuckets(now, periodDays, bucketCount, timeZone, Locale.GERMANY);
+    }
+
+    static ArrayList<Bucket> calendarBuckets(long now, int periodDays, int bucketCount,
+                                              TimeZone timeZone, Locale locale) {
         int normalizedDays = periodDays == 1 ? 1 : periodDays == 7 ? 7 : 30;
         int safeCount = Math.max(1, bucketCount);
-        Calendar current = Calendar.getInstance(timeZone, Locale.GERMANY);
+        Locale safeLocale = locale == null ? Locale.GERMANY : locale;
+        Calendar current = Calendar.getInstance(timeZone, safeLocale);
         current.setTimeInMillis(now);
         current.set(Calendar.HOUR_OF_DAY, 0);
         current.set(Calendar.MINUTE, 0);
@@ -96,7 +108,7 @@ final class BatteryHistoryStats {
         Calendar cursor = (Calendar) first.clone();
         for (int i = 0; i < safeCount; i++) {
             long start = cursor.getTimeInMillis();
-            buckets.add(new Bucket(start, label(start, normalizedDays)));
+            buckets.add(new Bucket(start, label(start, normalizedDays, safeLocale)));
             if (normalizedDays == 1) cursor.add(Calendar.DAY_OF_MONTH, 1);
             else if (normalizedDays == 7) cursor.add(Calendar.DAY_OF_MONTH, 7);
             else cursor.add(Calendar.MONTH, 1);
@@ -137,15 +149,36 @@ final class BatteryHistoryStats {
         return result.toString();
     }
 
-    private static String label(long timestamp, int periodDays) {
+    private static String label(long timestamp, int periodDays, Locale locale) {
         String pattern = periodDays == 1 ? "EEE" : periodDays == 7 ? "d. MMM" : "MMM";
-        return new SimpleDateFormat(pattern, Locale.GERMANY).format(new Date(timestamp));
+        if (Locale.ENGLISH.getLanguage().equals(locale.getLanguage()) && periodDays == 7) {
+            pattern = "MMM d";
+        }
+        return new SimpleDateFormat(pattern, locale).format(new Date(timestamp));
     }
 
     static String rangeLabel(int periodDays) {
-        if (periodDays == 1) return "Heute · seit Mitternacht";
-        if (periodDays == 7) return "Diese Woche · Montag bis heute";
-        return "Dieser Monat · Monatsanfang bis heute";
+        return rangeLabel(periodDays, Locale.GERMANY);
+    }
+
+    static String rangeLabel(int periodDays, Locale locale) {
+        Locale safeLocale = locale == null ? Locale.GERMANY : locale;
+        boolean english = Locale.ENGLISH.getLanguage().equals(safeLocale.getLanguage());
+        if (periodDays == 1) return english ? "Today · since midnight" : "Heute · seit Mitternacht";
+        if (periodDays == 7) {
+            int firstDayOfWeek = Calendar.getInstance(safeLocale).getFirstDayOfWeek();
+            String firstDay = new DateFormatSymbols(safeLocale).getWeekdays()[firstDayOfWeek];
+            return english ? "This week · " + firstDay + " through today"
+                    : "Diese Woche · " + firstDay + " bis heute";
+        }
+        return english ? "This month · month to date" : "Dieser Monat · Monatsanfang bis heute";
+    }
+
+    static String chartRangeLabel(int periodDays, Locale locale) {
+        boolean english = locale != null && Locale.ENGLISH.getLanguage().equals(locale.getLanguage());
+        if (periodDays == 1) return english ? "7 CALENDAR DAYS" : "7 KALENDERTAGE";
+        if (periodDays == 7) return english ? "5 CALENDAR WEEKS" : "5 KALENDERWOCHEN";
+        return english ? "6 CALENDAR MONTHS" : "6 KALENDERMONATE";
     }
 
     static final class Bucket {

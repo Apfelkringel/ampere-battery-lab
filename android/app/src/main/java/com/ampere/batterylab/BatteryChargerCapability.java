@@ -50,9 +50,16 @@ final class BatteryChargerCapability {
     }
 
     static String label(int powerMilliwatts) {
-        return powerMilliwatts > 0
-                ? String.format(Locale.GERMANY, "Max. %.1f W", powerMilliwatts / 1000f)
-                : "Max. Ladeleistung nicht verfügbar";
+        return label(powerMilliwatts, Locale.GERMANY);
+    }
+
+    static String label(int powerMilliwatts, Locale locale) {
+        Locale safeLocale = locale == null ? Locale.GERMANY : locale;
+        if (powerMilliwatts <= 0) {
+            return Locale.ENGLISH.getLanguage().equals(safeLocale.getLanguage())
+                    ? "Max. charging power unavailable" : "Max. Ladeleistung nicht verfügbar";
+        }
+        return String.format(safeLocale, "Max. %.1f W", powerMilliwatts / 1000f);
     }
 
     private static Reading fromSysfs() {
@@ -138,22 +145,33 @@ final class BatteryChargerCapability {
         }
 
         String label() {
+            return label(Locale.GERMANY);
+        }
+
+        String label(Locale locale) {
             if (!isAvailable()) return "";
+            Locale safeLocale = locale == null ? Locale.GERMANY : locale;
+            boolean english = Locale.ENGLISH.getLanguage().equals(safeLocale.getLanguage());
             StringBuilder value = new StringBuilder(
-                    source.startsWith("Sysfs") ? "Ladehardware max. " : "Ladegerät max. ");
+                    source.startsWith("Sysfs")
+                            ? (english ? "Charging hardware max. " : "Ladehardware max. ")
+                            : (english ? "Charger max. " : "Ladegerät max. "));
             boolean separator = false;
             if (maxCurrentMa > 0) {
-                value.append(String.format(Locale.GERMANY, "%.2f A", maxCurrentMa / 1000f));
+                value.append(String.format(safeLocale,
+                        "%.2f A", maxCurrentMa / 1000f));
                 separator = true;
             }
             if (maxVoltageMv > 0) {
                 if (separator) value.append(" · ");
-                value.append(String.format(Locale.GERMANY, "%.2f V", maxVoltageMv / 1000f));
+                value.append(String.format(safeLocale,
+                        "%.2f V", maxVoltageMv / 1000f));
                 separator = true;
             }
             if (maxPowerMilliwatts > 0) {
                 if (separator) value.append(" · ");
-                value.append(String.format(Locale.GERMANY, "%.1f W", maxPowerMilliwatts / 1000f));
+                value.append(String.format(safeLocale,
+                        "%.1f W", maxPowerMilliwatts / 1000f));
             }
             return value.toString();
         }

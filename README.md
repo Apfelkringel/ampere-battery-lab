@@ -190,7 +190,9 @@ Für jede neue Version muss `versionCode` erhöht, die APK unter `apkUrl` veröf
 und `sha256` als SHA-256-Hash ergänzt werden. Der private Release-Schlüssel bleibt im
 GitHub-Secret; die Signatur-Lineage erlaubt den Übergang zur neuen Signatur, ohne die
 App-Daten zu löschen. Android zeigt aus Sicherheitsgründen weiterhin eine einmalige
-Installationsbestätigung an.
+Installationsbestätigung an. `releaseNotes` enthält die deutsche Fassung; das optionale
+Feld `releaseNotes_en` liefert englische Versionshinweise für Dialog und Benachrichtigung.
+Fehlt es, zeigt die englische Oberfläche einen kurzen Hinweis statt deutscher Versionshinweise.
 
 Der sichtbare Backup-/Restore-Dialog erzeugt ein vollständiges JSON-Backup inklusive
 Telemetrie. Das automatische Android-Backup sichert ebenfalls Verlauf, Einstellungen und

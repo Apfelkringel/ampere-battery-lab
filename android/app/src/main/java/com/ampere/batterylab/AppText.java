@@ -5,11 +5,39 @@ import android.content.res.Configuration;
 import android.app.LocaleManager;
 import android.os.Build;
 import android.os.LocaleList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /** Small, dependency-free UI language layer used by the custom canvas and services. */
 final class AppText {
     private static final String LANGUAGE_KEY = "appLanguage";
+    private static volatile String[][] sortedTranslationPhrases;
+    private static final Pattern GERMAN_PERCENT_COMPARISON = Pattern.compile(
+            "(\\d+(?:[.,]\\d+)?\\s*%)\\s+von\\s+(\\d+(?:[.,]\\d+)?\\s*%)");
+    private static final Pattern GERMAN_SERVICE_HEARTBEAT_AGE = Pattern.compile(
+            "Dienst zuletzt vor (\\d+) Min\\. bestätigt");
+    private static final Pattern GERMAN_UI_MARKER = Pattern.compile(
+            "(?iu)(?:[äöüß]|(?:akku|batterie|lade|entlade|verlauf|gesundheit|gesund|kapazität|zykl|" +
+                    "spannung|strom|aktuell|aktualisiert|aktualisierung|adaptiv|anzeige|bildschirm|berechnet|" +
+                    "datum|diagnose|effizienz|erlauben|erlaubt|fehlend|fehler|gemeldet|gemischt|" +
+                    "grenzwert|hintergrunddienst|kalender|lernen|manuell|normalbetrieb|notfall|nennwert|grafisch|" +
+                    "optimiert|restenergie|schattiert|tiefschlaf|unbekannt|verbunden|zusammenfassung|" +
+                    "telemetrie|detailanalyse|sensoren|jetzt|gespeichert|zugeordnet|antwortete|temperaturwarnung|temperatur(?!e)|thermik|dauer|" +
+                    "mess(?:ung|ungen|wert|werte|reihe|reihen|bereich|status|punkt|punkte|basis|zeit|daten|gerät|en)|gemess|gerät|nutzung|verbrauch|zeitraum|" +
+                    "sitzung|sicherung|berechtigung|einstellung|geschätzt|schätzung|wird|werden|" +
+                    "keine|keiner|keinen|noch|seit|letzte|weiter|verfügbar|abbrechen|fertig|" +
+                    "zurück|löschen|durchschnitt|niedrig|voll|erreicht|abstecken|geladen|" +
+                    "entladen|entladung|energie|zugriff|kennzahl|oem-limit|anzeigen|daten|zähler|aktiv|inaktiv|gestartet|starten|warten|" +
+                    "erlaubt|verwendet|eingestellt|lokal|quelle|ladungsmenge|akkustand|" +
+                    "erfasst|aufgezeichnet|prozentpunkte|ruhephasen|abgeschaltet|ausgeschaltet|" +
+                    "ausgewählt|übersicht|dein|wächs|läuft|entspannt|privat|gesamt|vordergrund|" +
+                    "prozesslast|prüf|ziel|über|analysezentrale|analyse|netzteil|bereit|zustand|" +
+                    "reihe|zeit|monatlich|wunsch|akzeptabel|abschaltung|kalendertag|kabellos|" +
+                    "benachrichtig|gesperrt|tiefstandwarnung)" +
+                    "\\p{L}*|\\b(?:hoch|mittel|aus|ein|heute|monat|tage|stunden|minuten|werte|messpunkte|temperatur|für|ab|alle|nicht)\\b)");
 
     private AppText() {}
 
@@ -76,17 +104,74 @@ final class AppText {
 
     private static String translate(String value) {
         if (value == null || value.isEmpty()) return value;
+        String exact = translateExactPreference(value);
+        if (exact != null) return exact;
+        exact = translateExactUiPhrase(value);
+        if (exact != null) return exact;
+        value = translateServiceHeartbeatAge(value);
+        Matcher percentComparison = GERMAN_PERCENT_COMPARISON.matcher(value);
+        if (percentComparison.find()) value = percentComparison.replaceAll("$1 of $2");
+        if ("Start".equals(value)) return "Home";
+        if ("Quelle: USB-Ladegerät".equals(value)) return "Source: USB charger";
+        if ("Ampere · Großschrift".equals(value)) return "Ampere · Large text";
+        if ("Android-Systemschätzung".equals(value)) return "Android system estimate";
+        if ("Prüfen".equals(value)) return "Check";
+        if ("Kapazität aus ".equals(value)) return "Capacity from ";
+        if ("KAPAZITÄT".equals(value)) return "CAPACITY";
+        if ("Nicht am Ladegerät".equals(value)) return "Not charging";
+        if ("Ladezustand".equals(value)) return "Charge status";
+        if ("Ziel ".equals(value)) return "Target ";
         // These chart titles contain words that are also translated as standalone
         // labels. Keep the complete title atomic so later vocabulary rules cannot
         // change the capitalization of the already translated result.
         if ("Akkustand · 7 Tage".equals(value)) return "Battery level · 7 days";
         if ("Akkustand · 30 Tage".equals(value)) return "Battery level · 30 days";
         if ("Akkustand beim Start".equals(value)) return "Battery level at start";
+        if ("Akkustand aktuell".equals(value) || "Aktueller Akkustand".equals(value)) {
+            return "Current battery level";
+        }
+        if ("aktueller Akkustand".equals(value)) return "current battery level";
+        if ("Aktuelle Sitzung + lokale 7-Tage-Nutzung".equals(value)) {
+            return "Current session + local 7-day usage";
+        }
+        if ("Basierend auf lokaler 7-Tage-Nutzung".equals(value)) return "Based on local 7-day usage";
+        if ("Mindestens 5 % Akkustand nötig".equals(value)) return "At least 5% battery level required";
+        if ("Lokaler Verlauf".equals(value)) return "Local history";
+        if ("Momentanschätzung".equals(value)) return "Instantaneous estimate";
+        if ("getrennt · Verlaufsdaten".equals(value)) return "unplugged · historical data";
+        if ("Gesundheit —".equals(value)) return "Health —";
+        if ("Noch offen".equals(value)) return "Pending";
+        if ("Lokaler Messbereich".equals(value)) return "Local measurement range";
+        if ("Gemessener Akkustand".equals(value)) return "Measured battery level";
+        if ("Gesamtzähler im Tagesverlauf".equals(value)) return "Daily total counter";
+        if ("Änderung · Dauer".equals(value)) return "Change · duration";
+        if ("Änderung".equals(value)) return "Change";
+        if ("Zeitraum: bis zu 30 lokale Tage".equals(value)) return "Period: up to 30 local days";
+        if ("Äquivalente Vollzyklen je Ladevorgang".equals(value)) {
+            return "Equivalent full cycles per charge session";
+        }
+        if ("schafft die Messbasis".equals(value)) return "establishes the measurement baseline";
+        if ("Äquivalente Zyklen: ".equals(value)) return "Equivalent cycles: ";
+        if ("Lokal".equals(value)) return "Local";
         if ("Starte die Kapazitätsmessung getrennt vom Ladegerät unter 25 %.".equals(value)) {
             return "Start the capacity measurement unplugged and below 25%.";
         }
         if ("Entladung starten".equals(value)) return "Start a discharge session";
         if ("Übersicht anzeigen".equals(value)) return "Show overview";
+        if ("Laden anzeigen".equals(value)) return "Show charging";
+        if ("Entladen anzeigen".equals(value)) return "Show discharging";
+        if ("Akkugesundheit anzeigen".equals(value)) return "Show battery health";
+        if ("Verlauf anzeigen".equals(value)) return "Show history";
+        if ("Ausgewählt: Übersicht".equals(value)) return "Selected: overview";
+        if ("Ausgewählt: Laden".equals(value)) return "Selected: charging";
+        if ("Ausgewählt: Entladen".equals(value)) return "Selected: discharging";
+        if ("Ausgewählt: Akku".equals(value)) return "Selected: battery health";
+        if ("Ausgewählt: Verlauf".equals(value)) return "Selected: history";
+        if ("Übersicht".equals(value)) return "Overview";
+        if ("Laden".equals(value)) return "Charging";
+        if ("Entladen".equals(value)) return "Discharging";
+        if ("Akku".equals(value)) return "Battery health";
+        if ("Verlauf".equals(value)) return "History";
         if ("Akku-Bilanz · September 2026".equals(value)) {
             return "Battery balance · September 2026";
         }
@@ -103,6 +188,9 @@ final class AppText {
         if ("Ladeziel erreicht · Gerät lädt weiter".equals(value)) {
             return "Charge target reached · Device is still charging";
         }
+        if ("Übersicht zeigt den Live-Akkustand, Temperatur, Spannung und Verlauf.\n\nLaden enthält Ladeziel und Sitzungen. Entladen zeigt Verbrauch und Laufzeit. Akku erklärt Gesundheit und Kapazität. Verlauf vergleicht Tag, Woche und Monat.\n\nDie fünf Bereiche wechselst du über die Leiste unten. Deine Akku-Messwerte bleiben lokal auf diesem Gerät.".equals(value)) {
+            return "Overview shows live battery level, temperature, voltage, and history.\n\nCharging includes the charge target and sessions. Discharging shows usage and runtime. Battery health explains condition and capacity. History compares days, weeks, and months.\n\nSwitch between the five sections using the bar at the bottom. Your battery measurements stay on this device.";
+        }
         if ("Nicht mit Strom verbunden".equals(value)) return "Not connected to power";
         if ("Noch keine Sitzungen abgeschlossen.".equals(value)) {
             return "No sessions completed yet.";
@@ -117,8 +205,78 @@ final class AppText {
             return "Measurement status: At least 5% battery level required. The charge/usage ratio compares charged with used energy and is not measured battery efficiency.";
         }
         if ("AKKU-BILANZ · 6 KALENDERMONATE".equals(value)) return "BATTERY BALANCE · 6 CALENDAR MONTHS";
+        // Many callers already choose a complete English message from the app
+        // locale. Do not run those sentences through German substring fixes:
+        // they can turn "Overview shows" into "Show overviews" or alter
+        // ordinary English words that happen to begin with a German fragment.
+        if (!GERMAN_UI_MARKER.matcher(value).find()) return value;
         String result = value;
-        String[][] phrases = {
+        String[][] phrases = sortedTranslationPhrases;
+        if (phrases == null) {
+            synchronized (AppText.class) {
+                phrases = sortedTranslationPhrases;
+                if (phrases == null) {
+                    phrases = new String[][] {
+                {"Kapazität aus ", "Capacity from "},
+                {"Ladevorgang aktiv", "Charging in progress"},
+                {"Letzter Ladevorgang", "Last charge session"},
+                {"Zeit bis voll", "Time to full"},
+                {"Zeit bis Ziel", "Time to target"},
+                {"Letzte Ladung", "Last charge"},
+                {"lokale 7-Tage-Schätzung", "local 7-day estimate"},
+                {"Nicht gemessen", "Not measured"},
+                {"Nennkapazität nicht verfügbar", "Design capacity unavailable"},
+                {"Messungen · letzter Ladevorgang", "Measurements · last charge session"},
+                {"Nach dem ersten Zyklus sichtbar.", "Visible after the first cycle."},
+                {"Deine Akku-Messwerte bleiben auf diesem Gerät.", "Your battery measurements stay on this device."},
+                {"Akkustand wird ermittelt", "Detecting battery level"},
+                {"Nicht mit Strom verbunden", "Not connected to power"},
+                {"Akkustand · Automatik", "Battery level · automatic"},
+                {"Zum Abschluss über 95 % laden.", "Charge above 95% to complete."},
+                {"Unter 25 % starten, dann in Ruhe vollladen.", "Start below 25%, then charge fully without interruption."},
+                {"lokale 7 Tage", "local 7 days"},
+                {"Belastung bis zum Ziel", "Usage until target"},
+                {"Keine Messreihe", "No measurement series yet"},
+                {"Noch keine Messreihe", "No measurement series yet"},
+                {"ZEIT →", "TIME →"},
+                {"Kein Konto · kein Abo · Export nur auf Wunsch", "No account · no subscription · export only when you choose"},
+                {"Lokal gespeichert · bis zu 150", "Stored locally · up to 150"},
+                {"Seit dem Trennen keine App-Nutzung erfasst.", "No app usage recorded since unplugging."},
+                {"Warte auf lokale Telemetrie.", "Waiting for local telemetry."},
+                {"Aus lokalen Sitzungsdaten", "From local session data"},
+                {"basierend auf letzter Nutzung", "based on recent usage"},
+                {"7-Tage-Durchschnitt", "7-day average"},
+                {"Ladestrom live", "Live charging current"},
+                {"Vollzyklen (EFC)", "Full cycles (EFC)"},
+                {"T min/Ø/max", "Temp. min/avg/max"},
+                {"Telemetrie T min/Ø/max", "Telemetry temp. min/avg/max"},
+                {"ANALYSEZENTRALE", "ANALYSIS CENTER"},
+                {"Akkustand · Strom · Leistung · Spannung", "Battery level · current · power · voltage"},
+                {"Temperatur · mAh · Wh · Bildschirmstatus", "Temperature · mAh · Wh · screen status"},
+                {"Ladeziel", "Charge target"},
+                {"Ladeverhalten", "Charging behavior"},
+                {"Ladegeschwindigkeit", "Charging speed"},
+                {"VERBLEIBENDE NUTZUNGSZEIT", "REMAINING RUNTIME"},
+                {"Gemischt", "Mixed"},
+                {"Messungen · letzter Ladevorgang ", "Measurements · last charge session "},
+                {"mAh und Anteile sind Schätzungen aus Vordergrundzeit und lokaler Akku-Telemetrie. Eine individuelle mAh/h-Rate zeigen wir nur bei direkter App-Telemetrie; Android stellt keine exakten Akkuwerte je App bereit.", "mAh values and shares are estimates based on foreground time and local battery telemetry. An app-specific mAh/h rate is shown only when direct app telemetry is available; Android does not provide exact battery usage for each app."},
+                {"Letzte 7 Tage · Schätzung; Rest ggf. nicht zuordenbar", "Last 7 days · estimate; remaining usage may be unattributed"},
+                {"Letzte 24 Stunden · Schätzung; Rest ggf. nicht zuordenbar", "Last 24 hours · estimate; remaining usage may be unattributed"},
+                {"Quelle: zugeordnete Akku-Telemetrie (Schätzung)", "Source: attributed battery telemetry (estimate)"},
+                {"Quelle: anteilig nach Vordergrundzeit (Schätzung)", "Source: allocated by foreground time (estimate)"},
+                {"Keine App-Werte zugeordnet", "No app usage attributed"},
+                {"Nutzungszugriff aus", "Usage access off"},
+                {"Noch keine Akku-Messwerte", "No battery measurements yet"},
+                {"App-Verbrauch", "App usage"},
+                {"Fehler", "Failure"},
+                {" mAh zugeordnet", " mAh attributed"},
+                {" Min. · ", " min · "},
+                {"Export nur auf deine Auswahl; kein Konto/Abonnement.", "Export only when you choose; no account or subscription."},
+                {"Wir lernen", "We're learning"},
+                {"deinen Rhythmus.", "your pattern."},
+                {"Deine Werte bleiben bei dir.", "Your data stays yours."},
+                {"Kapazitätsmessung läuft.", "Capacity measurement in progress."},
+                {"deine Geschichte.", "here."},
                 {"Beobachte deinen Akku", "Monitor your battery"},
                 {"Akkuverbrauch deiner Apps", "Battery usage by app"},
                 {"Dein Akku im Zeitverlauf", "Your battery over time"},
@@ -157,6 +315,7 @@ final class AppText {
                 {"Nach dem Abstecken", "After unplugging"},
                 {"Entladung starten", "Start a discharge session"},
                 {"Ladeziel erreicht", "Charge target reached"},
+                {"Lädt bis ", "Charging to "},
                 {"Hohe Akkutemperatur", "High battery temperature"},
                 {"Akku fast leer", "Battery nearly empty"},
                 {"eingestelltes Ziel", "set target"}, {"Grenzwert", "threshold"},
@@ -206,20 +365,96 @@ final class AppText {
                 {"ANALYSEZENTRALE", "ANALYSIS CENTER"},
                 {"LADEVORGANG", "CHARGING SESSION"},
                 {"LADEMENGE", "CHARGE AMOUNT"},
+                {"LADEN", "CHARGING"},
                 {"VERBLEIBENDE NUTZUNGSZEIT", "REMAINING RUNTIME"},
                 {"KAPAZITÄTSSCHÄTZUNG", "CAPACITY ESTIMATE"},
                 {"LADEGESCHWINDIGKEIT", "CHARGING SPEED"},
                 {"ENTLADEVORGANG", "DISCHARGE SESSION"},
-                {"An ", "On "}, {" · aus ", " · off "},
+                {"An ", "On "}, {" · aus ", " · off "}, {"Mittel · ", "Medium · "},
                 {"Bildschirm-Aufweckungen", "screen wake-ups"},
                 {"TÄGLICHE VOLLZYKLEN", "DAILY FULL CYCLES"},
                 {"LADEVERSCHLEISS", "CHARGING WEAR"},
+                {"LIVE-ENERGIEFLUSS", "LIVE ENERGY FLOW"},
+                {"Alarm bei 80 % · kein Ladestopp", "Alert at 80% · charging will continue"},
+                {" · kein Ladestopp", " · charging will continue"},
+                {"LADE-SITZUNG", "CHARGING SESSION"},
+                {"geschätzte Restkapazität", "estimated remaining capacity"},
+                {"auf diesem Gerät.", "on this device."},
+                {"Erste Sitzung wird automatisch aufgezeichnet", "Your first session is recorded automatically"},
+                {"Tiefschlaf: ", "Deep sleep: "},
                 {"AUSWERTUNG", "ANALYSIS"}, {"LETZTE SITZUNGEN", "RECENT SESSIONS"},
                 {"VERLAUF", "HISTORY"}, {"DIAGNOSE", "DIAGNOSTICS"},
                 {"Sitzungen:", "Sessions:"}, {"Ladungsmenge:", "Charge amount:"},
+                {"Temp. ", "Temp. "}, {" · Spannung ", " · Voltage "},
+                {"ca. ", "about "}, {" W aktueller Verbrauch", " W current usage"},
+                {"Ladehistorie", "charging history"}, {"Messstrom + lokale ", "measured current + local "},
+                {"Messstrom + ", "measured current + "}, {"lokale Messwerte", "local measurements"},
+                {"Kapazität messen", "Measure capacity"}, {"Im gesunden Bereich", "Within healthy range"},
+                {"Kapazitätsmessungen", "Capacity measurements"},
+                {"Kapazitätsmessung", "Capacity measurement"},
+                {"Kapazitätsverlust", "Capacity loss"}, {"Datenqualität", "Data quality"},
+                {"Messung und Datenqualität", "Measurement and data quality"},
+                {"ZYKLEN & THERMIK", "CYCLES & THERMALS"},
+                {"Hier wächst bald", "Your story starts"},
+                {"Bereit für deine erste Kurve.", "Ready for your first chart."},
+                {"Nutzungsübersicht", "Usage overview"},
+                {"Für diesen Zeitraum wurde keine App-Nutzung erfasst.", "No app usage was recorded for this period."},
+                {"Geschätzte Kapazität", "Estimated capacity"},
+                {"% Kapazität", "% capacity"},
+                {"Überhitzt", "Overheated"}, {"Überspannung", "Overvoltage"},
+                {"Zu kalt", "Too cold"}, {"Zu heiß", "Too hot"},
+                {"Akzeptabel", "Fair"}, {"Akkuschonend", "Battery protection"},
+                {"Adaptiv", "Adaptive"}, {"Leicht erhöht", "Slightly elevated"},
+                {"Mäßig", "Moderate"}, {"Notfall", "Emergency"}, {"Abschaltung", "Shutdown"},
+                {"Ladeende noch nicht stabil (über 25 mA)", "Charge end is not stable yet (above 25 mA)"},
+                {" · Datenlücke", " · data gap"},
+                {"Damit ordnet Ampere den geschätzten", "This lets Ampere attribute estimated"},
+                {"Nutzungszugriff ist optional", "Usage access is optional"},
+                {"Zugriff einrichten  →", "Set up access  →"},
+                {"Beobachten", "Monitor"}, {"Prüfung empfohlen", "Check recommended"},
+                {"Nennkapazität ", "Design capacity "}, {"Nennwert ", "Design value "},
+                {"Niedrig · ", "Low · "}, {"Mittel · ", "Medium · "}, {"Gut · ", "Good · "},
+                {"Messungen", "measurements"}, {"Messreihe", "measurement series"},
+                {"Sobald Strom fließt, bin ich da.", "Live readings appear when current starts flowing."},
+                {"angenehm kühl", "comfortably cool"}, {"Live-Sensor", "Live sensor"},
+                {"Was gerade im Akku passiert", "What's happening in the battery"},
+                {"Seit dem Anschließen", "Since plugging in"},
+                {"Lass die Überwachung laufen, um", "Keep monitoring running to create"},
+                {"lokale Verlaufseinträge zu erstellen.", "local history entries."},
+                {"Kapazitätsmessung weiter unten starten", "Start capacity measurement below"},
+                {"geeignete Sitzungen", "valid sessions"},
+                {"Kapazitätsmessung läuft", "Capacity measurement in progress"},
+                {"Zum Abschluss über 95 % laden", "Charge above 95% to complete"},
+                {"Für beste Ergebnisse unter 25 % starten", "For best results, start below 25%"},
+                {"Nennkapazität festlegen, um den Trend zu normieren.", "Set design capacity to normalize the trend."},
+                {"Schließe weitere Ladevorgänge für den Trend ab.", "Complete more charge sessions to build the trend."},
+                {"Noch keine täglichen Zykluswerte verfügbar.", "No daily cycle values available yet."},
+                {"Die Überwachung zeichnet sie ab dem nächsten Messpunkt auf.", "Monitoring will record them from the next reading."},
+                {"Schließe einen Ladevorgang für den lokalen Trend ab.", "Complete a charge session for a local trend."},
+                {"Noch keine Sitzungen abgeschlossen.", "No sessions completed yet."},
+                {"Noch keine Entladung", "No discharge yet"},
+                {"noch keine Entladung", "no discharge yet"},
+                {"Sitzungsverlauf", "Session history"}, {"Lade-/Entladesitzungen", "Charge/discharge sessions"},
+                {"Messwerte aufgezeichnet", "Measurements recorded"},
+                {"Export nur auf deine Auswahl; kein Konto/Abonnement.", "Export only when you choose; no account or subscription."},
+                {"Noch keine lokalen Messwerte", "No local measurements yet"},
+                {"Gestrichelt = geschätzt", "Dashed = estimated"},
+                {"Schattiert = fehlender Tag", "Shaded = missing day"},
+                {"Schattiert = Messlücke", "Shaded = data gap"},
+                {"Punkt = letzter Messwert je Tag", "Dot = last reading of each day"},
+                {"Letzte Sitzungen", "Recent sessions"}, {"Weitere Sitzungen im Verlauf", "More sessions in history"},
+                {"Entladestrom", "Discharge current"}, {"Ladestrom", "Charging current"},
                 {"VERLAUF & STATISTIK", "HISTORY & STATISTICS"},
                 {"Lokal aus Messpunkten berechnet · keine Cloud", "Calculated locally from measurements · no cloud"},
+                {"Ältere Monate können leer sein · lokale Daten: etwa ", "Older months may be blank · local data: about "},
                 {"DIESER MONAT · MONATSANFANG BIS HEUTE", "THIS MONTH · START OF MONTH TO TODAY"},
+                {"7 KALENDERTAGE", "7 CALENDAR DAYS"},
+                {"5 KALENDERWOCHEN", "5 CALENDAR WEEKS"},
+                {"6 KALENDERMONATE", "6 CALENDAR MONTHS"},
+                {"Täglich", "Daily"}, {"Wöchentlich", "Weekly"}, {"Monatlich", "Monthly"},
+                {"— = keine auswertbaren Messwerte", "— = no usable measurements"},
+                {"Balkenhöhe je Kennzahl relativ zum Maximum", "Bar height is relative to each metric's maximum"},
+                {"Zahlen = Messwerte · Farben wie Legende", "Numbers = measurements · colors match the legend"},
                 {"Aufgeladen", "Charged"}, {"Batterieverbrauch", "Battery usage"},
                 {"Geladen", "Charged"}, {"Ladequote", "Charge ratio"},
                 {"Mär", "Mar"}, {"Mai", "May"}, {"Juni", "June"},
@@ -253,7 +488,6 @@ final class AppText {
                 {"Letzte 24 Stunden", "Last 24 hours"},
                 {"Letzte 7 Tage", "Last 7 days"},
                 {"Letzte 30 Tage", "Last 30 days"},
-                {"Täglich", "Daily"}, {"Wöchentlich", "Weekly"}, {"Monatlich", "Monthly"},
                 {"Übersicht", "Overview"}, {"Start", "Home"}, {"Laden", "Charging"},
                 {"Entladen", "Discharging"}, {"Akku", "Battery"}, {"Verlauf", "History"},
                 {"Gesundheit", "Health"}, {"Einstellungen", "Settings"},
@@ -265,9 +499,6 @@ final class AppText {
                 {"Spannung", "Voltage"}, {"Verbrauch", "Usage"}, {"Akkuverbrauch", "Battery usage"},
                 {"Bildschirmzeit", "Screen time"}, {"Ladezyklen", "Charge cycles"},
                 {"Lernen braucht", "Learning takes"}, {"ein wenig Zeit.", "a little time."},
-                {"Eine volle Ladung", "One full charge"}, {"schafft die Messbasis", "provides the baseline"},
-                {"geeignete Sitzungen", "valid sessions"},
-                {"Kapazitätsmessung weiter unten starten", "Start capacity measurement below"},
                 {"Systemzyklen", "System cycles"}, {"von Android gemeldet", "reported by Android"},
                 {"Android-Testwert", "Android test value"}, {"Android-Akkusensor", "Android battery sensor"},
                 {"Ampere-Vollzyklen", "Ampere full cycles"}, {"MESSBASIS", "MEASUREMENT BASELINE"},
@@ -281,18 +512,40 @@ final class AppText {
                 {"Ladeeingang", "Charging input"}, {"Akkuseite", "Battery side"},
                 {"Aktueller Akkustand", "Current battery level"}, {"aktueller Akkustand", "current battery level"},
                 {"Aktualisiert live", "Updated live"}, {"Warte auf Strommessung", "Waiting for current measurement"},
+                {"Ladestrom", "Charging current"},
+                {"Live-Daten aktualisieren", "Refresh live data"},
+                {"USB-Ladegerät", "USB charger"},
+                {"Ladegerät max. ", "Charger max. "},
+                {"Ladehardware max. ", "Charging hardware max. "},
+                {"OEM-Ladefenster ", "OEM charge window "},
+                {"OEM-Limit ", "OEM limit "},
+                {"Laden im Wachzustand gesperrt", "Charging paused while awake"},
+                {"Laden gesperrt", "Charging paused"},
+                {"Entladung erzwungen", "Forced discharge"},
+                {"Normalbetrieb", "Normal operation"},
+                {"Benutzerdefiniert", "Custom"},
+                {"Lädt schnell", "Fast charging"},
+                {"Trickle", "Trickle charging"},
+                {"Adaptiv", "Adaptive"},
+                {"Warte auf Energiedaten", "Waiting for energy data"},
+                {"Wird nach dem Ladevorgang einbezogen", "Included after charging"},
+                {"Längere Ladevorgänge verbessern die Genauigkeit", "Longer charging sessions improve accuracy"},
+                {"Kabellos", "Wireless"}, {"Externe Stromquelle", "External power source"},
                 {"Warte auf Android-Akkuwert", "Waiting for Android battery value"},
                 {"Nicht verfügbar", "Not available"}, {"nicht verfügbar", "not available"},
                 {"Keine Daten", "No data"}, {"Noch keine Daten", "No data yet"},
                 {"Noch keine Verbrauchsdaten für die Quote", "No usage data for the ratio yet"},
+                {"Quote = geladen ÷ Verbrauch · EFC = Vollzyklen, kein Zellwirkungsgrad.", "Ratio = charged ÷ used · EFC = full cycles, not cell efficiency."},
+                {"Noch keine abgeschlossenen Lade- oder Entladevorgänge.", "No completed charge or discharge sessions yet."},
+                {"Sitzung antippen für Details", "Tap a session for details"},
                 {"Wird gemessen", "Measuring"}, {"Noch offen", "Pending"}, {"gerade eben", "just now"},
                 {"BERECHNET", "CALCULATED"}, {"GESCHÄTZT", "ESTIMATED"}, {"SYSTEM", "SYSTEM"},
                 {"LIVE", "LIVE"}, {"AKKUVERBRAUCH", "BATTERY USAGE"}, {"Lade-/Verbrauchsquote", "charge/usage ratio"},
-                {"lokale Verlaufseinträge zu erstellen.", "to create local history entries."},
                 {"Akkumesswerte bleiben auf diesem Gerät.", "Battery measurements stay on this device."},
                 {"Weitere Sitzungen im Verlauf", "More sessions in history"},
                 {"Verbrauch den verwendeten Apps zu.", "Usage attributed to the apps used."},
                 {"Wärme prüfen", "Check temperature"}, {"Unbekannt", "Unknown"},
+                {"Status unbekannt", "Status unknown"},
                 {"Temperaturwarnung", "Temperature alert"}, {"Tiefstandwarnung", "Low battery alert"},
                 {"Datenerfassung", "Data collection"}, {"Hintergrundüberwachung", "Background monitoring"},
                 {"Daten & Datenschutz", "Data & privacy"}, {"Nutzungsanalyse", "Usage analytics"},
@@ -312,7 +565,6 @@ final class AppText {
                 {"(empfohlen)", "(recommended)"}, {"Alle ", "Every "},
                 {"Abbrechen", "Cancel"}, {"Speichern", "Save"}, {"Schließen", "Close"},
                 {"Einstellungen schließen", "Close settings"}, {"Akku-Einstellungen", "Battery settings"},
-                {"Berechtigungen & Zugriffe", "Permissions & access"}, {"Fertig", "Done"},
                 {"Aktiv", "Active"}, {"Nicht erteilt", "Not granted"}, {"optional", "optional"},
                 {"Optional · nicht aktiviert", "Optional · not enabled"},
                 {"Live-Status und Alarme", "Live status and alerts"},
@@ -360,7 +612,6 @@ final class AppText {
                 {"CSV exportieren", "Export CSV"},
                 {"Exakte Werte im Bilanzdiagramm anzeigen", "Show exact values in the balance chart"},
                 {"Kapazitätsmessung stoppen", "Stop capacity measurement"},
-                {"Kapazität messen", "Measure capacity"},
                 {"Nennkapazität bearbeiten", "Edit design capacity"},
                 {"Restlaufzeit bei dauerhaft eingeschaltetem Bildschirm", "Runtime with screen always on"},
                 {"Restlaufzeit bei ausgeschaltetem Bildschirm", "Runtime with screen off"},
@@ -449,7 +700,6 @@ final class AppText {
                 {"Akkustatus kopiert.", "Battery status copied."},
                 {"Strom", "Current"}, {"Quelle", "Source"}, {"lokal auf Android", "local on Android"},
                 {"Version", "Version"},
-                {"Laden erkannt", "Charging detected"}, {"Bildschirm- und Hintergrundverbrauch lokal erfasst", "Screen and background usage recorded locally"},
                 {"Lokale Akkuüberwachung · jede Sekunde", "Local battery monitoring · every second"},
                 {"Prozent", "percent"}, {"Stunde", "hour"}, {"Stunden", "hours"},
                 {"Minute", "minute"}, {"Minuten", "minutes"}, {"Tag", "day"}, {"Tage", "days"},
@@ -462,17 +712,14 @@ final class AppText {
                 {"HISTORY & STATISTIK", "HISTORY & STATISTICS"},
                 {"Batterieverbrauch", "Battery usage"}, {"Batterieverschleiß", "Battery wear"},
                 {"Batteryverbrauch", "Battery usage"}, {"Batteryverschleiß", "Battery wear"},
-                {"Geladen/Usage", "Charged/usage"},
                 {"Laderate ", "Charge rate "}, {"Strom nicht verfügbar", "Current unavailable"},
                 {"Temperatur nicht verfügbar", "Temperature unavailable"},
-                {"Akkumesswerte werden auf diesem Gerät gespeichert", "Battery measurements are stored on this device"},
                 {"Restenergie", "Remaining energy"}, {"Android-Zustand", "Android status"},
                 {"Kapazitätsniveau", "Capacity level"}, {"Ladeprofil", "Charging profile"},
                 {"Ladealgorithmus", "Charging algorithm"}, {"Ladeverhalten", "Charging behavior"},
                 {"Thermik", "Thermal status"}, {"Gesundheit", "Health"}, {"Schätzung", "Estimate"},
                 {"Lokale Akkuüberwachung", "Local battery monitoring"}, {"Laden erkannt", "Charging detected"},
                 {"Bildschirm- und Hintergrundverbrauch lokal erfasst", "Screen and background usage recorded locally"},
-                {"Akkuüberwachung", "Battery monitoring"}, {"Ladealarm", "Charge alert"},
                 {"Batterystand", "Battery level"}, {"daye", "days"},
                 {"History täglich", "Daily history"}, {"History wöchentlich", "Weekly history"},
                 {"History monatlich", "Monthly history"}, {" von ", " of "},
@@ -534,7 +781,6 @@ final class AppText {
                 {"Die Charge/usage ratio vergleicht geladene mit useder Energie und ist keine gemessene Battery-Efficiency. Balkenwerte (jede Kennzahl ist separat skaliert):", "The charge/usage ratio compares charged with used energy and is not measured battery efficiency. Bar values (each metric is scaled separately):"},
                 {"Die Charge/usage ratio vergleicht geladene mit used Energie und ist keine gemessene battery efficiency.", "The charge/usage ratio compares charged with used energy and is not measured battery efficiency."},
                 {"Usage wird live erfasst.", "Usage is tracked live."},
-                {"LIVE-ENERGIEFLUSS", "LIVE ENERGY FLOW"},
                 {"Sehr gut", "Very good"},
                 {"Batterytemperatur", "Battery temperature"},
                 {"aktueller Current + lokale Messwerte", "current + local measurements"},
@@ -580,16 +826,15 @@ final class AppText {
                 {"Akkustand · 7 Tage", "Battery level · 7 days"},
                 {"Akkustand · 30 Tage", "Battery level · 30 days"},
                 {"..", "."}
-        };
-        // Apply complete phrases before short vocabulary fragments. Otherwise
-        // replacing "Akku", "Tage" or "Schätzung" first can corrupt a full
-        // sentence and leave mixed-language output behind.
-        for (int i = 0; i < phrases.length - 1; i++) {
-            for (int j = i + 1; j < phrases.length; j++) {
-                if (phrases[j][0].length() > phrases[i][0].length()) {
-                    String[] swap = phrases[i];
-                    phrases[i] = phrases[j];
-                    phrases[j] = swap;
+                    };
+                    // Sort once: AppText is called for many labels per frame.
+                    // Stable sorting preserves the existing order for equal keys.
+                    Arrays.sort(phrases, new Comparator<String[]>() {
+                        @Override public int compare(String[] left, String[] right) {
+                            return Integer.compare(right[0].length(), left[0].length());
+                        }
+                    });
+                    sortedTranslationPhrases = phrases;
                 }
             }
         }
@@ -609,5 +854,196 @@ final class AppText {
             result = result.replace("\uE000" + i + "\uE001", protectedResults[i]);
         }
         return result;
+    }
+
+    private static String translateServiceHeartbeatAge(String value) {
+        Matcher matcher = GERMAN_SERVICE_HEARTBEAT_AGE.matcher(value);
+        if (!matcher.find()) return value;
+        StringBuffer translated = new StringBuffer();
+        do {
+            String number = matcher.group(1);
+            String unit = "1".equals(number) ? " minute ago" : " minutes ago";
+            matcher.appendReplacement(translated, Matcher.quoteReplacement(
+                    "Service last confirmed " + number + unit));
+        } while (matcher.find());
+        matcher.appendTail(translated);
+        return translated.toString();
+    }
+
+    /** Full translations for preference rows whose digits and units must remain intact. */
+    private static String translateExactPreference(String value) {
+        switch (value) {
+            case "Aus": return "Off";
+            case "Ab 40 °C": return "At 40 °C";
+            case "Ab 45 °C (empfohlen)": return "At 45 °C (recommended)";
+            case "Ab 50 °C": return "At 50 °C";
+            case "Ab 55 °C": return "At 55 °C";
+            case "Bei 10 % oder weniger": return "At 10% or less";
+            case "Bei 15 % oder weniger (empfohlen)": return "At 15% or less (recommended)";
+            case "Bei 20 % oder weniger": return "At 20% or less";
+            case "Bei 25 % oder weniger": return "At 25% or less";
+            case "Bei 30 % oder weniger": return "At 30% or less";
+            case "Alle 5 Minuten": return "Every 5 minutes";
+            case "Alle 15 Minuten (empfohlen)": return "Every 15 minutes (recommended)";
+            case "Alle 30 Minuten": return "Every 30 minutes";
+            case "Alle 60 Minuten": return "Every 60 minutes";
+            default: return null;
+        }
+    }
+
+    /** Exact UI phrases that would otherwise be damaged by word-level replacements. */
+    private static String translateExactUiPhrase(String value) {
+        switch (value) {
+            case "Dauer": return "Duration";
+            case "Gestartet": return "Started";
+            case "Fertig": return "Done";
+            case "Weiter": return "Continue";
+            case "Löschen": return "Delete";
+            case "Zustimmen und aktivieren": return "Agree and enable";
+            case "aktiv": return "active";
+            case "ein": return "on";
+            case "App-Sprache": return "App language";
+            case "Benutzerdefiniert": return "Custom";
+            case "Deutsch": return "German";
+            case "Englisch": return "English";
+            case "Tag": return "Day";
+            case "Woche": return "Week";
+            case "Monat": return "Month";
+            case "AUSWERTUNG": return "ANALYSIS";
+            case "T min/Ø/max": return "Temp. min/avg/max";
+            case "Telemetrie T min/Ø/max": return "Telemetry temp. min/avg/max";
+            case "Charged/Usage": return "Charge/usage ratio";
+            case "LIVE-TELEMETRIE": return "LIVE TELEMETRY";
+            case "DETAILANALYSE": return "DETAILED ANALYSIS";
+            case "MANUELL": return "MANUAL";
+            case "TESTDATEN": return "TEST DATA";
+            case "Sehr gut": return "Very good";
+            case "NICHT BEREIT": return "NOT READY";
+            case "LÄDT JETZT": return "CHARGING NOW";
+            case "AKKUBETRIEB": return "ON BATTERY";
+            case "Android-Testwert": return "Android test value";
+            case "Lernen braucht": return "Learning takes";
+            case "Live-Anzeige": return "Live overlay";
+            case "Bildschirm an": return "Screen on";
+            case "Bildschirm aus": return "Screen off";
+            case "Bildschirm an / aus": return "Screen on / off";
+            case "Speichern": return "Save";
+            case "Ausschalten": return "Turn off";
+            case "Benachrichtigungseinstellungen öffnen": return "Open notification settings";
+            case "Akku-Einstellungen öffnen": return "Open battery settings";
+            case "Nach Updates suchen": return "Check for updates";
+            case "Kurzanleitung": return "Quick guide";
+            case "Aktuellen Status kopieren": return "Copy current status";
+            case "Aktuellen Status teilen": return "Share current status";
+            case "Ausgewählter Zeitraum": return "Selected period";
+            case "Ampere-Live-Anzeige aktiv": return "Ampere live display is active";
+            case "Live-Akkumesswerte werden auf dem Bildschirm angezeigt":
+                return "Live battery measurements are shown on screen";
+            case "Akkuverbrauch deiner Apps anzeigen": return "Show battery usage by app";
+            case "Akkustrom live": return "Live battery current";
+            case "Temperatur": return "Temperature";
+            case "Android-Zustand": return "Android status";
+            case "Voll": return "Full";
+            case "Niedrig": return "Low";
+            case "Hoch": return "High";
+            case "Letzte Entladephase": return "Last discharge phase";
+            case "Aktuelle Entladephase": return "Current discharge phase";
+            case "Noch keine Ladebasis": return "No charge baseline yet";
+            case "Noch kein Verbrauch": return "No usage yet";
+            case "Seit Ladebasis": return "Since baseline";
+            case "Seit Abstecken": return "Since unplugging";
+            case "Seit voller Ladung": return "Since full charge";
+            case "Akku fehlt": return "Battery not detected";
+            case "Letzte Sitzung": return "Last session";
+            case "Momentanstrom": return "Instantaneous current";
+            case "Quelle: Android/BMS-Zähler": return "Source: Android/BMS counter";
+            case "Quelle: lokale EFC-Schätzung": return "Source: local EFC estimate";
+            case "Max. Ladeleistung nicht verfügbar": return "Max. charging power unavailable";
+            case "Android-Batterie-API": return "Android battery API";
+            case "Batterie-Treiber": return "Battery driver";
+            case "Android-Systemwert": return "Android system value";
+            case "lokale Lademessungen": return "local charging measurements";
+            case "Batterie-Treiber-SoH": return "Battery driver SoH";
+            case "BMS-/Treiberwert": return "BMS/driver value";
+            case "keine Messung": return "no measurement";
+            case "Nutzungszugriff aus": return "Usage access off";
+            case "Ab 5 Min.": return "After 5 min.";
+            case "Standby-Modell": return "Standby model";
+            case "Warte auf Energiedaten": return "Waiting for energy data";
+            case "Wird nach dem Ladevorgang einbezogen":
+                return "Included after charging";
+            case "Längere Ladevorgänge verbessern die Genauigkeit":
+                return "Longer charging sessions improve accuracy";
+            case "Mittel": return "Medium";
+            case "Akzeptabel": return "Fair";
+            case "Abschaltung": return "Shutdown";
+            case "Kabellos": return "Wireless";
+            case "Kein Konto · kein Abo · Export nur auf Wunsch":
+                return "No account · no subscription · export only when you choose";
+            case "Akkustatus teilen": return "Share battery status";
+            case "Derzeit aktiv.": return "Currently active.";
+            case "Noch keine automatische Sicherung angefordert.":
+                return "No automatic backup has been requested yet.";
+            case "Letzte automatische Sicherungsanforderung: ":
+                return "Last automatic backup request: ";
+            case ". Android steuert Dienst und Zeitpunkt der Sicherung.":
+                return ". Android controls the backup service and timing.";
+            case "Sicherung erstellen": return "Create backup";
+            case "Sicherung wiederherstellen": return "Restore backup";
+            case "Lokale Daten gelöscht.": return "Local data deleted.";
+            case "Basis zurücksetzen": return "Reset baseline";
+            case "Gesundheitsbasis zurückgesetzt; Verlauf bleibt erhalten.":
+                return "Health baseline reset; history was kept.";
+            case "Noch keine Reihe": return "No readings yet";
+            case "Noch keine Basis": return "No baseline yet";
+            case "Messung ": return "Measurement ";
+            case "Messung": return "Measurement";
+            case "Prozentpunkte": return "percentage points";
+            case "SITZUNGSANALYSE": return "SESSION ANALYSIS";
+            case "ZYKLEN & THERMIK": return "CYCLES & THERMALS";
+            case "Ladungsmenge": return "Charge amount";
+            case "Sitzungsdauer": return "Session duration";
+            case "Systemzyklen": return "System cycles";
+            case "Zeit, Ladung und Ruhephasen": return "Time, charge, and idle periods";
+            case "Messpunkte": return "Readings";
+            case "Zyklen sauber getrennt": return "Cycles tracked separately";
+            case "Gesamt geladen": return "Total charged";
+            case "Gesamt geladen: ": return "Total charged: ";
+            case "Temperatur Min / Ø / Max": return "Temperature min / avg / max";
+            case "Niedrig · 1 Messung": return "Low · 1 reading";
+            case "gesammelt · Sitzung läuft": return "collected · session in progress";
+            case "lokal gespeichert": return "stored locally";
+            case "noch keine Telemetrie": return "no telemetry yet";
+            case " · Wärme prüfen": return " · check temperature";
+            case " · Thermik ": return " · thermal status ";
+            case "Nicht aktiv": return "Inactive";
+            case "Live-Anzeige ausschalten · derzeit aktiv":
+                return "Turn off live display · currently active";
+            case "Live-Anzeige einschalten · derzeit aus":
+                return "Turn on live display · currently off";
+            case "Ladealarm ausschalten · derzeit aktiv":
+                return "Turn off charge alert · currently active";
+            case "Ladealarm einschalten · derzeit aus":
+                return "Turn on charge alert · currently off";
+            case "Akkualterung": return "Battery aging";
+            case "Noch keine Telemetrie": return "No telemetry yet";
+            case " Messwerte": return " readings";
+            case "Zeitraum nicht verfügbar": return "Period unavailable";
+            case "Nicht verfügbar · Nennkapazität manuell festlegen":
+                return "Unavailable · set design capacity manually";
+            case "Zu geringe Akkustandänderung (mindestens 5 % nötig)":
+                return "Battery level change too small (at least 5% required)";
+            case "Energiezähler/Strom nicht verfügbar":
+                return "Energy counter/current unavailable";
+            case "Automatische Schätzung erst ab 95 % Ladezustand":
+                return "Automatic estimate requires a charge level of at least 95%";
+            case "Ladestrom am Ladeende nicht verfügbar":
+                return "Charging current unavailable at end of charge";
+            case "Ladeende noch nicht stabil (über 25 mA)":
+                return "Charge is not stable yet at the end (above 25 mA)";
+            case "Wird in den nächsten Gesundheitsdurchschnitt einbezogen":
+                return "Included in the next battery health average";
+            default: return null;
+        }
     }
 }
