@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       console_preflight_confirmed:
-        description: "Confirm the authenticated Console was just checked: no pending/in-review changes, and active Alpha plus fallback verified."
+        description: "Confirm the authenticated Console was just checked: no pending/in-review changes, active Alpha/fallback verified, and Play minSdk continuity checked."
         required: true
         default: false
         type: boolean
@@ -31,6 +31,33 @@ jobs:
       CONSOLE_PREFLIGHT_CONFIRMED: ${{ inputs.console_preflight_confirmed }}
       ALPHA_COMPATIBILITY_FALLBACK_CODE: "459"
     steps:
+      - name: Check out the default-branch release source
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: main
+
+      - name: Verify the Play device-compatibility baseline
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF" != 'refs/heads/main' ]]; then
+            echo "::error title=Default branch required::Dispatch this workflow from main so the compatibility guard checks the release source."
+            exit 1
+          fi
+          play_min_sdk="$(awk '
+            /^[[:space:]]*play[[:space:]]*\{/ { in_play=1; next }
+            in_play && /^[[:space:]]*minSdk[[:space:]]+[0-9]+([[:space:]]|$)/ {
+              value=$2
+              print value
+              exit
+            }
+            in_play && /^[[:space:]]*}/ { in_play=0 }
+          ' android/app/build.gradle)"
+          if [[ "$play_min_sdk" != '24' ]]; then
+            echo "::error title=Play compatibility review required::Expected Play minSdk 24 for fallback code 459, found '${play_min_sdk:-unrecognized}'. Reassess the retained version-code coverage before uploading."
+            exit 1
+          fi
+          echo 'Play flavor minSdk 24 matches the verified Alpha compatibility baseline.'
+
       - name: Download and verify public Play bundle
         run: |
           set -euo pipefail
