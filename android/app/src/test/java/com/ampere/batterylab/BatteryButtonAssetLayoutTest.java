@@ -397,7 +397,7 @@ public class BatteryButtonAssetLayoutTest {
         assertFalse("empty health source must not use the ungrammatical dative fragment",
                 dashboard.contains("keiner Messung"));
         assertTrue("measurement guidance must use typographic spacing before percent signs",
-                dashboard.contains("Unter 25 % starten") && dashboard.contains("über 95 % laden"));
+                dashboard.contains("Bei höchstens 25 % starten") && dashboard.contains("über 95 % laden"));
     }
 
     @Test public void liveOverlayBoundsLongAppNamesOnSmallDisplays() throws IOException {

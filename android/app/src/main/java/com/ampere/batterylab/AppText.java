@@ -153,8 +153,8 @@ final class AppText {
         if ("schafft die Messbasis".equals(value)) return "establishes the measurement baseline";
         if ("Äquivalente Zyklen: ".equals(value)) return "Equivalent cycles: ";
         if ("Lokal".equals(value)) return "Local";
-        if ("Starte die Kapazitätsmessung getrennt vom Ladegerät unter 25 %.".equals(value)) {
-            return "Start the capacity measurement unplugged and below 25%.";
+        if ("Starte die Kapazitätsmessung getrennt vom Ladegerät bei höchstens 25 %.".equals(value)) {
+            return "Start the capacity measurement unplugged at 25% or below.";
         }
         if ("Entladung starten".equals(value)) return "Start a discharge session";
         if ("Übersicht anzeigen".equals(value)) return "Show overview";
@@ -233,7 +233,7 @@ final class AppText {
                 {"Nicht mit Strom verbunden", "Not connected to power"},
                 {"Akkustand · Automatik", "Battery level · automatic"},
                 {"Zum Abschluss über 95 % laden.", "Charge above 95% to complete."},
-                {"Unter 25 % starten, dann in Ruhe vollladen.", "Start below 25%, then charge fully without interruption."},
+                {"Bei höchstens 25 % starten, dann in Ruhe vollladen.", "Start at 25% or below, then charge fully without interruption."},
                 {"lokale 7 Tage", "local 7 days"},
                 {"Belastung bis zum Ziel", "Usage until target"},
                 {"Keine Messreihe", "No measurement series yet"},
@@ -425,7 +425,7 @@ final class AppText {
                 {"geeignete Sitzungen", "valid sessions"},
                 {"Kapazitätsmessung läuft", "Capacity measurement in progress"},
                 {"Zum Abschluss über 95 % laden", "Charge above 95% to complete"},
-                {"Für beste Ergebnisse unter 25 % starten", "For best results, start below 25%"},
+                {"Für beste Ergebnisse bei 25 % oder weniger starten", "For best results, start at 25% or below"},
                 {"Nennkapazität festlegen, um den Trend zu normieren.", "Set design capacity to normalize the trend."},
                 {"Schließe weitere Ladevorgänge für den Trend ab.", "Complete more charge sessions to build the trend."},
                 {"Noch keine täglichen Zykluswerte verfügbar.", "No daily cycle values available yet."},
@@ -695,7 +695,7 @@ final class AppText {
                 {"Grafische ", "Graphical "}, {"-Ansicht", " view"},
                 {"Die Werte stehen oben in der Großschrift-Ansicht.", "The values are shown above in large-text view."},
                 {"Ladeziel zwischen 50 und 100 Prozent", "Charge target between 50 and 100 percent"},
-                {"Starte die Kapazitätsmessung getrennt vom Ladegerät unter 25 %.", "Start the capacity measurement unplugged and below 25%."},
+                {"Starte die Kapazitätsmessung getrennt vom Ladegerät bei höchstens 25 %.", "Start the capacity measurement unplugged at 25% or below."},
                 {"Gib die werkseitige Kapazität in mAh ein. Mit 0 wird automatisch der von Android gemeldete Wert verwendet.", "Enter the factory capacity in mAh. Enter 0 to use the value reported by Android automatically."},
                 {"Akkustatus kopiert.", "Battery status copied."},
                 {"Strom", "Current"}, {"Quelle", "Source"}, {"lokal auf Android", "local on Android"},
@@ -730,7 +730,7 @@ final class AppText {
                 {"Battery level beim Start", "Battery level at start"},
                 {"Battery level aktuell", "Current battery level"},
                 // The broad navigation word "Start" must not alter "Starte ..." in dialogs.
-                {"Homee die Kapazitätsmessung getrennt vom Ladegerät unter 25 %.", "Start the capacity measurement unplugged and below 25%."},
+                {"Homee die Kapazitätsmessung getrennt vom Ladegerät bei höchstens 25 %.", "Start the capacity measurement unplugged at 25% or below."},
                 {"Home a discharge session", "Start a discharge session"},
                 {"Batterystatus kopiert.", "Battery status copied."},
                 {"Since unplugging · geschätzte Werte", "Since unplugging · estimated values"},
@@ -900,6 +900,9 @@ final class AppText {
             case "Kapazitätsmessung gestoppt.": return "Capacity measurement stopped.";
             case "Fertig": return "Done";
             case "Weiter": return "Continue";
+            case "Schließen": return "Close";
+            case "SCHLIESSEN": return "CLOSE";
+            case "Bis 25 % und nicht am Ladegerät.": return "At 25% or below and unplugged.";
             case "Löschen": return "Delete";
             case "Zustimmen und aktivieren": return "Agree and enable";
             case "aktiv": return "active";

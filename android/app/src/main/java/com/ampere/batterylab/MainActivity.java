@@ -1222,6 +1222,7 @@ class BatteryDashboard extends View {
     private boolean chargeAlarm = true;
     private int chargeLimit = 80;
     private boolean benchmarkActive = false;
+    private String benchmarkFeedback = "";
     private boolean overlayEnabled = false;
     private int historyDays = 7;
     private int historyPeriodDays = 1;
@@ -1864,15 +1865,18 @@ class BatteryDashboard extends View {
     private void toggleBenchmark() {
         if (benchmarkActive) {
             benchmarkActive = false;
+            benchmarkFeedback = "";
             prefs.edit().putBoolean("benchmarkActive", false)
                     .remove("benchmarkStartLevel").remove("benchmarkStartCounterMah")
                     .remove("benchmarkChargeLastCounterMah").remove("benchmarkChargeAddedMah")
                     .remove("benchmarkChargeStatsBaselineMah").apply();
             Toasts.show(getContext(), AppText.t(getContext(), "Kapazitätsmessung gestoppt."));
         } else if (charging || level > 25) {
-            Toasts.show(getContext(), AppText.t(getContext(), "Starte die Kapazitätsmessung getrennt vom Ladegerät unter 25 %."));
+            benchmarkFeedback = "Bis 25 % und nicht am Ladegerät.";
+            Toasts.show(getContext(), AppText.t(getContext(), "Starte die Kapazitätsmessung getrennt vom Ladegerät bei höchstens 25 %."));
         } else {
             benchmarkActive = true;
+            benchmarkFeedback = "";
             AnalyticsTracker.logFeature(getContext(), "health_measurement");
             SharedPreferences.Editor editor = prefs.edit().putBoolean("benchmarkActive", true)
                     .putInt("benchmarkStartLevel", level).putInt("benchmarkChargeAddedMah", 0)
@@ -3051,8 +3055,8 @@ class BatteryDashboard extends View {
                 ? "Overview shows your live battery level, temperature, voltage, and history.\n\nCharging includes the charge target and sessions. Discharging shows usage and runtime. Battery health explains the device's condition and capacity. History compares days, weeks, and months.\n\nSwitch between the five sections using the bar at the bottom. Your battery measurements stay on this device."
                 : "Übersicht zeigt den Live-Akkustand, Temperatur, Spannung und Verlauf.\n\nLaden enthält Ladeziel und Sitzungen. Entladen zeigt Verbrauch und Laufzeit. Akku erklärt Gesundheit und Kapazität. Verlauf vergleicht Tag, Woche und Monat.\n\nDie fünf Bereiche wechselst du über die Leiste unten. Deine Akku-Messwerte bleiben lokal auf diesem Gerät.")
                 : (english
-                ? "Notifications keep background status and charge alerts visible. Android will ask for them when you tap Get started if they are not allowed yet.\n\nApp usage access is only needed for usage by app. Overlay enables the live display over other apps. Both are optional and requested only when you use the related feature. You can review every access later under Settings → Check permissions.\n\nFor the health measurement, start below 25% and charge above 95%. Usage analytics is optional and stays off until you enable it under Data & privacy."
-                : "Benachrichtigungen halten Hintergrundstatus und Ladealarme sichtbar. Bei „Loslegen“ fragt Android dich danach, falls sie noch nicht erlaubt sind.\n\nApp-Nutzungszugriff ist nur für Verbrauch pro App nötig. Overlay erlaubt die Live-Anzeige über anderen Apps. Beide sind optional und werden erst bei Nutzung der jeweiligen Funktion angefragt. Du kannst jeden Zugriff später unter Einstellungen → Berechtigungen prüfen.\n\nFür die Gesundheitsmessung: unter 25 % starten und über 95 % laden. Nutzungsanalyse ist freiwillig und bleibt aus, bis du sie in Daten & Datenschutz einschaltest.");
+                ? "Notifications keep background status and charge alerts visible. Android will ask for them when you tap Get started if they are not allowed yet.\n\nApp usage access is only needed for usage by app. Overlay enables the live display over other apps. Both are optional and requested only when you use the related feature. You can review every access later under Settings → Check permissions.\n\nFor the health measurement, start at 25% or below and charge above 95%. Usage analytics is optional and stays off until you enable it under Data & privacy."
+                : "Benachrichtigungen halten Hintergrundstatus und Ladealarme sichtbar. Bei „Loslegen“ fragt Android dich danach, falls sie noch nicht erlaubt sind.\n\nApp-Nutzungszugriff ist nur für Verbrauch pro App nötig. Overlay erlaubt die Live-Anzeige über anderen Apps. Beide sind optional und werden erst bei Nutzung der jeweiligen Funktion angefragt. Du kannst jeden Zugriff später unter Einstellungen → Berechtigungen prüfen.\n\nFür die Gesundheitsmessung: bei höchstens 25 % starten und über 95 % laden. Nutzungsanalyse ist freiwillig und bleibt aus, bis du sie in Daten & Datenschutz einschaltest.");
         AlertDialog.Builder guide = new AlertDialog.Builder(getContext())
                 .setTitle(title)
                 .setMessage(message);
@@ -3738,9 +3742,12 @@ class BatteryDashboard extends View {
                     : health == 0 ? "Noch nicht gemessen" : health + " % · " + healthGradeLabel(health);
             centeredBoundedText(c, healthStatus, 36, infoRight, infoTop + 54,
                     health == 0 ? 16 : 20, heroPrimary, true);
-            centeredText(c, health > 0 ? mahDisplay(estimatedCapacityMah()) + " von " + designCapacityDisplay()
-                    : "Finde Kapazität und Verschleiß heraus.",
-                    (36 + infoRight) / 2f, infoTop + 70, 9.2f, heroMuted, false);
+            String healthHint = !benchmarkFeedback.isEmpty()
+                    ? AppText.t(getContext(), benchmarkFeedback)
+                    : health > 0 ? mahDisplay(estimatedCapacityMah()) + " von " + designCapacityDisplay()
+                    : "Finde Kapazität und Verschleiß heraus.";
+            centeredBoundedText(c, healthHint, 36, infoRight, infoTop + 70,
+                    9.2f, heroMuted, false);
             rounded(c, 52, infoTop + 80, infoRight - 16, infoTop + 105, 12,
                     benchmarkActive || health > 0 ? Color.rgb(7, 86, 90) : lime);
             stroke(c, benchmarkActive || health > 0 ? lime : Color.TRANSPARENT, .8f);
@@ -4564,7 +4571,7 @@ class BatteryDashboard extends View {
         drawHeart(c, 54.5f, y + 555.5f, lime, .65f);
         displayText(c, benchmarkActive ? "Kapazitätsmessung läuft." : "Kapazität messen",
                 36, y + 596, benchmarkActive ? 18 : 16, primary);
-        text(c, benchmarkActive ? "Zum Abschluss über 95 % laden." : "Unter 25 % starten, dann in Ruhe vollladen.",
+        text(c, benchmarkActive ? "Zum Abschluss über 95 % laden." : "Bei höchstens 25 % starten, dann in Ruhe vollladen.",
                 36, y + 616, 8, muted, false);
         drawGeneratedButton(c, benchmarkActive ? actionActiveArtwork : actionStartenArtwork,
                 w - 216, y + 528, w - 36, y + 564, isPressed(30), false);
@@ -5242,8 +5249,12 @@ class BatteryDashboard extends View {
         // package.
         icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         try {
-            Drawable appIcon = AppLabelCache.iconFor(getContext(), estimate.usage.packageName);
-            icon.setImageDrawable(appIcon);
+            Drawable appIcon = AppLabelCache.iconForView(getContext(), estimate.usage.packageName);
+            if (appIcon == null) {
+                icon.setImageResource(android.R.drawable.sym_def_app_icon);
+            } else {
+                icon.setImageDrawable(appIcon);
+            }
         } catch (Exception ignored) {
             icon.setImageResource(android.R.drawable.sym_def_app_icon);
         }
@@ -5441,7 +5452,7 @@ class BatteryDashboard extends View {
         }
         rounded(c, 18, y + 548, w - 18, y + 615, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 548), u(w - 18), u(y + 615)); c.drawRoundRect(rect, u(12), u(12), p);
         text(c, benchmarkActive ? "Kapazitätsmessung läuft" : "Kapazitätsmessung", 36, y + 575, 11, primary, true);
-        text(c, benchmarkActive ? "Zum Abschluss über 95 % laden" : "Für beste Ergebnisse unter 25 % starten", 36, y + 595, 9, muted, false);
+        text(c, benchmarkActive ? "Zum Abschluss über 95 % laden" : "Für beste Ergebnisse bei 25 % oder weniger starten", 36, y + 595, 9, muted, false);
         drawGeneratedButton(c, benchmarkActive ? actionActiveArtwork : actionStartArtwork,
                 w - 216, y + 558, w - 36, y + 594, isPressed(30), false);
         rounded(c, 18, y + 630, w - 18, y + 697, 12, panel); stroke(c, border, 1); rect.set(u(18), u(y + 630), u(w - 18), u(y + 697)); c.drawRoundRect(rect, u(12), u(12), p);
@@ -6752,8 +6763,10 @@ class BatteryDashboard extends View {
         if (virtualViewId == BatteryHeaderLayout.OVERFLOW) return AppText.t(getContext(), "Einstellungen");
         if (virtualViewId == BatteryHeaderLayout.LIVE_REFRESH) return AppText.t(getContext(), "Live-Daten aktualisieren");
         if (virtualViewId == BatteryAccessibilityLayout.OVERVIEW_BENCHMARK) {
-            return AppText.t(getContext(), BatteryAccessibilityLayout.overviewBenchmarkLabel(
+            String label = AppText.t(getContext(), BatteryAccessibilityLayout.overviewBenchmarkLabel(
                     benchmarkActive, healthPercent() > 0));
+            return benchmarkFeedback.isEmpty() ? label
+                    : label + ". " + AppText.t(getContext(), benchmarkFeedback);
         }
         if (virtualViewId == BatteryAccessibilityLayout.DISCHARGE_SCREEN_ON) {
             return AppText.t(getContext(), BatteryAccessibilitySummary.dischargeEstimate("Bildschirm dauerhaft an",

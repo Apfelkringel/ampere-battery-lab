@@ -79,6 +79,29 @@ final class AppLabelCache {
         }
     }
 
+    /**
+     * Returns an independently bounded copy for a view. The dashboard draws
+     * the cached instance directly on its Canvas; sharing that same Drawable
+     * with an ImageView lets the two surfaces overwrite each other's bounds.
+     */
+    static Drawable iconForView(Context context, String packageName) {
+        Drawable cached = iconFor(context, packageName);
+        if (cached == null || context == null) return cached;
+        Drawable.ConstantState state = cached.getConstantState();
+        if (state != null) {
+            return state.newDrawable(context.getResources()).mutate();
+        }
+        try {
+            Drawable fresh = context.getPackageManager().getApplicationIcon(packageName);
+            if (fresh != null && fresh != cached) return fresh.mutate();
+        } catch (Exception ignored) { }
+        try {
+            Drawable fallback = context.getPackageManager().getDefaultActivityIcon();
+            if (fallback != null && fallback != cached) return fallback.mutate();
+        } catch (Exception ignored) { }
+        return cached;
+    }
+
     private static String resolveLabel(Context context, String packageName) {
         if (context != null
                 && ("com.google.android.apps.nexuslauncher".equals(packageName)

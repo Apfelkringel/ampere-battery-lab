@@ -111,6 +111,10 @@ public class AppTextTest {
             assertEquals("Health —", AppText.t("Gesundheit —"));
             assertEquals("Change · duration", AppText.t("Änderung · Dauer"));
             assertEquals("Daily total counter", AppText.t("Gesamtzähler im Tagesverlauf"));
+            assertEquals("Close", AppText.t("Schließen"));
+            assertEquals("CLOSE", AppText.t("SCHLIESSEN"));
+            assertEquals("At 25% or below and unplugged.",
+                    AppText.t("Bis 25 % und nicht am Ladegerät."));
             assertEquals("Overview shows live battery level, temperature, voltage, and history.\n\nCharging includes the charge target and sessions. Discharging shows usage and runtime. Battery health explains condition and capacity. History compares days, weeks, and months.\n\nSwitch between the five sections using the bar at the bottom. Your battery measurements stay on this device.",
                     AppText.t("Übersicht zeigt den Live-Akkustand, Temperatur, Spannung und Verlauf.\n\nLaden enthält Ladeziel und Sitzungen. Entladen zeigt Verbrauch und Laufzeit. Akku erklärt Gesundheit und Kapazität. Verlauf vergleicht Tag, Woche und Monat.\n\nDie fünf Bereiche wechselst du über die Leiste unten. Deine Akku-Messwerte bleiben lokal auf diesem Gerät."));
             assertEquals("Screen time", AppText.t("Bildschirmzeit"));
@@ -129,8 +133,8 @@ public class AppTextTest {
                     AppText.t("Lernen braucht ein wenig Zeit."));
             assertEquals("Backup could not be saved.",
                     AppText.t("Backup konnte nicht gespeichert werden."));
-            assertEquals("Start the capacity measurement unplugged and below 25%.",
-                    AppText.t("Starte die Kapazitätsmessung getrennt vom Ladegerät unter 25 %."));
+            assertEquals("Start the capacity measurement unplugged at 25% or below.",
+                    AppText.t("Starte die Kapazitätsmessung getrennt vom Ladegerät bei höchstens 25 %."));
             assertEquals("Battery status copied.", AppText.t("Akkustatus kopiert."));
             assertEquals("Start a discharge session", AppText.t("Entladung starten"));
             assertEquals("Charge target reached", AppText.t("Ladeziel erreicht"));
@@ -212,7 +216,7 @@ public class AppTextTest {
                     {"Akkustand · Automatik", "Battery level · automatic"},
                     {"Dein Tagesrhythmus", "Your daily pattern"},
                     {"Zum Abschluss über 95 % laden.", "Charge above 95% to complete."},
-                    {"Unter 25 % starten, dann in Ruhe vollladen.", "Start below 25%, then charge fully without interruption."},
+                    {"Bei höchstens 25 % starten, dann in Ruhe vollladen.", "Start at 25% or below, then charge fully without interruption."},
                     {"Kapazität aus Android-Akkusensor", "Capacity from Android battery sensor"},
                     {"Ladeziel erreicht · Gerät lädt weiter", "Charge target reached · Device is still charging"},
                     {"Akku fast leer", "Battery nearly empty"},
