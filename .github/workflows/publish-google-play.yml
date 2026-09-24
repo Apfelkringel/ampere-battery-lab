@@ -29,6 +29,7 @@ jobs:
       RELEASE_TRACK: alpha
       RELEASE_STATUS: completed
       CONSOLE_PREFLIGHT_CONFIRMED: ${{ inputs.console_preflight_confirmed }}
+      ALPHA_COMPATIBILITY_FALLBACK_CODE: "459"
     steps:
       - name: Download and verify public Play bundle
         run: |
@@ -129,9 +130,9 @@ jobs:
               echo "::error title=Alpha track needs review::The Alpha track contains a draft or halted release. Do not replace it automatically; inspect continuity in Play Console first."
               exit 1
             fi
-            existing_codes="$(jq -r '[.releases[]?.versionCodes[]? | tostring] | unique | join(",")' "$track_json")"
-            if [[ -z "$existing_codes" ]]; then
-              echo "::error title=No active Alpha fallback::The Alpha track has no existing release codes to preserve. Initial-track setup requires a separate review."
+            if ! jq -e --arg code "$ALPHA_COMPATIBILITY_FALLBACK_CODE" \
+              '.releases[]?.versionCodes[]? | tostring | . == $code' "$track_json" >/dev/null; then
+              echo "::error title=Known Alpha fallback missing::Expected API-23 compatibility fallback code $ALPHA_COMPATIBILITY_FALLBACK_CODE is not active on Alpha. Recheck device compatibility before changing the fallback."
               exit 1
             fi
             max_existing_code="$(jq -r '[.releases[]?.versionCodes[]? | tonumber] | max // 0' "$track_json")"
@@ -139,8 +140,8 @@ jobs:
               echo "::error title=Non-monotonic Play version::New code $desired_code must be greater than active Alpha code $max_existing_code."
               exit 1
             fi
-            echo "VERSION_CODES_TO_RETAIN=$existing_codes" >> "$GITHUB_ENV"
-            echo "Preserving every current Alpha code ($existing_codes) alongside new code $desired_code."
+            echo "VERSION_CODES_TO_RETAIN=$ALPHA_COMPATIBILITY_FALLBACK_CODE" >> "$GITHUB_ENV"
+            echo "Preserving API-23 compatibility fallback code $ALPHA_COMPATIBILITY_FALLBACK_CODE alongside new code $desired_code."
             echo 'skip_upload=false' >> "$GITHUB_ENV"
           fi
           curl --fail --silent --show-error --request DELETE \
