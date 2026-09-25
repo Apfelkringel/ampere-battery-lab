@@ -1,1 +1,1 @@
-Akku, Batterie, Akkustand, Laden, Entladen, Verlauf, Strom, Temperatur, Energie
+Ladezustand,Ladeverlauf,Prozentanzeige,Messpunkte,Entwicklung,Statusanzeige

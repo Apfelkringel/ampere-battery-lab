@@ -137,12 +137,24 @@ final class BatteryDreamView extends View {
     }
 
     private void drawHeader(Canvas canvas, float width) {
-        text(canvas, "AMPERE", 32, 48, 13, muted, true);
+        String brand = "AKKUTAKT";
         String timePattern = DateFormat.is24HourFormat(getContext()) ? "HH:mm" : "h:mm";
         Locale locale = AppText.uiLocale(getContext());
         String time = new SimpleDateFormat(timePattern, locale).format(new Date());
+        paint.setTextSize(20f);
+        paint.setTypeface(android.graphics.Typeface.create("sans", android.graphics.Typeface.BOLD));
+        float timeLeft = width - 32f - paint.measureText(time);
+        boundedText(canvas, brand, 32f, Math.max(32f, timeLeft - 16f),
+                48f, 13f, muted, true);
         rightText(canvas, time, width - 32, 50, 20, Color.WHITE, true);
-        String datePattern = AppText.isEnglish(getContext()) ? "EEEE, MMMM d" : "EEEE, d. MMMM";
+        String datePattern;
+        switch (AppText.languageTag(getContext())) {
+            case "en": datePattern = "EEEE, MMMM d"; break;
+            case "de": datePattern = "EEEE, d. MMMM"; break;
+            case "es": datePattern = "EEEE d 'de' MMMM"; break;
+            case "pt-BR": datePattern = "EEEE, d 'de' MMMM"; break;
+            default: datePattern = "EEEE d MMMM"; break;
+        }
         String date = new SimpleDateFormat(datePattern, locale).format(new Date());
         text(canvas, date, 32, 73, 11, faint, false);
         text(canvas, AppText.t(getContext(), charging ? "LADEN" : "AKKUBETRIEB"),

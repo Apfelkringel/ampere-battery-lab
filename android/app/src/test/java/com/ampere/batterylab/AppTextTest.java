@@ -318,7 +318,7 @@ public class AppTextTest {
             assertEquals("Started", AppText.t("Gestartet"));
             assertEquals("Capacity measurement started.", AppText.t("Kapazitätsmessung gestartet."));
             assertEquals("Capacity measurement stopped.", AppText.t("Kapazitätsmessung gestoppt."));
-            assertEquals("Ampere live display is active", AppText.t("Ampere-Live-Anzeige aktiv"));
+            assertEquals("AkkuTakt live display is active", AppText.t("AkkuTakt-Live-Anzeige aktiv"));
             assertEquals("Live battery measurements are shown on screen",
                     AppText.t("Live-Akkumesswerte werden auf dem Bildschirm angezeigt"));
         } finally {

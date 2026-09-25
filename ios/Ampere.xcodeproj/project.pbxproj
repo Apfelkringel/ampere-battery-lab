@@ -11,6 +11,7 @@
 		A00000000000000000000003 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000003 /* ContentView.swift */; };
 		A00000000000000000000004 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000005 /* Assets.xcassets */; };
 		A00000000000000000000005 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000007 /* Localizable.strings */; };
+		A00000000000000000000006 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000016 /* InfoPlist.strings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -22,10 +23,23 @@
 		A10000000000000000000006 /* Ampere.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Ampere.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A10000000000000000000008 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		A10000000000000000000009 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
+		A1000000000000000000000A /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
+		A1000000000000000000000B /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Localizable.strings; sourceTree = "<group>"; };
+		A1000000000000000000000C /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/Localizable.strings; sourceTree = "<group>"; };
+		A1000000000000000000000D /* pt-BR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-BR"; path = "pt-BR.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		A1000000000000000000000E /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/Localizable.strings; sourceTree = "<group>"; };
+		A1000000000000000000000F /* de InfoPlist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		A10000000000000000000010 /* en InfoPlist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		A10000000000000000000011 /* es InfoPlist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		A10000000000000000000012 /* fr InfoPlist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		A10000000000000000000013 /* it InfoPlist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		A10000000000000000000014 /* pt-BR InfoPlist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-BR"; path = "pt-BR.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
+		A10000000000000000000015 /* nl InfoPlist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXVariantGroup section */
-		A10000000000000000000007 /* Localizable.strings */ = {isa = PBXVariantGroup; children = (A10000000000000000000008 /* en */, A10000000000000000000009 /* de */, ); name = Localizable.strings; sourceTree = "<group>"; };
+		A10000000000000000000007 /* Localizable.strings */ = {isa = PBXVariantGroup; children = (A10000000000000000000008 /* en */, A10000000000000000000009 /* de */, A1000000000000000000000A /* es */, A1000000000000000000000B /* fr */, A1000000000000000000000C /* it */, A1000000000000000000000D /* pt-BR */, A1000000000000000000000E /* nl */, ); name = Localizable.strings; sourceTree = "<group>"; };
+		A10000000000000000000016 /* InfoPlist.strings */ = {isa = PBXVariantGroup; children = (A1000000000000000000000F /* de InfoPlist */, A10000000000000000000010 /* en InfoPlist */, A10000000000000000000011 /* es InfoPlist */, A10000000000000000000012 /* fr InfoPlist */, A10000000000000000000013 /* it InfoPlist */, A10000000000000000000014 /* pt-BR InfoPlist */, A10000000000000000000015 /* nl InfoPlist */, ); name = InfoPlist.strings; sourceTree = "<group>"; };
 /* End PBXVariantGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -34,7 +48,7 @@
 
 /* Begin PBXGroup section */
 		A30000000000000000000001 = {isa = PBXGroup; children = (A30000000000000000000002, A30000000000000000000003, ); sourceTree = "<group>"; };
-		A30000000000000000000002 /* Ampere */ = {isa = PBXGroup; children = (A10000000000000000000001, A10000000000000000000002, A10000000000000000000003, A10000000000000000000004, A10000000000000000000005, A10000000000000000000007, ); path = Ampere; sourceTree = "<group>"; };
+		A30000000000000000000002 /* Ampere */ = {isa = PBXGroup; children = (A10000000000000000000001, A10000000000000000000002, A10000000000000000000003, A10000000000000000000004, A10000000000000000000005, A10000000000000000000007, A10000000000000000000016, ); path = Ampere; sourceTree = "<group>"; };
 		A30000000000000000000003 /* Products */ = {isa = PBXGroup; children = (A10000000000000000000006, ); name = Products; sourceTree = "<group>"; };
 /* End PBXGroup section */
 
@@ -43,11 +57,11 @@
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		A60000000000000000000001 /* Project object */ = {isa = PBXProject; attributes = { LastUpgradeCheck = 2600; ORGANIZATIONNAME = Ampere; TargetAttributes = { A40000000000000000000001 = { CreatedOnToolsVersion = 26.0; }; }; }; buildConfigurationList = A50000000000000000000001 /* Build configuration list for PBXProject "Ampere" */; compatibilityVersion = "Xcode 15.0"; developmentRegion = en; hasScannedForEncodings = 0; knownRegions = (en, de, Base, ); mainGroup = A30000000000000000000001; productRefGroup = A30000000000000000000003 /* Products */; projectDirPath = ""; projectRoot = ""; targets = (A40000000000000000000001, ); };
+		A60000000000000000000001 /* Project object */ = {isa = PBXProject; attributes = { LastUpgradeCheck = 2600; ORGANIZATIONNAME = Ampere; TargetAttributes = { A40000000000000000000001 = { CreatedOnToolsVersion = 26.0; }; }; }; buildConfigurationList = A50000000000000000000001 /* Build configuration list for PBXProject "Ampere" */; compatibilityVersion = "Xcode 15.0"; developmentRegion = en; hasScannedForEncodings = 0; knownRegions = (en, de, es, fr, it, "pt-BR", nl, Base, ); mainGroup = A30000000000000000000001; productRefGroup = A30000000000000000000003 /* Products */; projectDirPath = ""; projectRoot = ""; targets = (A40000000000000000000001, ); };
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		A20000000000000000000003 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000004 /* Assets.xcassets in Resources */, A00000000000000000000005 /* Localizable.strings in Resources */, ); runOnlyForDeploymentPostprocessing = 0; };
+		A20000000000000000000003 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000004 /* Assets.xcassets in Resources */, A00000000000000000000005 /* Localizable.strings in Resources */, A00000000000000000000006 /* InfoPlist.strings in Resources */, ); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */

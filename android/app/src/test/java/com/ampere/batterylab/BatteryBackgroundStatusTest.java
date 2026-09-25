@@ -41,7 +41,7 @@ public class BatteryBackgroundStatusTest {
                 BatteryBackgroundStatus.monitorHeartbeatStatus(90_000L, 210_000L));
         assertTrue(message.contains("Live-Benachrichtigung: Berechtigung fehlt"));
         assertTrue(message.contains("Hintergrunddienst: Dienst zuletzt vor 2 Min. bestätigt"));
-        assertTrue(message.contains("öffne Ampere einmal"));
+        assertTrue(message.contains("öffne AkkuTakt einmal"));
         assertTrue(message.contains("Akkuoptimierung:"));
         assertTrue(message.contains("Dienst trotzdem laufen"));
         assertTrue(message.contains("Stopp erzwingen"));

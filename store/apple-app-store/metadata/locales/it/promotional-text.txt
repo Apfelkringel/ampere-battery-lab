@@ -1,0 +1,1 @@
+Il livello fornito da iOS: chiaro, salvato in locale e senza valori inventati.

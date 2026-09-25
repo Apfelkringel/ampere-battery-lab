@@ -30,7 +30,7 @@ final class BatteryBackgroundStatus {
         return "Live-Benachrichtigung: " + notificationStatus + "\n"
                 + "Hintergrunddienst: " + monitorHeartbeatStatus + "\n"
                 + "Akkuoptimierung: " + batteryOptimizationStatus + "\n\n"
-                + "Wenn kein aktuelles Dienstsignal vorliegt, öffne Ampere einmal; dabei wird die Überwachung neu gestartet. Android kann sie nach „Stopp erzwingen“ oder durch Hersteller-Energiesparregeln anhalten.\n\n"
-                + "Ampere überwacht den Akku über einen sichtbaren Android-Dienst. Sind Benachrichtigungen gesperrt, kann der Dienst trotzdem laufen, aber seine Live-Anzeige fehlt. Energiesparfunktionen des Herstellers oder „Stopp erzwingen“ können die Überwachung anhalten. Im Tiefschlaf darf Android Aktualisierungen verzögern; Ampere hält das Gerät bewusst nicht dauerhaft wach, um keinen zusätzlichen Akkuverbrauch zu verursachen.";
+                + "Wenn kein aktuelles Dienstsignal vorliegt, öffne AkkuTakt einmal; dabei wird die Überwachung neu gestartet. Android kann sie nach „Stopp erzwingen“ oder durch Hersteller-Energiesparregeln anhalten.\n\n"
+                + "AkkuTakt überwacht den Akku über einen sichtbaren Android-Dienst. Sind Benachrichtigungen gesperrt, kann der Dienst trotzdem laufen, aber seine Live-Anzeige fehlt. Energiesparfunktionen des Herstellers oder „Stopp erzwingen“ können die Überwachung anhalten. Im Tiefschlaf darf Android Aktualisierungen verzögern; AkkuTakt hält das Gerät bewusst nicht dauerhaft wach, um keinen zusätzlichen Akkuverbrauch zu verursachen.";
     }
 }

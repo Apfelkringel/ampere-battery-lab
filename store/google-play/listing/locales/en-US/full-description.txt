@@ -1,0 +1,14 @@
+AkkuTakt is your Android battery monitor. Keep your battery level, charge status and app battery use in view.
+
+• Battery level, charge state, current, voltage and temperature when your device provides them
+• Charging and discharging sessions with local battery history
+• Estimated battery use by app when you grant optional Android usage access
+• Battery health and equivalent full cycles, with the data basis clearly identified
+• Widget, status notification and Quick Settings tile
+• CSV, JSON and diagnostic exports whenever you choose
+
+AkkuTakt needs no account, shows no ads and does not request location permission. Your readings and history stay on your device. An export is created only when you start it. Optional analytics stay off until you consent.
+
+Available readings depend on your phone and Android version. If a device does not provide current, voltage or capacity, AkkuTakt shows “Not available” instead of inventing a measurement.
+
+Background monitoring uses a visible Android notification and can be stopped in the app at any time. Per-app battery use is an estimate based on Android usage time, not a direct measurement of each app’s power draw.

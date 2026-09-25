@@ -1,5 +1,6 @@
 <resources>
+    <string name="app_name">AkkuTakt: Battery Monitor</string>
     <string name="widget_battery">Battery</string>
     <string name="widget_current_unavailable">Current —</string>
-    <string name="dream_service_label">Ampere battery display</string>
+    <string name="dream_service_label">AkkuTakt battery display</string>
 </resources>

@@ -1,0 +1,1 @@
+Monitor de bateria: carga, histórico e uso por app — local, sem conta.

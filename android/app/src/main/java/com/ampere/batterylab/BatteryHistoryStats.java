@@ -175,7 +175,7 @@ final class BatteryHistoryStats {
     }
 
     static String chartRangeLabel(int periodDays, Locale locale) {
-        boolean english = locale != null && Locale.ENGLISH.getLanguage().equals(locale.getLanguage());
+        boolean english = locale != null && !Locale.GERMAN.getLanguage().equals(locale.getLanguage());
         if (periodDays == 1) return english ? "7 CALENDAR DAYS" : "7 KALENDERTAGE";
         if (periodDays == 7) return english ? "5 CALENDAR WEEKS" : "5 KALENDERWOCHEN";
         return english ? "6 CALENDAR MONTHS" : "6 KALENDERMONATE";

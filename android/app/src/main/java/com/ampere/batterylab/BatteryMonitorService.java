@@ -201,7 +201,7 @@ public class BatteryMonitorService extends Service {
         Intent launch = new Intent(this, MainActivity.class);
         PendingIntent pending = PendingIntent.getActivity(this, 0, launch, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? new Notification.Builder(this, CHANNEL_ID) : new Notification.Builder(this);
-        String title = value >= 0 ? value + "% · " + AppText.t(this, isCharging ? "Laden" : "Akkubetrieb") : AppText.t(this, "Ampere überwacht den Akku");
+        String title = value >= 0 ? value + "% · " + AppText.t(this, isCharging ? "Laden" : "Akkubetrieb") : AppText.t(this, "AkkuTakt überwacht den Akku");
         int currentMagnitudeMa = Math.abs(currentMa);
         Locale locale = AppText.uiLocale(this);
         String temperatureText = temperatureTenths > 0
@@ -806,7 +806,7 @@ public class BatteryMonitorService extends Service {
                     .putInt("monitorSessionStartLevel", level).putInt("monitorSessionStartCounterMah", counterMah).apply();
             return;
         }
-        String datePattern = BatterySessionRules.datePattern(AppText.isEnglish(this));
+        String datePattern = BatterySessionRules.datePattern(AppText.uiLocale(this));
         String date = new SimpleDateFormat(datePattern, AppText.uiLocale(this)).format(new Date(now));
         float cycleEquivalent = energy > 0 && designCapacity > 0 ? energy / (float) designCapacity : Math.abs(change) / 100f;
         int screenWakeups = previousCharging ? 0 : prefs.getInt("lastDischargeWakeups", prefs.getInt("dischargeWakeups", 0));

@@ -1,0 +1,11 @@
+AkkuTakt maakt je batterijniveau begrijpelijk.
+
+Bekijk het niveau en de laadstatus die iOS doorgeeft. Open de app regelmatig om lokale metingen voor je geschiedenis op te slaan. Het overzicht blijft rustig en leesbaar en toont alleen waarden die het besturingssysteem echt levert.
+
+• Batterijniveau en laadstatus in één oogopslag
+• Lokale geschiedenis van je iOS-metingen
+• Duidelijke aanduiding van niet-beschikbare waarden
+• Donkere, turquoise interface die goed leesbaar is
+• Geen accounts, advertenties of toegang tot je locatie
+
+iOS geeft apps van derden geen betrouwbare metingen van stroom, ontwerpcapaciteit of batterijslijtage. AkkuTakt verzint hiervoor geen schattingen. Je metingen worden alleen op je apparaat opgeslagen.

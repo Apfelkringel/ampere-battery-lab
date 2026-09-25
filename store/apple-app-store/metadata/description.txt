@@ -1,4 +1,4 @@
-Ampere Battery Lab macht den Akkustand verständlich.
+AkkuTakt macht den Akkustand verständlich.
 
 Sieh Akkustand und Ladezustand direkt aus iOS. Öffne die App regelmäßig, um lokale Messpunkte für deinen Verlauf zu speichern. Die Übersicht bleibt ruhig, lesbar und auf die Werte konzentriert, die das Betriebssystem tatsächlich liefert.
 
@@ -8,4 +8,4 @@ Sieh Akkustand und Ladezustand direkt aus iOS. Öffne die App regelmäßig, um l
 • Dunkle, türkisfarbene Oberfläche für gute Lesbarkeit
 • Keine Konten, keine Werbung, kein Standortzugriff
 
-iOS stellt Drittanbieter-Apps keinen verlässlichen Strom-, Designkapazitäts- oder Verschleißwert bereit. Ampere zeigt diese Werte deshalb nicht als Schätzung an. Deine Messpunkte werden ausschließlich lokal auf dem Gerät gespeichert.
+iOS stellt Drittanbieter-Apps keinen verlässlichen Strom-, Designkapazitäts- oder Verschleißwert bereit. AkkuTakt zeigt diese Werte deshalb nicht als Schätzung an. Deine Messpunkte werden ausschließlich lokal auf dem Gerät gespeichert.

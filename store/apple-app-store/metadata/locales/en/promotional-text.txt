@@ -1,0 +1,1 @@
+Your battery level, read directly from iOS: clear, local and free of made-up values.

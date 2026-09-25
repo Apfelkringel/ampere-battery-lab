@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">AkkuTakt: Monitor de bateria</string>
+    <string name="widget_battery">Bateria</string>
+    <string name="widget_current_unavailable">Corrente —</string>
+    <string name="dream_service_label">Tela da bateria do AkkuTakt</string>
+</resources>

@@ -1,0 +1,14 @@
+AkkuTakt is je batterijmonitor voor Android. Bekijk het batterijniveau, de laadstatus en het batterijgebruik per app.
+
+• Batterijniveau en laadstatus, stroom, spanning en temperatuur wanneer je apparaat deze gegevens levert
+• Laad- en ontlaadsessies met lokale batterijgeschiedenis
+• Een schatting van appgebruik als je optioneel toegang tot Android-gebruiksgegevens geeft
+• Batterijconditie en equivalente laadcycli, met een duidelijke uitleg van de gegevensbasis
+• Widget, statusmelding en tegel voor Snelle instellingen
+• CSV-, JSON- en diagnostische exports die je zelf start
+
+AkkuTakt heeft geen account nodig, toont geen advertenties en vraagt geen locatietoestemming. Je metingen en geschiedenis blijven op je apparaat. Een export wordt alleen gemaakt wanneer je die zelf start. Optionele analyses blijven uit totdat je toestemming geeft.
+
+Welke gegevens beschikbaar zijn, hangt af van je telefoon en Android-versie. Als een apparaat geen stroom, spanning of capaciteit doorgeeft, toont AkkuTakt “Niet beschikbaar” in plaats van een waarde te verzinnen.
+
+Monitoring op de achtergrond gebruikt een zichtbare Android-melding en kan op elk moment in de app worden gestopt. Batterijgebruik per app is een schatting op basis van Android-gebruikstijden, geen directe meting van het stroomverbruik van elke app.

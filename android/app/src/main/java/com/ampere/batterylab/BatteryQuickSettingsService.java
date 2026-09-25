@@ -107,7 +107,7 @@ public class BatteryQuickSettingsService extends TileService {
         // Keep the title stable so SystemUI does not cache a stale dynamic
         // label. Put the live value in the subtitle, like established battery
         // tiles do; this also keeps the tile readable in compact layouts.
-        tile.setLabel("Ampere");
+        tile.setLabel("AkkuTakt");
         tile.setState(level >= 0 ? Tile.STATE_INACTIVE : Tile.STATE_UNAVAILABLE);
         if (Build.VERSION.SDK_INT >= 29) tile.setSubtitle(level >= 0
                 ? AppText.t(this, shortSubtitle(this, level, status, charging, current, temp))

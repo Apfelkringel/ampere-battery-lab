@@ -1,0 +1,11 @@
+AkkuTakt vous aide à comprendre le niveau de votre batterie.
+
+Consultez le niveau et l’état de charge fournis par iOS. Ouvrez régulièrement l’app pour enregistrer des mesures locales et créer votre historique. L’écran reste lisible et se concentre sur les données réellement fournies par le système.
+
+• Niveau et état de charge en un coup d’œil
+• Historique local de vos mesures iOS
+• Indication claire des données indisponibles
+• Interface sombre et turquoise, pensée pour la lisibilité
+• Aucun compte, aucune publicité ni accès à la localisation
+
+iOS ne fournit pas aux apps tierces de mesures fiables du courant, de la capacité nominale ou de l’usure de la batterie. AkkuTakt n’invente pas d’estimations pour ces valeurs. Vos mesures sont enregistrées uniquement sur votre appareil.

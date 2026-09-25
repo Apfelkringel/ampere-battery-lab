@@ -42,8 +42,8 @@ private struct AppHeader: View {
             }
             .frame(width: 38, height: 38)
             VStack(alignment: .leading, spacing: 2) {
-                Text("Ampere").font(.system(.headline, design: .rounded).weight(.bold))
-                Text("BATTERY LAB · iOS").font(.system(size: 9, weight: .semibold, design: .rounded))
+                Text("AkkuTakt").font(.system(.headline, design: .rounded).weight(.bold))
+                Text("BATTERY MONITOR · iOS").font(.system(size: 9, weight: .semibold, design: .rounded))
                     .tracking(1.1).foregroundStyle(AmperePalette.muted)
             }
             Spacer()
@@ -58,7 +58,7 @@ private struct AppHeader: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text(verbatim: String.localizedStringWithFormat(
-            NSLocalizedString("Ampere, %@, %@", comment: "Battery overview accessibility summary"),
+            NSLocalizedString("AkkuTakt, %@, %@", comment: "Battery overview accessibility summary"),
             battery.statusTitle, battery.levelText)))
     }
 }
@@ -106,7 +106,7 @@ struct OverviewView: View {
                 }
                 Panel {
                     SectionHeading(eyebrow: "AKKUGESUNDHEIT", title: "Noch nicht verfügbar")
-                    Text("iOS stellt keine gemessene Vollkapazität oder Ladezyklen für Drittanbieter-Apps bereit. Ampere zeigt hier deshalb keine erfundenen Werte.")
+                    Text("iOS stellt keine gemessene Vollkapazität oder Ladezyklen für Drittanbieter-Apps bereit. AkkuTakt zeigt hier deshalb keine erfundenen Werte.")
                         .font(.system(size: 13, design: .rounded)).foregroundStyle(AmperePalette.muted).fixedSize(horizontal: false, vertical: true)
                     MetricGrid(items: [("Kapazität", "Nicht verfügbar"), ("Verschleiß", "Nicht verfügbar"), ("Zyklen", "Nicht verfügbar"), ("Quelle", "Apple UIDevice")])
                 }
@@ -114,11 +114,11 @@ struct OverviewView: View {
                     SectionHeading(eyebrow: "IOS-GRENZEN", title: "Was lokal messbar ist")
                     Text("iOS liefert Akkustand, Ladezustand und Ereignisse. Strom, Spannung, Vollkapazität und Zyklen werden Drittanbieter-Apps nicht öffentlich bereitgestellt.")
                         .font(.system(size: 13, design: .rounded)).foregroundStyle(AmperePalette.muted).fixedSize(horizontal: false, vertical: true)
-                    Text("Ampere zeichnet deshalb nur echte Vordergrund-Messpunkte auf und kennzeichnet fehlende Werte ausdrücklich.")
+                    Text("AkkuTakt zeichnet deshalb nur echte Vordergrund-Messpunkte auf und kennzeichnet fehlende Werte ausdrücklich.")
                         .font(.system(size: 12, design: .rounded)).foregroundStyle(AmperePalette.primary).fixedSize(horizontal: false, vertical: true)
                 }
                 MetricGrid(items: [("Akkustand", battery.levelText), ("Status", battery.statusTitle), ("Spannung", "Nicht verfügbar"), ("Strom", "Nicht verfügbar")])
-                ShareLink(item: battery.statusSummary, subject: Text("Ampere-Akkustatus")) {
+                ShareLink(item: battery.statusSummary, subject: Text("AkkuTakt-Akkustatus")) {
                     Label("Status teilen", systemImage: "square.and.arrow.up")
                         .font(.system(size: 13, weight: .semibold, design: .rounded))
                         .foregroundStyle(AmperePalette.background)
@@ -190,7 +190,7 @@ struct HistoryView: View {
             Panel {
                 SectionHeading(eyebrow: "AKKUSTAND", title: battery.samples.isEmpty ? "Noch keine Messpunkte" : "Lokaler Verlauf")
                 if battery.samples.isEmpty {
-                    Text("Öffne Ampere regelmäßig, damit iOS-Akkustände lokal aufgezeichnet werden können.")
+                    Text("Öffne AkkuTakt regelmäßig, damit iOS-Akkustände lokal aufgezeichnet werden können.")
                         .font(.system(size: 13, design: .rounded)).foregroundStyle(AmperePalette.muted).fixedSize(horizontal: false, vertical: true)
                     Button("Jetzt messen") { battery.recordNow() }
                         .font(.system(size: 13, weight: .semibold, design: .rounded))

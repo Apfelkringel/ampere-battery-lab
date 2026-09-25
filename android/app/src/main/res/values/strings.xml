@@ -1,5 +1,6 @@
 <resources>
+    <string name="app_name">AkkuTakt: Akku-Monitor</string>
     <string name="widget_battery">Akku</string>
     <string name="widget_current_unavailable">Strom —</string>
-    <string name="dream_service_label">Ampere Ladeanzeige</string>
+    <string name="dream_service_label">AkkuTakt Ladeanzeige</string>
 </resources>

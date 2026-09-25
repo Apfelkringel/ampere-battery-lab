@@ -38,7 +38,7 @@ import com.ampere.batterylab.Toasts;
 
 /** Checks for optional APK updates. No battery or usage data is sent. */
 final class UpdateChecker {
-    private static final String TAG = "AmpereUpdate";
+    private static final String TAG = "AkkuTaktUpdate";
     private static final String PREFS = "ampere-update";
     private static final String UPDATE_CHANNEL_ID = "ampere-updates";
     // The monitor service owns notification IDs 7-10 for its live card and
@@ -420,7 +420,7 @@ final class UpdateChecker {
         Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
                 ? new Notification.Builder(context, UPDATE_CHANNEL_ID) : new Notification.Builder(context);
         builder.setSmallIcon(R.drawable.ic_launcher)
-                .setContentTitle(AppText.t(context, "Ampere-Update verfügbar · " + update.versionName))
+                .setContentTitle(AppText.t(context, "AkkuTakt-Update verfügbar · " + update.versionName))
                 .setContentText(AppText.t(context, "Tippen, um die kostenlose Aktualisierung zu prüfen"))
                 .setStyle(new Notification.BigTextStyle().bigText(releaseNotes(update.notes,
                         update.notesEnglish, AppText.isEnglish(context))))
@@ -448,7 +448,7 @@ final class UpdateChecker {
         clearPendingUpdate(activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE));
         try {
             DownloadManager.Request request = new DownloadManager.Request(Uri.parse(withCacheBuster(update.apkUrl)));
-            request.setTitle(AppText.t(activity, "Ampere-Update " + update.versionName));
+            request.setTitle(AppText.t(activity, "AkkuTakt-Update " + update.versionName));
             request.setDescription(AppText.t(activity, "Kostenloses Update wird heruntergeladen"));
             request.setMimeType("application/vnd.android.package-archive");
             request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
@@ -497,7 +497,7 @@ final class UpdateChecker {
         persistPendingUpdate(prefs, update);
         new AlertDialog.Builder(activity)
                 .setTitle(AppText.t(activity, "Installation einmal erlauben"))
-                .setMessage(AppText.t(activity, "Android braucht deine Freigabe, damit Ampere eine APK zur Installation übergeben darf. Es wird noch nichts heruntergeladen. Nach der Freigabe erscheint das Update hier erneut; Android fragt vor der Installation zusätzlich nach deiner Bestätigung."))
+                .setMessage(AppText.t(activity, "Android braucht deine Freigabe, damit AkkuTakt eine APK zur Installation übergeben darf. Es wird noch nichts heruntergeladen. Nach der Freigabe erscheint das Update hier erneut; Android fragt vor der Installation zusätzlich nach deiner Bestätigung."))
                 .setNegativeButton(AppText.t(activity, "Abbrechen"), (dialog, which) -> clearPendingUpdate(prefs))
                 .setPositiveButton(AppText.t(activity, "Einstellung öffnen"), (dialog, which) -> {
                     try {

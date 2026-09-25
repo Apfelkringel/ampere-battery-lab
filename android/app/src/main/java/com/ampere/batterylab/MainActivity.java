@@ -244,7 +244,7 @@ public class MainActivity extends Activity {
         content.addView(panel, panelParams);
 
         TextView brand = new TextView(this);
-        brand.setText(AppText.t(this, "Ampere · Großschrift"));
+        brand.setText(AppText.t(this, "AkkuTakt · Großschrift"));
         brand.setTextColor(Color.rgb(255, 247, 232));
         brand.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 24f);
         brand.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
@@ -528,17 +528,17 @@ public class MainActivity extends Activity {
         }
         if (startupPermissionFlow || startupPermissionPromptVisible) return;
         startupPermissionPromptVisible = true;
-        boolean english = AppText.isEnglish(this);
+        boolean english = !"de".equals(AppText.languageTag(this));
         new AlertDialog.Builder(this)
-                .setTitle(AppText.t(this, english ? "Set up Ampere" : "Ampere einrichten"))
-                .setMessage(AppText.t(this, english
-                        ? "For complete monitoring, Ampere now guides you through the required Android accesses. Notifications keep the foreground monitor visible. App usage access enables usage by app, and overlay enables the optional live display. Android opens the relevant system pages one after another."
-                        : "Für die vollständige Überwachung führt Ampere dich jetzt durch die benötigten Android-Zugriffe. Benachrichtigungen halten die Akkuüberwachung sichtbar. App-Nutzungszugriff ermöglicht den Verbrauch je App; Overlay aktiviert die optionale Live-Anzeige. Android öffnet die passenden Systemeinstellungen nacheinander."))
-                .setNegativeButton(AppText.t(this, english ? "Later" : "Später"), (dialog, which) -> {
+                .setTitle(AppText.fromEnglish(this, english ? "Set up AkkuTakt" : "AkkuTakt einrichten"))
+                .setMessage(AppText.fromEnglish(this, english
+                        ? "For complete monitoring, AkkuTakt now guides you through the required Android accesses. Notifications keep the foreground monitor visible. App usage access enables usage by app, and overlay enables the optional live display. Android opens the relevant system pages one after another."
+                        : "Für die vollständige Überwachung führt AkkuTakt dich jetzt durch die benötigten Android-Zugriffe. Benachrichtigungen halten die Akkuüberwachung sichtbar. App-Nutzungszugriff ermöglicht den Verbrauch je App; Overlay aktiviert die optionale Live-Anzeige. Android öffnet die passenden Systemeinstellungen nacheinander."))
+                .setNegativeButton(AppText.fromEnglish(this, english ? "Later" : "Später"), (dialog, which) -> {
                     startupPermissionPromptVisible = false;
                     auditPermissions();
                 })
-                .setPositiveButton(AppText.t(this, english ? "Set up now" : "Jetzt einrichten"), (dialog, which) -> {
+                .setPositiveButton(AppText.fromEnglish(this, english ? "Set up now" : "Jetzt einrichten"), (dialog, which) -> {
                     startupPermissionPromptVisible = false;
                     startupPermissionFlow = true;
                     continueStartupPermissionFlow();
@@ -659,20 +659,20 @@ public class MainActivity extends Activity {
         boolean notifications = hasNotificationAccess();
         boolean usage = hasUsageStatsAccess();
         boolean overlay = Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(this);
-        boolean english = AppText.isEnglish(this);
+        boolean english = !"de".equals(AppText.languageTag(this));
         String intro = english
                 ? (reminder
-                ? "Some permissions are missing or Android has reset them. Ampere checks again each time it opens. We remind you about declined optional permissions at most once a month, and detect revoked permissions the next time you open the app."
-                : "Notifications enable live status and charge alerts. App usage access shows estimated battery use by app, while the overlay displays live information over other apps. App usage access and overlay access are optional. Ampere checks permission status again when opened.")
+                ? "Some permissions are missing or Android has reset them. AkkuTakt checks again each time it opens. We remind you about declined optional permissions at most once a month, and detect revoked permissions the next time you open the app."
+                : "Notifications enable live status and charge alerts. App usage access shows estimated battery use by app, while the overlay displays live information over other apps. App usage access and overlay access are optional. AkkuTakt checks permission status again when opened.")
                 : (reminder
-                ? "Einige Zugriffe fehlen oder wurden von Android zurückgesetzt. Ampere prüft sie beim Öffnen erneut; abgelehnte optionale Zugriffe melden wir höchstens monatlich. Widerrufe erkennen wir beim nächsten Öffnen."
-                : "Benachrichtigungen ermöglichen Live-Status und Ladealarme. App-Nutzungszugriff zeigt den Verbrauch je App; Overlay zeigt die Live-Anzeige über anderen Apps. Diese beiden Zugriffe sind optional. Ampere prüft den Status beim Öffnen erneut.");
+                ? "Einige Zugriffe fehlen oder wurden von Android zurückgesetzt. AkkuTakt prüft sie beim Öffnen erneut; abgelehnte optionale Zugriffe melden wir höchstens monatlich. Widerrufe erkennen wir beim nächsten Öffnen."
+                : "Benachrichtigungen ermöglichen Live-Status und Ladealarme. App-Nutzungszugriff zeigt den Verbrauch je App; Overlay zeigt die Live-Anzeige über anderen Apps. Diese beiden Zugriffe sind optional. AkkuTakt prüft den Status beim Öffnen erneut.");
         float density = getResources().getDisplayMetrics().density;
         LinearLayout content = new LinearLayout(this);
         content.setOrientation(LinearLayout.VERTICAL);
 
         TextView explanation = new TextView(this);
-        explanation.setText(AppText.t(this, intro + (english
+        explanation.setText(AppText.fromEnglish(this, intro + (english
                 ? "\n\nTap an item to change its permission."
                 : "\n\nTippe auf einen Eintrag, um ihn zu ändern.")));
         explanation.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 14f);
@@ -698,7 +698,7 @@ public class MainActivity extends Activity {
         ArrayList<TextView> rows = new ArrayList<>();
         for (String entry : entries) {
             TextView row = new TextView(this);
-            String localizedEntry = AppText.t(this, entry);
+            String localizedEntry = AppText.fromEnglish(this, entry);
             row.setText(localizedEntry);
             row.setContentDescription(localizedEntry.replace('\n', '.'));
             row.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 14f);
@@ -724,9 +724,10 @@ public class MainActivity extends Activity {
         scroll.setFillViewport(false);
         scroll.setVerticalScrollBarEnabled(true);
         scroll.addView(content, new ScrollView.LayoutParams(-1, -2));
-        AlertDialog dialog = new AlertDialog.Builder(this).setTitle(AppText.t(this, "Berechtigungen & Zugriffe"))
+        AlertDialog dialog = new AlertDialog.Builder(this).setTitle(AppText.fromEnglish(this,
+                        english ? "Permissions & access" : "Berechtigungen & Zugriffe"))
                 .setView(scroll)
-                .setNegativeButton(AppText.t(this, "Fertig"), null)
+                .setNegativeButton(AppText.fromEnglish(this, english ? "Done" : "Fertig"), null)
                 .create();
         for (int index = 0; index < rows.size(); index++) {
             final int entryIndex = index;
@@ -945,8 +946,9 @@ public class MainActivity extends Activity {
             if (stream == null) throw new IllegalStateException("No output stream");
             String telemetry = BatteryDataRepository.readTelemetry(this);
             long interval = dashboard == null ? 15L * 60L * 1000L : dashboard.samplingIntervalMs();
-            byte[] output = BatteryDiagnosticReport.build(telemetry, interval,
-                    System.currentTimeMillis(), AppText.uiLocale(this)).getBytes(StandardCharsets.UTF_8);
+            String report = BatteryDiagnosticReport.build(telemetry, interval,
+                    System.currentTimeMillis(), AppText.uiLocale(this));
+            byte[] output = AppText.fromEnglish(this, report).getBytes(StandardCharsets.UTF_8);
             if (output.length > MAX_BACKUP_BYTES) throw new IllegalArgumentException("Report too large");
             stream.write(output);
             Toasts.show(this, AppText.t(this, "Diagnosebericht gespeichert."));
@@ -1009,7 +1011,7 @@ public class MainActivity extends Activity {
             if (stream == null) throw new IllegalStateException("No output stream");
             JSONObject root = new JSONObject();
             root.put("schema", 1);
-            root.put("app", "Ampere Battery Lab");
+            root.put("app", "AkkuTakt");
             root.put("appVersion", BuildConfig.VERSION_NAME);
             root.put("signingCertSha256", installedSigningCertSha256());
             root.put("expectedUpdateCertSha256", UpdateChecker.EXPECTED_RELEASE_CERT_SHA256);
@@ -1635,8 +1637,13 @@ class BatteryDashboard extends View {
     }
 
     private String formatDuration(long minutes) {
-        if (AppText.isEnglish(getContext())) {
+        String language = AppText.languageTag(getContext());
+        if ("en".equals(language)) {
             return minutes >= 60 ? (minutes / 60) + " hr " + (minutes % 60) + " min"
+                    : minutes + " min";
+        }
+        if (!"de".equals(language)) {
+            return minutes >= 60 ? (minutes / 60) + " h " + (minutes % 60) + " min"
                     : minutes + " min";
         }
         return minutes >= 60 ? (minutes / 60) + " Std. " + (minutes % 60) + " Min." : minutes + " Min.";
@@ -1664,7 +1671,7 @@ class BatteryDashboard extends View {
 
     /** Keeps decimal separators, grouping and dates aligned with the app UI language. */
     private Locale uiLocale() {
-        return AppText.isEnglish(getContext()) ? Locale.US : Locale.GERMANY;
+        return AppText.uiLocale(getContext());
     }
 
     private String temperatureDisplay() { return temperature > 0f ? String.format(uiLocale(), "%.1f", temperature) : "—"; }
@@ -2593,8 +2600,8 @@ class BatteryDashboard extends View {
                 : "Tiefstandwarnung · aus";
         String samplingOption = "Datenerfassung · alle " + BatterySamplingPolicy.normalizeMinutes(
                 prefs.getInt("samplingIntervalMin", 15)) + " Minuten";
-        String languageOption = AppText.isEnglish(getContext())
-                ? "App language · English" : "App-Sprache · Deutsch";
+        String languageOption = "App-Sprache · "
+                + AppText.languageName(AppText.languageTag(getContext()));
         String[] options = {languageOption, "Benachrichtigungen", "Berechtigungen prüfen", "Ladeziel & Ladealarm", temperatureOption, dischargeOption, "Overlay-Berechtigung", "Daten & Datenschutz", "Sicherung & Wiederherstellung", "Hintergrundüberwachung", samplingOption, "Nach Updates suchen", "Kurzanleitung", "Gesundheitsbasis zurücksetzen", "Aktuellen Status kopieren", "Aktuellen Status teilen", "Lokale Daten löschen"};
         for (int i = 0; i < options.length; i++) options[i] = AppText.t(getContext(), options[i]);
         LinearLayout titleBar = new LinearLayout(getContext());
@@ -2703,13 +2710,21 @@ class BatteryDashboard extends View {
     }
 
     private void showLanguageSettings() {
-        boolean english = AppText.isEnglish(getContext());
-        String[] languages = {"Deutsch", "Englisch"};
-        for (int i = 0; i < languages.length; i++) languages[i] = AppText.t(getContext(), languages[i]);
+        String[] languageTags = {"de", "en", "es", "fr", "it", "pt-BR", "nl"};
+        String[] languages = {"Deutsch", "English", "Español", "Français", "Italiano",
+                "Português (Brasil)", "Nederlands"};
+        int selected = 0;
+        String currentTag = AppText.languageTag(getContext());
+        for (int i = 0; i < languageTags.length; i++) {
+            if (languageTags[i].equalsIgnoreCase(currentTag)) {
+                selected = i;
+                break;
+            }
+        }
         new AlertDialog.Builder(getContext())
                 .setTitle(AppText.t(getContext(), "App-Sprache"))
-                .setSingleChoiceItems(languages, english ? 1 : 0, (dialog, which) -> {
-                    AppText.setLanguage((Activity) getContext(), which == 1 ? "en" : "de");
+                .setSingleChoiceItems(languages, selected, (dialog, which) -> {
+                    AppText.setLanguage((Activity) getContext(), languageTags[which]);
                     dialog.dismiss();
                 })
                 .setNegativeButton(AppText.t(getContext(), "Abbrechen"), null)
@@ -2879,50 +2894,53 @@ class BatteryDashboard extends View {
     }
 
     private void showDataPrivacy() {
-        boolean english = AppText.isEnglish(getContext());
+        boolean english = !"de".equals(AppText.languageTag(getContext()));
         String[] exportChoices = english
                 ? new String[]{"Export CSV", "Research JSON", "Diagnostic report"}
                 : new String[]{"CSV exportieren", "Forschungs-JSON", "Diagnosebericht"};
+        for (int i = 0; i < exportChoices.length; i++) {
+            exportChoices[i] = AppText.fromEnglish(getContext(), exportChoices[i]);
+        }
         String privacyMessage = english
-                ? "Ampere stores measurements locally for history and analysis: time, battery level, charging state, current, temperature, voltage and screen state. If you grant usage access, the active foreground app is also stored locally to estimate its share of usage.\n\nOptional usage analytics sends visited app sections and selected feature usage to Google through Firebase. Firebase also receives app starts, sessions, a pseudonymous installation identifier and technical details such as device model, Android version and app version. Google may infer an approximate location from the IP address during transfer and then discards the IP address. Advertising ID and personalized advertising are disabled. Battery measurements, foreground app names, accounts and precise locations are not sent for this analysis. Analytics events and user data are retained for two months; aggregated reports may remain longer. You can change consent under Usage analytics; it stays off without consent.\n\nAndroid backups may contain history, settings and local telemetry through a suitable encrypted backup service. Android and the device decide whether and when a backup runs. Update checks only retrieve the configured version file. CSV and research JSON are created only after you choose an export; research exports include the device model and Android version, but no serial number or advertising ID."
-                : "Ampere speichert Messwerte lokal für Verlauf und Analyse: Zeit, Akkustand, Ladezustand, Strom, Temperatur, Spannung und Bildschirmstatus. Wenn du den Nutzungszugriff erlaubst, wird zusätzlich die aktive Vordergrund-App lokal gespeichert, um ihren Anteil am Verbrauch zu schätzen.\n\nEine optionale Nutzungsanalyse sendet besuchte App-Bereiche und festgelegte Funktionsnutzungen über Firebase an Google. Firebase erfasst außerdem App-Starts und Sitzungen, bei Google Play gegebenenfalls Installations-/Update-Quelle, eine zufällige pseudonyme Kennung je App-Installation sowie technische Angaben wie Gerätemodell, Betriebssystem und App-Version. Google kann bei der Übertragung aus der IP-Adresse ungefähre Standortinformationen ableiten und verwirft die IP-Adresse danach. Werbe-ID und personalisierte Werbung sind deaktiviert. Akku-Messwerte, Vordergrund-App-Namen, Konten und genaue Standorte werden nicht für diese Analyse übertragen. Ereignis- und Nutzerdaten werden im Analytics-Projekt jeweils zwei Monate aufbewahrt; aggregierte Berichte können länger bestehen bleiben. Zustimmung und Widerruf findest du unter „Nutzungsanalyse“; ohne Zustimmung bleibt sie aus.\n\nAndroid-Sicherungen können Verlauf, Einstellungen und lokale Telemetrie über einen geeigneten verschlüsselten Sicherungsdienst enthalten; Gerät und Android bestimmen, ob und wann gesichert wird. Die Update-Prüfung ruft nur die konfigurierte Versionsdatei ab. CSV und Forschungs-JSON werden erst nach deiner Auswahl erzeugt; der Forschungs-Export enthält Gerätemodell und Android-Version, aber keine Seriennummer oder Werbe-ID.";
+                ? "AkkuTakt stores measurements locally for history and analysis: time, battery level, charging state, current, temperature, voltage and screen state. If you grant usage access, the active foreground app is also stored locally to estimate its share of usage.\n\nOptional usage analytics sends visited app sections and selected feature usage to Google through Firebase. Firebase also receives app starts, sessions, a pseudonymous installation identifier and technical details such as device model, Android version and app version. Google may infer an approximate location from the IP address during transfer and then discards the IP address. Advertising ID and personalized advertising are disabled. Battery measurements, foreground app names, accounts and precise locations are not sent for this analysis. Analytics events and user data are retained for two months; aggregated reports may remain longer. You can change consent under Usage analytics; it stays off without consent.\n\nAndroid backups may contain history, settings and local telemetry through a suitable encrypted backup service. Android and the device decide whether and when a backup runs. Update checks only retrieve the configured version file. CSV and research JSON are created only after you choose an export; research exports include the device model and Android version, but no serial number or advertising ID."
+                : "AkkuTakt speichert Messwerte lokal für Verlauf und Analyse: Zeit, Akkustand, Ladezustand, Strom, Temperatur, Spannung und Bildschirmstatus. Wenn du den Nutzungszugriff erlaubst, wird zusätzlich die aktive Vordergrund-App lokal gespeichert, um ihren Anteil am Verbrauch zu schätzen.\n\nEine optionale Nutzungsanalyse sendet besuchte App-Bereiche und festgelegte Funktionsnutzungen über Firebase an Google. Firebase erfasst außerdem App-Starts und Sitzungen, bei Google Play gegebenenfalls Installations-/Update-Quelle, eine zufällige pseudonyme Kennung je App-Installation sowie technische Angaben wie Gerätemodell, Betriebssystem und App-Version. Google kann bei der Übertragung aus der IP-Adresse ungefähre Standortinformationen ableiten und verwirft die IP-Adresse danach. Werbe-ID und personalisierte Werbung sind deaktiviert. Akku-Messwerte, Vordergrund-App-Namen, Konten und genaue Standorte werden nicht für diese Analyse übertragen. Ereignis- und Nutzerdaten werden im Analytics-Projekt jeweils zwei Monate aufbewahrt; aggregierte Berichte können länger bestehen bleiben. Zustimmung und Widerruf findest du unter „Nutzungsanalyse“; ohne Zustimmung bleibt sie aus.\n\nAndroid-Sicherungen können Verlauf, Einstellungen und lokale Telemetrie über einen geeigneten verschlüsselten Sicherungsdienst enthalten; Gerät und Android bestimmen, ob und wann gesichert wird. Die Update-Prüfung ruft nur die konfigurierte Versionsdatei ab. CSV und Forschungs-JSON werden erst nach deiner Auswahl erzeugt; der Forschungs-Export enthält Gerätemodell und Android-Version, aber keine Seriennummer oder Werbe-ID.";
         new AlertDialog.Builder(getContext())
-                .setTitle(english ? "Data & privacy" : "Daten & Datenschutz")
-                .setMessage(privacyMessage)
+                .setTitle(AppText.fromEnglish(getContext(), english ? "Data & privacy" : "Daten & Datenschutz"))
+                .setMessage(AppText.fromEnglish(getContext(), privacyMessage))
                 .setItems(exportChoices, (dialog, which) -> {
                     MainActivity activity = (MainActivity) getContext();
                     if (which == 0) activity.createCsvExport();
                     else if (which == 1) activity.createResearchExport();
                     else activity.createDiagnosticExport();
                 })
-                .setNeutralButton(english ? "Usage analytics" : "Nutzungsanalyse", (dialog, which) -> showAnalyticsSettings())
-                .setNegativeButton(english ? "Close" : "Schließen", null)
+                .setNeutralButton(AppText.fromEnglish(getContext(), english ? "Usage analytics" : "Nutzungsanalyse"), (dialog, which) -> showAnalyticsSettings())
+                .setNegativeButton(AppText.fromEnglish(getContext(), english ? "Close" : "Schließen"), null)
                 .show();
     }
 
     private void showAnalyticsSettings() {
         boolean enabled = AnalyticsTracker.isEnabled(getContext());
-        boolean english = AppText.isEnglish(getContext());
+        boolean english = !"de".equals(AppText.languageTag(getContext()));
         String state = english ? (enabled ? "Currently enabled." : "Currently off.")
                 : (enabled ? "Derzeit aktiv." : "Derzeit aus.");
         String analyticsMessage = english
-                ? state + "\n\nAmpere sends only visited app sections and selected feature usage to Google through Firebase. Firebase also processes a pseudonymous app-instance identifier, sessions and technical app/device information. Google may infer an approximate location from your IP address during transfer and then discards the IP address. The analytics account may use only aggregated, anonymized measurements for industry benchmarks; sharing with Google products and services is disabled. Battery measurements, active app names, accounts, precise locations and advertising IDs are not sent for this analysis. Events and user data are retained for two months; aggregated reports may remain longer.\n\nAnalytics is optional and does not change app functionality. Turning it off stops future collection and resets Ampere's local analytics identifier; already aggregated statistics may remain longer."
-                : state + "\n\n" + "Ampere sendet nur besuchte App-Bereiche und ausgewählte Funktionsnutzungen an Google über Firebase. Firebase verarbeitet außerdem eine pseudonyme App-Instanzkennung, Sitzungen sowie technische App-/Geräteinformationen. Google kann bei der Übertragung aus deiner IP-Adresse ungefähre Standortinformationen ableiten und verwirft die IP-Adresse danach. Das Analytics-Konto kann nur zusammengefasste, anonymisierte Messwerte für Branchen-Benchmarks nutzen; die zusätzliche Freigabe für Google-Produkte und -Dienste ist ausgeschaltet. Akku-Messwerte, aktive App-Namen, Konten, genaue Standortdaten und Werbe-IDs werden nicht für diese Analyse übertragen. Ereignis- und Nutzerdaten werden jeweils zwei Monate aufbewahrt; aggregierte Berichte können länger bestehen bleiben.\n\nDie Analyse ist freiwillig und ändert keine App-Funktion. Beim Ausschalten stoppt Ampere künftige Erfassung und setzt die lokale Analytics-Kennung zurück; bereits erstellte aggregierte Statistiken können länger bestehen bleiben.";
+                ? state + "\n\nAkkuTakt sends only visited app sections and selected feature usage to Google through Firebase. Firebase also processes a pseudonymous app-instance identifier, sessions and technical app/device information. Google may infer an approximate location from your IP address during transfer and then discards the IP address. The analytics account may use only aggregated, anonymized measurements for industry benchmarks; sharing with Google products and services is disabled. Battery measurements, active app names, accounts, precise locations and advertising IDs are not sent for this analysis. Events and user data are retained for two months; aggregated reports may remain longer.\n\nAnalytics is optional and does not change app functionality. Turning it off stops future collection and resets AkkuTakt's local analytics identifier; already aggregated statistics may remain longer."
+                : state + "\n\n" + "AkkuTakt sendet nur besuchte App-Bereiche und ausgewählte Funktionsnutzungen an Google über Firebase. Firebase verarbeitet außerdem eine pseudonyme App-Instanzkennung, Sitzungen sowie technische App-/Geräteinformationen. Google kann bei der Übertragung aus deiner IP-Adresse ungefähre Standortinformationen ableiten und verwirft die IP-Adresse danach. Das Analytics-Konto kann nur zusammengefasste, anonymisierte Messwerte für Branchen-Benchmarks nutzen; die zusätzliche Freigabe für Google-Produkte und -Dienste ist ausgeschaltet. Akku-Messwerte, aktive App-Namen, Konten, genaue Standortdaten und Werbe-IDs werden nicht für diese Analyse übertragen. Ereignis- und Nutzerdaten werden jeweils zwei Monate aufbewahrt; aggregierte Berichte können länger bestehen bleiben.\n\nDie Analyse ist freiwillig und ändert keine App-Funktion. Beim Ausschalten stoppt AkkuTakt künftige Erfassung und setzt die lokale Analytics-Kennung zurück; bereits erstellte aggregierte Statistiken können länger bestehen bleiben.";
         new AlertDialog.Builder(getContext())
-                .setTitle(english ? "Usage analytics · " + (enabled ? "enabled" : "off") : "Nutzungsanalyse · " + (enabled ? "aktiv" : "aus"))
-                .setMessage(analyticsMessage)
-                .setPositiveButton(english ? (enabled ? "Turn off" : "Agree and enable") : (enabled ? "Ausschalten" : "Zustimmen und aktivieren"), (dialog, which) -> {
+                .setTitle(AppText.fromEnglish(getContext(), english ? "Usage analytics · " + (enabled ? "enabled" : "off") : "Nutzungsanalyse · " + (enabled ? "aktiv" : "aus")))
+                .setMessage(AppText.fromEnglish(getContext(), analyticsMessage))
+                .setPositiveButton(AppText.fromEnglish(getContext(), english ? (enabled ? "Turn off" : "Agree and enable") : (enabled ? "Ausschalten" : "Zustimmen und aktivieren")), (dialog, which) -> {
                     AnalyticsTracker.setConsent(getContext(), !enabled);
                     if (!enabled) AnalyticsTracker.logSection(getContext(), page);
-                    Toasts.show(getContext(), english ? (enabled ? "Usage analytics turned off." : "Usage analytics enabled.") : (enabled ? "Nutzungsanalyse ausgeschaltet." : "Nutzungsanalyse aktiviert."));
+                    Toasts.show(getContext(), AppText.fromEnglish(getContext(), english ? (enabled ? "Usage analytics turned off." : "Usage analytics enabled.") : (enabled ? "Nutzungsanalyse ausgeschaltet." : "Nutzungsanalyse aktiviert.")));
                 })
-                .setNegativeButton(english ? "Close" : "Schließen", null)
+                .setNegativeButton(AppText.fromEnglish(getContext(), english ? "Close" : "Schließen"), null)
                 .show();
     }
 
     private String currentStatusText() {
         StringBuilder status = new StringBuilder();
-        status.append("Ampere Battery Lab\n")
+        status.append("AkkuTakt\n")
                 .append(AppText.t(getContext(), "Akkustand")).append(": ").append(levelDisplay()).append(" · ")
                 .append(batteryModeLabel()).append('\n')
                 .append(AppText.t(getContext(), "Strom")).append(": ").append(liveCurrentDisplay()).append('\n')
@@ -2950,7 +2968,7 @@ class BatteryDashboard extends View {
         android.content.ClipboardManager clipboard = (android.content.ClipboardManager)
                 getContext().getSystemService(Context.CLIPBOARD_SERVICE);
         if (clipboard != null) {
-            clipboard.setPrimaryClip(android.content.ClipData.newPlainText("Ampere-Akkustatus", currentStatusText()));
+            clipboard.setPrimaryClip(android.content.ClipData.newPlainText("AkkuTakt-Akkustatus", currentStatusText()));
             Toasts.show(getContext(), AppText.t(getContext(), "Akkustatus kopiert."));
         }
     }
@@ -2958,18 +2976,18 @@ class BatteryDashboard extends View {
     private void shareCurrentStatus() {
         Intent share = new Intent(Intent.ACTION_SEND)
                 .setType("text/plain")
-                .putExtra(Intent.EXTRA_SUBJECT, "Ampere-Akkustatus")
+                .putExtra(Intent.EXTRA_SUBJECT, "AkkuTakt-Akkustatus")
                 .putExtra(Intent.EXTRA_TEXT, currentStatusText());
         getContext().startActivity(Intent.createChooser(share, "Akkustatus teilen"));
     }
 
     private void confirmDeleteData() {
-        boolean english = AppText.isEnglish(getContext());
+        boolean english = !"de".equals(AppText.languageTag(getContext()));
         new AlertDialog.Builder(getContext())
-                .setTitle(english ? "Delete local data?" : "Lokale Daten löschen?")
-                .setMessage(english ? "This deletes local history, sessions, health measurements, telemetry and settings. An older Android backup may remain until it is replaced." : "Damit werden lokaler Verlauf, Sitzungen, Gesundheitsmessungen, Telemetrie und Einstellungen gelöscht. Eine ältere Android-Sicherung kann bestehen bleiben, bis sie ersetzt wird.")
-                .setNegativeButton(english ? "Cancel" : "Abbrechen", null)
-                .setPositiveButton(english ? "Delete" : "Löschen", (dialog, which) -> {
+                .setTitle(AppText.fromEnglish(getContext(), english ? "Delete local data?" : "Lokale Daten löschen?"))
+                .setMessage(AppText.fromEnglish(getContext(), english ? "This deletes local history, sessions, health measurements, telemetry and settings. An older Android backup may remain until it is replaced." : "Damit werden lokaler Verlauf, Sitzungen, Gesundheitsmessungen, Telemetrie und Einstellungen gelöscht. Eine ältere Android-Sicherung kann bestehen bleiben, bis sie ersetzt wird."))
+                .setNegativeButton(AppText.fromEnglish(getContext(), english ? "Cancel" : "Abbrechen"), null)
+                .setPositiveButton(AppText.fromEnglish(getContext(), english ? "Delete" : "Löschen"), (dialog, which) -> {
                     Context context = getContext();
                     AnalyticsTracker.setConsent(context, false);
                     SharedPreferences data = BatteryDataRepository.data(context);
@@ -2979,18 +2997,18 @@ class BatteryDashboard extends View {
                     reloadStoredData();
                     Intent battery = ((Activity) context).registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
                     if (battery != null) readBattery(battery);
-                    Toasts.show(context, english ? "Local data deleted." : "Lokale Daten gelöscht.");
+                    Toasts.show(context, AppText.fromEnglish(context, english ? "Local data deleted." : "Lokale Daten gelöscht."));
                 })
                 .show();
     }
 
     private void confirmResetHealthBaseline() {
-        boolean english = AppText.isEnglish(getContext());
+        boolean english = !"de".equals(AppText.languageTag(getContext()));
         new AlertDialog.Builder(getContext())
-                .setTitle(english ? "Reset health baseline?" : "Gesundheitsbasis zurücksetzen?")
-                .setMessage(english ? "This starts battery health, capacity measurement and daily cycle history over, for example after replacing the battery. Existing sessions, telemetry, settings and exports remain." : "Damit beginnen Akku-Gesundheit, Kapazitätsmessung und tägliche Zyklushistorie neu, zum Beispiel nach einem Akkutausch. Bestehende Sitzungen, Telemetrie, Einstellungen und Exporte bleiben erhalten.")
-                .setNegativeButton(english ? "Cancel" : "Abbrechen", null)
-                .setPositiveButton(english ? "Reset baseline" : "Basis zurücksetzen", (dialog, which) -> {
+                .setTitle(AppText.fromEnglish(getContext(), english ? "Reset health baseline?" : "Gesundheitsbasis zurücksetzen?"))
+                .setMessage(AppText.fromEnglish(getContext(), english ? "This starts battery health, capacity measurement and daily cycle history over, for example after replacing the battery. Existing sessions, telemetry, settings and exports remain." : "Damit beginnen Akku-Gesundheit, Kapazitätsmessung und tägliche Zyklushistorie neu, zum Beispiel nach einem Akkutausch. Bestehende Sitzungen, Telemetrie, Einstellungen und Exporte bleiben erhalten."))
+                .setNegativeButton(AppText.fromEnglish(getContext(), english ? "Cancel" : "Abbrechen"), null)
+                .setPositiveButton(AppText.fromEnglish(getContext(), english ? "Reset baseline" : "Basis zurücksetzen"), (dialog, which) -> {
                     Context context = getContext();
                     SharedPreferences data = BatteryDataRepository.data(context);
                     data.edit()
@@ -3008,25 +3026,25 @@ class BatteryDashboard extends View {
                     reloadStoredData();
                     Intent battery = ((Activity) context).registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
                     if (battery != null) readBattery(battery);
-                    Toasts.show(context, english ? "Health baseline reset; history was kept." : "Gesundheitsbasis zurückgesetzt; Verlauf bleibt erhalten.");
+                    Toasts.show(context, AppText.fromEnglish(context, english ? "Health baseline reset; history was kept." : "Gesundheitsbasis zurückgesetzt; Verlauf bleibt erhalten."));
                 })
                 .show();
     }
 
     private void showBackupRestore() {
-        boolean english = AppText.isEnglish(getContext());
+        boolean english = !"de".equals(AppText.languageTag(getContext()));
         new AlertDialog.Builder(getContext())
-                .setTitle(english ? "Backup & restore" : "Sicherung & Wiederherstellung")
-                .setMessage(english ? "Updates keep your data automatically. Background monitoring requests Android's backup service. With a suitable encrypted service, automatic Android backup can include history, settings and local telemetry. " + backupStatus() + "\n\nCreate a backup before uninstalling and restore it after reinstalling. Enabled cloud/device backup may restore the included data automatically; the visible backup is the reliable fallback." : "Updates behalten deine Daten automatisch. Die Überwachung fordert im Hintergrund den Android-Sicherungsdienst an. Bei einem geeigneten verschlüsselten Sicherungsdienst umfasst die automatische Android-Sicherung Verlauf, Einstellungen und lokale Telemetrie. " + backupStatus() + "\n\nErstelle vor der Deinstallation eine Sicherung und stelle sie nach der Neuinstallation wieder her. Eine aktivierte Cloud-/Gerätesicherung kann die enthaltenen Daten automatisch zurückspielen; die sichtbare Sicherung ist die zuverlässige Ausweichlösung.")
-                .setPositiveButton(english ? "Create backup" : "Sicherung erstellen", (dialog, which) -> ((MainActivity) getContext()).createBackup())
-                .setNeutralButton(english ? "Restore backup" : "Sicherung wiederherstellen", (dialog, which) -> ((MainActivity) getContext()).restoreBackup())
-                .setNegativeButton(english ? "Close" : "Schließen", null)
+                .setTitle(AppText.fromEnglish(getContext(), english ? "Backup & restore" : "Sicherung & Wiederherstellung"))
+                .setMessage(AppText.fromEnglish(getContext(), english ? "Updates keep your data automatically. Background monitoring requests Android's backup service. With a suitable encrypted service, automatic Android backup can include history, settings and local telemetry. " + backupStatus() + "\n\nCreate a backup before uninstalling and restore it after reinstalling. Enabled cloud/device backup may restore the included data automatically; the visible backup is the reliable fallback." : "Updates behalten deine Daten automatisch. Die Überwachung fordert im Hintergrund den Android-Sicherungsdienst an. Bei einem geeigneten verschlüsselten Sicherungsdienst umfasst die automatische Android-Sicherung Verlauf, Einstellungen und lokale Telemetrie. " + backupStatus() + "\n\nErstelle vor der Deinstallation eine Sicherung und stelle sie nach der Neuinstallation wieder her. Eine aktivierte Cloud-/Gerätesicherung kann die enthaltenen Daten automatisch zurückspielen; die sichtbare Sicherung ist die zuverlässige Ausweichlösung."))
+                .setPositiveButton(AppText.fromEnglish(getContext(), english ? "Create backup" : "Sicherung erstellen"), (dialog, which) -> ((MainActivity) getContext()).createBackup())
+                .setNeutralButton(AppText.fromEnglish(getContext(), english ? "Restore backup" : "Sicherung wiederherstellen"), (dialog, which) -> ((MainActivity) getContext()).restoreBackup())
+                .setNegativeButton(AppText.fromEnglish(getContext(), english ? "Close" : "Schließen"), null)
                 .show();
     }
 
     private String backupStatus() {
         long lastRequest = prefs.getLong("lastBackupRequestAt", 0L);
-        boolean english = AppText.isEnglish(getContext());
+        boolean english = !"de".equals(AppText.languageTag(getContext()));
         if (lastRequest <= 0L) return english ? "No automatic backup has been requested yet." : "Noch keine automatische Sicherung angefordert.";
         String date = new SimpleDateFormat("dd.MM.yyyy HH:mm", uiLocale()).format(new Date(lastRequest));
         return english ? "Last automatic backup request: " + date + ". Android controls the backup service and timing." : "Letzte automatische Sicherungsanforderung: " + date + ". Android steuert Dienst und Zeitpunkt der Sicherung.";
@@ -3046,9 +3064,9 @@ class BatteryDashboard extends View {
     private void showTutorialStep(int step) {
         MainActivity activity = (MainActivity) getContext();
         boolean firstStep = step == 0;
-        boolean english = AppText.isEnglish(getContext());
+        boolean english = !"de".equals(AppText.languageTag(getContext()));
         String title = firstStep
-                ? (english ? "Get to know Ampere · 1 of 2" : "Ampere kennenlernen · 1 von 2")
+                ? (english ? "Get to know AkkuTakt · 1 of 2" : "AkkuTakt kennenlernen · 1 von 2")
                 : (english ? "Access and setup · 2 of 2" : "Zugriffe & Start · 2 von 2");
         String message = firstStep
                 ? (english
@@ -3058,17 +3076,17 @@ class BatteryDashboard extends View {
                 ? "Notifications keep background status and charge alerts visible. Android will ask for them when you tap Get started if they are not allowed yet.\n\nApp usage access is only needed for usage by app. Overlay enables the live display over other apps. Both are optional and requested only when you use the related feature. You can review every access later under Settings → Check permissions.\n\nFor the health measurement, start at 25% or below and charge above 95%. Usage analytics is optional and stays off until you enable it under Data & privacy."
                 : "Benachrichtigungen halten Hintergrundstatus und Ladealarme sichtbar. Bei „Loslegen“ fragt Android dich danach, falls sie noch nicht erlaubt sind.\n\nApp-Nutzungszugriff ist nur für Verbrauch pro App nötig. Overlay erlaubt die Live-Anzeige über anderen Apps. Beide sind optional und werden erst bei Nutzung der jeweiligen Funktion angefragt. Du kannst jeden Zugriff später unter Einstellungen → Berechtigungen prüfen.\n\nFür die Gesundheitsmessung: bei höchstens 25 % starten und über 95 % laden. Nutzungsanalyse ist freiwillig und bleibt aus, bis du sie in Daten & Datenschutz einschaltest.");
         AlertDialog.Builder guide = new AlertDialog.Builder(getContext())
-                .setTitle(title)
-                .setMessage(message);
+                .setTitle(AppText.fromEnglish(getContext(), title))
+                .setMessage(AppText.fromEnglish(getContext(), message));
         if (firstStep) {
-            guide.setNegativeButton(english ? "Later" : "Später", (dialog, which) -> {
+            guide.setNegativeButton(AppText.fromEnglish(getContext(), english ? "Later" : "Später"), (dialog, which) -> {
                         prefs.edit().putBoolean("tutorialShown", true).apply();
                         activity.snoozePermissionReminder();
                     })
-                    .setPositiveButton(english ? "Next" : "Weiter", (dialog, which) -> showTutorialStep(1));
+                    .setPositiveButton(AppText.fromEnglish(getContext(), english ? "Next" : "Weiter"), (dialog, which) -> showTutorialStep(1));
         } else {
-            guide.setNegativeButton(english ? "Back" : "Zurück", (dialog, which) -> showTutorialStep(0))
-                    .setPositiveButton(english ? "Get started" : "Loslegen", (dialog, which) -> {
+            guide.setNegativeButton(AppText.fromEnglish(getContext(), english ? "Back" : "Zurück"), (dialog, which) -> showTutorialStep(0))
+                    .setPositiveButton(AppText.fromEnglish(getContext(), english ? "Get started" : "Loslegen"), (dialog, which) -> {
                         activity.completeFirstRunOnboarding();
                     });
         }
@@ -3087,9 +3105,18 @@ class BatteryDashboard extends View {
         p.setStyle(Paint.Style.FILL);
     }
     private void displayText(Canvas c, String value, float x, float y, float size, int color) {
-        value = AppText.t(getContext(), value);
+        // Keep the product name verbatim. The German word "Akku" is also a
+        // translatable UI fragment, but translating it inside AkkuTakt would
+        // turn the brand into strings such as "BatteryTakt".
+        if (!"AkkuTakt".equals(value)) value = AppText.t(getContext(), value);
         displayType(size, color);
         c.drawText(value, u(x), u(y), p);
+    }
+    private void boundedDisplayText(Canvas c, String value, float leftX, float rightX,
+                                   float y, float size, int color) {
+        value = AppText.t(getContext(), value);
+        displayType(size, color);
+        drawFitWithin(c, value, leftX, y, Math.max(1f, rightX - leftX));
     }
     private void drawFitWithin(Canvas c, String value, float x, float y, float widthDp) {
         float measured = p.measureText(value);
@@ -3474,16 +3501,21 @@ class BatteryDashboard extends View {
         c.drawCircle(u(w * .72f), u(-8), u(82), p);
         rounded(c, 18, 18, 54, 54, 16, lime);
         drawBolt(c, 36, 36, headerDark, 1.1f);
-        displayText(c, "Ampere", 62, 40, 18, headerText);
+        displayText(c, "AkkuTakt", 62, 40, 18, headerText);
         String buildLabel = isProbablyEmulator() ? "TESTDATEN" : "LIVE";
-        // At 240–270 dp the right menu cell reaches into the old badge lane.
-        // Hiding the secondary build marker is cleaner than shrinking either
-        // control until its label becomes unreadable.
+        // Place the status badge after the invariant product wordmark. The
+        // translated word "Battery" used to expand AkkuTakt and overlap it.
+        // On narrow screens, omit the badge rather than cover either label.
+        displayType(18, headerText);
+        float brandRight = 62f + p.measureText("AkkuTakt") / density;
+        float badgeLeft = Math.max(137f, brandRight + 8f);
+        float badgeRight = badgeLeft + (isProbablyEmulator() ? 56f : 37f);
+        float badgeLimit = w < 390f ? w - 72f : w - 150f;
         if (w >= 280f) {
-            float badgeLeft = 137f;
-            float badgeRight = isProbablyEmulator() ? 193f : 174f;
-            rounded(c, badgeLeft, 25, badgeRight, 43, 7, headerMid);
-            centeredText(c, buildLabel, (badgeLeft + badgeRight) / 2f, 37.5f, 7f, lime, true);
+            if (badgeRight <= badgeLimit) {
+                rounded(c, badgeLeft, 25, badgeRight, 43, 7, headerMid);
+                centeredText(c, buildLabel, (badgeLeft + badgeRight) / 2f, 37.5f, 7f, lime, true);
+            }
         }
         // The page name appears once. Removing the former AMPERE · PAGE kicker
         // makes room for hierarchy instead of repeating the navigation.
@@ -3572,10 +3604,8 @@ class BatteryDashboard extends View {
     private void drawNav(Canvas c, float w, int primary, int muted, int border, int panel) {
         boolean compactNav = w < 480f;
         boolean ultraCompactNav = w < 280f;
-        String[] labels = ultraCompactNav
-                ? new String[]{"Start", "Laden", "Entl.", "Akku", "Verl."}
-                : compactNav
-                ? new String[]{"Start", "Laden", "Entladen", "Akku", "Verlauf"}
+        String[] labels = compactNav
+                ? compactNavigationLabels(AppText.languageTag(getContext()), ultraCompactNav)
                 : new String[]{"Übersicht", "Laden", "Entladen", "Gesundheit", "Verlauf"};
         float navInset = BatteryAccessibilityLayout.navigationInset(w);
         float cell = (w - 2f * navInset) / 5f;
@@ -3626,6 +3656,30 @@ class BatteryDashboard extends View {
                 boundedText(c, fittedLabel, groupLeft + iconBox + iconLabelGap, x + cell - 8f, 148, 9,
                         active ? activeTextColor : muted, active);
             }
+        }
+    }
+
+    private String[] compactNavigationLabels(String language, boolean ultraCompact) {
+        switch (language) {
+            case "en": return ultraCompact
+                    ? new String[]{"Home", "Chrg", "Use", "Health", "Hist."}
+                    : new String[]{"Home", "Charge", "Usage", "Health", "History"};
+            case "es": return ultraCompact
+                    ? new String[]{"Inicio", "Carga", "Uso", "Salud", "Hist."}
+                    : new String[]{"Inicio", "Carga", "Uso", "Salud", "Historial"};
+            case "fr": return ultraCompact
+                    ? new String[]{"Accueil", "Charge", "Conso.", "Santé", "Hist."}
+                    : new String[]{"Accueil", "Charge", "Conso.", "Santé", "Historique"};
+            case "it": return ultraCompact
+                    ? new String[]{"Home", "Carica", "Uso", "Salute", "Stor."}
+                    : new String[]{"Inizio", "Carica", "Consumo", "Salute", "Storico"};
+            case "pt-BR": return ultraCompact
+                    ? new String[]{"Início", "Carga", "Uso", "Saúde", "Hist."}
+                    : new String[]{"Início", "Carga", "Uso", "Saúde", "Histórico"};
+            case "nl": return ultraCompact
+                    ? new String[]{"Start", "Laad", "Verbr.", "Gez.", "Hist."}
+                    : new String[]{"Start", "Laden", "Verbr.", "Gezond", "Historie"};
+            default: return new String[]{"Start", "Laden", "Entl.", "Akku", "Verl."};
         }
     }
 
@@ -3712,8 +3766,10 @@ class BatteryDashboard extends View {
             // illustration carries the battery story while the level remains
             // the dominant, instantly readable datum.
             drawBatteryCareIllustration(c, 18, top, heroW);
-            displayText(c, overviewHeroLineOne(batteryAvailable), 36, top + 58, 19, heroPrimary);
-            displayText(c, overviewHeroLineTwo(batteryAvailable), 36, top + 80, 19, heroPrimary);
+            boundedDisplayText(c, overviewHeroLineOne(batteryAvailable), 36,
+                    18 + heroW - 18, top + 58, 19, heroPrimary);
+            boundedDisplayText(c, overviewHeroLineTwo(batteryAvailable), 36,
+                    18 + heroW - 18, top + 80, 19, heroPrimary);
             displayText(c, levelDisplay(), 36, top + 125, heroW < 300f ? 38 : 48, heroPrimary);
             text(c, batteryModeLabel(), 38, top + 148, 9, heroMuted, false);
             rounded(c, 36, top + 170, 119, top + 192, 11,
@@ -3738,7 +3794,7 @@ class BatteryDashboard extends View {
             drawHeart(c, 66, infoTop + 24, lime, .62f);
             text(c, "AKKUGESUNDHEIT", 90, infoTop + 28, 9, Color.rgb(145, 235, 224), true);
             String healthStatus = benchmarkActive && health == 0
-                    ? (english ? "Measurement in progress" : "Messung läuft")
+                    ? "Kapazitätsmessung läuft"
                     : health == 0 ? "Noch nicht gemessen" : health + " % · " + healthGradeLabel(health);
             centeredBoundedText(c, healthStatus, 36, infoRight, infoTop + 54,
                     health == 0 ? 16 : 20, heroPrimary, true);
@@ -4457,7 +4513,7 @@ class BatteryDashboard extends View {
             drawUsageRows(c, w, y + 691, primary, muted, faint);
         } else {
             text(c, "Nutzungszugriff ist optional", 36, y + 704, 9, amber, true);
-            text(c, "Damit ordnet Ampere den geschätzten", 36, y + 723, 9, muted, false);
+            text(c, "Damit ordnet AkkuTakt den geschätzten", 36, y + 723, 9, muted, false);
             text(c, "Verbrauch den verwendeten Apps zu.", 36, y + 740, 9, muted, false);
             text(c, "Zugriff einrichten  →", 36, y + 773, 9, lime, true);
         }
@@ -4561,7 +4617,7 @@ class BatteryDashboard extends View {
         // driver text escape the mobile surface.
         boundedText(c, healthReading.source.isEmpty() ? "Keine Messung" : healthMeasurementSourceLabel(),
                 36, w - 36, y + 485, 9, primary, true);
-        text(c, "Ampere-Vollzyklen: " + totalEquivalentCycles(), 36, y + 501, 8.8f, muted, false);
+        text(c, AppText.t(getContext(), "Äquivalente Vollzyklen: " + totalEquivalentCycles()), 36, y + 501, 8.8f, muted, false);
 
         // The button bounds below are the shared source for drawing, touch,
         // and accessibility, so the adjacent capacity card stays inert.
@@ -4846,7 +4902,7 @@ class BatteryDashboard extends View {
             drawUsageRows(c, w, y + 608, primary, muted, faint);
         } else {
             text(c, "Nutzungszugriff ist optional", 36, y + 615, 9, amber, true);
-            text(c, "Damit ordnet Ampere den geschätzten", 36, y + 635, 9, muted, false);
+            text(c, "Damit ordnet AkkuTakt den geschätzten", 36, y + 635, 9, muted, false);
             text(c, "Verbrauch den verwendeten Apps zu.", 36, y + 651, 9, muted, false);
             text(c, "Zugriff einrichten  →", 36, y + 686, 9, lime, true);
         }
@@ -5734,10 +5790,31 @@ class BatteryDashboard extends View {
         ArrayList<BatteryHistoryStats.Bucket> buckets = historyStatsBuckets();
         if (bucketIndex < 0 || bucketIndex >= buckets.size()) return;
         BatteryHistoryStats.Bucket bucket = buckets.get(bucketIndex);
-        boolean english = AppText.isEnglish(getContext());
-        String datePattern = historyPeriodDays == 1
-                ? (english ? "EEEE, MMMM d" : "EEEE, d. MMMM")
-                : historyPeriodDays == 7 ? (english ? "MMMM d, yyyy" : "d. MMMM yyyy") : "MMMM yyyy";
+        Locale locale = uiLocale();
+        boolean german = "de".equals(locale.getLanguage());
+        boolean english = !german;
+        String language = AppText.languageTag(getContext());
+        String datePattern;
+        if (historyPeriodDays == 1) {
+            switch (language) {
+                case "en": datePattern = "EEEE, MMMM d"; break;
+                case "de": datePattern = "EEEE, d. MMMM"; break;
+                case "es": datePattern = "EEEE d 'de' MMMM"; break;
+                case "pt-BR": datePattern = "EEEE, d 'de' MMMM"; break;
+                default: datePattern = "EEEE d MMMM"; break;
+            }
+        } else if (historyPeriodDays == 7) {
+            switch (language) {
+                case "en": datePattern = "MMMM d, yyyy"; break;
+                case "de": datePattern = "d. MMMM yyyy"; break;
+                case "es":
+                case "pt-BR": datePattern = "d 'de' MMMM 'de' yyyy"; break;
+                default: datePattern = "d MMMM yyyy"; break;
+            }
+        } else {
+            datePattern = "es".equals(language) || "pt-BR".equals(language)
+                    ? "MMMM 'de' yyyy" : "MMMM yyyy";
+        }
         String date = new SimpleDateFormat(datePattern, uiLocale())
                 .format(new Date(bucket.start));
         String message;
@@ -5772,8 +5849,8 @@ class BatteryDashboard extends View {
             }
         }
         new AlertDialog.Builder(getContext())
-                .setTitle((english ? "Battery balance · " : "Akku-Bilanz · ") + date)
-                .setMessage(message)
+                .setTitle(AppText.fromEnglish(getContext(), (english ? "Battery balance · " : "Akku-Bilanz · ") + date))
+                .setMessage(AppText.fromEnglish(getContext(), message))
                 .setPositiveButton(AppText.t(getContext(), "Schließen"), null)
                 .show();
     }
@@ -5810,7 +5887,7 @@ class BatteryDashboard extends View {
     }
 
     private String historyChartRangeLabel() {
-        return BatteryHistoryStats.chartRangeLabel(historyPeriodDays, Locale.GERMANY);
+        return BatteryHistoryStats.chartRangeLabel(historyPeriodDays, uiLocale());
     }
 
     private int historyChartBucketCount() {
@@ -6030,7 +6107,7 @@ class BatteryDashboard extends View {
         if (index < 0 || index >= sessions.size()) return;
         String[] parts = sessions.get(index).split(",", -1);
         if (parts.length < 4) return;
-        boolean english = AppText.isEnglish(getContext());
+        boolean english = !"de".equals(AppText.languageTag(getContext()));
         boolean charge = "Charge".equals(parts[0]);
         StringBuilder details = new StringBuilder();
         details.append(english ? (charge ? "Charging session" : "Discharge session")
@@ -6074,7 +6151,7 @@ class BatteryDashboard extends View {
         }
         new AlertDialog.Builder(getContext())
                 .setTitle(AppText.t(getContext(), "Sitzungsdetails"))
-                .setMessage(details.toString())
+                .setMessage(AppText.fromEnglish(getContext(), details.toString()))
                 .setNegativeButton(AppText.t(getContext(), "Schließen"), null)
                 .setPositiveButton(AppText.t(getContext(), charge ? "Laden öffnen" : "Entladen öffnen"), (dialog, which) -> {
                     selectPage(charge ? 1 : 2);
@@ -6089,8 +6166,11 @@ class BatteryDashboard extends View {
     private String formatTimestamp(String value) {
         try {
             long timestamp = Long.parseLong(value);
-            return new SimpleDateFormat(AppText.isEnglish(getContext())
-                    ? "MMM d, HH:mm" : "dd.MM., HH:mm", uiLocale()).format(new Date(timestamp));
+            Locale locale = uiLocale();
+            String pattern = "en".equals(locale.getLanguage()) ? "MMM d, HH:mm"
+                    : "de".equals(locale.getLanguage()) ? "dd.MM., HH:mm" : "d MMM · HH:mm";
+            return new SimpleDateFormat(pattern, locale)
+                    .format(new Date(timestamp));
         } catch (NumberFormatException ignored) {
             return value;
         }
@@ -6592,7 +6672,7 @@ class BatteryDashboard extends View {
     }
 
     private void updateAccessibilitySummary() {
-        boolean english = AppText.isEnglish(getContext());
+        boolean english = !"de".equals(AppText.languageTag(getContext()));
         String state = english
                 ? (level < 0 ? "Battery unavailable" : (charging ? "Charging detected" : "On battery"))
                 : (level < 0 ? "Akku nicht verfügbar" : (charging ? "Laden erkannt" : "Akkubetrieb"));
@@ -6674,6 +6754,8 @@ class BatteryDashboard extends View {
                 + "Akkugesundheit " + (health > 0 ? health + " Prozent" : "nicht gemessen") + ". "
                 + "Android-Zustand " + BatteryPlatformHealth.label(platformHealth) + "." + capacity
                 + chargingProfile + (liveDetails.isEmpty() ? "" : " " + liveDetails + ".");
+        String sourceSummary = largeTextPageSummary;
+        largeTextPageSummary = localizeAccessibilitySummary(sourceSummary);
         String selectedTabDescription = english
                 ? " Tabs: Overview, Charging, Discharging, Health, History. Active tab: "
                 : " Tabs: Übersicht, Laden, Entladen, Gesundheit, Verlauf. Aktiver Tab: ";
@@ -6681,10 +6763,15 @@ class BatteryDashboard extends View {
                 ? (english
                     ? "Graphical " + pageName() + " view. Values appear above in large-text mode."
                     : "Grafische " + pageName() + "-Ansicht. Die Werte stehen oben in der Großschrift-Ansicht.")
-                : largeTextPageSummary + selectedTabDescription + pageName() + ".";
+                : sourceSummary + selectedTabDescription + pageName() + ".";
+        accessibilityDescription = localizeAccessibilitySummary(accessibilityDescription);
         setContentDescription(accessibilityDescription);
         sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED);
         if (largeTextSummaryListener != null) largeTextSummaryListener.run();
+    }
+
+    private String localizeAccessibilitySummary(String value) {
+        return AppText.fromEnglish(getContext(), value);
     }
 
     void setLargeTextMode(boolean enabled) {

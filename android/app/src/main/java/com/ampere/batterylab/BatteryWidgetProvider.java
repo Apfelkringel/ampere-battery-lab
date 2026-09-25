@@ -91,7 +91,9 @@ public class BatteryWidgetProvider extends AppWidgetProvider {
         views.setTextViewText(R.id.widget_level, state.level >= 0 ? state.level + "%" : "—");
         views.setTextViewText(R.id.widget_status, AppText.t(context, statusText));
         views.setTextViewText(R.id.widget_details, AppText.t(context, detailsText));
-        views.setTextViewText(R.id.widget_caption, BatteryWidgetStatus.caption(AppText.isEnglish(context)));
+        Context localizedContext = AppText.applyStoredLocale(context);
+        views.setTextViewText(R.id.widget_caption,
+                localizedContext.getString(R.string.widget_battery));
         views.setTextColor(R.id.widget_status, context.getColor(
                 BatteryWidgetStatus.accent(state.status, state.charging)
                 ? R.color.widget_accent : R.color.widget_muted));

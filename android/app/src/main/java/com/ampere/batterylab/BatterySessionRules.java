@@ -1,5 +1,6 @@
 package com.ampere.batterylab;
 
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,6 +17,12 @@ final class BatterySessionRules {
 
     static String datePattern(boolean english) {
         return english ? "MMM d · h:mm a" : "dd.MM. HH:mm";
+    }
+
+    static String datePattern(Locale locale) {
+        if (locale == null || "de".equals(locale.getLanguage())) return "dd.MM. HH:mm";
+        if ("en".equals(locale.getLanguage())) return "MMM d · h:mm a";
+        return "d MMM · HH:mm";
     }
 
     /**

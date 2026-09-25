@@ -272,7 +272,9 @@ final class BatteryAccessibilitySummary {
     }
 
     private static boolean isEnglish(Locale locale) {
-        return locale != null && Locale.ENGLISH.getLanguage().equals(locale.getLanguage());
+        // Build a consistent English source summary for every non-German
+        // locale; AppText applies the selected offline translation afterward.
+        return locale != null && !Locale.GERMAN.getLanguage().equals(locale.getLanguage());
     }
 
     private static boolean isAvailable(String value) {

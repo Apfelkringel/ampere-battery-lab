@@ -1,0 +1,1 @@
+recarga,porcentaje,lecturas,seguimiento,tendencia,estado,historial

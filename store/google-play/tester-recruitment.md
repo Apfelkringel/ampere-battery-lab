@@ -6,16 +6,16 @@ closed-test invite.
 
 ## Reddit title
 
-**Android-Betatester gesucht: Ampere Battery Lab – Akkuverlauf ohne Konto und Werbung**
+**Android-Betatester gesucht: AkkuTakt – Akkuverlauf ohne Konto und Werbung**
 
 ## German post
 
 Ich suche mindestens 12 Android-Nutzer für einen geschlossenen Google-Play-Test
-von **Ampere Battery Lab** (Version 0.461). Die App zeigt Akkustand und
+von **AkkuTakt** (Version 0.493). Die App zeigt Akkustand und
 Ladezustand, erkennt Lade- und Entladesitzungen und zeichnet – soweit das
 jeweilige Gerät die Werte bereitstellt – Strom, Spannung und Temperatur lokal
 auf. Dazu kommen Widget, Benachrichtigung, Schnelleinstellungen-Kachel und
-CSV-Export. Die Oberfläche ist derzeit auf Deutsch.
+CSV-Export. Die App bietet Deutsch, Englisch, Spanisch, Französisch, Italienisch, brasilianisches Portugiesisch und Niederländisch.
 
 Gesucht sind Leute, die die App wirklich ausprobieren, während des Tests im
 Play-Test angemeldet bleiben und mir ehrliches Feedback zu Bedienung, Lesbarkeit,
@@ -43,10 +43,10 @@ sind, hängt vom Gerät ab.
 
 ## English alternative
 
-**Looking for Android testers: Ampere Battery Lab (German-language battery app)**
+**Looking for Android testers: AkkuTakt (battery app in seven languages)**
 
 I'm looking for at least 12 Android users for a genuine closed Google Play test
-of **Ampere Battery Lab** (version 0.461). It tracks battery level and charging
+of **AkkuTakt** (version 0.493). It tracks battery level and charging
 sessions, and records current, voltage and temperature locally when the device
 provides those values. It also includes a widget, persistent notification,
 Quick Settings tile and CSV export. The app UI is currently in German, so please

@@ -1,1 +1,1 @@
-Batterienutzung, Ladestatus und Verlauf — lokal, transparent, ohne Konto.
+Akku-Monitor: Ladestatus, Verlauf und Batterienutzung — lokal, ohne Konto.

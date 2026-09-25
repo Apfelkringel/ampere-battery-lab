@@ -1,0 +1,1 @@
+opladen,percentage,metingen,verloop,trend,status,geschiedenis

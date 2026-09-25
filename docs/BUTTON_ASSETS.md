@@ -3,15 +3,15 @@
 The button artwork used by Ampere 0.286 comes from the user-supplied individual
 SVG masters in `design/batteryhub-buttons/`. Copy, icon geometry, type placement,
 gradients and radii remain part of each source asset; the app does not redraw or
-reposition those elements at runtime. English variants for buttons with baked-in
-labels live in `design/batteryhub-buttons-en/`; their shape and geometry match
-the German masters, and only the label is translated.
+reposition those elements at runtime. Locale-specific variants for buttons with
+baked-in labels live in `design/batteryhub-buttons-{en,es,fr,it,pt-BR,nl}/`;
+their shape and geometry match the German masters, and only the label changes.
 
 ## Deterministic export
 
 - Source format: SVG, one self-contained file per visible button state.
 - Runtime format: transparent PNG in `android/app/src/main/res/drawable-nodpi/`,
-  with matching English resources in `android/app/src/main/res/drawable-en-nodpi/`.
+  with matching resources in the locale-qualified `drawable-*-nodpi/` folders.
 - Export: native SVG pixel dimensions via macOS CoreGraphics (`sips`), retaining
   the source transparency directly without screenshot crops or flood filling.
 - Post-processing: none; copy, icon, gradient, radius and alpha all come from
@@ -29,17 +29,19 @@ the German masters, and only the label is translated.
 - `12_starten.svg` and `15_start_wide.svg`: benchmark start actions.
 - `13_30d.svg` and `14_7d.svg`: chart range actions.
 
-## English variants
+## Locale variants
 
-Android selects these label-localized PNGs when the app language is English:
+Android selects label-localized PNGs for English, Spanish, French, Italian,
+Brazilian Portuguese, and Dutch:
 
+- `01_laden.svg` through `05_start_card.svg`: navigation cards.
 - `09_active.svg`: active benchmark state.
 - `10_csv_small.svg` and `11_csv_large.svg`: CSV export actions.
 - `12_start.svg`: benchmark start action.
 
-The remaining embedded labels are language-neutral or only drawn in the German
-app locale. Keep every new English artwork variant at the same dimensions as
-its German source so both locales preserve the existing button layout.
+The remaining embedded labels are language-neutral (LIVE and day ranges). Keep
+every locale artwork variant at the same dimensions as its German source so all
+supported languages preserve the existing button layout.
 
 The original dashboard composition is retained as
 `design/batteryhub_dashboard.svg` for visual provenance.
@@ -52,4 +54,4 @@ slots inside each image, preventing their pixels from colliding; no runtime
 text overlay is introduced.
 
 The SHA-256 manifest at `design/button-assets.sha256` pins runtime button PNGs
-for both locales.
+for every supported locale.

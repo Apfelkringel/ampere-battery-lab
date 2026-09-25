@@ -12,12 +12,12 @@ final class BatteryDiagnosticReport {
 
     static String build(String serialized, long samplingIntervalMs, long generatedAtMs, Locale locale) {
         Locale safeLocale = locale == null ? Locale.GERMANY : locale;
-        boolean english = "en".equalsIgnoreCase(safeLocale.getLanguage());
+        boolean english = !"de".equalsIgnoreCase(safeLocale.getLanguage());
         BatteryTelemetryDiagnostics.Summary summary = BatteryTelemetryDiagnostics.analyze(
                 serialized, samplingIntervalMs);
         StringBuilder report = new StringBuilder();
-        report.append(english ? "Ampere Battery Lab — Diagnostic report\n"
-                : "Ampere Battery Lab — Diagnosebericht\n");
+        report.append(english ? "AkkuTakt — Diagnostic report\n"
+                : "AkkuTakt — Diagnosebericht\n");
         report.append("=================================\n");
         report.append(english ? "Generated (Unix ms): " : "Erstellt (Unix ms): ")
                 .append(Math.max(0L, generatedAtMs)).append('\n');

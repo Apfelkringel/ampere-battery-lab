@@ -1,13 +1,14 @@
-# Ampere Battery Lab — AI project instructions
+# AkkuTakt — AI project instructions
 
 Read this file before changing code, release metadata, analytics, store text, or tester-recruitment material. The detailed project map is in `docs/AI-PROJECT-CONTEXT.md`.
 
 ## Project identity
 
-- Product: Ampere Battery Lab, an Android-first local battery-analysis app.
+- Product: AkkuTakt (formerly Ampere Battery Lab), an Android-first local battery-analysis app.
 - Android package and iOS bundle ID: `com.ampere.batterylab`.
 - Android source: `android/`; iOS port: `ios/`; web prototype: `prototypes/web/`.
-- Battery readings, history, sessions, and telemetry remain on-device. There is no Ampere application server.
+- Battery readings, history, sessions, and telemetry remain on-device. There is no AkkuTakt application server.
+- Keep the Android application ID and iOS bundle ID `com.ampere.batterylab` unchanged so existing installations retain update continuity.
 - Public binary/update repository: `https://github.com/Apfelkringel/ampere-battery-lab-updates`.
 
 ## Safety and privacy rules
@@ -22,7 +23,25 @@ Read this file before changing code, release metadata, analytics, store text, or
 - Android compile/target SDK: 37; min SDK: 23.
 - Distribution flavors: `direct` and `play`; direct may use the signed GitHub APK update flow, while Play relies on Google Play updates.
 - Firebase Analytics uses Firebase BoM `34.19.0`; `android/app/google-services.json` is public project configuration, not a secret or Console access.
-- The published direct APK/AAB and latest public Play AAB are `versionCode 492` / `versionName "0.492"`; the public AAB SHA-256 is `9f87c80029c26dff3ce287c9a3ae0ba2fb91fd63be47b3bb2c230d9a98fce4c6`. At the authenticated Console read on 2026-09-24 22:51 UTC / 2026-09-25 00:51 Berlin, active Alpha was still `0.489` (`versionCode 489`) with fallback `459`; Submission `63` for Alpha `0.491` contained exactly one Alpha binary change and remained `Wird überprüft`. Version `0.492` is not yet on Play. Do not start another upload or claim either version newly downloadable while Submission 63 is in review.
+- The latest public Direct APK and Play AAB are `versionCode 493` / `versionName "0.493"`; the public Play AAB SHA-256 is `f226f6990668a5187c5e083dc1f719364bbda2586b315351e0901bb49b65d383`. At the authenticated Console check on 2026-09-25 11:13 UTC / 13:13 Berlin, Submission `65` (exactly one closed-Alpha binary change for `0.493`) is `Veröffentlicht`; Alpha `0.493` is available to selected testers as a full rollout with codes `493` and compatibility fallback `459` (177 regions; 20,367 supported devices). Managed Publishing remains enabled. No changes are currently offered for publication or review, but two `es-ES` Store-entry changes (app name and short description) are saved for later; treat them as unresolved Console edits and block any next bundle upload until a fresh Console/API preflight proves they cannot be included. The Dashboard reports 12 testers for 2 consecutive days; the 14-day criterion is incomplete and Production access is disabled. The public `es-ES` listing still shows `Laboratorio de baterías Ampere`; the corrected two-field version is only a saved-for-later draft, not live.
+
+## Latest Play release check (2026-09-25 00:18–00:31 UTC / 02:18–02:31 Berlin)
+
+The authenticated Console showed no unpublished changes before upload, and the active closed Alpha track offered `0.492` / code `492` with fallback `459`, across 177 regions and 20,367 devices. The Play flavor on `main` still has `minSdk 24`. Validation-only run [36076939470](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/36076939470) verified public `latest.json` and the `0.493` / code `493` AAB hash, confirmed the Play API track `[459,492]` matches the Console, and retained fallback `459` without uploading. Upload run [36077069465](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/36077069465) succeeded with the active upload key. Submission `65` (API; sent 02:21 Console time) contains exactly one change: closed Alpha `0.493`, full rollout; status remains `Wird überprüft` at the 02:31 Console recheck. The pending release lists codes `493` and `459`; the prior `0.492` release remains available to selected testers. The Dashboard still reports 12 testers for 2 consecutive days; the 14-day criterion is incomplete and Production access disabled. Do not dispatch another upload or edit the Console during review. Once approved, recheck the full queue and publish only this binary-only Alpha submission with the verified fallback. No listing, Internal, Open, or Production change is authorized.
+
+## Latest Play Console and growth recheck (2026-09-25 10:32–11:13 UTC / 12:32–13:13 Berlin)
+
+Submission `65` was approved at 02:47 Berlin and published at 12:32 Berlin. Its details still show exactly one change: full rollout of closed Alpha `0.493`; the authenticated track now shows `Für ausgewählte Tester verfügbar`, with codes `493` and `459`, 177 regions, and 20,367 supported devices. Managed Publishing remains enabled. At 13:13 Berlin, no change is offered for publication or review; two `es-ES` Store-entry changes are explicitly `für später gespeichert`. Dashboard remains at 12 testers for 2 consecutive days; the 14-day gate is incomplete and Production access is disabled. No tester enrollment or other track was changed.
+
+GitHub Actions confirms Play workflow run [36077069465](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/36077069465) (#137, `main`, commit `248a4d0`) succeeded in 45 seconds; validation-only run [36076939470](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/36076939470) (#136) also succeeded. The workflow remains `workflow_dispatch`-only, with no newer run. The successful upload confirms the accepted upload key is working. The current public bundle remains `0.493`/code `493`, SHA-256 `f226f6990668a5187c5e083dc1f719364bbda2586b315351e0901bb49b65d383`; the successful workflow does not authorize a further upload without the documented Console/API preflight.
+
+Growth overview (device, last 28 days) now shows 17 device impressions, 2 device acquisitions, and 2 first opens; monthly active devices and 7-day retention are unavailable. The separate last-90-days Store-entry card remains at 66.67% conversion. The Store-entry detail route for 2026-08-23–2026-09-19 shows 3 visitors, 2 single-user install clicks, and 67% click-through; the standard-entry row separately shows 2 visitors and 50.0% conversion. Do not combine these different surfaces/ranges into a funnel. Store Listing experiments remain 0 running, 0 completed, 0 applied; this sample is still too small for an experiment.
+
+The App Statistics report for 2026-08-28–2026-09-22 showed a daily peak of 30 total impressions on 22 Sep and 5 installed-app users that day; on 17 Sep it showed 21 impressions and 2 installed-app users. The built-in Play chart AI described the early period as zero, called out the 17 Sep and 22 Sep peaks, and recommended improving search-result assets and testing variants. A follow-up AI answer attributed one India listing visitor with no acquisition on 18 Sep and one visitor plus one acquisition on 20 Sep; it found no listing visits in Chile, China, or France. These are AI interpretations of a very small, truncated date range, not independently verified source attribution or statistically meaningful conversion evidence. Do not run an experiment or target markets from these observations.
+
+The public Spanish (Spain) listing was rechecked at `https://play.google.com/store/apps/details?id=com.ampere.batterylab&hl=es_ES&gl=ES`: the live title remains `Laboratorio de baterías Ampere`, and its live short description is `Uso de batería, carga e historial — local, transparente y sin cuenta.`. The free Google machine-translation order `7430adcd1v2` is complete for 28 languages (`0.00 USD`). Its es-ES preview proposed the wrong title (`Laboratorio de baterías Ampere`, 30/30) and an invalid 116/80-character short description, so `Übernehmen` was initially disabled. The preview was corrected to the canonical brand `Ampere Battery Lab` (18/30) and `Batería, carga e historial — local, transparente y sin cuenta.` (62/80); the 1,420-character Spanish full description was left unchanged. The Console then showed exactly two es-ES changes: app name and short description. Both were moved to `2 Änderungen für später gespeichert`. They are not submitted for review and are not live; no Store listing publication occurred. Keep them parked, inspect their exact diff before any future submission, and do not let them hitchhike with an Alpha upload. This isolated draft replaces the earlier ambiguous-scope observation, but does not authorize publication.
+
+The Crash/ANR view for 28 Aug–25 Sep has no result rows; its crash/ANR-rate metrics are unavailable, so this is not proof of zero incidents. The Pre-Launch page still asks for an artifact upload and shows no report. Play protection remains automatic protection 1/1, Play Store protection 6/7, Play Integrity 0/7 (not integrated), and Play Billing protection 0/4; no protection setting was changed. The notification panel shows the 25-Sep publication message and the two known 19-Sep deprecated-SDK notices, both scoped to fallback release `0.459` (`androidx.activity:activity:1.0.0` and `androidx.fragment:fragment:1.1.0`); no new technical blocker was identified and no notification was deleted.
 
 ## Analytics contract
 
@@ -77,19 +96,20 @@ Follow `docs/STORE-PUBLISHING.md`, `docs/UPDATE-SECURITY.md`, and `tooling/relea
 - Preserve unrelated user changes and inspect `git status` before editing.
 - Prefer small, testable Java rule classes over adding logic to the renderer.
 - Keep unavailable measurements explicitly unavailable; never invent zeroes.
-- Keep German and English text pairs in `AppText`; localize text baked into graphics with locale-qualified drawable variants and use localized string resources for widget placeholders.
-- Keep comma-delimited session storage delimiter-safe in both locales; validate German and English duration formats and migrate previously saved English dates containing commas before rendering or export.
+- Keep German-source and English compatibility translations in `AppText`; Spanish, French, Italian, Brazilian Portuguese, and Dutch translations belong in the offline `AppTranslationCatalog`. Protect placeholders and external app names. Localize text baked into graphics with locale-qualified drawable variants and use localized string resources for widget placeholders.
+- Keep comma-delimited session storage delimiter-safe; validate persisted German and English duration formats and migrate previously saved English dates containing commas before rendering or export. Format new visible dates and numbers with the selected app locale.
 - Translate complete German labels before fragment replacements; leave already-English sentences intact, localize persisted status/source values at display boundaries, preserve externally supplied app names, and review every rendered English screen for fragments the marker-based translator can miss.
 - For battery-usage rows, resolve app labels and icons through `AppLabelCache`/`PackageManager`; declare only `MAIN`/`LAUNCHER` package visibility, avoid `QUERY_ALL_PACKAGES`, and never translate external app labels.
-- Keep both Android locales in each Play install for the app-specific language switch; do not enable language splits unless on-demand locale delivery is implemented and verified.
-- The iOS app follows the system language and keeps German/English entries in `ios/Ampere/{de,en}.lproj/Localizable.strings`; localize dynamic SwiftUI text, status values, sharing summaries, and accessibility labels explicitly.
+- Keep all seven supported Android locales in each Play install for the app-specific language switch; do not enable language splits unless on-demand locale delivery is implemented and verified.
+- The iOS app follows the system language and keeps entries in `ios/Ampere/{de,en,es,fr,it,pt-BR,nl}.lproj/Localizable.strings`; localize dynamic SwiftUI text, status values, sharing summaries, and accessibility labels explicitly.
 - Large-text navigation labels/actions live in `BatteryLargeTextTabs`; preserve tested translations, selected-tab accessibility descriptions, and automatic scroll-to-selected behavior when changing the reflowable dashboard.
-- TalkBack live summaries must localize generated labels, states, estimate sources, and units in both languages, including in large-text mode; keep representative German-origin English cases covered by unit tests.
+- TalkBack live summaries must localize generated labels, states, estimate sources, and units in every supported language, including in large-text mode; keep representative German-origin translations covered by unit tests.
 - The compact Home capacity-measurement button must immediately show the active state and stop action after a successful tap. Share its geometry across drawing, touch, and TalkBack, keep the accessible target at least 48 dp, and route every start through the same unplugged-at-or-below-25% guard.
 - Keep alarm thresholds, sampling options, session-detail text, history-chart accessibility fallbacks, and ongoing-notification number formats in the selected app language.
 - Use `AppText.uiLocale(context)` for user-visible decimal measurements, chart scales, energy/power labels, charger limits, and chart time ranges; keep machine-readable exports locale-independent.
 - Localize human-readable diagnostic reports and the optional charging screensaver using the selected app language; keep CSV/JSON schemas and machine-readable values locale-independent.
 - Public update manifests should include `releaseNotes_en` alongside `releaseNotes`; the English UI must not display German release notes when no English version exists.
+- Keep all seven supported Google Play title, short-description, and full-description sources localized under store/google-play/listing; retain the AkkuTakt brand and translate the battery-search descriptor per locale. The es-ES compatibility file mirrors its localized title. The validator enforces every locale and the Google Play character limits. This is a source/CI guard only; verify the public Store page after any separately authorized correction.
 - Check accessibility, narrow layouts, landscape, backup/restore, and both distribution flavors for UI or data-flow changes.
 - Direct release 0.492 (2026-09-24 21:40 UTC): signed tag `v0.492`, source commit `9c1f157`, build [36061420227](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/36061420227), and public update-repository commit `1250f7e` publish proper Android app names/icons in Battery usage. Direct and Play unit tests, lint, and debug APK builds passed locally; CI also passed metadata validation, Direct tests/lint, signed APK/AAB builds, signer-lineage verification, and provenance attestations. Fresh public files match `latest.json`: package `com.ampere.batterylab`, code/name `492`/`0.492`, APK SHA-256 `f4a803af943f4f5e6fbbeed7956d9d00ea2286259620ffd5aa00e6e745ee1fca`, AAB SHA-256 `9f87c80029c26dff3ce287c9a3ae0ba2fb91fd63be47b3bb2c230d9a98fce4c6`. This is a Direct release only; no Play track changed.
 - Record new durable facts in `docs/AI-PROJECT-CONTEXT.md` and update this file when an instruction or invariant changes.
@@ -237,3 +257,122 @@ Follow `docs/STORE-PUBLISHING.md`, `docs/UPDATE-SECURITY.md`, and `tooling/relea
 - Play-Veröffentlichung abgeschlossen (2026-09-24 20:11 UTC / 22:11 Berlin): Nach der ausdrücklichen Bestätigung `Alle 32 Änderungen veröffentlichen` wurde im Managed-Publishing-Dialog die gesamte bestätigte Submission `62` veröffentlicht. Die Console-Übersicht meldet `Zuletzt veröffentlicht am 24. September 2026` und keine unveröffentlichten Änderungen. Der aktive Alpha-Track zeigt `489 (0.489)` als neuesten Play-Release, Status `Für ausgewählte Tester verfügbar`, veröffentlicht am 24. Sept. 22:08 (Console-Anzeige), für 177 Länder/Regionen und 20.367 unterstützte Geräte. Die aufgeklappte Release-Zusammenfassung verlinkt Bundle-Codes `489` und `459`; der kompatible Fallback blieb im Track. Damit ist 0.489 laut Console für geschlossene Tester verfügbar; die Play-Auslieferung auf einzelnen Geräten kann laut Bestätigungsdialog etwa eine Stunde oder länger brauchen. Die 31 Store-Einträge wurden ebenfalls veröffentlicht; `es-ES` enthält im Einreichungsdetail weiterhin den App-Namen `Laboratorio de baterías Ampere`. Keine Internal- oder Production-Veröffentlichung wurde vorgenommen. Der Testerzähler wurde bei dieser Aktion nicht neu geöffnet; letzter verifizierter Stand bleibt 12 Tester für 2 Tage und die 14-Tage-Anforderung unvollständig. Der separat dokumentierte Direct-Release `0.490` wurde nicht in Play Alpha veröffentlicht; eine Play-Einreichung dieser Version benötigt eine separate Release-Prüfung und Autorisierung.
 - Direct-Release 0.491 (2026-09-24 20:49 UTC): signiertes Tag `v0.491`, Quell-Commit `4bccb62`, Build [36057134713](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/36057134713) und Update-Repository-Commit `eb6301b` veröffentlichen die Home-Messungsrückmeldung. CI bestand Metadatenprüfung, Direct-Tests/Lint, APK- und AAB-Bau, Signatur-/Zertifikatslinienprüfung und Provenienzattestierungen. Frisch aus dem öffentlichen Repository geladene APK/AAB und `latest.json` stimmen überein: Paket `com.ampere.batterylab`, Version `491`/`0.491`, APK SHA-256 `1405182a01309977f999e4871f4c25aff97412c921535ddfd4e3a18521e99781`, AAB SHA-256 `cfe6d96059489febcd54b1b22561a0df034cba7223f697380012b6605684fd2a`. Dies ist eine Direct-Veröffentlichung.
 - Alpha-API-Status und Auflösung (2026-09-24 21:07–21:17 UTC): Lauf `36058499740` scheiterte, weil Play den redundanten Code `489` neben `491` ablehnte. Läufe `36059380824`/`36060077090` meldeten irrtümlich fehlenden Fallback `459`; die Ursache war die jq-Mitgliedschaftsprüfung, nicht ein Console/API-Widerspruch. Read-only Snapshot `36060077090` und Console zeigten beide `459,489`; die korrigierte Prüfung bestand in `36060317662`. Lauf `36060437602` lud `0.491` mit nur dem bestätigten Fallback `459` erfolgreich auf Alpha hoch; Submission `63` enthält nur den Alpha-Release und steht laut aktuellem Console-Readback noch auf `Wird überprüft`. Bis zur Google-Freigabe nicht als verfügbar für Tester bezeichnen.
+- Aktueller Play-Versionsstand (2026-09-24 23:12 UTC / 2026-09-25 01:12 Berlin): Submission `63` für `0.491` wurde über Managed Publishing veröffentlicht; der Track zeigt `0.491` als `Für ausgewählte Tester verfügbar` (25. Sept. 01:03 Console-Zeit). Danach bestand Validierungslauf [36070934480](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/36070934480); Uploadlauf [36071033485](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/36071033485) verifizierte öffentliches `latest.json`/AAB `0.492`, Code `492`, prüfte Play-`minSdk 24`, las vor dem Upload per Android Publisher API den aktiven Alpha-Stand `459,491`, erhielt erfolgreichen Upload und behielt Code `459` als API-23-Fallback. Die authentifizierte Console zeigt nun Submission `64` als `Wird überprüft`, Quelle `API`, genau eine Änderung `Geschlossener Test - Alpha`, `0.492`, vollständiger Roll-out. Alpha bleibt aktiv; Release `0.491` ist für ausgewählte Tester verfügbar; `0.492` ist noch nicht Play-downloadbar. Die Console zeigt für den Track 177 Länder/Regionen und 20.367 unterstützte Android-Geräte. Dashboard: 12 Tester für 2 zusammenhängende Tage; das 14-Tage-Kriterium ist unvollständig und Produktionszugriff deaktiviert. Während Submission 64 in Prüfung ist keinen weiteren Upload oder Console-Edit starten. Bei Freigabe Details erneut prüfen und ausschließlich Submission 64 veröffentlichen, falls weiterhin die eine Alpha-Binäränderung samt bestätigtem Fallback `459` vorliegt; keine Store-Einträge, Internal, Open Testing oder Production veröffentlichen.
+- Lokaler UI-Folgefix (2026-09-24 23:28 UTC / 2026-09-25 01:28 Berlin): Batterie-App-Nutzungsdetails erhalten eigene Drawable-Kopien, damit Android-App-Symbole nach dem Canvas-Zeichnen sichtbar bleiben; der Detail-Button `Schließen` ist lokalisiert. Ein unzulässiger Start der Kapazitätsmessung zeigt nun zusätzlich dauerhaft sichtbares, lokalisiertes Feedback und aktualisiert die Bedienungshilfe. Version `0.493`/Code `493` ist nur im lokalen Quellstand. Direct- und Play-Unit-Tests (je 444), Lint und Debug-APK-Bau waren erfolgreich; Emulator-Screenshots liegen auf der externen SSD unter `System_Offload/codex_runtimes/state/ampere-usage-audit-20260925/`. Keine Veröffentlichung oder Play-Änderung: Submission `64` für `0.492` ist laut letzter Console-Prüfung noch in Review; daher den Hinweis oben beachten.
+- Zusatzprüfung UI-Layout (2026-09-24 23:36 UTC / 2026-09-25 01:36 Berlin): App usage wurde bei 320×640 dp Hochformat und 800×400 dp Querformat geprüft. Namen, Symbole, Zeitraumtabs und `CLOSE` bleiben erreichbar; die Detailseite scrollt im Querformat bis zur zweiten App und zum Schätz-Hinweis. Screenshots `21`–`30` liegen im oben genannten SSD-Auditordner. Danach wurden Emulatorgröße (400×800), `GET_USAGE_STATS` (default) und App-Daten zurückgesetzt; Inhalte der 9 regulären App-Dateien stimmen mit dem Vorher-Archiv überein.
+- Play-Console-Livecheck (2026-09-24 23:38 UTC / 2026-09-25 01:38 Berlin): Submission `64` steht weiterhin auf `Wird überprüft` und enthält genau eine Änderung: geschlossener Alpha-Track, Version `0.492`, vollständiger Roll-out. Daher ist `0.492` noch nicht für Tester verfügbar; `0.491` bleibt die zuletzt bestätigte Play-Testversion. Dashboard: 12 Tester für 2 zusammenhängende Tage, 14-Tage-Kriterium unvollständig, Produktionszugriff deaktiviert. Während der Prüfung weder Upload noch Console-Änderung starten.
+- Spanischer Markenname: lokaler CI-Schutz (2026-09-24 23:54 UTC / 2026-09-25 01:54 Berlin): Die nach dem Live-Check bestätigte Fehlanzeige `Laboratorio de baterías Ampere` ist jetzt als Regression abgesichert: `store/google-play/listing/app-name-es-ES.txt` hielt damals `Ampere Battery Lab` als es-ES-Namen fest; der damalige Guard verlangte eine exakte Übereinstimmung mit `app-name.txt`. Diese Regel wurde am 2026-09-25 durch lokalisierte Titel für alle sieben Sprachen ersetzt; `app-name-es-ES.txt` spiegelt nun `locales/es-ES/app-name.txt`. Die bestehende Metadaten-CI reagiert bereits auf Änderungen unter `store/google-play/listing/**`, und der Android-Build ruft denselben Guard auf. Lokal bestanden: Guard mit gültigem Inhalt (18/30 und deutsche Kurzbeschreibung 73/80) sowie Negativprobe mit abweichender Namensdatei, die erwartungsgemäß abbricht. `docs/STORE-PUBLISHING.md` beschreibt jetzt den echten Alpha-only-Prozess statt des überholten internen Upload-Ablaufs. Das repariert nicht den live geschalteten Play-Titel. Um 23:47 UTC war Submission 64 weiterhin `Wird überprüft`; deshalb keine Play-Console-Änderung, kein Upload, keine Veröffentlichung und kein GitHub-Workflow-Dispatch.
+- Bestätigter spanischer Store-Titel-Fehler (gleicher Check): Die öffentliche [es-ES-Play-Seite](https://play.google.com/store/apps/details?id=com.ampere.batterylab&hl=es_ES&gl=ES) zeigt als Titel `Laboratorio de baterías Ampere`. Der es-ES-Editor zeigt dagegen `Ampere Battery Lab` (18/30) und die spanischen Beschreibungen; `Verwerfen` und `Als Entwurf speichern` sind deaktiviert. Damit ist der falsche Titel öffentlich live, obwohl der aktuelle Editorwert korrekt ist; der genaue Reparaturpfad ist noch ungeklärt. Keine Listings während Submission 64 bearbeiten. Nach Abschluss der Prüfung den einzelnen spanischen Titel als separaten Entwurf korrigieren und den öffentlichen Eintrag verifizieren; nicht ohne neue ausdrückliche Freigabe veröffentlichen.
+- Wachstum/Qualität/Richtlinien (gleicher Check): letzte 28 Tage `Gerät`: 6 Impressionen, 2 Akquisitionen und 2 Erstöffnungen; monatlich aktive Geräte und 7-Tage-Bindung nicht verfügbar. Store-Einträge, Daten bis 19. Sept.: 3 Besucher, 2 Einzel-Nutzer-Installationsklicks (67 %); Standard-Eintrag 1 Besucher, Conversion `-`. Zu kleine Basis für Experimente. Play-KI beschrieb je eine installierte App/Nutzer in Chile, Indien und Italien ohne Spitzen; bei diesen wenigen Beobachtungen nur schwacher Hinweis. Android Vitals zeigte im gewählten 28-Tage-Filter keine nutzerwahrgenommenen Absturz-/ANR-Berichte und keine archivierten Problemgruppen; Pre-Launch-Seite zeigte noch keinen Bericht. Das beweist weder null Fehler noch ein fertiges Pre-Launch-Ergebnis. App-Inhalte: keine erforderlichen Erklärungen, 11 abgeschlossen; Datensicherheit fasst 3 Datentypen, Verschlüsselung bei Übertragung und automatische Löschung zusammen. Richtlinienstatus: `Keine Sicherheitslücken gefunden`. Keine Console-Einstellung, Listing, Benachrichtigung oder Track geändert.
+- Grenzwert-Klarstellung für die Kapazitätsmessung (2026-09-24 23:49 UTC / 2026-09-25 01:49 Berlin): Guard und alle sichtbaren deutschen/englischen Hilfen stimmen nun ausdrücklich bei `25 % oder weniger` überein. Emulatorcheck: bei 100 % und angeschlossenem Ladegerät blockiert die Schaltfläche mit sichtbarem Hinweis und passender TalkBack-Beschreibung; bei genau 25 % und getrenntem Ladegerät startet sie. Stop, Akkusimulator, App-Daten und `GET_USAGE_STATS` wurden zurückgesetzt. Abschließender Direct-/Play-Lauf: je 444 Tests ohne Fehler, Lint und Debug-APK-Bau erfolgreich.
+- Direct-Release 0.493 (2026-09-25 00:05 UTC / 02:05 Berlin): commit `248a4d0`, signed tag `v0.493`, GitHub Actions run [36075193237](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/36075193237), public update-repository commit `f08ca7d`. CI passed metadata validation, Direct tests/lint, signed APK and Play-AAB builds, certificate-lineage verification, provenance attestations, and artifact upload. Fresh public downloads match `latest.json`: package `com.ampere.batterylab`, version `493`/`0.493`, APK SHA-256 `459d9af63f10250e431d3595117b93d94405cf2f0093b3bfdbcbf08598d46faa`, AAB SHA-256 `f226f6990668a5187c5e083dc1f719364bbda2586b315351e0901bb49b65d383`; both release-note languages are present. This updates the Direct channel only. No Play upload or Console edit was performed; the last recorded authenticated Console check at 01:47 Berlin still showed Submission `64` for Alpha `0.492` in review.
+
+
+### App name and preliminary trademark search (2026-09-25)
+
+The user-facing product name is now AkkuTakt. Android and iOS display names,
+the local Google Play metadata sources, the Apple description source, and the
+tester-recruitment draft were updated. The Google Play title and description
+have not been edited in Console or published; the parked es-ES Console draft
+and public listing still use the earlier name. The short Play source description
+includes “Akku-Monitor”, “Ladestatus”, and “Batterienutzung” for search relevance.
+
+The Android application ID and iOS bundle ID remain com.ampere.batterylab for
+existing-installation update continuity. The Direct APK update filename remains
+Ampere-Battery-Lab-release.apk because it is part of the already-deployed
+update URL allowlist; do not rename that artifact path as part of the display
+name change.
+
+A preliminary exact-name DPMAregister search returned no AkkuTakt hit, and
+the initial app-store/web search found no exact app-name result. This is not
+trademark clearance: no full EUIPO/TMview/WIPO similarity search, class review,
+or search for unregistered business/product-name rights has been completed.
+Before broad commercial use or filing, follow the official DPMA/EUIPO search
+guidance and obtain a qualified similarity review: https://www.dpma.de/marken/faq/
+and https://www.euipo.europa.eu/en/trade-marks/before-applying/availability.
+Section 14 MarkenG describes the risk from identical or similar signs and
+confusion for related goods/services:
+https://www.gesetze-im-internet.de/markeng/__14.html. The name was selected as
+a lower-apparent-risk replacement for Ampere, which is already used by a large
+battery-measurement app; that comparison is a practical risk inference, not a
+legal finding.
+
+### Google Play AkkuTakt listing submission (2026-09-25)
+
+At 13:40 UTC / 15:40 Berlin, after the user's explicit authorization, the
+authenticated Play Console submitted change set 66 for review. It contains
+exactly 85 Store-entry changes: one new en-US default listing and three fields
+(title, short description, full description) for each of 28 existing locales.
+It contains no APK/AAB, track, tester, asset, or Production change. Console
+status is “Wird überprüft”; Managed Publishing is enabled, so the new name and
+descriptions are not live yet. Publish only this exact authorized listing
+submission after Google approves it and a fresh queue check confirms there are
+no additional changes. This supersedes the earlier same-day note that the
+Spanish draft was merely saved for later.
+
+The seven repository-controlled Google Play locale sources passed
+`bash tooling/validate-google-play-metadata.sh`; `git diff --check` passed.
+Google's machine translations were checked for title/short-description length
+and brand spelling and corrected where needed, but the 22 machine-translated
+locales have not received native-speaker review. Do not describe them as
+professionally verified. Both Android Direct and Play debug flavors passed
+444 unit tests each, lint, and debug assembly under Java 17 at 13:50 UTC. The
+working-tree app version remains 0.493/code 493; no new signed release or Play
+upload was made. Keep Play upload blocked during Submission 66 review; after
+it clears, follow the documented Alpha-only preflight and use a monotonically
+increasing code for any new bundle.
+
+### AkkuTakt Store-Name live and 0.494 release in preparation (2026-09-25 14:29 UTC / 16:29 Berlin)
+
+The preceding Submission 66 review is complete and the authorized Store-entry
+batch is live. The authenticated Console showed Submission 66 `Veröffentlicht`
+at 16:08 Berlin, with exactly 85 Store-entry changes and no binary, track, or
+tester changes. The Publishing overview is empty and Managed Publishing is
+still enabled. The public German Play page now shows `AkkuTakt: Akku-Monitor`
+and `Akku-Monitor: Ladestatus, Verlauf und Batterienutzung — lokal, ohne
+Konto.`; it was marked updated 25 Sep. The 28 machine-translated locales in
+that batch have not had native-speaker review. The public developer-account
+byline still says `Ampere Battery Lab`; it is account-wide and was not changed.
+
+Fresh Console status: closed Alpha is active on `0.493`/code `493` plus the
+API-23 compatibility fallback `459`, in 177 regions for 20,367 supported
+devices. Dashboard reports 12 testers for 2 consecutive days; the 14-day
+criterion remains incomplete and Production access is disabled. No tester
+enrollment changed. A fresh Play validation-only run
+[36146448627](https://github.com/Apfelkringel/ampere-battery-lab/actions/runs/36146448627)
+confirmed API codes `[459,493]` agree with Console and skipped upload because
+493 is already active. The Publishing queue was empty at preflight.
+
+Public `latest.json` and Play AAB are still `0.493`/493 with SHA-256
+`f226f6990668a5187c5e083dc1f719364bbda2586b315351e0901bb49b65d383`.
+The local Android source has been monotonically bumped to `0.494`/494 for the
+rebrand binary; both Direct and Play debug unit tests (444 each), lint, and
+debug assembly passed with Java 17, as did metadata validation and
+`git diff --check`. This is not yet a signed or public release and is not yet
+available to testers. Continue only with the documented fresh Console/API
+preflight, signed `v0.494` artifact, public manifest/hash verification, and
+the existing Alpha-only workflow. Do not publish other tracks or Production.
+
+Play growth remains too sparse for experiments: last 28 days show 17 device
+impressions, 2 acquisitions, and 2 first opens; monthly active devices and
+7-day retention are unavailable. The separate 90-day Store-entry card says
+66.67% conversion; do not merge these different surfaces into a funnel.
+Store-listing experiments remain 0 running / 0 completed / 0 applied.
+Android Vitals had no crash/ANR result rows and no numeric rate available,
+which is not proof of zero incidents. Pre-Launch has no report yet; Console
+says uploading an artifact to a track creates one. Recheck it after the next
+Alpha upload. No new policy/security blocker was identified; keep the known
+SDK warnings scoped to fallback 0.459 and do not delete notifications.
+
+
+### Seven-language name and store metadata (2026-09-25)
+
+AkkuTakt display names now include a localized battery-monitor descriptor in
+German, English, Spanish, French, Italian, Brazilian Portuguese, and Dutch.
+Android resources and iOS InfoPlist.strings cover the same seven app languages.
+Google Play sources contain localized titles, short descriptions, and full
+descriptions for those locales. Apple App Store sources include localized
+names, subtitles, keywords, promotional text, and descriptions. Metadata is
+source-only: no Play Console or App Store Connect listing was edited or
+published. The public Play listing and the parked Spanish draft remain at their
+previous state until a separate, authorized listing update.

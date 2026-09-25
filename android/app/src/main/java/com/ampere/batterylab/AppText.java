@@ -11,7 +11,7 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** Small, dependency-free UI language layer used by the custom canvas and services. */
+/** Resolves the selected UI locale and translates the German-source canvas copy. */
 final class AppText {
     private static final String LANGUAGE_KEY = "appLanguage";
     private static volatile String[][] sortedTranslationPhrases;
@@ -58,37 +58,98 @@ final class AppText {
             LocaleManager localeManager = activity.getSystemService(LocaleManager.class);
             if (localeManager != null) {
                 localeManager.setApplicationLocales(LocaleList.forLanguageTags(languageTag));
+                return;
             }
-        } else {
-            BatteryDataRepository.data(activity).edit().putString(LANGUAGE_KEY, languageTag).apply();
-            activity.recreate();
+        }
+        BatteryDataRepository.data(activity).edit().putString(LANGUAGE_KEY, languageTag).apply();
+        activity.recreate();
+    }
+
+    static String languageTag(Context context) {
+        if (context != null && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            String stored = BatteryDataRepository.data(context).getString(LANGUAGE_KEY, "");
+            if (stored != null && !stored.isEmpty()) return normalizeLanguageTag(stored);
+        }
+        Locale locale = configuredLocale(context);
+        return normalizeLanguageTag(locale.toLanguageTag());
+    }
+
+    private static String normalizeLanguageTag(String tag) {
+        if (tag == null) return "de";
+        switch (Locale.forLanguageTag(tag).getLanguage().toLowerCase(Locale.ROOT)) {
+            case "en": return "en";
+            case "es": return "es";
+            case "fr": return "fr";
+            case "it": return "it";
+            case "pt": return "pt-BR";
+            case "nl": return "nl";
+            default: return "de";
+        }
+    }
+
+    static String languageName(String languageTag) {
+        if (languageTag == null) return "Deutsch";
+        switch (languageTag.toLowerCase(Locale.ROOT)) {
+            case "en": return "English";
+            case "es": return "Español";
+            case "fr": return "Français";
+            case "it": return "Italiano";
+            case "pt-br": return "Português (Brasil)";
+            case "nl": return "Nederlands";
+            default: return "Deutsch";
         }
     }
 
     static boolean isEnglish(Context context) {
-        if (context == null) return "en".equalsIgnoreCase(Locale.getDefault().getLanguage());
+        return "en".equals(languageTag(context));
+    }
+
+    private static Locale configuredLocale(Context context) {
+        if (context == null) return Locale.getDefault();
         Configuration configuration = context.getResources().getConfiguration();
-        Locale locale;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            locale = configuration.getLocales().isEmpty()
-                    ? Locale.getDefault() : configuration.getLocales().get(0);
-        } else {
-            //noinspection deprecation
-            locale = configuration.locale == null ? Locale.getDefault() : configuration.locale;
+            if (!configuration.getLocales().isEmpty()) return configuration.getLocales().get(0);
         }
-        return "en".equalsIgnoreCase(locale.getLanguage());
+        //noinspection deprecation
+        return configuration.locale == null ? Locale.getDefault() : configuration.locale;
     }
 
     /** Locale used by every user-visible numeric value, including widgets and services. */
     static Locale uiLocale(Context context) {
-        return isEnglish(context) ? Locale.US : Locale.GERMANY;
+        Locale configured = configuredLocale(context);
+        switch (languageTag(context)) {
+            case "en": return localeWithRegion(configured, "en", "US");
+            case "es": return localeWithRegion(configured, "es", "ES");
+            case "fr": return localeWithRegion(configured, "fr", "FR");
+            case "it": return localeWithRegion(configured, "it", "IT");
+            case "pt-BR": return Locale.forLanguageTag("pt-BR");
+            case "nl": return localeWithRegion(configured, "nl", "NL");
+            default: return Locale.GERMANY;
+        }
+    }
+
+    private static Locale localeWithRegion(Locale configured, String language, String defaultRegion) {
+        return language.equals(configured.getLanguage()) && !configured.getCountry().isEmpty()
+                ? configured : new Locale(language, defaultRegion);
     }
 
     static String t(Context context, String value) {
-        // Use the context locale here instead of Locale.getDefault(). Android
-        // supports an app-specific language, so the app can be English while
-        // the rest of the device remains in another language.
-        return isEnglish(context) ? translate(value) : value;
+        // Use the app context instead of Locale.getDefault(): Android lets users
+        // choose a language for AkkuTakt independently of the device language.
+        if (value == null || value.isEmpty()) return value;
+        String language = languageTag(context);
+        if ("de".equals(language)) return value;
+        String english = translate(value);
+        return "en".equals(language)
+                ? english : AppTranslationCatalog.translate(context, language, english);
+    }
+
+    /** Translates English source copy without passing it through German compatibility rules. */
+    static String fromEnglish(Context context, String value) {
+        if (context == null || value == null || value.isEmpty()) return value;
+        String language = languageTag(context);
+        return "de".equals(language) || "en".equals(language)
+                ? value : AppTranslationCatalog.translate(context, language, value);
     }
 
     /**
@@ -113,7 +174,7 @@ final class AppText {
         if (percentComparison.find()) value = percentComparison.replaceAll("$1 of $2");
         if ("Start".equals(value)) return "Home";
         if ("Quelle: USB-Ladegerät".equals(value)) return "Source: USB charger";
-        if ("Ampere · Großschrift".equals(value)) return "Ampere · Large text";
+        if ("AkkuTakt · Großschrift".equals(value)) return "AkkuTakt · Large text";
         if ("Android-Systemschätzung".equals(value)) return "Android system estimate";
         if ("Prüfen".equals(value)) return "Check";
         if ("Kapazität aus ".equals(value)) return "Capacity from ";
@@ -408,7 +469,7 @@ final class AppText {
                 {"Mäßig", "Moderate"}, {"Notfall", "Emergency"}, {"Abschaltung", "Shutdown"},
                 {"Ladeende noch nicht stabil (über 25 mA)", "Charge end is not stable yet (above 25 mA)"},
                 {" · Datenlücke", " · data gap"},
-                {"Damit ordnet Ampere den geschätzten", "This lets Ampere attribute estimated"},
+                {"Damit ordnet AkkuTakt den geschätzten", "This lets AkkuTakt attribute estimated"},
                 {"Nutzungszugriff ist optional", "Usage access is optional"},
                 {"Zugriff einrichten  →", "Set up access  →"},
                 {"Beobachten", "Monitor"}, {"Prüfung empfohlen", "Check recommended"},
@@ -501,7 +562,7 @@ final class AppText {
                 {"Lernen braucht", "Learning takes"}, {"ein wenig Zeit.", "a little time."},
                 {"Systemzyklen", "System cycles"}, {"von Android gemeldet", "reported by Android"},
                 {"Android-Testwert", "Android test value"}, {"Android-Akkusensor", "Android battery sensor"},
-                {"Ampere-Vollzyklen", "Ampere full cycles"}, {"MESSBASIS", "MEASUREMENT BASELINE"},
+                {"Äquivalente Vollzyklen", "Equivalent full cycles"}, {"MESSBASIS", "MEASUREMENT BASELINE"},
                 {"VOLLE KAPAZITÄT", "FULL CAPACITY"}, {"AKKUSPANNUNG", "BATTERY VOLTAGE"},
                 {"SYSTEMZYKLEN", "SYSTEM CYCLES"},
                 {"BILDSCHIRM", "SCREEN"}, {"VERBRAUCH", "USAGE"},
@@ -572,14 +633,14 @@ final class AppText {
                 {"Nicht erteilt · optional", "Not granted · optional"},
                 {"Overlay", "Overlay"}, {"Live-Anzeige", "Live overlay"},
                 {"Einige Zugriffe fehlen oder wurden von Android zurückgesetzt.", "Some accesses are missing or were reset by Android."},
-                {"Ampere prüft sie beim Öffnen erneut", "Ampere checks them again when opened"},
+                {"AkkuTakt prüft sie beim Öffnen erneut", "AkkuTakt checks them again when opened"},
                 {"abgelehnte optionale Zugriffe melden wir höchstens monatlich.", "we remind you about declined optional accesses at most once a month."},
                 {"Widerrufe erkennen wir beim nächsten Öffnen.", "We detect revoked access the next time you open the app."},
                 {"Benachrichtigungen ermöglichen Live-Status und Ladealarme.", "Notifications enable live status and charge alerts."},
                 {"App-Nutzungszugriff zeigt den Verbrauch je App", "App usage access shows usage by app"},
                 {"Overlay zeigt die Live-Anzeige über anderen Apps.", "Overlay shows the live display over other apps."},
                 {"Diese beiden Zugriffe sind optional.", "These two accesses are optional."},
-                {"Ampere prüft den Status beim Öffnen erneut.", "Ampere checks their status again when opened."},
+                {"AkkuTakt prüft den Status beim Öffnen erneut.", "AkkuTakt checks their status again when opened."},
                 {"Tippe auf einen Eintrag, um ihn zu ändern.", "Tap an entry to change it."},
                 {"Temperaturwarnung ausgeschaltet", "Temperature alert turned off"},
                 {"Tiefstandwarnung ausgeschaltet", "Low battery alert turned off"},
@@ -632,7 +693,7 @@ final class AppText {
                 {"Live-Akkuanzeige", "Live battery overlay"},
                 {"App-Aktualisierungen", "App updates"},
                 {"Update verfügbar · ", "Update available · "},
-                {"Ampere-Update verfügbar · ", "Ampere update available · "},
+                {"AkkuTakt-Update verfügbar · ", "AkkuTakt update available · "},
                 {"Update", "Update"}, {"verfügbar", "available"},
                 {"Update verfügbar", "Update available"},
                 {"Tippen zum Herunterladen", "Tap to download"},
@@ -660,7 +721,7 @@ final class AppText {
                 {"Kostenloses Update wird heruntergeladen", "Free update is downloading"},
                 {"Update konnte nicht gestartet werden.", "The update could not be started."},
                 {"Installation einmal erlauben", "Allow installation once"},
-                {"Android braucht deine Freigabe, damit Ampere eine APK zur Installation übergeben darf. Es wird noch nichts heruntergeladen. Nach der Freigabe erscheint das Update hier erneut; Android fragt vor der Installation zusätzlich nach deiner Bestätigung.", "Android needs your permission before Ampere can hand over an APK for installation. Nothing is downloaded yet. After you allow it, the update will appear here again; Android will also ask for confirmation before installing."},
+                {"Android braucht deine Freigabe, damit AkkuTakt eine APK zur Installation übergeben darf. Es wird noch nichts heruntergeladen. Nach der Freigabe erscheint das Update hier erneut; Android fragt vor der Installation zusätzlich nach deiner Bestätigung.", "Android needs your permission before AkkuTakt can hand over an APK for installation. Nothing is downloaded yet. After you allow it, the update will appear here again; Android will also ask for confirmation before installing."},
                 {"Installationsfreigabe bitte in den App-Einstellungen aktivieren.", "Please enable installation permission in the app settings."},
                 {"Update-Download fehlgeschlagen.", "Update download failed."},
                 {"Update verworfen: Datei ist zu groß.", "Update discarded: file is too large."},
@@ -681,13 +742,13 @@ final class AppText {
                 {"Live-Benachrichtigung:", "Live notification:"},
                 {"Hintergrunddienst:", "Background service:"},
                 {"Akkuoptimierung:", "Battery optimization:"},
-                {"Wenn kein aktuelles Dienstsignal vorliegt, öffne Ampere einmal; dabei wird die Überwachung neu gestartet.", "If there is no recent service signal, open Ampere once; monitoring will be restarted."},
+                {"Wenn kein aktuelles Dienstsignal vorliegt, öffne AkkuTakt einmal; dabei wird die Überwachung neu gestartet.", "If there is no recent service signal, open AkkuTakt once; monitoring will be restarted."},
                 {"Android kann sie nach „Stopp erzwingen“ oder durch Hersteller-Energiesparregeln anhalten.", "Android may stop it after “Force stop” or because of manufacturer power-saving rules."},
-                {"Ampere überwacht den Akku über einen sichtbaren Android-Dienst.", "Ampere monitors the battery through a visible Android service."},
+                {"AkkuTakt überwacht den Akku über einen sichtbaren Android-Dienst.", "AkkuTakt monitors the battery through a visible Android service."},
                 {"Sind Benachrichtigungen gesperrt, kann der Dienst trotzdem laufen, aber seine Live-Anzeige fehlt.", "The service may still run when notifications are blocked, but its live display is unavailable."},
                 {"Energiesparfunktionen des Herstellers oder „Stopp erzwingen“ können die Überwachung anhalten.", "Manufacturer power-saving features or “Force stop” can stop monitoring."},
-                {"Im Tiefschlaf darf Android Aktualisierungen verzögern; Ampere hält das Gerät bewusst nicht dauerhaft wach, um keinen zusätzlichen Akkuverbrauch zu verursachen.", "During deep sleep, Android may delay updates; Ampere deliberately does not keep the device awake to avoid extra battery use."},
-                {"Ampere überwacht den Akku", "Ampere is monitoring your battery"},
+                {"Im Tiefschlaf darf Android Aktualisierungen verzögern; AkkuTakt hält das Gerät bewusst nicht dauerhaft wach, um keinen zusätzlichen Akkuverbrauch zu verursachen.", "During deep sleep, Android may delay updates; AkkuTakt deliberately does not keep the device awake to avoid extra battery use."},
+                {"AkkuTakt überwacht den Akku", "AkkuTakt is monitoring your battery"},
                 {"Akkubetrieb", "On battery"}, {"Akku entlädt", "Battery discharging"},
                 {"Akkumesswerte werden auf diesem Gerät gespeichert", "Battery measurements are stored on this device"},
                 {"Laden erkannt", "Charging detected"}, {"nicht gemessen", "not measured"},
@@ -775,7 +836,7 @@ final class AppText {
                 {"geladen geteilt durch verbraucht", "charged divided by used"},
                 {"aufgeladen", "charged"}, {"verbraucht", "used"},
                 {"Die Lade-/Usagesquote vergleicht geladene mit verbrauchter Energie und ist keine gemessene Battery-Efficiency. Balkenwerte (jede Kennzahl ist separat skaliert):", "The charge/usage ratio compares charged with used energy and is not measured battery efficiency. Bar values (each metric is scaled separately):"},
-                {"EFC sind äquivalente Vollzyklen, kein direkt gemessener chemischer Healthsverlust.", "EFC are equivalent full cycles, not a directly measured chemical health loss."}
+                {"EFC sind äquivalente Vollzyklen, kein direkt gemessener chemischer Gesundheitsverlust.", "EFC are equivalent full cycles, not a directly measured chemical health loss."}
                 ,{"Messstatus", "Measurement status"}, {"useder", "used"},
                 {"Battery-Efficiency", "battery efficiency"},
                 {"Die Charge/usage ratio vergleicht geladene mit useder Energie und ist keine gemessene Battery-Efficiency. Balkenwerte (jede Kennzahl ist separat skaliert):", "The charge/usage ratio compares charged with used energy and is not measured battery efficiency. Bar values (each metric is scaled separately):"},
@@ -941,7 +1002,7 @@ final class AppText {
             case "Aktuellen Status kopieren": return "Copy current status";
             case "Aktuellen Status teilen": return "Share current status";
             case "Ausgewählter Zeitraum": return "Selected period";
-            case "Ampere-Live-Anzeige aktiv": return "Ampere live display is active";
+            case "AkkuTakt-Live-Anzeige aktiv": return "AkkuTakt live display is active";
             case "Live-Akkumesswerte werden auf dem Bildschirm angezeigt":
                 return "Live battery measurements are shown on screen";
             case "Akkuverbrauch deiner Apps anzeigen": return "Show battery usage by app";

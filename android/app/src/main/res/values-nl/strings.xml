@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">AkkuTakt: Batterijmonitor</string>
+    <string name="widget_battery">Batterij</string>
+    <string name="widget_current_unavailable">Stroom —</string>
+    <string name="dream_service_label">AkkuTakt-batterijweergave</string>
+</resources>

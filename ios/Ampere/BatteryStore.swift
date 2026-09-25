@@ -82,7 +82,7 @@ final class BatteryStore: ObservableObject {
 
     var statusSummary: String {
         let format = NSLocalizedString(
-            "Ampere Battery Lab\nBattery level: %@\nStatus: %@\nLast reading: %@\nOnly local iOS readings; current, voltage and battery health are not publicly available.",
+            "AkkuTakt\nBattery level: %@\nStatus: %@\nLast reading: %@\nOnly local iOS readings; current, voltage and battery health are not publicly available.",
             comment: "Shared battery status summary")
         return String.localizedStringWithFormat(format, levelText, statusTitle, lastUpdatedText)
     }
